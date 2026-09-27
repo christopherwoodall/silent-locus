@@ -45,18 +45,18 @@ FINGERPRINTS = [
     ("ntfy-topic", re.compile(r"ntfy\.(?:sh|envs\.net)/[^\s\"'<>\\]{1,120}"), "high"),
     ("webhook-inbox", re.compile(r"webhook\.site/[^\s\"'<>\\]{1,120}"), "high"),
     ("filebin-url", re.compile(r"filebin\.net/[^\s\"'<>\\]{1,120}"), "high"),
-    ("paste-url", re.compile(r"paste\.rs/[^\s\"'<>\\]{1,120}"), "medium"),
+    ("paste-url", re.compile(r"paste\.rs/[^\s\"'<>\\]{1,120}"), "likely"),
     ("shortener-url", re.compile(
         r"(?:is\.gd|da\.gd|cutt\.ly|tinyurl\.com|rmn\.re|vanderbi\.lt)/[^\s\"'<>\\]{1,120}"),
      "high"),
-    ("httpbun-url", re.compile(r"httpbun\.com[^\s\"'<>\\]{0,120}"), "medium"),
+    ("httpbun-url", re.compile(r"httpbun\.com[^\s\"'<>\\]{0,120}"), "likely"),
     ("tableau-marker", re.compile(r"tableau-2\.9\.2\.min\.js|tableau\.Viz"), "high"),
     ("controller-stem", re.compile(
         r"\b(?:OTS92|G236|BE90|LIBR11|MARB051|Future9180|SC4)\w*", re.IGNORECASE), "high"),
     ("series-64H", re.compile(
         r"\b(?:GSTX64|PHASEONE64H|LONG64H2718|EARLY64|3FR64B?|[A-Z0-9]{1,20}64H\d*)\b"),
-     "medium"),
-    ("probe-name", re.compile(r"\b[a-z0-9_]*(?:probe)[a-z0-9_]*\b", re.IGNORECASE), "low"),
+     "likely"),
+    ("probe-name", re.compile(r"\b[a-z0-9_]*(?:probe)[a-z0-9_]*\b", re.IGNORECASE), "lead"),
 ]
 
 # Metadata-field fingerprints: the May 2026 campaign's payload lives in the
@@ -213,6 +213,50 @@ def scan_metadata(name, meta_text):
     return hits
 
 
+FALLBACK_TS = "2026-09-27T00:00:00.000Z"  # harvest date; never "now" (schema review E.1)
+
+
+def _diff_ts(dh, version):
+    """Parse the Diffend diff timestamp for this version.
+
+    diff_ts looks like "May 12, 2026 07:56" (UTC). Returns (ISO-8601, True),
+    or (None, False) when absent/unparseable.
+    """
+    vers = dh.get("diffend_versions") or []
+    ts = None
+    for v in vers:
+        if v.get("version") == version and v.get("diff_ts"):
+            ts = v["diff_ts"]
+            break
+    if ts is None:
+        cands = [v.get("diff_ts") for v in vers if v.get("diff_ts")]
+        ts = max(cands) if cands else None
+    if not ts:
+        return None, False
+    try:
+        dt = datetime.strptime(ts.strip(), "%b %d, %Y %H:%M").replace(
+            tzinfo=timezone.utc)
+        return dt.isoformat().replace("+00:00", "Z"), True
+    except ValueError:
+        return None, False
+
+
+def _resolve_pub(dl, dh, version):
+    """Return (first_seen/last_seen ISO, timestamp_source, date_precision).
+
+    Never null, never "now": falls back to the documented harvest-date
+    constant with an explicit flag (hunt fallback convention).
+    """
+    pub = dl.get("published_at")
+    if pub:
+        return pub, "log:published_at", "day"
+    if dh:
+        iso, ok = _diff_ts(dh, version)
+        if ok:
+            return iso, "diffend:diff_ts", "day"
+    return FALLBACK_TS, "fallback:missing_first_seen", "none"
+
+
 def load_ids(path):
     ids = set()
     if os.path.exists(path):
@@ -302,14 +346,18 @@ def main():
                             dl = r
                         elif r.get("record_kind") == "diffend_harvest":
                             dh = r
-        pub = dl.get("published_at")
+        pub, ts_source, date_precision = _resolve_pub(dl, dh, version)
         authors = dl.get("authors") or dh.get("meta_authors")
         evidence_url = dh.get("diff_url") or gem_page
+        status = "dead" if dh else "live"  # burst gems were yanked from rubygems.org
         add_node({"id": gem_id, "label": "%s %s" % (name, version), "type": "gem",
                   "subtype": "diffend-harvest" if dh else "rubygem",
+                  "package": name,
+                  "status": status,
                   "description": "RubyGems package %s version %s (authors: %s)" %
                                  (name, version, authors),
                   "first_seen": pub, "last_seen": pub,
+                  "timestamp_source": ts_source, "date_precision": date_precision,
                   "source_url": evidence_url, "confidence": "confirmed"})
 
         ioc_seen = set()
@@ -331,9 +379,13 @@ def main():
                 ioc_seen.add(iid)
                 add_node({"id": iid, "label": val[:120], "type": "indicator",
                           "subtype": fp,
+                          "value": val,
+                          "label_truncated": len(val) > 120,
                           "description": "metadata fingerprint %s in gemspec of %s-%s" %
                                          (fp, name, version),
                           "first_seen": pub, "last_seen": pub,
+                          "timestamp_source": ts_source,
+                          "date_precision": date_precision,
                           "source_url": evidence_url, "confidence": conf})
             add_edge(gem_id, iid, "exhibits",
                      "%s in gemspec metadata%s (%s)" %
@@ -352,7 +404,8 @@ def main():
                                      (rel, name, version, finfo["sha256"][:16],
                                       "; content not scanned (binary)" if binary else ""),
                       "first_seen": pub, "last_seen": pub,
-                      "source_url": gem_page, "confidence": "confirmed"})
+                      "timestamp_source": ts_source, "date_precision": date_precision,
+                      "source_url": evidence_url, "confidence": "confirmed"})
             add_edge(gem_id, fid, "contains", "static extraction of published tarball")
             if binary:
                 continue
@@ -362,15 +415,19 @@ def main():
                         "gem": name, "version": version, "file": rel,
                         "fingerprint": fp, "matched_string": val,
                         "line_no": lineno, "confidence": conf,
-                        "scan_truncated": trunc}) + "\n")
+                        "scan_truncated": trunc, "note": ""}) + "\n")
                 iid = "ioc-%s-%s" % (fp, sha8(val))
                 if iid not in ioc_seen:
                     ioc_seen.add(iid)
                     add_node({"id": iid, "label": val[:120], "type": "indicator",
                               "subtype": fp,
+                              "value": val,
+                              "label_truncated": len(val) > 120,
                               "description": "phase-two fingerprint %s observed in gem file content" % fp,
                               "first_seen": pub, "last_seen": pub,
-                              "source_url": gem_page, "confidence": conf})
+                              "timestamp_source": ts_source,
+                              "date_precision": date_precision,
+                              "source_url": evidence_url, "confidence": conf})
                 add_edge(fid, iid, "exhibits",
                          "%s hit in %s line %d%s" % (fp, rel, lineno,
                                                      " (scan truncated at 2MiB)" if trunc else ""))
