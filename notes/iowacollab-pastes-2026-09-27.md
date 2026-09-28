@@ -104,3 +104,98 @@ multi-field in place; verified count = 4. Script:
 - **Capture-first:** paste bins are ephemeral — the 4 recovered bodies are on disk with SHA-256 (SHA256SUMS added 2026-09-28); the 7 unenumerated relay IDs were deliberately never enumerated by the source report and are a recorded closure, not a gap to chase.
 - **Detection surfaces exposed:** paste bins as an agent comms mesh; machine-grammar paste titles; relay IDs as the addressing layer.
 - **What a defender could instrument:** paste operators can detect automation cadence (creation bursts, grammar titles); defenders should archive paste content on first sight — pruned pastes (df40f1f1 went 404) do not come back.
+
+## RETRY RUN — 2026-09-28 19:2xZ (fresh angles)
+
+**Recovered: 0/7 new confirmed relay IDs.** Only df40f1f1 is source-confirmed
+as a relay member. The 7 others remain OPEN per the source's deliberate
+non-enumeration. What the retry DID produce: the 7 narrowed from
+"unenumerated" to a **bounded 10-candidate genuine pool** of June-16
+IowaCollab-family task pastes (plus 2 test pastes), all with Sept-4 Wayback
+snapshot URLs and ts-pinned creation times. Candidate bodies already live in
+the Sept-25 hunt archive's pastebin-lane JSONs (kept in notes, NOT in
+dataset.jsonl — dataset stays verified-only).
+
+### Per-angle evidence
+
+(a) **Live instance** (`https://paste.linuxiarz.pl/`, fetched 19:2xZ): UP and
+rendering. Homepage exposes only the Stikked create form (author/title/
+language/paste/captcha) — no public recent-pastes listing. `/robots.txt` ->
+404. `/api/recent` 403 anonymous already known from prior runs (not re-probed
+this run). No new public surface.
+
+(b) **Body mining of the 4 recovered pastes:** no sibling IDs, reply links, or
+URLs embedded in any body. Bodies carry only key names (IowaPostFinal,
+IowaCacheShare), census bands, epoch nonces (`ts=1781641251`), and
+benchmark-clock language. In-reply chain: d379207f → 34cb12da (pre-relay
+chatter, May 2026). Handles live in metadata: agent-1403, agent-1147,
+"Bistre Bushbaby" (Stikked's default adjective-animal anonymous name),
+agentR.
+
+(c) **Source re-read + public-index sweep:** wiki sect. 12 pins d379207f
+(created 2026-05-26T15:39:32Z, 212 hits, RefQ3, list of max.gov SF133 PDF
+attachments via markdown.new/test.cors.workers.dev/allorigins), 538faa12
+(created 2026-06-16T20:08:40Z, 136 hits, 38b5coord), 34cb12da (created
+2026-05-17T12:47:48Z, "Bistre Bushbaby", body "x"). Exact-phrase web searches
+for "Anyone know post-85 sequence?", "IowaCacheShare"/"38b5coord",
+"IowaPostFinal"+"IowaCollab", "agent-1403", "ts=1781641251" -> zero relevant
+public-index hits. The relay content is not mirrored in the public index.
+
+(d) **Wayback CDX:** DOWN (CDX query -> 500 via fetch path; availability ->
+429; shortener-cdx retry loop confirms probing every 15 min). Exact URLs +
+CDX query queued at `hidden_files/shortener-cdx/iowacollab-cdx-queue.md`
+(reply-chain check on 12 candidate view snapshots + re-crawl diff for new
+Sept-4 captures + d379207f body re-recovery). No competing loop launched.
+
+(e) **Instance death check — not dead.** CT logs (crt.sh): no cert for
+`paste.linuxiarz.pl` exactly, but wildcard `*.linuxiarz.pl` certs renewed
+continuously (2026-06-21 LE, 2026-07-20 ZeroSSL, 2026-08-20 LE) — the operator
+maintains the domain. Homepage renders today. Local `dig` returns
+198.18.124.244 (sandbox-intercepted, unreliable; NS query empty) — no usable
+DNS residue. No mirror found.
+
+### HN trail (public, read-only)
+
+The surfacing thread is HN story 49563355 ("Discovery of a new OpenAI agent
+message board"). Via the public Algolia API: Chance-Device's Sept-4 comments
+link 7d012d32, 538faa12, d379207f (first public mention of the pastebin).
+None of the reply-chain comments (49567293, 49567407, 49567768-gone,
+49567775) is @centaur; zero comments on the story mention "IowaCollab". The
+relay IDs were never published — consistent with the wiki's deliberate
+non-enumeration.
+
+### Relay-family sibling pool (Sept-25 hunt archive, Wayback-verified)
+
+Twelve title-"IowaCollab" pastes beyond df40f1f1, all Sept-4-captured
+snapshots, all from the June-16 Iowa wave. Ten are genuine task payloads with
+ts-pinned creation (all 2026-06-16 20:05–20:56 UTC); two are test pastes.
+These are relay-FAMILY siblings — the source never said which 7 are the relay
+members, and the public record cannot disambiguate (11 genuine pastes, 11
+distinct handles vs the relay's 8 pastes/7 handles; Sept-4 view counts accrued
+too fast — 38 pastes sat in the 110-125 band — for the "~115-121 hits" figure
+to discriminate).
+
+| id | handle | ts= (2026-06-16 UTC) | views@Sept-4 | snapshot |
+|---|---|---|---|---|
+| 049f11f5 | agent-1309 | (no ts; same grammar) | 96 | 20260904214057 |
+| 24775389 | agent-0604 | 20:12:35Z | 109 | 20260904213208 |
+| 3470ff4e | agent-2052 | 20:15:18Z | 90 | 20260904160027 |
+| 6e48484f | agent-1329 | 20:10:32Z | 92 | 20260904213359 |
+| a0e61524 | agent-1949 | 20:05:21Z | 106 | 20260904214204 |
+| a448bba6 | agent-fast0546 | 20:24:48Z | 148 | 20260904211300 |
+| a6b7a63d | agent-1527 | 20:51:38Z | 119 | 20260904204650 |
+| cbc75bd1 | agent-0428 | 20:32:21Z | 138 | 20260904210740 |
+| f4a8c6f2 | agent-1003 | 20:56:45Z | 113 | 20260904164244 |
+| f800c8b1 | assistant-A | (no ts; same family) | 105 | 20260904214549 |
+| 06ee9b18 | agent-1309 | test ("hello-test-agent1309") | 78 | 20260904173917 |
+| e53f96e2 | researcher | test ("hello-from-our-agent") | 118 | 20260904202446 |
+
+Snapshot URL pattern: `https://web.archive.org/web/<snapshot>/https://paste.linuxiarz.pl/view/<id>`.
+Bodies on disk in the Sept-25 hunt repo's `artifacts/pastebin-lane/linuxiarz/<id>.json` (`full_text` field).
+
+### Remaining recovery path
+
+1. Wayback CDX recovery -> run the queued reply-chain check (view snapshots
+   list Stikked reply links; could enumerate relay siblings without guessing).
+2. The wiki author / @centaur's Sept-4 `/api/recent` listing going public.
+3. Re-check only on investigator-listing publication (unchanged closure rule).
