@@ -70,7 +70,24 @@ EVIDENCE = {
         "long_url": "per-slug full referrer-URL table + daily traffic series",
         "source_url": "https://goto.unm.edu/urphy21+", "scope": "university", "json_evidence": True,
     },
+    "u-ethz-ch/nB1nv_referrer_urls_daily_2026-09-28.json": {
+        "instance": "u.ethz.ch", "org": "ETH Zürich", "kind": "yourls_stats_detail",
+        "short_url": "https://u.ethz.ch/nB1nv#detail-2026-09-28",
+        "long_url": "per-slug full referrer-URL table + daily traffic series",
+        "source_url": "https://u.ethz.ch/nB1nv+", "scope": "university", "json_evidence": True,
+    },
 }
+
+# Raw HTML snapshots (ephemeral-source capture; checksummed but NOT indexed as
+# docs — the parsed JSONs above are the indexed evidence). Kept so the
+# last-30d series and referrer tables survive their aging-out window.
+RAW_HTML = [
+    "goto-unm-edu/7t6-o_stats_raw_2026-09-28.html",
+    "goto-unm-edu/discvr_stats_raw_2026-09-28.html",
+    "goto-unm-edu/reso_stats_raw_2026-09-28.html",
+    "goto-unm-edu/urphy21_stats_raw_2026-09-28.html",
+    "u-ethz-ch/nB1nv_stats_raw_2026-09-28.html",
+]
 
 PATTERNS = {
     "proxy_wrapper": [r"jqp", r"md\.succ\.ai", r"allorigins", r"proxymule", r"pure\.md",
@@ -169,6 +186,10 @@ for rel, meta in EVIDENCE.items():
 with open(ROOT / "university-shorteners.jsonl", "w") as f:
     for d in docs:
         f.write(json.dumps(d, sort_keys=True) + "\n")
+for rel in RAW_HTML:
+    p = ROOT / rel
+    raw = p.read_bytes()
+    manifest_lines.append(f"{hashlib.sha256(raw).hexdigest()}  {rel}")
 with open(ROOT / "SHA256SUMS", "w") as f:
     f.write("\n".join(manifest_lines) + "\n")
 with open(ROOT / "pattern-sweep.json", "w") as f:

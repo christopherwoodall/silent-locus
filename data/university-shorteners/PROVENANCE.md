@@ -150,3 +150,36 @@ slugs) — no ES index by design, documented in the consolidation note. UNM July
 5-6 per-day referrer rows remain structurally unpullable (YOURLS public stats
 expose no per-day drill-down) — recorded in progress.log, not re-litigated.
 ES `university-shorteners` _count=15 verified, schema-drift clean.
+
+## Workstream B session 2 (2026-09-28): ephemeral capture + ETH detail extraction
+
+New evidence files (all under data/university-shorteners/; checksummed in SHA256SUMS):
+- `u-ethz-ch/nB1nv_stats_raw_2026-09-28.html` — raw bytes of the public stats page (37,086 B).
+- `u-ethz-ch/nB1nv_referrer_urls_daily_2026-09-28.json` — parsed: 28 per-URL referrer rows / 6 hosts,
+  31 all-time + 30 last-30d daily points; best day 63 hits on 2026-06-18; created 2020-08-24; 273 hits all-time.
+  Key markers: jqp.vercel.app -> da.gd/4qPkK -> SEC regCF_county_2019/2020/2021 (Massachusetts filters);
+  `www.sec.gov/files/county.json?NEW81131268=1` (NEW + 8-digit nonce grammar); example.com/test<decimal> canaries.
+- `goto-unm-edu/{7t6-o,discvr,reso,urphy21}_stats_raw_2026-09-28.html` — re-pulled raw bytes of the 4 UNM
+  public stats pages (ephemeral last-30d window); structure re-validated against the C3 parses.
+- `data/university-shorteners-batch3/go-uvm-edu/{-4s0q,tgmtq,xc26}_stats_raw_2026-09-28.html` — control-venue
+  raw snapshots (batch3 SHA256SUMS extended to 15 files).
+
+Raw HTML snapshots are checksummed but NOT indexed as ES docs; the parsed JSONs are the indexed evidence.
+`build_dataset.py` now emits 12 docs (was 11); ES index `university-shorteners` = 16 docs
+(buckets university-shorteners:12 / university-shorteners-batch3:3 / university-shorteners-batch2:1),
+`--verify` green (no field drift, unique deterministic IDs).
+
+Negative probes recorded in `progress.log` only (no index): vanderbi.lt (YOURLS 1.5.1, stats login-walled),
+go.osu.edu, go.wisc.edu, go.umd.edu, go.ncsu.edu, go.psu.edu, go.rutgers.edu, go.unc.edu (all custom/login-walled),
+swish.st (dead), clck.io (retired), da.gd / is.gd (403 Cloudflare) / v.gd / 2dd.pl (no public stats),
+urlscan.io search API (403 without key), Wayback CDX (unreachable from VM).
+
+## Defensive takeaway (per standing directive)
+
+Public YOURLS `+`/infos stats pages are an operator-side fingerprint of automation: YOURLS logs full
+referrer URLs (including query strings) by default, so proxied exfil chains appear verbatim. Defenders
+should (1) set private stats on sensitive instances (UVM's referrer-hiding config is the model),
+(2) alert on first-seen proxy-wrapper referrer hosts and referrer URLs carrying jq/JSON-extraction grammar,
+(3) treat hit bursts on old low-traffic slugs as anomalies (ETH nB1nv: 0.12/day baseline, 63 hits on
+2026-06-18), and (4) snapshot the last-30d window on any alert — it ages out daily and the decimated
+all-time series never recovers sub-sampled days.

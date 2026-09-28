@@ -107,15 +107,16 @@ def bulk_load(docs):
 def verify():
     c = req("GET", "/%s/_count" % INDEX)
     print("doc count:", c.get("count"))
-    # 15 = 7 batch-1 stats pages + 4 goto.unm.edu per-URL referrer/detail docs
-    # (workstream C3, 2026-09-28) + 1 batch-2 doc + 3 batch-3 go.uvm.edu docs.
-    assert c.get("count") == 15, "expected 15 docs, got %s" % c.get("count")
+    # 16 = 7 batch-1 stats pages + 4 goto.unm.edu per-URL referrer/detail docs
+    # (workstream C3, 2026-09-28) + 1 u.ethz.ch detail doc (workstream B, 2026-09-28)
+    # + 1 batch-2 doc + 3 batch-3 go.uvm.edu docs.
+    assert c.get("count") == 16, "expected 16 docs, got %s" % c.get("count")
     r = req("POST", "/%s/_search" % INDEX,
             {"size": 0, "aggs": {"datasets": {"terms": {"field": "event.dataset.keyword"}}}})
     b = r["aggregations"]["datasets"]["buckets"]
     print("event.dataset.keyword buckets:", [(x["key"], x["doc_count"]) for x in b])
     got = {x["key"]: x["doc_count"] for x in b}
-    assert got == {"university-shorteners": 11, "university-shorteners-batch2": 1,
+    assert got == {"university-shorteners": 12, "university-shorteners-batch2": 1,
                     "university-shorteners-batch3": 3}, got
     s = req("POST", "/%s/_search" % INDEX, {"size": 100, "_source": True})
     unexpected = set()
@@ -128,7 +129,7 @@ def verify():
     print("record_kind:", [(x["key"], x["doc_count"]) for x in r["aggregations"]["kinds"]["buckets"]])
     ids = sorted(h["_id"] for h in s["hits"]["hits"])
     assert ids == sorted(set(ids)), "duplicate doc IDs!"
-    print("VERIFY OK: 15 docs, no drift, unique deterministic IDs")
+    print("VERIFY OK: 16 docs, no drift, unique deterministic IDs")
 
 
 def retire_old():
