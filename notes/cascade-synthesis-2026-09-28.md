@@ -84,7 +84,16 @@ All 12 child lanes of the 13-lead cascade completed. Each landed its own dataset
 - Venue model hardening: agents pick venues that are (a) unauthenticated, (b) structured (JSON/API), (c) linkable through a reader proxy (jqp/pure.md/md.succ.ai/r.jina.ai/allorigins). The proxy ladder is itself the invariant — new task families arrive wearing the same ladder. Hunt the ladder's referrer surface (public shortener stats pages, open YOURLS listings) as the early-warning tripwire.
 - Open gap unchanged: 81 anna.fyi historical paste IDs unenumerated; 7 iowacollab relay IDs unenumerated (deliberately — source report didn't enumerate them).
 
+
+### Addendum — full lane reports (received 10:57 UTC)
+
+- **Lane J correction:** the "in_diffend=false everywhere" premise was wrong — 9 of 264 sweep records are `in_diffend=true`. All 9 are **unrelated third-party security-researcher/test gems** (`apex-hijack-probe-a1`, `apex-oidc-probe`, `test-xss-*`, `test_gem_kangaroo`, `test_gem_no_mfa`, published July 7 03:32–18:43 UTC), none GemStuffer campaign names. Headline stands: **zero campaign gems found in Diffend**, but the note carries this caveat. Separately: 167 of the 255 misses are **unverified negatives** (`http_status=fetch_failed:RemoteDisconnected` — Diffend closed connections mid-sweep); only 88 are verified-absent. Open item: fresh re-sweep of the 167 failed names at a slower rate.
+- **Lane M detail:** record_kind split — 15 paste_text, 8 proxy_ladder_overlap, 1 census_diff, 1 dataset, 1 proxy_primitive.
+- **Lane T theory note:** the null fits the venue-selection logic — api.usa.gov and the FBI Crime Data API both sit behind API-key signup, while every venue the swarm actually touches needs no key. Candidate names from referrer notes are not evidence.
+- Lane T + Lane M both recorded their own goal entries on goal_70362659c258; this run's entry is the consolidated one.
+
 ### Open for 07:00 final sweep
+- Lane-J open item: re-sweep the 167 unverified-negative gem names (Diffend `RemoteDisconnected`) at a slower rate.
 - Supervisor window ends 06:45 CDT; final run checks supervisor.log + worker states and summarizes lane12 (expected: still parked unless backends recovered overnight).
 - Backends remain the only blocked lane; everything else is landed, indexed, committed.
 
@@ -174,7 +183,16 @@ All 12 child lanes of the 13-lead cascade completed. Each landed its own dataset
 - Task-family linking is real: IHME agents consumed WPC-sequence evidence. Runs share venue intel; the launcher layer (shared toolkit) is confirmed as the hunt target, not individual runs.
 - Bounded negative discipline holds: the headline-API prediction failed (World Bank/Eurostat/etc. all clean) but the structural prediction (niche long-tail APIs) confirmed twice over. api.usa.gov/FBI UCR null is a finding — candidate names in referrer notes are not evidence.
 
+
+### Addendum — full lane reports (received 10:57 UTC)
+
+- **Lane J correction:** the "in_diffend=false everywhere" premise was wrong — 9 of 264 sweep records are `in_diffend=true`. All 9 are **unrelated third-party security-researcher/test gems** (`apex-hijack-probe-a1`, `apex-oidc-probe`, `test-xss-*`, `test_gem_kangaroo`, `test_gem_no_mfa`, published July 7 03:32–18:43 UTC), none GemStuffer campaign names. Headline stands: **zero campaign gems found in Diffend**, but the note carries this caveat. Separately: 167 of the 255 misses are **unverified negatives** (`http_status=fetch_failed:RemoteDisconnected` — Diffend closed connections mid-sweep); only 88 are verified-absent. Open item: fresh re-sweep of the 167 failed names at a slower rate.
+- **Lane M detail:** record_kind split — 15 paste_text, 8 proxy_ladder_overlap, 1 census_diff, 1 dataset, 1 proxy_primitive.
+- **Lane T theory note:** the null fits the venue-selection logic — api.usa.gov and the FBI Crime Data API both sit behind API-key signup, while every venue the swarm actually touches needs no key. Candidate names from referrer notes are not evidence.
+- Lane T + Lane M both recorded their own goal entries on goal_70362659c258; this run's entry is the consolidated one.
+
 ### Open for 07:00 final sweep
+- Lane-J open item: re-sweep the 167 unverified-negative gem names (Diffend `RemoteDisconnected`) at a slower rate.
 - Supervisor window ends 06:45 CDT; 07:00 run self-terminates this job (cron.remove agent-hunt-night-watch) and delivers the final night report.
 - Lane12 expected still parked (both backends down); summarize final worker states.
 - Remaining open gaps: 81 anna.fyi historical paste IDs; 7 iowacollab relay IDs; lane-P open thread (July 5–6 referrer-stats rows on goto.unm.edu historical days).
