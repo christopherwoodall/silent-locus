@@ -53,10 +53,8 @@ def main():
     for crawl in CRAWLS:
         for name in NAMES:
             jobs.append(('rubydoc', crawl, f'rubydoc.info/gems/{name}', None))
-    for label, prefix in FILTERS.items():
-        marker = label.split('-')[0]
-        crawl = 'CC-MAIN-2026-30'
-        jobs.append(('filter', crawl, prefix, marker))
+    # NOTE: prefix+filter (urlkey regex) queries removed — prior lane run found
+    # the CC backend 504s on all range scans even when healthy; exact-URL only.
     total = len(jobs)
     for i, (kind, crawl, target, marker) in enumerate(jobs):
         key = f'{kind}|{crawl}|{target}|{marker}'
