@@ -1,0 +1,26 @@
+# lane12 progress — archive-dependent sweeps (workstream C1)
+# All paths relative to projects/swarmtraces-hf-corpus/hidden_files/lane12/
+
+2026-09-28 11:45 UTC (06:45 CDT) — workstream C1 wake
+- Backends DOWN (verified with nonce'd probes, cross-checked):
+  - web.archive.org/cdx: TCP connects via egress proxy, upstream hangs; curl -m 40 -> HTTP 000.
+    One transient success at 11:35:35 UTC (supervisor probe got JSON), then hanging again -> flapping/severely degraded.
+  - index.commoncrawl.org: fails fast, HTTP 000 in ~1s -> down.
+  - DNS for both resolves to 198.18.85.x (egress proxy space); direct resolver queries blocked.
+- Worker state (all durable, resumable):
+  - wb_sweep.py: state_wb.json done=180/370. Relaunched 10:54 UTC on a backend flap,
+    then wedged 100+ min with zero output (stuck syscall, 0.44s CPU) -> killed 11:40 UTC.
+    A duplicate 2nd worker was also spawned at 11:35 UTC by the supervisor bug below -> killed.
+  - sweep3.py (CC): state.json done=0/555, parked.
+  - sweep4.py (CC): state4.json absent (0 done; its 11 logged items were backend-fail retries, never marked done), parked.
+  - pattern_sweep.py (CC): no state file existed -> added pattern_state.json support (resume-safe now), parked at 0.
+- Supervisor: v1 had a broken alive() check (pgrep "[l]ane12/X.py" never matched
+  "python3 X.py" argv) -> launched 6 duplicate wb_sweep workers overnight on backend flaps.
+  Killed v1 (was expiring 11:45 UTC anyway). Installed supervisor.sh v2:
+  launches with full-path argv (alive() now matches; verified), nonce'd probes,
+  completion detection (self-terminates when all 4 workers print DONE),
+  window 2026-09-28 11:45 UTC -> 2026-09-29 12:00 UTC, 10-min poll.
+  Running as pid 12816, session-detached. First tick 11:38 UTC: both backends still down, no launches.
+- Next wake condition: supervisor auto-relaunches each worker when its backend recovers;
+  workers resume from state files. If supervisor window expires with backends still down,
+  install a fresh one (same pattern).

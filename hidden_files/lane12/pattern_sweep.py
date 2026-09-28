@@ -7,6 +7,16 @@ import json, time, urllib.request, urllib.parse, os
 BASE = os.path.expanduser('~/workspace/muse-home/projects/swarmtraces-hf-corpus/hidden_files/lane12')
 CRAWL = 'CC-MAIN-2026-21'
 OUT = os.path.join(BASE, 'pattern_results.jsonl')
+STATE = os.path.join(BASE, 'pattern_state.json')
+
+def load_state():
+    try:
+        return json.load(open(STATE))
+    except Exception:
+        return {'done': []}
+
+def save_state(s):
+    json.dump(s, open(STATE, 'w'))
 
 def query(url):
     q = urllib.parse.urlencode({'url': url, 'output': 'json'})
@@ -25,9 +35,14 @@ def query(url):
     return ('fail', '')
 
 def run(targets, label):
+    state = load_state()
+    done = set(state['done'])
     consec = 0
     out = open(OUT, 'a')
     for i, t in enumerate(targets):
+        key = f'{label}|{t}'
+        if key in done:
+            continue
         st, body = query(t)
         if st == 'fail':
             consec += 1
@@ -46,9 +61,13 @@ def run(targets, label):
                                   'captures': hits}) + '\n')
             out.flush()
             print(f'HIT [{label}] {t}', flush=True)
+        done.add(key)
+        if len(done) % 50 == 0:
+            state['done'] = list(done); save_state(state)
         if (i + 1) % 50 == 0:
             print(f'[{label}] {i+1}/{len(targets)}', flush=True)
         time.sleep(2)
+    state['done'] = list(done); save_state(state)
     out.close()
     print(f'DONE [{label}]', flush=True)
 
