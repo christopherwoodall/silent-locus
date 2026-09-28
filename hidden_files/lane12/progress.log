@@ -27,3 +27,22 @@
 - 11:36 UTC corroboration (delayed probe): web.archive.org/cdx returned HTTP 200 with
   an HTML page titled "Internet Archive: Temporarily Offline" (not JSON) -> definitive
   server-side outage, not just a network hang. CC index probe at same time: HTTP 000 in 3.4s.
+- 2026-09-28 ~17:35 UTC (12:35 CDT) — workstream C1-RETRY
+- Confirmed dead: no wb_sweep/sweep3/sweep4/pattern_sweep/supervisor processes
+  running (pgrep with bracket patterns returned nothing). v2 died in the
+  runtime restart drain ~11:54 UTC.
+- Backend liveness, nonce'd probes (cache-busting), actual HTTP responses:
+  - web.archive.org/cdx: curl -> HTTP 000, 0 bytes, timed out at 30s
+    (exit 28). Retry on web/ path: HTTP 000 again. -> DOWN.
+  - index.commoncrawl.org (collinfo + CC-MAIN-2026-30-index, both nonce'd):
+    curl -> HTTP 000 "Empty reply from server" in ~1.7-2.3s, both endpoints,
+    http and https. TLS handshake succeeds via egress proxy (proxy presents
+    its own cert, MITM) but upstream sends nothing. DNS resolves (proxy space).
+    -> DOWN (or blocked at egress; unreachable either way).
+- Installed supervisor.sh v3: window 2026-09-28 17:35 UTC -> 2026-09-30 12:00 UTC,
+  10-min nonce'd probes, resume-safe (state_wb.json 180/370; state.json 0/555;
+  state4.json absent = sweep4 not started; pattern_state.json support exists, 0 done),
+  self-terminates when all four workers print DONE. Running as of 17:36 UTC.
+- Next wake condition: supervisor auto-relaunches workers on backend recovery;
+  if the 2026-09-30 12:00 UTC window expires with backends still down, install
+  a fresh supervisor (same pattern). Sibling C2 (Diffend, data/july7-wave) untouched.
