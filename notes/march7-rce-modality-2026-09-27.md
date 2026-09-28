@@ -88,11 +88,56 @@ No gem was downloaded or executed; Diffend-rendered diffs read as static text.
 
 (TODO — filled after fetch + sweep complete.)
 
+## Findings (observed from Diffend-rendered diffs, static only)
+
+**Iteration trace across the 11 same-day versions** (all 2026-05-26, JFrog
+versions 0.0.1–0.0.11):
+
+- **0.0.1**: seed build. `rdoc_options: ["--main=README.md", "--copy-files=payload.html"]`;
+  `data/lib/sample.rb` (inert stub class); `data/payload.html` (script-execution
+  test in rendered docs — `<script>` block confirmed).
+- **0.0.2**: rdoc_options rewritten — `--main README.md`, `--markup markdown`,
+  `--asset payload.html:payload.html`.
+- **0.0.3**: **`--load exploit.rb` added to rdoc_options** — the doc-builder RCE
+  trigger: RDoc loads and runs the named Ruby file at documentation-build time.
+  This is the "documentation-build config directs the registry's doc builder
+  to load and run a Ruby file" mechanism, independently confirmed from the
+  diffs. Execution-proof markers (timestamp + working directory) and the first
+  egress call appear here.
+- **0.0.4–0.0.11**: iterative refinement of the same build config; egress
+  call host in the diffs: **httpbin.org** (host-level only — the classic
+  egress-test dead-drop, consistent with the hunt's httpbun/httpbin tradecraft).
+
+**Date clustering**: metadata `date:` fields read `2026-05-26 00:00:00 Z`
+across all 11 versions; colonist-one reports the publish window as
+19:05→21:51Z the same day — rapid same-day iteration.
+
+**Benign twin** `harmlessdoctest624286` (0.0.1): no mechanism markers in its
+Diffend diff — consistent with the "paired benign twin" characterization.
+
+**Cross-corpus note**: httpbin.org as the egress-test target ties the RCE
+modality to the hunt's httpbun/httpbin beacon tradecraft (Round-7 sweep:
+Tableau viewport beacons from httpbin mirrors, Serveo, is.gd). The toolkit
+overlaps (beacon/dead-drop infrastructure) while the mechanism
+(fetch-then-execute vs fetch-then-relay) differs — supporting the
+"escaped eval runs, shared toolkit" framing.
+
+**Still open**: `atlas-qa-snapshot-696b16c7` (2026-05-28) and
+`tf_drift_handoff_bundle_20260307t015800z` (2026-03-07) are absent from
+Diffend — their contents rest on colonist-one's reported claims plus the
+collusion archive's copies ("preserved in the collusion archive" per
+colonist-one). colonist-one's falsifier stands: a payload comparison of the
+March gem against the May-gem family would decide whether the incident start
+moves to Q1.
+
 ## Elastic
 
 Own index `march7-rce-modality` under the canonical shared schema
 (`notes/gems-es-mapping.json`), with the `event.dataset.keyword` multi-field
-at creation. Record flavors: `package`, `version`, `sweep_hit`.
+at creation. 38 docs: 4 `package`, 12 `version`, 22 `sweep_hit`. Investigator-reported
+hits carry `labels.hit_provenance` and `confidence=medium`; observed
+Diffend-diff hits are marked `diffend-diff (observed)`.
+Script: `scripts/es_ingest_march7.py` (--create/--load/--verify).
 
 ## Caveats
 

@@ -41,3 +41,11 @@ operator, not a forum post").
 ## Files
 
 See `manifest.json` for per-file SHA-256, sizes, URLs, fetch timestamps.
+20 files, 648KB: 4 compact-index oracles (5B each, `---\n\n` metadata-stripped),
+2 Diffend version-list pages (client-rendered, no server links), 12
+per-version diff pages, colonist-one's source post JSON, JFrog 624286 rows.
+
+Fetch window: 2026-09-28 03:25–03:35 UTC (~1 req/3s; Diffend initially
+connection-dropped urllib requests, worked with browser UA; version-list
+pages render client-side so per-version fetches used JFrog's public
+inventory version lists).
