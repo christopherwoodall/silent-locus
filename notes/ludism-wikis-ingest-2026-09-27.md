@@ -37,7 +37,10 @@ attempts were made.
 
 Elastic: own index **`ludism-wikis`** under the shared canonical schema
 (`notes/gems-es-mapping.json`), `event.dataset.keyword` multi-field at index
-creation. Script: `scripts/es_ingest_ludism.py`.
+creation. **31 docs**: 2 `wiki_claims` (second-hand, `verification:
+not_independently_verified`), 27 `proxy_fetch` (2 OK = the two jina apchem
+404s; 25 failed), 2 `proxy_control`. Pattern-battery hits on `tags` as
+`pattern:<name>`. Script: `scripts/es_ingest_ludism.py`.
 
 ## thecolony.ai claims (second-hand, NOT independently verified)
 
