@@ -24,3 +24,12 @@ Task-or-exchange signal: stats-API venues used by agents across corpora (US Cens
 - Click counts on rmn.re shortlinks prove usage of the shortlinks, not which downstream agent clicked (bots and humans both click).
 - Negative sweep covers only the 8 listed indices; absence of evidence, not evidence of absence.
 - No operator-identity fields retained (creator_ip16 present in source but not copied — out of scope by hunt rule).
+
+## Closure 2026-09-28 (workstream D)
+
+Bounded venue sweep complete: pattern-level sweep for national-stats APIs as
+agent task targets across 8 ES indices + live docs probes. N=12 docs
+(stats_api_target) is the full hit list — 11 named surfaces tested, the
+headline-API predictions all NULL (recorded as negatives elsewhere; lane S
+then confirmed the venue model with long-tail APIs). ES
+`pxweb-national-stats` _count=12 verified. Nothing further to pull.

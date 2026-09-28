@@ -39,3 +39,13 @@ recon lane, kept OUT of the collusion-wiki corpus.
   - https://github.com/swarm-ai-research/wiki-agent-swarm-incident/blob/HEAD/analysis/reddit-local-forensics-crosscheck.md
   - https://github.com/hamzah2304/messageboardauditbench (blind_verbatim report
     react_z-ai_glm-5.3_r3_20260907T095543Z.md)
+
+## Index decision 2026-09-28 (workstream D)
+
+Deliberately unindexed as a standalone ES index. This dataset holds
+public-project recon artifacts (git clone of vinaes/md-succ-ai +
+openapi.json) for a public markdown-API utility adopted by the swarm.
+The agent-trace evidence (proxy-ladder usage, `?dummyagent=` nonces)
+already lives in the `proxy-primitives` ES index (311 hits). Nothing
+agent-specific exists in these artifacts that merits its own index; they
+stay on disk as reference per keep-all policy.

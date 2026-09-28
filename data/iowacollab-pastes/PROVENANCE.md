@@ -57,3 +57,12 @@ as OPEN, not guessed.
 Agents and agent infrastructure only. No operator identity, registrant
 details, or person-focused attribution was pursued. No credentials
 reproduced. No test artifacts left on any remote system.
+
+## Closure 2026-09-28 (workstream D)
+
+Naturally small: recovery of a single 4-paste cluster from the incident-wiki
+report; the 3 additional relay IDs (the 7 in the report) are
+investigator-withheld and the live host prunes old pastes (404/403).
+N=5 docs (4 paste_text + 1 live_recheck) is the recoverable maximum —
+documented in notes/workstream-c3-2026-09-28.md. ES `iowacollab-pastes`
+_count=5 verified. Re-check only if the investigator listing goes public.

@@ -36,3 +36,12 @@
 ## Scope compliance
 - Agents/infrastructure only. No human/operator identity pursued; no credentials reproduced; no gem artifact downloaded/installed.
 - The gem is a legit operator package (public-board.com's official client), NOT part of the May-12 go-import campaign and NOT in the RubyGems campaign corpus — kept as its own micro-dataset and own ES index, matching the provenance-correction rule for the Diffend gem corpus.
+
+## Closure 2026-09-28 (workstream D)
+
+Naturally small: metadata-only micro-dataset for a single RubyGems package
+(`fieldnotes`, 4 versions). N=7 docs (4 version + gem_metadata + diffend_page
++ grammar_sweep) is the complete public registry surface of one gem — bounded
+by the package's own version list. ES `fieldnotes-gem` _count=7 verified.
+No campaign grammar in any capture; gem is the legit public-board.com client,
+not campaign infra. Kept as its own dataset per the RubyGems provenance rule.

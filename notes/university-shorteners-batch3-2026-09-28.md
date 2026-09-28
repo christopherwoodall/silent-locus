@@ -85,3 +85,13 @@ event.dataset.keyword verified, zero unexpected top-level fields).
 - Future venue hunting: the blocklist→probe→search-index pipeline works;
   next sources to try are other public shortener blocklists and
   `"Statistics for" "YOURLS"` title-indexed pages on fresh edu domains.
+
+## Consolidation 2026-09-28 (workstream D)
+
+Merged into the consolidated `university-shorteners` ES index (canonical
+deterministic `_id`, per-doc parity verified); `university-shorteners-batch3`
+index retired. Consolidated `_count` = 15. `scripts/es_ingest_university_shorteners_batch3.py`
+is retained for provenance but is no longer the live ingest path — the
+canonical script is `scripts/es_ingest_university_shorteners.py`, which only
+loads the base JSONL; batch3 docs were merged via a one-off deterministic bulk
+load (same ID scheme).

@@ -51,3 +51,13 @@ july-7 for the webhook-named trio (epoch suffixes 1783405583/5247/6220 →
 - July-7 Diffend sweep for webhook-payload/fire/capture packages (new open lane
   per standing reconciliation targets).
 - July-7 wave (215 pkgs / 333 releases) has zero bytes in our corpus.
+
+## Closure 2026-09-28 (workstream D)
+
+Bounded marker sweep complete: JFrog-documented dead-drop grammar swept
+across all on-disk corpora, gem tarballs, and the collusion-wiki ES corpus.
+N=8 docs (2 webhook_deaddrop + 3 webhook_deaddrop_candidate + 2
+marker_ambiguous + 1 sweep_negative) is the full result set — the negative
+summary doc records the sweep itself. ES `webhook-deaddrops` _count=8
+verified. Nothing further to pull; the technique's footprint is May-12 +
+July-7 only.

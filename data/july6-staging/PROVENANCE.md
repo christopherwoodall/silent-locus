@@ -40,3 +40,17 @@ read in the window — recorded, not filled.
 - manifest.sha256 — SHA-256 of hits.jsonl
 - progress.log — lane log
 - PROVENANCE.md — this file
+
+## Closure 2026-09-28 (workstream D)
+
+Bounded question answered: July 5–6 staging signal for the July-7 wave.
+N=11 docs (2 staging_signal + 1 venue-preclaim + 5 null_read + 3 comparator)
+is the complete cross-surface check — every named surface swept, one verdict
+each. ES `july6-staging` _count=11 verified. **Theory update (lane R):** the
+July 5–6 admin deletion sweep is mid-campaign hygiene, NOT a pre-run staging
+modality — this lane's "staging signal" verdict is superseded by
+notes/admin-deletions-2026-09-28.md; kept as evidence of the check, not the
+interpretation. The lane-P follow-up (July 5–6 per-day referrer rows on
+goto.unm.edu) was closed by C3 as structurally impossible — YOURLS public
+stats have no per-day-per-referrer endpoint
+(notes/workstream-c3-2026-09-28.md).

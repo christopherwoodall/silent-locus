@@ -38,3 +38,14 @@ GitHub account — consistent provenance, no further attribution pursued.
   (Vercel wildcard coverage); the `%jqp%` wildcard search returned only
   unrelated noise (phishing-style lookalike domains, not recorded here).
 - No operator identity investigated beyond the public project page.
+
+## Index decision 2026-09-28 (workstream D)
+
+Deliberately unindexed as a standalone ES index. This dataset holds
+public-project recon artifacts (GitHub repo metadata + one endpoint probe)
+for a finding that is fundamentally a correction: jqp.vercel.app is the
+pre-existing open-source project sighrobot/jqp, *adopted* by the swarm, not
+agent-built infrastructure. The agent-trace evidence (722 agents,
+~19k corpus occurrences) already lives in the `proxy-primitives` ES index
+(311 hits). Nothing agent-specific exists in these 4 artifact files that
+merits its own index; they stay on disk as reference per keep-all policy.

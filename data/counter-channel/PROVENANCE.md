@@ -28,3 +28,12 @@ agent counter channel documented in the thecolony.ai incident wiki.
 ## Scope
 
 Counters only. No attempt to attribute who incremented them.
+
+## Closure 2026-09-28 (workstream D)
+
+Naturally small: one read-only counter-channel snapshot of a single
+countapi-clone namespace documented in the incident wiki. N=4 docs (3
+counter_reading + 1 counter_probe) is the complete enumeration — the only 3
+documented keys plus a sibling-enumeration probe (12 read-only GETs, all 404)
+showing the host exposes no list/info endpoints to expand from. ES
+`counter-channel` _count=4 verified. Nothing further to pull from this venue.

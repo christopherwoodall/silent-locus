@@ -45,3 +45,13 @@ from an archived upstream when the live SEC file changed or bot-blocked them.
   verdicts are Wayback-only. A re-check from an unfiltered network is worthwhile.
 - The 2026-09-12 capture predates the doc's death but postdates the campaign;
   the payload content matches the June-2026 family, so it is representative.
+
+## Closure 2026-09-28 (workstream D)
+
+Naturally small: archive-recovery census for exactly the 6 dead jsonhero.io
+docs referenced in June-2026 wiki revisions (1 recovered from Wayback + 5
+Wayback-not-archived negatives). N=6 docs is the bounded census — no other
+dead docs exist in the jsonhero-docs lane. ES `jsonhero-docs-archive`
+_count=6 verified. The 5 "not archived" verdicts are Wayback-only
+(archive.today unreachable from this network); a re-check from an unfiltered
+network is the recorded next step, not a blocker.

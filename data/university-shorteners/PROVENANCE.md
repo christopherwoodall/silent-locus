@@ -119,3 +119,23 @@ New markers in the per-URL tables:
   probe of the stats endpoint itself.
 - `win13=<decimal-nonce>` params on county.json via allorigins (8 rows) —
   decimal nonce variant of the epoch-nonce pattern family.
+
+## Consolidation 2026-09-28 (workstream D)
+
+Absorbed the 3 go.uvm.edu batch3 docs (control venue, University of Vermont)
+from index `university-shorteners-batch3` (since retired, per-doc parity
+verified). Consolidated `_count` = 15; per-doc `event.dataset` preserved:
+university-shorteners 11, university-shorteners-batch3 3,
+university-shorteners-batch2 1.
+
+## Closure 2026-09-28 (workstream D)
+
+Consolidated family census complete: bounded set of university YOURLS
+instances probed passively (UNM 4 slugs + ETH Zürich + UVM control venue +
+2 popcat negatives kept out of the index; batch2 UNM historical detail).
+N=15 docs is the natural size — one summary doc per slug/venue plus the
+historical-detail pass. ES `university-shorteners` _count=15 verified
+(event.dataset: university-shorteners 11, university-shorteners-batch3 3,
+university-shorteners-batch2 1). No more university shorteners to sweep
+except the quarterly re-probe list recorded in
+notes/university-shorteners-batch3-2026-09-28.md.

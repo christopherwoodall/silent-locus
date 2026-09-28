@@ -63,3 +63,15 @@ Read-only research only. No submissions/uploads/accounts/logins/posts/
 counter increments/payload execution. Agents/infrastructure traces only —
 no operator identity, registrant details, or person-focused attribution.
 No credentials reproduced. No absolute home-directory paths in logs/docs.
+
+## Consolidation 2026-09-28 (workstream D)
+
+The 3 go.uvm.edu control-venue docs were merged into the consolidated
+`university-shorteners` ES index with the canonical deterministic `_id`
+scheme (`yourls:<instance>:<slug>`), zero schema drift vs
+notes/gems-es-mapping.json, parity-verified per-doc against the old
+`university-shorteners-batch3` index (SHA-256 of `_source`), which was then
+deleted. Per-doc `event.dataset` labels are preserved
+(`university-shorteners` 11 / `university-shorteners-batch3` 3 /
+`university-shorteners-batch2` 1), so batch provenance survives the merge.
+Consolidated `_count` = 15.
