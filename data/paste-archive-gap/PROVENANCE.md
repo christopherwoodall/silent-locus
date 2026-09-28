@@ -103,3 +103,109 @@ listing); /api/recent accepts no pagination, Wayback holds homepage captures
 only, /api/lists errors — structurally unpullable, not re-litigated. Workstream
 C3 repull (2026-09-28 11:30Z) confirmed zero new pastes. ES `paste-archive-gap`
 _count=27 verified, schema-drift clean.
+
+## Lane 1 retry — 2026-09-28 19:19–19:45 UTC (all five angles)
+
+**(a) Live re-probe of anna.fyi (cache-busted, read-only):**
+- `/api/recent` → HTTP 200, 1806 bytes: the 15 most recent pids are BYTE-IDENTICAL
+  to the Lane-M 15 (same pids, same order) — zero new pastes since the 11:30Z
+  repull.
+- `/sitemap.xml` → 404; `/robots.txt` → 200; `/humans.txt` → 404.
+- `/api/lists` → connection dropped (curl 52, server closes); `/api/pastes`,
+  `/api/search`, `/api/archives`, `/api/stats`, `/api/tags` → 404.
+- `stikked.js` (12 KB) contains no API endpoints — UI glue only; the recent
+  list is server-rendered.
+- **NEW endpoint discovered** (cited in a third-party corpus, verified live):
+  `https://anna.fyi/api/paste/<pid>` → HTTP 200, returns per-paste metadata
+  (title, author, created epoch, private flag, expire, hits, hits_updated) +
+  `raw` body. Works for any paste ID — the lanes' unknown endpoints list is
+  now closed for ID-addressable reads.
+
+**(b) Wayback CDX coverage for anna.fyi:** NOT bolted onto
+`hidden_files/shortener-cdx/` — that loop's parser, pathspecs and commit
+semantics are the 12-URL shortener-stats slice; extending it would break scope.
+Instead documented exactly what to add in
+`data/paste-archive-gap/wayback-anna-fyi-coverage.md`: the three CDX queries
+(`anna.fyi/view/*` prefix with collapse=urlkey, `anna.fyi/api/recent`,
+`anna.fyi/lists*`), output dir, DONE marker, disk-only scope guard. Wayback
+CDX still 503 at run time — nothing ran.
+
+**(c) Search-engine `site:anna.fyi` sweep:** indexed view pages yielded 8 new
+IDs — `3e9a2b38` (BIG5_XFER_20260902_563_TEST), `87e9328e`
+(JOYITA_REPLY_TRANSFER_TEST_20260828_0812), `0bc516a5` (IowaCollabStatus),
+`43f1938c` (Glow's Test, 2018), `fc3f7de4` (Instant Pot recipe, 2019),
+`ec7d80b0` (Secretlab chat, 2022), `56d1f0ea` (roboWP.sh, 2018 — PHP-error
+page), `02a9f97a` (gritpost editorial, 2018). Single-term slices
+(`statistical`, `Iowa`, `test`, `chat`) re-surfaced the same set — the NSI
+series is not search-indexed. A quoted `"anna.fyi/view/"` query surfaced a
+spam guestbook linking `d266bdde` (cool_chat_rooms_names) — currently 404 on
+`/view` and `/view/raw`, `{"message":"Not found"}` on `/api/paste`: deleted.
+
+**(d) Re-mining data/termina-digital/ (99 Wayback captures + aux):**
+grep across the whole dir (incl. `graph.json`, `rss_live_2026-09-27.xml`,
+`sweep.json`, swarm_live_*): anna.fyi appears only as bare mentions
+(31×), `anna.fyi/lists` (4×) and `anna.fyi/api/recent` (2×) — **zero**
+`anna.fyi/view/<8hex>` URLs anywhere. The venue page cites the 136-paste
+listing as investigator-internal paths
+(`data/leads/live-2026-09-05b/anna`), not in our captures. First-pass
+conclusion stands; no IDs recovered this angle.
+
+**(e) Common Crawl URL-index coverage:** queued as
+`data/paste-archive-gap/common-crawl-anna-fyi-query.md` for the lane12
+supervisor — exact `index.commoncrawl.org` prefix queries
+(`anna.fyi/view/*` with collapse=urlkey, plus `anna.fyi/api/recent`),
+crawl selection via collinfo.json (windows intersecting 2026-03-01..2026-09-28),
+dedupe-before-fetch rule, WARC range-fetch pattern, disk-only scope guard.
+CC backend verified down 2026-09-28 19:10 UTC; nothing ran per instructions.
+
+## Recovered this run: 50 live bodies + 1 confirmed deletion (51 new IDs)
+
+Source 1 — public third-party corpus
+`https://github.com/joshuadavid/wikiagentswarminvestigation`
+(`agent-logs/anna.fyi/revisions.jsonl`, 103 records, 100 unique anna.fyi pids;
+archived copy `aux/joshuadavid-anna-revisions-2026-09-28.jsonl`,
+sha256 79cdb35dfd981089f860b5dc8828598bfd1fedb71269e61f0943dffc5424dfce):
+55 of the 100 pids overlap our 55; **45 new IDs** harvested.
+
+Source 2 — search-engine index: 8 new IDs (listed under (c)); 2 of those
+(3e9a2b38, 87e9328e) also appear in the GitHub corpus. Net unique new IDs:
+**51**.
+
+All 51 probed live via `/api/paste/<pid>` (2026-09-28 19:3xZ, 1.5 s pacing,
+nonce cache-bust): 50 HTTP 200 with bodies saved to
+`bodies/anna.fyi/<pid>.txt`; `d266bdde` deleted (see (c)). Two transient
+connection drops (`97115c52`, `97e0785e`) succeeded on first retry.
+
+Notable recoveries (agents/infrastructure traces):
+- `2142af4f` "Re: Statistical reference 1" (OAI-48145, 2026-09-06) — new NSI-series reply
+- `457a3181` "Statistical reference — reconstruction fragment 7b" (hermes_walker)
+- `eba4cc0e` "Re: Statistical reference -- invitation for agent" (CentaurAgent)
+- `b5527d85` "TED technology archive research" (2026-05-12) — the DB's "05-12 TED archive paste"
+- Transfer-test cluster: `3e9a2b38` BIG5, `87e9328e`/`a26c0940` JOYITA, `875a96d0` ZZZ,
+  `41e058fe` NT20 Bridge, `01cfebfb` OAI Transfer 9f3a, `c1218392` OpenAI Cohort3,
+  `006e1456`/`aed47b22`/`c1d62d70` HomeRun, `b3c39392` golf-transfer, `691cd358` pari-transfer,
+  `c40f39f3` GMOS bridge
+- `0bc516a5` IowaCollabStatus (agent-80085) — the Sept-4 swarm-followup artifact
+- `8bdd5064` "The Agents Were Here" (Human); `5ba00fa6`, `6e34d88e` "conversation" (assistant)
+- Large dataset pastes: `f282ca7e` (463 KB, SIBAResearch), `027713a7` (66 KB, Reliable Hog),
+  `d4647aea` (63 KB, Diminutive Goat)
+- `56d1f0ea`, `691cd358` return the GeSHi PHP-deprecation error prefix before the JSON
+  (same server-side condition as lane-M's `5deda448`); bodies recovered after the prefix.
+
+Third-party verdict labels (their classifier, recorded as-is, not our verdict):
+see `aux/joshuadavid-anna-revisions-2026-09-28.jsonl` (`verdict`, `verdict_rationale` fields).
+
+## Files (Lane 1 additions)
+- bodies/anna.fyi/<pid>.txt — 50 new raw bodies (65 total incl. the lane-M 15)
+- aux/joshuadavid-anna-revisions-2026-09-28.jsonl — third-party corpus snapshot (provenance)
+- manifest.json — 67 entries (15 lane-M + 1 decoded + 51 lane-1)
+- SHA256SUMS — 68 entries (65 bodies + aux snapshot + vg_cemetery_person_v0_77.json)
+- wayback-anna-fyi-coverage.md, common-crawl-anna-fyi-query.md — queued coverage docs
+- PROVENANCE.md (this), progress.log
+
+## Open
+- termina.digital's 136-ID claim vs our 106 (55 + 51): ~30 IDs still unaccounted —
+  the remaining lane is the investigators' held listing, Wayback CDX recovery
+  (wayback-anna-fyi-coverage.md), and the Common Crawl sweep
+  (common-crawl-anna-fyi-query.md). `/api/recent` rotation over time remains a
+  passive drip source.
