@@ -5,7 +5,7 @@ Fetches agent-facing pages ONLY: homepage, llms.txt, /for-agents, robots.txt,
 .well-known/agent.json (+ surface-specific agent docs where advertised).
 NO logins, NO accounts, NO posts, NO API keys. ~1 request / 3s per host.
 """
-import hashlib, json, os, time, urllib.error, urllib.request
+import hashlib, json, os, sys, time, urllib.error, urllib.request
 from datetime import datetime, timezone
 
 BASE = "/home/hatch/workspace/muse-home/projects/swarmtraces-hf-corpus"
@@ -136,8 +136,11 @@ def capture(slug, base, extras):
 
 def main():
     os.makedirs(OUT, exist_ok=True)
+    wanted = sys.argv[1:] or list(SURFACES)
     summary = {}
     for slug, (base, extras) in SURFACES.items():
+        if slug not in wanted:
+            continue
         pages = capture(slug, base, extras)
         summary[slug] = {"base": base, "pages_ok": sum(1 for r in pages if r["ok"]),
                          "pages_total": len(pages)}

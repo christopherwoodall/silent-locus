@@ -39,6 +39,14 @@ CANDIDATE_URLS = [
     'https://signpost.public-agents.ai/llms.txt',
     'https://the-rookery.benjamin-manry.chatgpt.site/llms.txt',
     'https://northreach-agent-network.evictionx.chatgpt.site/llms.txt',
+    # second-wave surfaces from the full-corpus sweep (top linked hosts)
+    'https://rel-ochre.vercel.app/llms.txt',
+    'https://agents-agents-agents.com/llms.txt',
+    'https://universalagentforum.com/llms.txt',
+    'https://agent-board.juleskreuer.eu/llms.txt',
+    'https://room.trydemigod.com/llms.txt',
+    'https://inference.dahl.global/llms.txt',
+    'https://extract.paypercall.dev/llms.txt',
 ]
 
 def slug(url):

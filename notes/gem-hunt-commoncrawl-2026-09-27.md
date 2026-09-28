@@ -73,11 +73,81 @@ connections (empty responses in ~1s, or 504s) after ~2h of sustained querying �
 consistent with rate limiting. Both sweeps self-throttle with 10-minute cooldowns
 after consecutive failures; no manual queries are being issued to let limits reset.
 
-## Interim conclusion
+## Respawn (lane 12b) — 2026-09-28 ~01:15–03:45 UTC
 
-The headline campaign pages (tryf3zz, southwarkssrfhack) were **not crawled**
-by Common Crawl in the May window despite the control proving gem pages are
-crawlable — consistent with the gems' <24h lifespan (published May 11–12,
-yanked within hours; the May crawl's next pass simply never saw them live).
-No pre-yank page content is recoverable from Common Crawl for the tested names.
-If the background sweep completes with hits, this note will be updated.
+The CC index query backend (`index.commoncrawl.org/...-index`) was **fully
+down for the entire respawn window** (~2.5h): HTTPS requests hang with no
+response, plain HTTP returns "Empty reply from server" (curl 52). The
+`collinfo.json` endpoint answered normally throughout — query-backend outage,
+not a network block. All three CC sweeps (`sweep3.py` exact names × 3 crawls,
+`sweep4.py` rubydoc.info exact × 2 crawls, `pattern_sweep.py` grammar + jina
+candidates) ran with retry/cooldown logic and durable state but completed
+**zero queries**; they remain alive in the background and will make progress
+if the backend recovers. New working files: `sweep4.py`, `collinfo-2026-09-27.json`.
+
+### Wayback Machine alt-route (backend healthy)
+
+With CC down, the lane pivoted to `web.archive.org/cdx` (exact-URL and
+`matchType=prefix` queries — the prefix shape CC 504s on works fine on
+Wayback, ~3s per family).
+
+**Control:** `rubygems.org/gems/rake` archived 2026-01-30, 2026-03-14,
+2026-04-15, 2026-05-15, 2026-05-18 (all 200) — Wayback archives gem pages in
+the campaign era, so clean negatives are real absences.
+
+**Hit — one campaign gem page archived:**
+`https://rubygems.org/gems/zztargettest18587` (in JFrog's GemStuffer CSV)
+captured once: **2026-08-10 00:49:52 UTC**
+(CDX: https://web.archive.org/cdx/search/cdx?url=rubygems.org%2Fgems%2Fzztargettest18587&output=json —
+page: https://web.archive.org/web/20260810004952id_/https://rubygems.org/gems/zztargettest18587).
+The 37KB snapshot is the **post-yank notice page** ("Yanked by …", name
+reserved) — no go-import meta tags, no jina URLs; the payload metadata was
+wiped at yank. It proves the gem existed and was yanked, but no pre-yank
+content is recoverable.
+
+**Family-prefix sweeps** (`matchType=prefix`, `collapse=urlkey`,
+`filter=statuscode:200`) — campaign-name cross-check against the 185 exact
+names + 379 grammar candidates:
+- `rubygems.org/gems/zz*`: 72 archived → 1 campaign hit (zztargettest18587 above)
+- `rubygems.org/gems/try*` + regex `try[a-z][0-9]zz`: **0 archived**
+- `rubygems.org/gems/oai*`: 126 archived → 0 campaign
+- `rubygems.org/gems/wand*`: 25 → 0 campaign; `chat*`: 115 → 0; `lamb*`: 78 → 0
+- `hgprobe*`, `southwark*`, `rfetch*`: 0 archived
+- 10-digit-epoch filter on 2026+ gem URLs: 13 hits, all student-homework gems
+  (`alu0101*` series) — **0 campaign**
+
+**rubydoc.info:** `zz|try|oai|chat` prefixes → 1/3/1/12 archived (all
+legitimate gems: zzzzzz, try_again, oai, chat-1, …) — **0 campaign gems**.
+The `.yardopts` exfil loop left no rubydoc.info trace in the archive.
+
+**jina laundering URLs:** spot-checked campaign `r.jina.ai/...moderngov...`
+URLs on Wayback CDX — 0 captures (e.g.
+`https://r.jina.ai/http://moderngov.lambeth.gov.uk/mgCalendarMonthView.aspx`).
+
+Raw prefix results + the yanked-page snapshot saved durably under
+`hidden_files/lane12/wayback_prefix/` (JSON per family + `SUMMARY.txt`).
+
+**Exact-URL Wayback sweep** (`wb_sweep.py`: 185 gem names + 185 rubydoc URLs)
+is running in the background with durable state (`state_wb.json`); Wayback
+throttled mid-run (2s → 15–40s per query), pace reduced to 5s sleeps. Early
+exact checks (tryf3zz, chatoaifetch177855288717, agentoaitestabc123) all `[]`.
+
+## Final conclusion
+
+Two independent historical indexes now agree: **the campaign's gem pages were
+essentially never archived**. Common Crawl captured the headline May gems not
+at all (control proved gem pages are crawlable); Wayback archived exactly one
+campaign gem page — a post-yank notice from August, payload metadata already
+wiped. The rubydoc.info surface is equally clean. This is consistent with the
+<24h gem lifespan (published and yanked within hours on May 11–12): no
+crawler's scheduled pass ever saw them live, and the one Wayback hit came
+~3 months later against the yank stub. **No pre-yank gem-page content
+(go-import tags, jina chains, descriptions) is recoverable from either
+archive.** The Diffend snapshots and the live `.gem` reconstructions remain
+the only pre-yank sources.
+
+Caveat: the CC exact-name/grammar sweeps never got a healthy backend in this
+lane; if `index.commoncrawl.org` recovers, the background sweeps
+(`sweep3.py`, `sweep4.py`, `pattern_sweep.py` with durable state files) will
+fill in the CC side. Re-check `hidden_files/lane12/results.jsonl`,
+`rubydoc_results.jsonl`, `pattern_results.jsonl`.
