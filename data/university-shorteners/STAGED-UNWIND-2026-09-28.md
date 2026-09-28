@@ -8,16 +8,21 @@ buried in slug-level summary docs. Standing rule: PRIMARY INDEXES HOLD
 EXPLICIT EVENTS ONLY — rollups go in `<index>-rollup`.
 
 ## Staged payloads (this directory tree)
-- `staged_primary/university-shorteners_explicit.jsonl` — 1,492 docs:
-  - 1,187 `shortener_referrer_row` docs (one per referrer-URL row in the
-    `*_referrer_urls_daily_*.json` evidence files; keep-all policy — duplicate
-    listings kept, disambiguated by occurrence suffix).
-    `_id = yourlsref:<instance>:<slug>:<sha16(host|url)>#<occurrence>`.
-  - 305 `shortener_daily_hits` docs (one per (slug, date, series) point;
-    dates normalized to ISO `YYYY-MM-DD`).
-    `_id = yourlsdaily:<instance>:<slug>:<series>:<date>`.
+- `staged_primary/university-shorteners_explicit.jsonl` — 1,520 docs,
+  regenerated from the canonical explicit-event dataset
+  (`data/university-shorteners-events/university-shorteners-events.jsonl`)
+  with top-level `_id = labels.event_id`:
+  - 1,188 `yourls_referrer_url` docs (one per observed referrer-URL row;
+    keep-all policy — genuine duplicate (host, URL) observations preserved,
+    disambiguated by `:dupN` event_id suffixes).
+  - 308 `yourls_daily_hits` docs (one per (slug, date, series) point).
+  - 13 `yourls_country_hits` docs.
+  - 11 `yourls_stats_page` docs.
   All carry `event.dataset=university-shorteners`, `@timestamp`, `record_kind`.
-  sha256: 7c10a86621330d6e83b9de4e590d388b10fc8a104e
+  (The earlier 1,492-doc staging was an incomplete build from the pre-rebuild
+  evidence files — missing 1 referrer row, 3 daily points, and the 13 country
+  + 11 stats-page records entirely. Corrected 2026-09-28.)
+  sha256: 07a5586d10f0f08b8dc2ea51deadf5cb0a73c66bde91075fe05276de15cb9090
 - `staged_rollup/university-shorteners-rollup.jsonl` — the 16 current
   slug-summary docs, exported read-only from the live index with original
   `_id`s (`yourls:<instance>:<slug>`), to be MOVED into
@@ -34,9 +39,9 @@ committed 16-doc state). This unwind owns the university-shorteners re-explosion
 `notes/ELASTIC_WRITE_PAUSE` exists. Sequence when resumed:
 1. Create `university-shorteners-rollup` (canonical mapping), bulk 16 docs,
    verify _count=16.
-2. Bulk 1,492 explicit docs into `university-shorteners`, verify interim 1508.
+2. Bulk 1,520 explicit docs into `university-shorteners`, verify interim 1536.
 3. Bulk-delete the 16 rollup _ids from `university-shorteners`,
-   verify primary _count=1492, rollup _count=16.
+   verify primary _count=1520, rollup _count=16.
 4. Verify `event.dataset.keyword` on both indexes.
 
 Nothing has been written to the cloud cluster by this staging work.

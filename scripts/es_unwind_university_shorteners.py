@@ -10,20 +10,25 @@ UNWIND (staged; Elastic writes PAUSED until Christopher says resume):
   1. Create `university-shorteners-rollup` from the canonical mapping
      (notes/gems-es-mapping.json); bulk the 16 slug-summary docs with their
      ORIGINAL _ids; verify _count=16.
-  2. Bulk the 1,492 explicit events into `university-shorteners`:
-       - 1,187 shortener_referrer_row docs
-         (_id = yourlsref:<instance>:<slug>:<sha16(host|url)>#<occurrence>)
-       - 305 shortener_daily_hits docs
-         (_id = yourlsdaily:<instance>:<slug>:<series>:<date>)
-     verify _count=1508 (16+1492).
+  2. Bulk the 1,520 explicit events into `university-shorteners`:
+       - 1,188 yourls_referrer_url docs
+         (_id = labels.event_id, e.g.
+          yourls:<instance>:<slug>:refurl:<sha16>[:dupN] — genuine duplicate
+          (host, URL) observations preserved with :dupN suffixes)
+       - 308 yourls_daily_hits docs
+       - 13 yourls_country_hits docs
+       - 11 yourls_stats_page docs
+     verify _count=1536 (16+1520).
   3. Bulk-delete the 16 rollup _ids from `university-shorteners`;
-     verify primary _count=1492, rollup _count=16.
+     verify primary _count=1520, rollup _count=16.
   4. Field check: event.dataset.keyword present on both indexes.
 
 Staged payloads (committed, on disk):
-  data/university-shorteners/staged_primary/university-shorteners_explicit.jsonl (1492)
+  data/university-shorteners/staged_primary/university-shorteners_explicit.jsonl (1520)
   data/university-shorteners/staged_rollup/university-shorteners-rollup.jsonl    (16)
-Source of truth: the *_referrer_urls_daily_*.json evidence files (raw rows).
+Source of truth: data/university-shorteners-events/university-shorteners-events.jsonl
+(the canonical explicit-event dataset; the staged primary is that file plus
+top-level _id = labels.event_id).
 
 Usage:
   python3 scripts/es_unwind_university_shorteners.py --verify-only   # read-only checks
@@ -50,7 +55,7 @@ EXPLICIT = os.path.join(BASE, "data", "university-shorteners", "staged_primary",
                         "university-shorteners_explicit.jsonl")
 ROLLUP_DOCS = os.path.join(BASE, "data", "university-shorteners", "staged_rollup",
                            "university-shorteners-rollup.jsonl")
-EXPECTED_PRIMARY = 1492
+EXPECTED_PRIMARY = 1520
 EXPECTED_ROLLUP = 16
 
 
@@ -96,14 +101,15 @@ def main():
     kinds = {}
     for d in explicit:
         kinds[d["record_kind"]] = kinds.get(d["record_kind"], 0) + 1
-    assert kinds == {"shortener_referrer_row": 1187, "shortener_daily_hits": 305}, kinds
+    assert kinds == {"yourls_referrer_url": 1188, "yourls_daily_hits": 308,
+                     "yourls_country_hits": 13, "yourls_stats_page": 11}, kinds
     if mode == "--verify-only":
         print(f"primary {PRIMARY} _count =", count(PRIMARY))
         try:
             print(f"rollup  {ROLLUP} _count =", count(ROLLUP))
         except Exception as e:
             print(f"rollup  {ROLLUP} missing ({type(e).__name__})")
-        print("staged payloads OK: 1492 explicit (1187 referrer rows + 305 daily) + 16 rollup docs.")
+        print("staged payloads OK: 1520 explicit (1188 referrer + 308 daily + 13 country + 11 stats pages) + 16 rollup docs.")
         return
     if mode != "--execute":
         sys.exit("usage: --verify-only | --execute")
@@ -140,7 +146,7 @@ def main():
         b = ag["aggregations"]["ds"]["buckets"]
         assert b and all(x["key"].startswith("university-shorteners") for x in b), (idx, b)
         print(idx, "event.dataset.keyword OK:", [x["key"] for x in b])
-    print("UNWIND COMPLETE: primary=1492 explicit, rollup=16 summaries.")
+    print("UNWIND COMPLETE: primary=1520 explicit, rollup=16 summaries.")
 
 
 if __name__ == "__main__":
