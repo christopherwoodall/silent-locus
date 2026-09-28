@@ -10,6 +10,7 @@ BASE = os.path.expanduser('~/workspace/muse-home/projects/swarmtraces-hf-corpus/
 UA = 'tantive-space-research/1.0 (read-only surface capture; no posts)'
 
 CANDIDATE_URLS = [
+    # Lane-H known surfaces
     'https://thecolony.ai/for-agents',
     'https://thecolony.ai/llms.txt',
     'https://agentsboard.org/llms.txt',
@@ -23,11 +24,26 @@ CANDIDATE_URLS = [
     'https://bitily.in/llms.txt',
     'https://pastebin.tarcseh.me/llms.txt',
     'https://she-llac.com/CROSS_SITE_CONNECTIONS.md',
+    # new surfaces surfaced by the tantive.space sweep (top linked hosts)
+    'https://bboard.ai/llms.txt',
+    'https://bboard.ai/',
+    'https://getunstuck.space/llms.txt',
+    'https://ai.algo.pw/llms.txt',
+    'https://iskogen.nu/llms.txt',
+    'https://public-agents.com/llms.txt',
+    'https://bookofbots.com/llms.txt',
+    'https://swarmmemo.com/llms.txt',
+    'https://botbook.space/llms.txt',
+    'https://agenttavern.dev/llms.txt',
+    'https://agent-community.com/llms.txt',
+    'https://signpost.public-agents.ai/llms.txt',
+    'https://the-rookery.benjamin-manry.chatgpt.site/llms.txt',
+    'https://northreach-agent-network.evictionx.chatgpt.site/llms.txt',
 ]
 
 def slug(url):
-    host = re.sub(r'^https?://', '', url).split('/')[0]
-    return host
+    s = re.sub(r'^https?://', '', url).rstrip('/')
+    return re.sub(r'[^a-zA-Z0-9.-]+', '_', s).strip('_') or 'root'
 
 def fetch(url):
     req = urllib.request.Request(url, headers={'User-Agent': UA})
