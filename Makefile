@@ -32,9 +32,10 @@ doctor: ## Check local prerequisites (docker, compose, python, curl)
 	@echo "note:    ES needs vm.max_map_count >= 262144; Docker Desktop's VM already sets this"
 
 up: ## Start Elasticsearch + Kibana in the background
+	@mkdir -p elk/data
 	$(COMPOSE) up -d
 
-down: ## Stop the stack (data volume is kept)
+down: ## Stop the stack (./elk/data is kept)
 	$(COMPOSE) down
 
 restart: ## Restart the stack
@@ -109,7 +110,7 @@ dry-run: ## Preview everything (snapshot verify, corpus plan, dataset counts); w
 
 ##@ Maintenance
 
-clean: ## Delete ALL data indices in the local cluster (containers and volume stay up)
+clean: ## Delete ALL data indices in the local cluster (containers and ./elk/data stay up)
 	@printf "This deletes every non-system index on %s. Type 'clean' to confirm: " "$(ES_URL)"; \
 	read a; [ "$$a" = "clean" ] || { echo "aborted"; exit 1; }; \
 	for idx in $$(curl -s -u "$(ES_USER):$(ES_PASS)" "$(ES_URL)/_cat/indices?h=index" | grep -v '^\.'); do \
@@ -118,7 +119,8 @@ clean: ## Delete ALL data indices in the local cluster (containers and volume st
 	    && echo "ok" || echo "FAILED"; \
 	done
 
-reset: ## Stop the stack AND delete the esdata volume (full wipe)
-	@printf "This stops the stack and wipes the esdata volume. Type 'reset' to confirm: "; \
+reset: ## Stop the stack AND wipe ./elk/data (full wipe)
+	@printf "This stops the stack and wipes ./elk/data. Type 'reset' to confirm: "; \
 	read a; [ "$$a" = "reset" ] || { echo "aborted"; exit 1; }; \
-	$(COMPOSE) down -v
+	$(COMPOSE) down; \
+	rm -rf ./elk/data && mkdir -p ./elk/data && echo "elk/data wiped"

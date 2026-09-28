@@ -28,7 +28,11 @@ services:
         soft: -1
         hard: -1
     volumes:
-      - esdata:/usr/share/elasticsearch/data
+      # Bind mount (not a named volume): cluster data lives in ./elk/data,
+      # survives `make down`, and is git-ignored. The directory is created
+      # by `make up`. If Elasticsearch fails to start with access errors,
+      # chown it to the container user: sudo chown -R 1000:1000 elk/data
+      - ./elk/data:/usr/share/elasticsearch/data
     ports:
       - "127.0.0.1:${ES_PORT:-9200}:9200"
     healthcheck:
@@ -79,6 +83,3 @@ services:
         condition: service_healthy
       setup:
         condition: service_completed_successfully
-
-volumes:
-  esdata:
