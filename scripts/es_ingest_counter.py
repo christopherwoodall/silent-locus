@@ -13,10 +13,18 @@ Usage:
 """
 import sys, json, os, hashlib, urllib.request
 from datetime import datetime, timezone
-sys.path.insert(0, "/opt/hatch/skills/skill-creator/bin")
-from dynamic_credentials import add_surrogate_to_request, read_json_response
+import os
+try:
+    sys.path.insert(0, "/opt/hatch/skills/skill-creator/bin")
+    from dynamic_credentials import add_surrogate_to_request, read_json_response
+except ImportError:  # local run: no vault on this machine, plain HTTP(S) instead
+    def add_surrogate_to_request(request, *args, **kwargs):
+        return None
+    def read_json_response(response):
+        import json as _json
+        return _json.load(response)
 
-ES = "https://agent-apocalypse-f1f7ba.es.us-east-1.aws.elastic.cloud:443"
+ES = os.environ.get("SWARMTRACES_ES_URL", "https://agent-apocalypse-f1f7ba.es.us-east-1.aws.elastic.cloud:443")
 HOSTS = ["agent-apocalypse-f1f7ba.es.us-east-1.aws.elastic.cloud"]
 CRED = "custom.elastic-cloud"
 BASE = "/home/hatch/workspace/muse-home/projects/swarmtraces-hf-corpus"
@@ -34,7 +42,10 @@ def req(method, path, body=None, raw=None):
         json.dumps(body).encode() if body is not None else None)
     r = urllib.request.Request(url, data=data, method=method)
     r.add_header("Content-Type", "application/json")
-    add_surrogate_to_request(r, CRED, allowed_hosts=HOSTS)
+    if ES.startswith(("http://localhost", "http://127.0.0.1", "http://[::1]")):
+        pass  # local instance: no vault auth
+    else:
+        add_surrogate_to_request(r, CRED, allowed_hosts=HOSTS)
     with urllib.request.urlopen(r, timeout=180) as resp:
         return read_json_response(resp)
 
