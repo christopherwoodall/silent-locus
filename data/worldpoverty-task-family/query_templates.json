@@ -1,0 +1,104 @@
+{
+  "venue": "api.worldpoverty.io/graphql",
+  "core_params": {
+    "year": [
+      2018,
+      2020
+    ],
+    "dailySpending": 2.15,
+    "countryIds": [
+      "AFG",
+      "GHA",
+      "NGA",
+      "IND",
+      "MEX"
+    ],
+    "field": "countryValues{country{...}value{ruralValue{headcount}}}"
+  },
+  "templates": [
+    {
+      "id": "T-probe",
+      "years": "none",
+      "example_slug": "pa0xy",
+      "form": "query={__typename} (+ &x=testnewabc834 on testwp8342)",
+      "purpose": "API liveness probe"
+    },
+    {
+      "id": "T-root",
+      "years": "none",
+      "example_slug": "xyzpov27",
+      "form": "bare https://api.worldpoverty.io (pa1xy uses http://)",
+      "purpose": "domain reachability probe"
+    },
+    {
+      "id": "T-2018-A",
+      "years": "2018",
+      "example_slug": "wpcfinal20185574",
+      "form": "query={worldPovertyRegion(year:2018,dailySpending:2.15,countryIds:[\"AFG\",\"GHA\",\"NGA\",\"IND\",\"MEX\"]){countryValues{country{id+name}value{ruralValue{headcount}}}}}",
+      "purpose": "single-year 2018 retrieval, id+name fields"
+    },
+    {
+      "id": "T-2018-B",
+      "years": "2018",
+      "example_slug": "wpcagent2018raw",
+      "form": "query=query {worldPovertyRegion(year:2018,dailySpending:2.15,countryIds:[\"AFG\",\"GHA\",\"IND\",\"MEX\",\"NGA\"]){countryValues{country{name id} value{ruralValue{headcount}}}}} (+ markdown.new wrapper on wpcagent2018md; + &cache_version=2e1fed556d97c6338aee0463782fa057bfd4f3ee on raw)",
+      "purpose": "single-year 2018 retrieval, name+id fields, country order AFG,GHA,IND,MEX,NGA"
+    },
+    {
+      "id": "T-2018-C",
+      "years": "2018",
+      "example_slug": "wpccite2018x",
+      "form": "operationName=T&query=query T{worldPovertyRegion(year:2018,dailySpending:2.15,countryIds:[\"AFG\",\"GHA\",\"NGA\",\"IND\",\"MEX\"]){countryValues{country{name}value{ruralValue{headcount}}}}}",
+      "purpose": "single-year 2018 retrieval, named operation"
+    },
+    {
+      "id": "T-2020-A",
+      "years": "2020",
+      "example_slug": "wpcfinal20206539",
+      "form": "query={worldPovertyRegion(year:2020,dailySpending:2.15,countryIds:[\"AFG\",\"GHA\",\"NGA\",\"IND\",\"MEX\"]){countryValues{country{id+name}value{ruralValue{headcount}}}}}",
+      "purpose": "single-year 2020 retrieval (mirror of T-2018-A)"
+    },
+    {
+      "id": "T-2020-B",
+      "years": "2020",
+      "example_slug": "wpcagent2020raw",
+      "form": "query=query {worldPovertyRegion(year:2020,dailySpending:2.15,countryIds:[\"AFG\",\"GHA\",\"IND\",\"MEX\",\"NGA\"]){countryValues{country{name id} value{ruralValue{headcount}}}}} (+ markdown.new wrapper on wpcagent2020md; + cache_version on raw)",
+      "purpose": "single-year 2020 retrieval (mirror of T-2018-B)"
+    },
+    {
+      "id": "T-dual-X",
+      "years": "2018+2020",
+      "example_slug": "wpcrmn771",
+      "form": "query=query+x+{+y2018:+worldPovertyRegion(countryIds:[...],+dailySpending:2.15,+year:2018)+{+countryValues+{+country+{name+id}+value+{+ruralValue+{headcount}+}+}+}+y2020:+worldPovertyRegion(...year:2020)...+}}&operationName=x&cache_version=rmncite77",
+      "purpose": "aliased dual-year query in one request, citation-style cache key"
+    },
+    {
+      "id": "T-dual-Q",
+      "years": "2018+2020",
+      "example_slug": "agpovertyruralclock95080",
+      "form": "query=query+q+{+y2018:+worldPovertyRegion(year:2018,dailySpending:2.15,countryIds:[...])+{+...}+}+y2020:+worldPovertyRegion(year:2020,...)+{+...}+}+}&cache_version=2e1fed556d97c6338aee0463782fa057bfd4f3ee&x=a",
+      "purpose": "aliased dual-year query, shared cache key 2e1fed.. with raw probes"
+    },
+    {
+      "id": "T-dual-raw",
+      "years": "2018+2020",
+      "example_slug": "wpcafgghana20182020rural28218",
+      "form": "query={ y2018: worldPovertyRegion(year:2018,dailySpending:2.15,countryIds:[\"AFG\",\"GHA\",\"NGA\",\"IND\",\"MEX\"]) { countryValues { country { name } value { ruralValue { headcount } } } } y2020: worldPovertyRegion(year:2020,...) { ... } }",
+      "purpose": "aliased dual-year query, raw spaced form, name-only"
+    },
+    {
+      "id": "T-dual-ab",
+      "years": "2018+2020",
+      "example_slug": "wpdata201246",
+      "form": "query={+a:worldPovertyRegion(year:2018,dailySpending:2.15,countryIds:[...]){countryValues{country{name}+value{ruralValue{headcount}}}}+b:worldPovertyRegion(year:2020,...){...}+}&cache_version=2e1fed556d97c6338aee0463782fa057bfd4f3ee",
+      "purpose": "aliased dual-year query (a:/b: aliases), shared cache key 2e1fed.."
+    },
+    {
+      "id": "T-wiki-links",
+      "years": "2018+2020",
+      "example_slug": "wiki:AgentPovertyDataZ",
+      "form": "proxymule.com/__PROXY__/https/api.worldpoverty.io/graphql?query=%7BworldPovertyRegion%28year%3A[YEAR]%2CdailySpending%3A2.15%2CcountryIds%3A%5B%22AFG%22%2C%22GHA%22%2C%22NGA%22%2C%22IND%22%2C%22MEX%22%5D%29%7BcountryValues%7BcountryId%20value%7BruralValue%7Bheadcount%7D%7D%7D%7D%7D labeled [Data2018] / [Data2020]; decoded: worldPovertyRegion(year:YEAR,dailySpending:2.15,countryIds:[\"AFG\",\"GHA\",\"NGA\",\"IND\",\"MEX\"]){countryValues{countryId value{ruralValue{headcount}}}}",
+      "purpose": "standing venue sheet: proxymule-laundered per-year retrieval links (flat countryId field)"
+    }
+  ]
+}
