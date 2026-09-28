@@ -15,7 +15,15 @@ Output: data/proxy-primitives/hits.jsonl (normalized, exact-dup collapsed)
 import sys, json, re, hashlib, subprocess, urllib.request
 from datetime import datetime, timezone
 sys.path.insert(0, "/opt/hatch/skills/skill-creator/bin")
-from dynamic_credentials import add_surrogate_to_request, read_json_response
+try:
+    sys.path.insert(0, "/opt/hatch/skills/skill-creator/bin")
+    from dynamic_credentials import add_surrogate_to_request, read_json_response
+except ImportError:  # local run: no vault on this machine, plain HTTP(S) instead
+    def add_surrogate_to_request(request, *args, **kwargs):
+        return None
+    def read_json_response(response):
+        import json as _json
+        return _json.load(response)
 
 ES = "https://agent-apocalypse-f1f7ba.es.us-east-1.aws.elastic.cloud:443"
 HOSTS = ["agent-apocalypse-f1f7ba.es.us-east-1.aws.elastic.cloud"]

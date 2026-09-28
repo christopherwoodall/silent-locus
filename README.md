@@ -1,7 +1,7 @@
-# swarmtraces-hf-corpus
+# silent-locus
 
 Phase-two corpus for the agent-activity research: the public SwarmTraces
-80,000-payload Hugging Face incident dataset.
+Hugging Face incident dataset (189,579 records, 91,037 payloads).
 
 ## Relationship to the wrapped hunt
 
