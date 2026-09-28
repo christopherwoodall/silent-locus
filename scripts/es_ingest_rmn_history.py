@@ -24,9 +24,10 @@ except ImportError:  # local run: no vault on this machine, plain HTTP(S) instea
         return _json.load(response)
 
 ES = os.environ.get("SWARMTRACES_ES_URL", "https://agent-apocalypse-f1f7ba.es.us-east-1.aws.elastic.cloud:443")
+REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 HOSTS = ["agent-apocalypse-f1f7ba.es.us-east-1.aws.elastic.cloud"]
 CRED = "custom.elastic-cloud"
-BASE = "/home/hatch/workspace/muse-home/projects/swarmtraces-hf-corpus"
+BASE = REPO_ROOT
 D = BASE + "/data/rmn-re-history"
 INDEX = "rmn-re-history"
 NOW = datetime.now(timezone.utc).isoformat()
@@ -41,7 +42,11 @@ def req(method, path, body=None, raw=None):
     r = urllib.request.Request(url, data=data, method=method)
     r.add_header("Content-Type", "application/json")
     if ES.startswith(("http://localhost", "http://127.0.0.1", "http://[::1]")):
-        pass  # local instance: no vault auth
+        _es_user = os.environ.get("ES_USER")
+        if _es_user:
+            import base64 as _b64
+            r.add_header("Authorization", "Basic " + _b64.b64encode(
+                f"{_es_user}:{os.environ.get('ES_PASS', '')}".encode()).decode())
     else:
         add_surrogate_to_request(r, CRED, allowed_hosts=HOSTS)
     with urllib.request.urlopen(r, timeout=180) as resp:

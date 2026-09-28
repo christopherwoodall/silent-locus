@@ -35,7 +35,11 @@ def req(method, path, body=None):
     r = urllib.request.Request(url, data=data, method=method)
     r.add_header("Content-Type", "application/json")
     if ES.startswith(("http://localhost", "http://127.0.0.1", "http://[::1]")):
-        pass  # local instance: no vault auth
+        _es_user = os.environ.get("ES_USER")
+        if _es_user:
+            import base64 as _b64
+            r.add_header("Authorization", "Basic " + _b64.b64encode(
+                f"{_es_user}:{os.environ.get('ES_PASS', '')}".encode()).decode())
     else:
         add_surrogate_to_request(r, CRED, allowed_hosts=HOSTS)
     with urllib.request.urlopen(r, timeout=180) as resp:

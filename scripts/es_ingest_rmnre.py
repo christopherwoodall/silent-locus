@@ -14,17 +14,22 @@ except ImportError:  # local run: no vault on this machine, plain HTTP(S) instea
         return _json.load(response)
 
 ES = os.environ.get("SWARMTRACES_ES_URL", "https://agent-apocalypse-f1f7ba.es.us-east-1.aws.elastic.cloud:443")
+REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 HOSTS = ["agent-apocalypse-f1f7ba.es.us-east-1.aws.elastic.cloud"]
 CRED = "custom.elastic-cloud"
 INDEX = "rmn-re-linktable"
-SRC = "/home/hatch/workspace/muse-home/projects/swarmtraces-hf-corpus/data/rmn-re/link_table_decoded_2026-09-27.json"
+SRC = REPO_ROOT + "/data/rmn-re/link_table_decoded_2026-09-27.json"
 
 def req(method, path, body=None):
     r = urllib.request.Request(ES + path,
         data=json.dumps(body).encode() if body is not None else None, method=method)
     r.add_header("Content-Type", "application/json")
     if ES.startswith(("http://localhost", "http://127.0.0.1", "http://[::1]")):
-        pass  # local instance: no vault auth
+        _es_user = os.environ.get("ES_USER")
+        if _es_user:
+            import base64 as _b64
+            r.add_header("Authorization", "Basic " + _b64.b64encode(
+                f"{_es_user}:{os.environ.get('ES_PASS', '')}".encode()).decode())
     else:
         add_surrogate_to_request(r, CRED, allowed_hosts=HOSTS)
     with urllib.request.urlopen(r, timeout=120) as resp:
@@ -72,7 +77,7 @@ def doc(l):
 def main():
     rows = json.load(open(SRC))
     print("mapping:", req("PUT", f"/{INDEX}", {"mappings": json.load(
-        open("/home/hatch/workspace/muse-home/projects/swarmtraces-hf-corpus/notes/gems-es-mapping.json"))["mappings"]}).get("acknowledged"))
+        open(REPO_ROOT + "/notes/gems-es-mapping.json"))["mappings"]}).get("acknowledged"))
     bulk = []
     for l in rows:
         d = doc(l)
@@ -82,7 +87,11 @@ def main():
     r = urllib.request.Request(ES + "/_bulk", data=body.encode(), method="POST")
     r.add_header("Content-Type", "application/x-ndjson")
     if ES.startswith(("http://localhost", "http://127.0.0.1", "http://[::1]")):
-        pass  # local instance: no vault auth
+        _es_user = os.environ.get("ES_USER")
+        if _es_user:
+            import base64 as _b64
+            r.add_header("Authorization", "Basic " + _b64.b64encode(
+                f"{_es_user}:{os.environ.get('ES_PASS', '')}".encode()).decode())
     else:
         add_surrogate_to_request(r, CRED, allowed_hosts=HOSTS)
     with urllib.request.urlopen(r, timeout=300) as resp:
