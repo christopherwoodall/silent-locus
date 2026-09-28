@@ -121,10 +121,12 @@ def main():
         print("rollup index create skipped/exists:", str(e)[:120])
     n, errs = bulk(rollup, ROLLUP)
     assert not errs, errs[:3]
+    req("POST", f"/{ROLLUP}/_refresh")
     assert count(ROLLUP) == EXPECTED_ROLLUP, count(ROLLUP)
     print("rollup bulked:", n, "count verified:", EXPECTED_ROLLUP)
     n, errs = bulk(explicit, PRIMARY)
     assert not errs, errs[:3]
+    req("POST", f"/{PRIMARY}/_refresh")
     assert count(PRIMARY) == EXPECTED_PRIMARY + EXPECTED_ROLLUP, count(PRIMARY)
     print("primary bulked:", n, "interim count verified:", EXPECTED_PRIMARY + EXPECTED_ROLLUP)
     lines = []
@@ -137,7 +139,8 @@ def main():
         res = read_json_response(resp)
     derrs = [i for i in res["items"] if i["delete"].get("error")]
     assert not derrs, derrs[:3]
-    import time; time.sleep(2)
+    req("POST", f"/{PRIMARY}/_refresh")
+    req("POST", f"/{ROLLUP}/_refresh")
     assert count(PRIMARY) == EXPECTED_PRIMARY, count(PRIMARY)
     assert count(ROLLUP) == EXPECTED_ROLLUP, count(ROLLUP)
     for idx in (PRIMARY, ROLLUP):
