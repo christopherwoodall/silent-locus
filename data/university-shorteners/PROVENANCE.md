@@ -183,3 +183,30 @@ should (1) set private stats on sensitive instances (UVM's referrer-hiding confi
 (3) treat hit bursts on old low-traffic slugs as anomalies (ETH nB1nv: 0.12/day baseline, 63 hits on
 2026-06-18), and (4) snapshot the last-30d window on any alert — it ages out daily and the decimated
 all-time series never recovers sub-sampled days.
+
+## July 5–6 UNM retry lane (2026-09-28 ~19:35 UTC)
+
+The July 5–6 per-day/per-referrer rows (UNM 7t6-o) were declared unrecoverable from the live YOURLS
+UI (verified: decimated all-time series has no 2026-07-05/06 points; lane-P closed 18:55Z). This lane
+retried via archived copies of the four stats pages (`7t6-o`, `discvr`, `reso`, `urphy21`):
+
+- **Wayback CDX retry loop** (`hidden_files/shortener-cdx/`): verified its 12-URL set already contains
+  all four UNM `+` stats URLs plus `vbudg` — no additions needed. Still polling every 15 min through
+  2026-09-30 12:00 UTC; CDX last probed 503/000 at 19:10 UTC.
+- **Common Crawl queued**: `hidden_files/lane12/shortener_cc_job.json` (exact index queries, `+`
+  encoded as `%2B`, crawls intersecting 2026-06-01..2026-08-15) +
+  `hidden_files/lane12/shortener_cc_sweep.py` (index → WARC range fetch → shared YOURLS row parser →
+  per-row explosion, disk-only, dedupe on `labels.event_id`) +
+  `hidden_files/lane12/shortener_cc_query.md` (query reference). Lane12 supervisor patched (v4.1)
+  to launch it on CC recovery; supervisor restarted 19:21 UTC from the patched file, window intact.
+- **Memento aggregators — negative**: `timetravel.mementoweb.org` (http/https) and
+  `arquivo.pt/wayback/cdx` return "Empty reply from server" through this egress (same class as the
+  web.archive.org blockage; DNS resolves, upstream sends nothing).
+- **UNM YOURLS alternate endpoints — negative**: stock YOURLS 1.7.1, server-rendered, no JS data API
+  (only `admin/admin-ajax.php`, auth-only, not probed); `yourls-api.php?action=stats&shorturl=7t6-o`
+  signature-less → 302 to `/` (no signature-less read path); no dated archive URL pattern on-instance.
+
+No archived stats page has been recovered yet via any angle; no new rows staged. If the CC or
+Wayback workers fire, captures land in `data/university-shorteners/wayback-cc/` /
+`data/university-shorteners/wayback/` and per-row events append to
+`data/university-shorteners-events/university-shorteners-events.jsonl`.

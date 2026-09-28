@@ -1,10 +1,13 @@
 #!/bin/bash
 # lane12 supervisor v4: relaunches sweep workers when backends recover.
+# v4.1 2026-09-28 ~19:35 UTC: queued shortener_cc_sweep.py (July-5-6 UNM
+# retry lane) — Common Crawl slice over the 5 goto.unm.edu '+' stats pages.
 # v4 2026-09-28 ~19:15 UTC: migrated to christopherwoodall/silent-locus
 # (was muse-home/projects/swarmtraces-hf-corpus); BASE now derives from
 # script location. Window: through 2026-09-30 12:00 UTC, checks every 10 min.
 # v3 history: installed after v2 died in a runtime restart drain (~11:54 UTC).
-# Workers: sweep3/4/pattern_sweep need index.commoncrawl.org; wb_sweep needs web.archive.org/cdx.
+# Workers: sweep3/4/pattern_sweep/shortener_cc_sweep need index.commoncrawl.org;
+# wb_sweep needs web.archive.org/cdx.
 # All workers are resumable (durable state in this dir) and self-terminate.
 # Probes carry a nonce (cache-busting on liveness checks is mandatory).
 # Note: egress-proxy quirk — curl may report HTTP 000 with "Empty reply from
@@ -33,7 +36,8 @@ wb_done()      { grep -q '^DONE wayback sweep' "$BASE"/wb_sweep*.log 2>/dev/null
 sweep3_done()  { grep -q '^DONE all crawls' "$BASE"/sweep3*.log 2>/dev/null; }
 sweep4_done()  { grep -q '^DONE sweep4' "$BASE"/sweep4*.log 2>/dev/null; }
 pattern_done() { grep -q '^DONE \[jina-url\]' "$BASE"/pattern_sweep*.log 2>/dev/null; }
-all_done() { wb_done && sweep3_done && sweep4_done && pattern_done; }
+ccshort_done() { grep -q '^DONE shortener-cc' "$BASE"/shortener_cc*.log 2>/dev/null; }
+all_done() { wb_done && sweep3_done && sweep4_done && pattern_done && ccshort_done; }
 
 log "start (window ends 2026-09-30 12:00 UTC)"
 while [ "$(date +%s)" -lt "$END_TS" ]; do
@@ -45,6 +49,7 @@ while [ "$(date +%s)" -lt "$END_TS" ]; do
     ! sweep3_done  && ! alive sweep3  && launch sweep3.py sweep3-v3.log
     ! sweep4_done  && ! alive sweep4  && launch sweep4.py sweep4-v3.log
     ! pattern_done && ! alive pattern_sweep && launch pattern_sweep.py pattern_sweep-v3.log
+    ! ccshort_done && ! alive shortener_cc_sweep && launch shortener_cc_sweep.py shortener_cc_sweep.log
   else
     log "CC index still down"
   fi
