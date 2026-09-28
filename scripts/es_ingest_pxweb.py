@@ -5,12 +5,18 @@ Conforms to the canonical shared schema (notes/gems-es-mapping.json): all detail
 lives in `labels` (flattened) + `tags`; record_kind=stats_api_target; zero
 top-level fields beyond the mapping.
 
+Idempotent (fixed 2026-09-28, workstream A): deterministic _id
+"stats:<sha256(record_kind|matched_string|source_url)[:16]>", re-runs
+overwrite instead of duplicating. The previous script revision used
+auto-generated ES IDs (duplication risk) and had a dead `load()` path
+(that sent an empty body); both are retired by this rewrite.
+
 Usage:
-  python3 es_ingest_pxweb.py --create   # create index w/ canonical mapping
+  python3 es_ingest_pxweb.py --create   # create index w/ canonical mapping (idempotent)
   python3 es_ingest_pxweb.py --load     # bulk ingest data/pxweb-national-stats/hits.jsonl
   python3 es_ingest_pxweb.py --verify   # count + top-level field hygiene vs mapping
 """
-import sys, json, urllib.request
+import sys, json, hashlib, urllib.request
 sys.path.insert(0, "/opt/hatch/skills/skill-creator/bin")
 from dynamic_credentials import add_surrogate_to_request, read_json_response
 
@@ -21,43 +27,53 @@ BASE = "/home/hatch/workspace/muse-home/projects/swarmtraces-hf-corpus"
 HITS = BASE + "/data/pxweb-national-stats/hits.jsonl"
 MAPPING_SRC = BASE + "/notes/gems-es-mapping.json"
 INDEX = "pxweb-national-stats"
+MAPPING_KEYS = set(json.load(open(MAPPING_SRC))["mappings"]["properties"])
 
-def req(method, path, body=None):
+
+def req(method, path, body=None, raw=None):
     url = ES + path
-    data = json.dumps(body).encode() if body is not None else None
+    data = raw.encode() if raw is not None else (
+        json.dumps(body).encode() if body is not None else None)
     r = urllib.request.Request(url, data=data, method=method)
     r.add_header("Content-Type", "application/json")
     add_surrogate_to_request(r, CRED, allowed_hosts=HOSTS)
     with urllib.request.urlopen(r, timeout=300) as resp:
         return read_json_response(resp)
 
+
+def doc_id(d):
+    key = "%s|%s|%s" % (d.get("record_kind", ""), d.get("matched_string", ""),
+                        d.get("source_url", ""))
+    return "stats:" + hashlib.sha256(key.encode()).hexdigest()[:16]
+
+
 def create():
-    mapping = json.load(open(MAPPING_SRC))["mappings"]  # canonical shared schema
-    body = {"mappings": mapping["mappings"] if "mappings" in mapping else mapping}
-    out = req("PUT", "/" + INDEX, body)
-    print(json.dumps(out)[:200])
+    # canonical shared schema: mapping section ONLY (the `index` key in the
+    # notes file is the gems index name, not settings).
+    mapping = json.load(open(MAPPING_SRC))["mappings"]
+    try:
+        out = req("PUT", "/" + INDEX, {"mappings": mapping})
+        print("index created:", json.dumps(out)[:200])
+    except Exception as e:
+        body = e.read().decode() if hasattr(e, "read") else str(e)
+        if "resource_already_exists_exception" in body:
+            print("index exists; updating mapping")
+            req("PUT", "/%s/_mapping" % INDEX, mapping)
+        else:
+            raise
+
 
 def load():
-    docs = [json.loads(l) for l in open(HITS)]
-    n = 0
-    for i in range(0, len(docs), 250):
-        bulk = ""
-        for d in docs[i:i+250]:
-            bulk += json.dumps({"index": {"_index": INDEX}}) + "\n" + json.dumps(d) + "\n"
-        out = req("POST", "/_bulk", None)
-        # send raw bulk body
-        n += len(docs[i:i+250])
-    print("queued", n)
-
-def load_raw():
-    docs = [json.loads(l) for l in open(HITS)]
-    n = 0
+    docs = [json.loads(l) for l in open(HITS) if l.strip()]
+    ids = [doc_id(d) for d in docs]
+    assert len(set(ids)) == len(ids), "doc ID collision!"
+    ok = fail = 0
     for i in range(0, len(docs), 250):
         body = ""
-        for d in docs[i:i+250]:
-            body += json.dumps({"index": {"_index": INDEX}}) + "\n" + json.dumps(d) + "\n"
-        url = ES + "/_bulk"
-        r = urllib.request.Request(url, data=body.encode(), method="POST")
+        for d, _id in zip(docs[i:i + 250], ids[i:i + 250]):
+            body += json.dumps({"index": {"_index": INDEX, "_id": _id}}) + "\n"
+            body += json.dumps(d) + "\n"
+        r = urllib.request.Request(ES + "/_bulk", data=body.encode(), method="POST")
         r.add_header("Content-Type", "application/x-ndjson")
         add_surrogate_to_request(r, CRED, allowed_hosts=HOSTS)
         with urllib.request.urlopen(r, timeout=300) as resp:
@@ -65,24 +81,34 @@ def load_raw():
         if out.get("errors"):
             for it in out["items"]:
                 if "error" in it.get("index", {}):
-                    print("ERR", it["index"]["error"])
+                    print("ERR", json.dumps(it["index"]["error"])[:300])
+                    fail += 1
                     break
-        n += len(docs[i:i+250])
-    print("indexed", n)
+        else:
+            ok += len(docs[i:i + 250])
+    print("indexed ok=%d fail=%d" % (ok, fail))
+
 
 def verify():
     out = req("GET", "/" + INDEX + "/_count")
     print("count:", out["count"])
-    mapping = json.load(open(MAPPING_SRC))["mappings"]["properties"]
-    allowed = set(mapping.keys()) | {"_index", "_id", "_score", "_source", "sort"}
     out = req("POST", "/" + INDEX + "/_search",
               {"size": 50, "query": {"match_all": {}}})
     unexpected = set()
     for h in out["hits"]["hits"]:
-        unexpected |= (set(h["_source"].keys()) - set(mapping.keys()))
+        unexpected |= (set(h["_source"].keys()) - MAPPING_KEYS)
     print("unexpected top-level fields:", sorted(unexpected) or "none")
+    r = req("POST", "/" + INDEX + "/_search",
+            {"size": 0, "aggs": {"kinds": {"terms": {"field": "record_kind"}}}})
+    print("record_kind:", [(x["key"], x["doc_count"]) for x in r["aggregations"]["kinds"]["buckets"]])
+    print("hits:", len(out["hits"]["hits"]), "unique IDs:",
+          len({h["_id"] for h in out["hits"]["hits"]}))
+
 
 if __name__ == "__main__":
-    if sys.argv[1] == "--create": create()
-    elif sys.argv[1] == "--load": load_raw()
-    elif sys.argv[1] == "--verify": verify()
+    if sys.argv[1] == "--create":
+        create()
+    elif sys.argv[1] == "--load":
+        load()
+    elif sys.argv[1] == "--verify":
+        verify()
