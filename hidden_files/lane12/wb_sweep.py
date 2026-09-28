@@ -69,7 +69,7 @@ def main():
         if len(done) % 60 == 0:
             state['done'] = list(done); save_state(state)
             print(f'progress {len(done)}/{total}', flush=True)
-        time.sleep(1.2)
+        time.sleep(5)  # polite pace: wayback throttles aggressive clients
     state['done'] = list(done); save_state(state)
     out.close()
     print('DONE wayback sweep', flush=True)
