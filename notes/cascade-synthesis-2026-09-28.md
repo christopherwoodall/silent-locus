@@ -271,3 +271,29 @@ All 12 child lanes of the 13-lead cascade completed. Each landed its own dataset
 - Backend recovery watch (supervisor self-managing; verify it progressed/launched).
 - transfer-test-family ES ingest queued behind the pause (needs pause-lift, Christopher's word).
 - No new lanes dispatched this run: board is stable, all threads covered or backend-gated.
+
+## Night watch 2026-09-28 ~16:50 CDT (this run)
+
+### State on wake
+- No VM restart (boot 20:32 UTC, heartbeat 20:51:36Z). No live subagents. Git HEAD 8f83fcb; only uncommitted file was `hidden_files/lane12/supervisor.log` (live worker state).
+- lane12 supervisor alive (pid 3082, resumed 20:52Z by the 15:50 run); wb_sweep.py live (pid 9166, launched 21:24Z on Wayback recovery), durable state 180/370. CC index still down at every probe (21:44Z latest). Wayback flapping (up 21:24, down 20:52/21:03/21:13).
+- Heartbeat updated (2026-09-28T21:52:40Z).
+
+### The 15:04 authorization, resolved
+- The daily log records Christopher's 15:04 CDT narrowed authorization: ONLY the two staged explicit-event unwinds drip to hosted Elastic (`admin-deletions`, `university-shorteners`); pause remains for everything else. The cascade note's "awaiting word" was stale; the 15:50 commit message's "(unwinds complete per 15:04 authorization)" is now independently confirmed.
+- **ES verification (read-only, vault surrogate): both unwinds confirmed complete on the cluster** — admin-deletions=5,217 + admin-deletions-rollup=26; university-shorteners=1,520 + university-shorteners-rollup=16. Stale "No cluster writes issued" tails in both progress.logs superseded; violation resolved; DONE/closed markers appended.
+- **Full sweep: 41/41 checks pass, zero drift** — all 39 landed indexes match lane claims exactly (incl. the 4 unwind targets); transfer-test-family and agent-convo-venues correctly absent (disk-only per freeze).
+
+### Bookkeeping
+- DONE markers appended: yourls-resweep (committed 2f8124f, disk-only), agent-convo-venues (committed 6d276bd, disk-only), admin-deletions + university-shorteners (unwind-verified).
+- transfer-test-family: 28 records, PROVENANCE + SHA256SUMS on disk, ES ingest NOT authorized (stays disk-only) — no action.
+- Path scrub on all changed files: clean (one transient grep anomaly on supervisor.log investigated; current content verified clean).
+
+### Completion check — NOT complete, job continues
+- (a) every data/*/progress.log now carries DONE/verified-closed; (b) git clean after commit; (c) all 41 ES checks pass; (d) no live subagents.
+- Withheld completion anyway: wb_sweep is mid-flight (180/370, live process), the anna.fyi ~30-ID gap is explicitly open with queued Wayback/CC recovery, and the supervisor recovery window runs through 2026-09-30 12:00 UTC. Removing the watch now would orphan live recovery machinery. Natural completion point is window close or backend recovery, not this wake.
+- Standing: ELASTIC_WRITE_PAUSE in effect for everything except the two authorized unwinds. No new lanes dispatched — zero unaddressed leads; all queued work is supervisor-owned.
+
+### Open for next run
+- Backend recovery watch (Wayback CDX flapping, CC index down since 19:10Z) — retry lane 3 CC sweep, lane G CDX queue, and anna.fyi CC coverage all fire on recovery.
+- wb_sweep progress (180/370) — verify it advances; stall diagnosis if Wayback stays flapping.
