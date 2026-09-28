@@ -51,3 +51,22 @@ None new. The 4 creation times stand as recorded in dataset.jsonl
 Re-run this hunt when Wayback is reachable: fetch the 4 view snapshots
 above, extract reply blocks, then the 12 queued candidates (2-hop cap from
 known pastes). The hourly durable watch already probes Wayback availability.
+
+## Retry run 2 — 2026-09-28 ~17:00 CDT (still blocked)
+
+Re-attempted the 4 primary view snapshots via direct web.archive.org/web/
+fetches (CDX still flapping per the durable watch; no CDX queries used).
+
+| paste | snapshot URL | result |
+|---|---|---|
+| df40f1f1 | https://web.archive.org/web/20260904211605/https://paste.linuxiarz.pl/view/df40f1f1 | 500 x3 |
+| 538faa12 | https://web.archive.org/web/20260904161218/https://paste.linuxiarz.pl/view/538faa12 | 500 x3 |
+| 34cb12da | https://web.archive.org/web/20260904141539/https://paste.linuxiarz.pl/view/34cb12da | 500 x3 |
+| d379207f | https://web.archive.org/web/20260610064043/https://paste.linuxiarz.pl/view/d379207f | 500 x3 |
+
+8/8 primary fetches failed across both runs (16:56 and ~17:00 CDT). Per the
+no-retry-storm guard, the 12 queued candidate snapshots were NOT attempted.
+They remain queued in hidden_files/shortener-cdx/iowacollab-cdx-queue.md.
+
+No new edges. No new candidate IDs. The hourly durable watch continues
+probing Wayback availability; the next retry belongs to it.
