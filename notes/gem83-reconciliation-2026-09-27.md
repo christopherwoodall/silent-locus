@@ -89,7 +89,7 @@ artifact is the better evidence. The 4 bridge-missing names:
   `manifest.txt` (SHA-256), `progress.log`.
 - Build: `scripts/gem83_reconciliation_build.py` (reproducible).
 - Ingest: `scripts/es_ingest_gem83.py` (--create/--load/--verify).
-- Elastic index `gem83-reconciliation`: ES_DOC_COUNT docs (see below),
+- Elastic index `gem83-reconciliation`: **83 docs** (83 loaded, 0 failed),
   canonical shared schema, `event.dataset.keyword` present at creation.
 
 ## Open items
