@@ -332,3 +332,32 @@ All 12 child lanes of the 13-lead cascade completed. Each landed its own dataset
 - wb_sweep finish (expect DONE wayback sweep when the 70 tail queries complete; zero hits so far).
 - CC index recovery watch — retry lane 3 (UNM July 5-6), lane G CDX queue, anna.fyi CC coverage all fire on recovery.
 - Durable lesson: after any repo migration, grep workers for hardcoded old paths before relaunching them.
+
+## Night watch 2026-09-28 ~18:50 CDT (this run)
+
+### State on wake
+- No VM restart (boot 22:46 UTC, heartbeat 22:59Z). No live subagents. Git HEAD 8344a06 at wake.
+- A 6-lead ExploitGym/pastebin fanout had landed + pushed since the 17:50 run: LEAD 3 forged-flag-hunt (cf0898e), LEAD 4 urlquery-marker-sweep (8344a06), LEAD 5 github-forensics (0ffb080), LEAD 6 HF-tampering-check (6f190a0), pastebin-pivot (data committed via the lead commits), plus a stalled dockerhub-trojan-images lane (HTTP 403s from hub.docker.com, agent gone).
+- lane12 supervisor alive (setsid, pid 2926); wb_sweep finished DONE during the run's first hour — 300/370 targets, exactly 1 HIT: rubygems.org/gems/zztargettest18587, Wayback capture 2026-08-10. CC index still down at 23:44Z; CC-gated workers parked.
+
+### Verification this run
+- **All 5 leads verified-closed on disk** (SHA256SUMS/manifests checksum-OK, row counts match claims: forged-flag-hunt 8 IOCs, urlquery-marker-sweep 9 rows, pastebin-pivot 5 rows) — committed 0f02245 with explicit pathspecs (+ force-add for gitignored progress.logs per lane spec), pushed. None claims an ES index (clean-negative lane convention) — nothing to reconcile.
+- **hf-tampering-check MANIFEST fix:** listed `commits-all.json` which the lane never wrote (15/16 verify); regenerated the manifest over the 15 real files, now 15/15 OK, recorded in the DONE marker.
+- **Absolute-home-path scrub** over 124 files changed since 549a201: the 3 `/home/` hits are all benign (verbatim GitHub issue/README text quoting `/home/daytona/...`, and self-referential grep-pattern mentions in this note). Zero actual home-dir paths in our outputs.
+- **ES read-only _count: 14/14 match lane claims, zero drift** (rubygems-goimport-campaign 6619, july7-wave 264, proxy-primitives 1522, admin-deletions 5217+26 rollup, university-shorteners 1520+16 rollup, timeline-anchors 48, open-data-api-venues 46, worldpoverty-task-family 22, paste-archive-gap 27, vanderbilt-shortener 24, collusion-wiki 80434, gem83-reconciliation 83).
+- transfer-test-family + agent-convo-venues correctly absent from ES (disk-only per freeze).
+
+### Actions this run
+- **Dispatched dockerhub-trojan-images resume** (HTTP 403 block cleared — 200 probe at ~23:52Z): resume-safe script continues at cybergym/oss-fuzz pages 11..13 (1000/1256), then remaining cybergym + n132 org repos; if 403s recur past 8 tries it closes as bounded partial. Own PROVENANCE/SHA256SUMS/note on finish; commit+push; ES ingest queued behind the pause.
+- **Dispatched wayback-gem-capture lane** on the wb_sweep 1-HIT: fetches the 2026-08-10 Wayback capture of zztargettest18587 and compares the archived go-import payload against our Diffend publish-time snapshot (post-yank visibility-window question). Read-only, disk+git only, ES queued behind pause.
+- **Committed lane12 wb_sweep closure** (state_wb.json, wayback_results.jsonl 1 row, wb_sweep-v3.log); supervisor.log stays uncommitted (live worker state).
+- Heartbeat updated (23:54:50Z).
+
+### Theory-of-mind update
+- The ExploitGym deep-dive is now a closed loop: the harness (default-deny Squid cage) + pre-fix forgeable flags + Modal submit endpoint + m47push2 agent IDs + 115+ trojaned Docker Hub images are one coherent incident run, independently corroborated by swarmtraces.org. Two lanes are still crawling it (dockerhub tags, wayback gem capture) per Christopher's "crawl and investigate, not just extract."
+- The "crawl, don't just extract" directive operationalizes: finished lanes with concrete crawlable surfaces (tag APIs, archive captures) get resume/follow-up lanes rather than closing on extraction alone.
+
+### Open for next run
+- Reconcile the two dispatched lanes (dockerhub census, wayback-gem-capture) — verify ES-free claims, path scrub, confirm commits pushed.
+- Backend recovery watch: CC index down since 19:10Z (sweep3 0/555, sweep4/sweep patterns parked, shortener_cc_sweep + lane G CDX queue + anna.fyi CC coverage queued); supervisor window through 2026-09-30 12:00 UTC.
+- ELASTIC_WRITE_PAUSE: everything except the two completed unwinds stays disk+git only. Completion still withheld (CC-gated workers + live follow-up lanes).
