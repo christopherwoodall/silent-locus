@@ -59,8 +59,8 @@ def main():
             except Exception:
                 pass
         results[rid] = rec
-        print(rid, src, status, len(body))
-        time.sleep(1.5)
+        print(rid, src, status, len(body), flush=True)
+        time.sleep(22)  # urlquery rate-limits rapid JSON pulls; 20s+ spacing verified clean
     with open(os.path.join(BASE, "provenance_cited.json"), "w") as f:
         json.dump({"retrieval_utc": now, "method": "live urlquery.net/report/<id>/json first; web.archive.org fallback", "reports": results}, f, indent=2)
 
