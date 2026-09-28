@@ -20,7 +20,7 @@ Outputs into data/gem83-reconciliation/:
 import csv, json, os, re, hashlib
 from collections import Counter
 
-BASE = "/home/hatch/workspace/muse-home/projects/swarmtraces-hf-corpus"
+BASE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA = BASE + "/data"
 OUT = DATA + "/gem83-reconciliation"
 os.makedirs(OUT, exist_ok=True)

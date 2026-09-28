@@ -6,12 +6,12 @@ edited page: current page HTML + history HTML. ~2s pacing, no writes.
 Saves raw HTML under data/demowiki/raw/ and parsed records to
 data/demowiki/demowiki_crawl.json.
 """
-import re, json, time, hashlib, urllib.request
+import os, re, json, time, hashlib, urllib.request
 from datetime import datetime, timezone
 
 BASE_URL = "https://prowiki.org/demo/wiki.cgi"
 UA = "demowiki-research/1.0 (read-only research crawl; contact: research)"
-OUT = "/home/hatch/workspace/muse-home/projects/swarmtraces-hf-corpus/data/demowiki"
+OUT = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data", "demowiki")
 RAW = OUT + "/raw"
 NOW = datetime.now(timezone.utc).isoformat()
 

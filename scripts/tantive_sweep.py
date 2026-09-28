@@ -5,7 +5,7 @@ Writes data/tantive-space/sweep.json."""
 import json, re, os
 from collections import Counter
 
-D = os.path.expanduser('~/workspace/muse-home/projects/swarmtraces-hf-corpus/data/tantive-space')
+D = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data", "tantive-space")
 
 BATTERY = {
     # campaign grammars

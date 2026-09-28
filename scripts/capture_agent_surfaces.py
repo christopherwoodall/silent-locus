@@ -8,7 +8,7 @@ NO logins, NO accounts, NO posts, NO API keys. ~1 request / 3s per host.
 import hashlib, json, os, sys, time, urllib.error, urllib.request
 from datetime import datetime, timezone
 
-BASE = "/home/hatch/workspace/muse-home/projects/swarmtraces-hf-corpus"
+BASE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 OUT = BASE + "/data/agent-surfaces"
 NOW = lambda: datetime.now(timezone.utc).isoformat()
 PACING = 3.0

@@ -6,7 +6,7 @@ import json, os, re, time, hashlib
 from datetime import datetime, timezone
 import urllib.request
 
-BASE = os.path.expanduser('~/workspace/muse-home/projects/swarmtraces-hf-corpus/data')
+BASE = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data")
 UA = 'tantive-space-research/1.0 (read-only surface capture; no posts)'
 
 CANDIDATE_URLS = [

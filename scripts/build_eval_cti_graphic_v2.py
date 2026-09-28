@@ -10,6 +10,7 @@ Pure-PIL renderer. Two passes:
 Zero-overlap rules: >=20px internal padding everywhere, >=14px clearance
 between any text and any box edge, text never placed over a box edge.
 """
+import os
 from PIL import Image, ImageDraw, ImageFont
 
 # ---------------------------------------------------------------- palette ---
@@ -483,8 +484,8 @@ def main():
     img = Image.alpha_composite(img, under)
     draw = ImageDraw.Draw(img)
     layout(draw)
-    out = ("/home/hatch/workspace/muse-home/projects/swarmtraces-hf-corpus/"
-           "notes/eval-cti-brief-2026-09-28-v2.png")
+    out = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+                       "notes", "eval-cti-brief-2026-09-28-v2.png")
     img.convert("RGB").save(out)
     print(f"wrote {out}  {W}x{H}")
 

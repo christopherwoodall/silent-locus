@@ -32,7 +32,7 @@ UA = "rubygems-july7-research/1.0 (read-only inventory sweep; no install)"
 PACE = 3.0
 MAX_RETRIES = 2  # first pass: fail fast on hostile connections; --retry-failed later
 
-PROJ = "/home/hatch/workspace/muse-home/projects/swarmtraces-hf-corpus"
+PROJ = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 OUTDIR = os.path.join(PROJ, "data/july7-wave")
 OUT = os.path.join(OUTDIR, "diffend_sweep_results_july7.jsonl")
 LOG = os.path.join(OUTDIR, "progress.log")

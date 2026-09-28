@@ -3,7 +3,7 @@
 import json, hashlib, time, urllib.request, sys, os
 from datetime import datetime, timezone
 
-BASE = os.path.expanduser("~/workspace/muse-home/projects/swarmtraces-hf-corpus")
+BASE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SRC = os.path.join(BASE, "data/jsonhero/usage_patterns.json")
 OUT = os.path.join(BASE, "data/jsonhero-docs")
 os.makedirs(OUT, exist_ok=True)

@@ -7,7 +7,7 @@ import urllib.request
 
 UA = 'tantive-space-research/1.0 (read-only inventory sweep; no posts)'
 BASE = 'https://tantive.space'
-OUT = os.path.expanduser('~/workspace/muse-home/projects/swarmtraces-hf-corpus/data/tantive-space')
+OUT = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data", "tantive-space")
 os.makedirs(OUT, exist_ok=True)
 PACE = 4.0
 

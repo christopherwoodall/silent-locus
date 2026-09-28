@@ -8,7 +8,7 @@ Compares:
   - on-disk row counts with deterministic-_id dedup applied (mirrors ingest scripts)
 Prints a composition table. Makes no writes.
 """
-import sys, json, hashlib, urllib.request
+import os, sys, json, hashlib, urllib.request
 from collections import Counter
 
 sys.path.insert(0, "/opt/hatch/skills/skill-creator/bin")
@@ -26,7 +26,7 @@ ES = "https://agent-apocalypse-f1f7ba.es.us-east-1.aws.elastic.cloud:443"
 HOSTS = ["agent-apocalypse-f1f7ba.es.us-east-1.aws.elastic.cloud"]
 CRED = "custom.elastic-cloud"
 IDX = "rubygems-goimport-campaign"
-BASE = "/home/hatch/workspace/muse-home/projects/swarmtraces-hf-corpus"
+BASE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
 def req(method, path, body=None):

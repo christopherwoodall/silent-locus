@@ -8,7 +8,7 @@ in_diffend=None / http_status="unconfirmed".
 import json
 import os
 
-PROJ = "/home/hatch/workspace/muse-home/projects/swarmtraces-hf-corpus"
+PROJ = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 ORIG = os.path.join(PROJ, "data/osv/diffend_sweep_results.jsonl")
 RETRY = os.path.join(PROJ, "data/osv/diffend_sweep_results_retry.jsonl")
 FINAL = os.path.join(PROJ, "data/osv/diffend_sweep_results_final.jsonl")

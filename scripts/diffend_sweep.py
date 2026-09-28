@@ -19,7 +19,7 @@ DIFFEND = "https://my.diffend.io"
 UA = "rubygems-goimport-research/1.0 (read-only inventory sweep; no install)"
 PACE = 1.0
 
-PROJ = "/home/hatch/workspace/muse-home/projects/swarmtraces-hf-corpus"
+PROJ = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 NAMES = json.load(open(os.path.join(PROJ, "data/osv/ghsa_gemstuffer_classified.json")))["gs_not_in_corpus"]
 OUT = os.path.join(PROJ, "data/osv/diffend_sweep_results.jsonl")
 

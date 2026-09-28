@@ -29,7 +29,7 @@ import time
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import diffend_sweep as lane20
 
-PROJ = "/home/hatch/workspace/muse-home/projects/swarmtraces-hf-corpus"
+PROJ = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 ORIG = os.path.join(PROJ, "data/osv/diffend_sweep_results.jsonl")
 RETRY_OUT = os.path.join(PROJ, "data/osv/diffend_sweep_results_retry.jsonl")
 LOG = os.path.join(PROJ, "data/osv/diffend_retry.log")

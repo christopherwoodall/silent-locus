@@ -12,7 +12,7 @@ Output: data/proxy-primitives/hits.jsonl (normalized, exact-dup collapsed)
         data/proxy-primitives/PROVENANCE.md
         data/proxy-primitives/progress.log
 """
-import sys, json, re, hashlib, subprocess, urllib.request
+import os, sys, json, re, hashlib, subprocess, urllib.request
 from datetime import datetime, timezone
 sys.path.insert(0, "/opt/hatch/skills/skill-creator/bin")
 try:
@@ -28,7 +28,7 @@ except ImportError:  # local run: no vault on this machine, plain HTTP(S) instea
 ES = "https://agent-apocalypse-f1f7ba.es.us-east-1.aws.elastic.cloud:443"
 HOSTS = ["agent-apocalypse-f1f7ba.es.us-east-1.aws.elastic.cloud"]
 CRED = "custom.elastic-cloud"
-BASE = "/home/hatch/workspace/muse-home/projects/swarmtraces-hf-corpus"
+BASE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA = BASE + "/data"
 OUT = DATA + "/proxy-primitives"
 INDEX = "collusion-wiki"

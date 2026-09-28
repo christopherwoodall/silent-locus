@@ -5,10 +5,10 @@ Parses diffend_versions[].diff_ts ("%b %d, %Y %H:%M", UTC) for the record's
 own version, else the max available. Additive-only: never modifies existing
 fields. Run once, after the harvest completes (the harvester appends).
 """
-import json
+import json, os
 from datetime import datetime, timezone
 
-BASE = "/home/hatch/workspace/muse-home/projects/swarmtraces-hf-corpus"
+BASE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 LOG = BASE + "/data/gem-ioc-log.jsonl"
 FALLBACK_TS = "2026-09-27T00:00:00.000Z"
 

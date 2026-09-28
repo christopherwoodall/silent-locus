@@ -7,7 +7,7 @@ No auth, no submissions, no bypass attempts. Results land in data/ludism-wikis/r
 import json, os, time, urllib.request, urllib.parse
 from datetime import datetime, timezone
 
-BASE = os.path.expanduser("~/workspace/muse-home/projects/swarmtraces-hf-corpus")
+BASE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DDIR = BASE + "/data/ludism-wikis"
 RAW = DDIR + "/raw"
 os.makedirs(RAW, exist_ok=True)

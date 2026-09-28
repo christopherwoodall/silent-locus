@@ -8,7 +8,7 @@ import csv, gzip, json, re, base64, os
 from urllib.parse import unquote
 
 HUNT = "/home/hatch/workspace/muse-home/projects/urlquery-api-hunt"
-ST = "/home/hatch/workspace/muse-home/projects/swarmtraces-hf-corpus"
+ST = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DS = ST + "/data/raw/redacted.jsonl.gz"
 OUT = ST + "/data/matches-f1f2.jsonl"
 

@@ -4,7 +4,7 @@ Reads queue from QUEUE env file, writes to OUT jsonl. Sharded, resume-safe."""
 import json, time, urllib.request, urllib.parse, urllib.error, os, re, html, sys
 from http.client import IncompleteRead
 
-OUT = os.path.expanduser("~/workspace/muse-home/projects/swarmtraces-hf-corpus/hidden_files/lane1")
+OUT = os.path.dirname(os.path.abspath(__file__))
 queue_file = os.environ["QUEUE"]
 out_name = os.environ["OUT"]
 shard = int(os.environ.get("SHARD", "0"))

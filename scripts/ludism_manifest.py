@@ -5,7 +5,7 @@ for data/ludism-wikis/. Resume-friendly: regenerates from scratch.
 import json, os, hashlib
 from datetime import datetime, timezone
 
-DDIR = os.path.expanduser("~/workspace/muse-home/projects/swarmtraces-hf-corpus/data/ludism-wikis")
+DDIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data", "ludism-wikis")
 
 def sha256(p):
     h = hashlib.sha256()

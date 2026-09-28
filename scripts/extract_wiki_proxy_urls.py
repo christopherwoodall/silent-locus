@@ -9,7 +9,7 @@ earlier sweep's hits; collapses exact duplicates.
 import gzip, json, re, hashlib, os, urllib.parse
 from datetime import datetime, timezone
 
-BASE = "/home/hatch/workspace/muse-home/projects/swarmtraces-hf-corpus"
+BASE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA = BASE + "/data"
 OUT = DATA + "/proxy-primitives"
 

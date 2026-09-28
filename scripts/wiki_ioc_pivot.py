@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """Wiki IOC pivot lane: extract IOCs from collusion.wiki corpus, build IOC<->agent<->wiki
 graph, pivot against the gem corpus. Read-only."""
-import json, re, math, sys
+import json, re, math, sys, os
 from collections import defaultdict, Counter
 from urllib.parse import urlparse
 
-BASE = "/home/hatch/workspace/muse-home/projects/swarmtraces-hf-corpus"
+BASE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 CW = BASE + "/data/collusion-wiki"
 
 URL_RE = re.compile(r"https?://[^\s<>\"'()\[\]{}]+", re.I)

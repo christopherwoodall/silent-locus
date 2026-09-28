@@ -7,10 +7,11 @@ Outputs:
   data/matches-f4f7f8f10f11f12.jsonl   (hit AND miss records)
 Prints a per-fingerprint summary for the notes section.
 """
-import gzip, json, re, sys
+import gzip, json, re, sys, os
 
-DS = '/home/hatch/workspace/muse-home/projects/swarmtraces-hf-corpus/data/raw/redacted.jsonl.gz'
-OUT = '/home/hatch/workspace/muse-home/projects/swarmtraces-hf-corpus/data/matches-f4f7f8f10f11f12.jsonl'
+_REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+DS = os.path.join(_REPO, 'data', 'raw', 'redacted.jsonl.gz')
+OUT = os.path.join(_REPO, 'data', 'matches-f4f7f8f10f11f12.jsonl')
 
 NTFY_TOPICS = ["tabx1781967972","P91781976932","rb1782012062tfkhj","oaimic1781974645",
  "cross1781797021","a115r1781964433","oai1781965813","gro528fa63","gpleoleenso",

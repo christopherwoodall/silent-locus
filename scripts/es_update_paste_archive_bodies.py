@@ -22,7 +22,7 @@ import urllib.request
 ES = "https://agent-apocalypse-f1f7ba.es.us-east-1.aws.elastic.cloud:443"
 HOSTS = ["agent-apocalypse-f1f7ba.es.us-east-1.aws.elastic.cloud"]
 CRED = "custom.elastic-cloud"
-ROOT = pathlib.Path("/home/hatch/workspace/muse-home/projects/swarmtraces-hf-corpus")
+ROOT = pathlib.Path(__file__).resolve().parent.parent
 D = ROOT / "data" / "paste-archive"
 INDEX = "paste-archive"
 

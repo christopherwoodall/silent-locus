@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """LANE C: read-only urlquery HTMX search for reverse-tunnel hostnames."""
-import json, re, time, urllib.request, urllib.error, urllib.parse
+import json, os, re, time, urllib.request, urllib.error, urllib.parse
 
-BASE = "/home/hatch/workspace/muse-home/projects/swarmtraces-hf-corpus/data/reverse-tunnels"
+BASE = os.path.dirname(os.path.abspath(__file__))
 QUERIES = {
     "pinggy_free_link": "run.pinggy-free.link",
     "pinggy_full_bvryr": "bvryr-16-146-184-55",

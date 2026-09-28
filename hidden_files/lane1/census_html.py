@@ -4,11 +4,12 @@ One GET per gem name, ~1s spacing, read-only."""
 import json, time, urllib.request, urllib.parse, urllib.error, os, re, html
 from http.client import IncompleteRead
 
-OUT = os.path.expanduser("~/workspace/muse-home/projects/swarmtraces-hf-corpus/hidden_files/lane1")
+OUT = os.path.dirname(os.path.abspath(__file__))
+_REPO = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 os.makedirs(OUT, exist_ok=True)
 names = set()
 for i in (1, 2, 3, 4):
-    p = os.path.expanduser(f"~/workspace/muse-home/projects/swarmtraces-hf-corpus/data/gem-pins-batch{i}.txt")
+    p = os.path.join(_REPO, "data", f"gem-pins-batch{i}.txt")
     for line in open(p):
         line = line.strip()
         if line and not line.startswith("#"):

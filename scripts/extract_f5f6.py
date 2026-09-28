@@ -8,7 +8,7 @@ Writes: data/matches-f5f6.jsonl
 """
 import gzip, json, re, sys, os
 
-BASE = os.path.expanduser("~/workspace/muse-home/projects/swarmtraces-hf-corpus")
+BASE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SRC = os.path.join(BASE, "data/raw/redacted.jsonl.gz")
 OUT = os.path.join(BASE, "data/matches-f5f6.jsonl")
 
