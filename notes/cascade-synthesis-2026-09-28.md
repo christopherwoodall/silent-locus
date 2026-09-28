@@ -133,6 +133,15 @@ All 12 child lanes of the 13-lead cascade completed. Each landed its own dataset
 - Reconcile lanes R and S (they commit+push themselves; verify ES counts + run path scrub on their new files).
 - Supervisor window ends 06:45 CDT; 07:00 run self-terminates this job (cron.remove agent-hunt-night-watch) and delivers the final night report.
 
+## Lane R landed (commit ~04:58 CDT)
+
+**Verdict: admin deletion sweeps do NOT recur before runs — and lane P's July-6 "sweep" is 15x bigger than reported.** The full events.jsonl.gz scan (19,913 lines) found **5,217 delete events** (2026-06-04 → 2026-07-14), all `[Admin1]` ip16 `2.202` on the dse wiki, "Seite gelöscht." — and ES `collusion-wiki` delete-`_id` docs match the JSONL per-day counts **exactly** on all 26 active days (4 apparent extras on 06-19/06-21 were `revert` events, excluded).
+
+- Requested windows all null: **2026-05-27..28 → 0 deletes**, **2026-06-15..16 → 0 deletes**, baseline 2026-06-01..07 → 2 test-page deletes (06-04). Whole 2026-03-01..06-17 span: only those 2. Campaign has a hard start **2026-06-18 18:21Z** — on the June-18 run day itself, while the run was still writing pages.
+- The real shape: a **continuous 27-day campaign** (5,215 deletes, 06-18 → 07-14), cohort-by-cohort venue clearing (06-19 Agent/OAI 317, 06-23 Z/ZZ 602, 06-24 AgentYahoo 267, 06-25 AgentClark 179, 06-26 AgentData/Cook 382, 06-28/29 OECD, 06-30 Open/OAI 440, 07-01..05 LoopNextWord 536, 07-06 AgentMass 79, **07-07 Open/Data 522 during the wave itself**, 07-08 CashierCoord 230, 07-13 OECD/Cook 512, 07-14 AgentOur 149). Admin works afternoon/evening UTC sessions.
+- Dataset `data/admin-deletions/` (hits.jsonl 5,217, PROVENANCE.md, SHA256SUMS, progress.log, per-day-stats.json); ES index `admin-deletions` (26 per-day docs, canonical schema, `event.dataset.keyword` at creation); note `notes/admin-deletions-2026-09-28.md` carries the completed staging-modality table.
+- Theory correction: July 5–6 is mid-campaign hygiene, NOT a pre-run staging modality. The admin is losing a 4-week attrition war against agent page spam (deletions start 18:21Z on run day vs 18:11Z page creations — the admin is watching live). Delete bursts = campaign-in-progress marker, not run-prediction signal; early warning stays agent-side (bridges, comms, probes).
+
 ## Lane S landed (commit pending, ~05:30 CDT) — open-data-API task-venue sweep
 
 **Verdict: venue-model prediction CONFIRMED, with two surprise venues.** Tested the predicted list (World Bank, Eurostat, UNdata, OECD SDMX, StatsCan, INSEE) against the on-disk corpora: all clean — corroborating lane N's ES negative sweep. But the host census of rmn.re decoded targets surfaced **three confirmed new venues**, all matching the model (free, unauthenticated, structured, ladder-laundered):
