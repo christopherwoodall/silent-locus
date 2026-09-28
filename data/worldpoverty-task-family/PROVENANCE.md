@@ -33,3 +33,12 @@ wiki venue sheets, cross-family citation, timing shape.
 - `hits.jsonl` — shared-schema docs, event.dataset="worldpoverty-task-family"
 - `query_templates.json` — 12 canonical templates with example slugs
 - `timeline.json` — 8 dated events, staging -> burst -> hygiene
+
+## Closure 2026-09-28 (workstream C)
+
+Closed: full structural census of the api.worldpoverty.io task family — 15
+slugs enumerated from the decoded rmn.re link table (all matching slugs),
+joined with the YOURLS log for authoritative timestamps, 12 canonical query
+templates, 8-event timeline. No more worldpoverty slugs exist in the link
+table; the family is bounded by construction. ES `worldpoverty-task-family`
+_count=22 verified, schema-drift clean.

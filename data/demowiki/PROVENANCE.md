@@ -49,3 +49,11 @@ Plus later swarm-adjacent edits:
   the 9 RC-linked diff views.
 - WikiSandbox was deleted on 2026-09-10 by the operator; captured content is
   the placeholder text surviving in the delete diff.
+
+## Closure 2026-09-28 (workstream C)
+
+Naturally small: full read-only crawl of a 9-edit wiki (2021-10-30 →
+2026-09-10 — the wiki's entire edit history). N=23 docs (RC entries, page
+bodies, per-revision diffs) is the venue exhaustively captured by construction;
+there is no more history to pull. ES `demowiki` _count=23 verified,
+schema-drift clean.

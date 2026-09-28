@@ -42,3 +42,11 @@ correlation (previously each was a separate lane finding).
 Deterministic: doc _ids are sha256(date + lane + description-head). The
 builder appends to progress.log and rewrites the jsonl + manifest in full
 each run, so re-running is safe.
+
+## Closure 2026-09-28 (workstream C)
+
+Closed: 48 dated-event anchor docs swept from the repo's own notes/*.md;
+bounded by the lane corpus as of 2026-09-28. No new network reads were made
+for this dataset; future lanes with dated findings get anchors only if a
+follow-up sweep runs. ES `timeline-anchors` _count=48 verified, schema-drift
+clean.

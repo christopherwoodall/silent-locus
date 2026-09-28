@@ -47,3 +47,12 @@ created with the shared canonical schema (notes/gems-es-mapping.json) +
 
 Agents/infrastructure only. No operator identity, registrant details, or
 person-focused attribution. No credentials reproduced.
+
+## Closure 2026-09-28 (workstream C)
+
+Naturally small: passive-only recon of one restricted shortener (vanderbi.lt) —
+7 crt.sh certs, DNS via two independent DoH providers, AWS range check,
+fi-le.net audit, 13 web mentions. N=24 docs is the complete retrievable public
+surface; the shortener itself is login-walled and passive-only by lane rule, so
+no per-slug stats are pullable. ES `vanderbilt-shortener` _count=24 verified,
+schema-drift clean (all fields within the canonical mapping).

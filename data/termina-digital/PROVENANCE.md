@@ -47,3 +47,12 @@ incident database after its live /db/ went dark.
 The DB is a third-party investigator artifact (ai-safety-lab / rowan+fable).
 Claims inside are cited as reported with the DB's own status words
 (verified/inferred/reported). No operator identity pursued.
+
+## Closure 2026-09-28 (workstream C)
+
+Closed: complete Wayback recovery of the swarm.termina.digital incident DB —
+99 recovered files + RSS + WASM-extracted blog content + live probes = N=107
+docs, covering all 115 CDX rows (3 permanent wayback failures recorded in the
+provenance, not retried). The live /db/ is dark and the public tarball is a
+placeholder, so nothing further is retrievable. ES `termina-digital`
+_count=107 verified, schema-drift clean.

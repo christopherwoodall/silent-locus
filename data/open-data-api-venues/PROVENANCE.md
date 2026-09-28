@@ -38,3 +38,13 @@ Canonical shared schema: `notes/gems-es-mapping.json` (`record_kind: api_venue_t
 - Click counts on rmn.re shortlinks prove usage of the shortlinks, not which agent clicked (bots and humans both click).
 - No operator-identity fields retained (creator IPs present in source but out of scope — not copied).
 - api.usa.gov / FBI UCR remain candidates only; no agent-grammar evidence on disk.
+
+## Closure 2026-09-28 (workstream C)
+
+Closed: venue-model sweep complete — 46 docs across the four confirmed task
+venues (api.worldpoverty.io, api.dataafrica.io, nationsreportcard.gov,
+api.beta.ons.gov.uk) plus corroborating and predicted-negative records.
+api.usa.gov / FBI UCR remain candidates only (lane T null verdict, no index —
+not re-litigated). Nothing further retrievable from on-disk corpora; live API
+crawling was out of lane scope. ES `open-data-api-venues` _count=46 verified,
+schema-drift clean.

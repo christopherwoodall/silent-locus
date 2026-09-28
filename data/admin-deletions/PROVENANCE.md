@@ -41,3 +41,12 @@ Extraction script is idempotent (re-run `python3` filter over the same
 `.gz`; resumable by re-writing `hits.jsonl`).
 
 Retrieved: 2026-09-28. No external retrieval — corpus is local.
+
+## Closure 2026-09-28 (workstream C)
+
+Naturally small: 26 per-day summary docs built from the full 5,217 dse-wiki
+admin deletion events (2026-06-04 → 2026-07-14); the raw 5,217 records are
+preserved verbatim in hits.jsonl and matched exactly against the collusion-wiki
+index per day. N=26 is bounded by the 26 active deletion days — no further
+summaries are constructible. ES `admin-deletions` _count=26 verified,
+schema-drift clean.

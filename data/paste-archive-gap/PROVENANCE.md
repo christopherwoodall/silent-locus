@@ -93,3 +93,13 @@ Extracted 89 unique proxy-related URLs from the 24 DB actor pages
   cosmetic script bug (record_kind is already `keyword` in the canonical
   mapping, so `.keyword` has no buckets). Ingest itself is green.
 - LANE M COMPLETE: dataset + manifest + PROVENANCE + ES + (pending commit).
+
+## Closure 2026-09-28 (workstream C)
+
+Count final: 26 recoverable docs (15 recent anna.fyi pastes + census-diff +
+proxy-ladder overlaps + primitives) + 1 repull-check doc = N=27. The 81
+historical anna.fyi IDs remain investigator-held (the DB's unpublished
+listing); /api/recent accepts no pagination, Wayback holds homepage captures
+only, /api/lists errors — structurally unpullable, not re-litigated. Workstream
+C3 repull (2026-09-28 11:30Z) confirmed zero new pastes. ES `paste-archive-gap`
+_count=27 verified, schema-drift clean.

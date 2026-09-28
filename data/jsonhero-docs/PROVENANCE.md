@@ -42,3 +42,14 @@ by design.
 No records dropped. Dead docs are kept as manifest entries (not silently
 omitted). Byte-identical re-posts are kept as separate files with a shared
 dedupe-group label.
+
+## Closure 2026-09-28 (workstream C)
+
+Expanded then closed: bounded retry of the 6 HTTP-500 docs recovered
+`swJMw8b6VwDC` (now HTTP 200, 70,089 B, regCF county family — distinct from the
+85,889 B dedupe group; body fetched, manifest updated, ingested — live docs
+11->12). The remaining 5 still return HTTP 500; all were live in June 2026 per
+wiki-revision citations and died since. N=17 docs = the complete 17-ID corpus
+list from `../jsonhero/usage_patterns.json` (12 live + 5 dead) — the venue is
+exhaustively enumerated. ES `jsonhero-docs` _count=17 verified, schema-drift
+clean.

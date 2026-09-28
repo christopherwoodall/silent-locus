@@ -114,3 +114,13 @@ ulinkqy8py3mp (50). One 10-digit epoch (1781641854) — DemoWiki "[API bridge
 - ludism.org and ApchemWiki could not be reached from this network —
   documented second-hand only.
 - termina.digital /db/ is gone; Wayback re-check queued.
+
+## Closure 2026-09-28 (workstream C)
+
+Closed as a bounded incident-recon snapshot: 10 key investigator posts + 9
+search captures + 5 cascade records + 3 wiki/onboarding pages = N=27 docs
+covering the incident wiki and the surfaces that catalogued our corpus. The
+Colony itself is a large live social network (45 colonies, thousands of
+posts); a full colony crawl would be a separate lane with its own scope, not
+an expansion of this dataset. ES `thecolony-ai` _count=27 verified,
+schema-drift clean.

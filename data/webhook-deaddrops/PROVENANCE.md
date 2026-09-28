@@ -61,3 +61,13 @@ marker_ambiguous + 1 sweep_negative) is the full result set — the negative
 summary doc records the sweep itself. ES `webhook-deaddrops` _count=8
 verified. Nothing further to pull; the technique's footprint is May-12 +
 July-7 only.
+
+## Closure 2026-09-28 (workstream C)
+
+Naturally small: bounded marker sweep for the JFrog-documented webhook
+dead-drop technique (`southpxdatapp6pi`, `web_hooks`, `A000`/`ZZEND`) across the
+local corpus, 28 recovered .gem tarballs, and 3 ES indices. N=8 docs (2
+confirmed May-12 dead-drops, 3 July-7 name-only candidates, 2 ambiguous marker
+hits, 1 negative-sweep summary) is the full hit set. ES `webhook-deaddrops`
+_count=8 verified, schema-drift clean. July-7 wave deep work continues under
+the separate `july7-wave` lane, not this dataset.

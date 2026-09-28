@@ -139,3 +139,14 @@ historical-detail pass. ES `university-shorteners` _count=15 verified
 university-shorteners-batch2 1). No more university shorteners to sweep
 except the quarterly re-probe list recorded in
 notes/university-shorteners-batch3-2026-09-28.md.
+
+## Closure 2026-09-28 (workstream C)
+
+Consolidated family index: batch1 11 + batch2 1 + batch3 (go.uvm.edu) 3 = N=15
+docs, per-batch provenance preserved in `event.dataset`; batch2/batch3 indices
+retired after verified merge (see CONSOLIDATION-2026-09-28.md). The
+uoft-shorteners lane recorded clean negatives only (login walls / SEO-spam
+slugs) — no ES index by design, documented in the consolidation note. UNM July
+5-6 per-day referrer rows remain structurally unpullable (YOURLS public stats
+expose no per-day drill-down) — recorded in progress.log, not re-litigated.
+ES `university-shorteners` _count=15 verified, schema-drift clean.
