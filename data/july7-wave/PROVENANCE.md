@@ -30,15 +30,17 @@ sweep results may show some candidates are non-July waves.
   trail in `progress.log`.
 
 ## Outputs
-- `diffend_sweep_results_july7.jsonl` — one JSON record per candidate:
-  name, xray_id, jfrog_versions, in_diffend, http_status, versions[{version, ts}],
-  first_publish, diffend_wave (verified from Diffend timestamp),
-  mechanism_notes, mechanism_version_checked, name_grammars, diff_error.
-- `progress.log` — timestamped run log.
+- `diffend_sweep_results_july7.jsonl` — **264 records** (final). Summary:
+  9 in_diffend (all wave 2026-july-07), 88 true misses (HTTP 200, no versions),
+  167 connection failures (unknown, not absent).
+- `progress.log` — timestamped run log (first pass + retry pass + top-up).
 - Elastic index `july7-wave` (own index; shared canonical schema at
-  `notes/gems-es-mapping.json`; `event.dataset.keyword` at creation).
-  record_kind: `diffend_sweep_july7`. Keep-all: every sweep record lands,
-  discriminated by `in_diffend` / `diffend_wave`.
+  `notes/gems-es-mapping.json`; `event.dataset.keyword` at creation):
+  **264 docs**, record_kind `diffend_sweep_july7`, keep-all.
+- Scripts: `scripts/sweep_july7.py` (EXTRA_CANDIDATES covers named July gems
+  outside the Xray batch; `--retry-failed` re-attempts phase-1 and phase-2
+  connection failures), `scripts/es_ingest_july7.py`.
+- Note: `notes/july7-wave-sweep-2026-09-27.md`.
 
 ## Deduplication
 Exact-duplicate JSONL records were NOT collapsed (each name is unique);

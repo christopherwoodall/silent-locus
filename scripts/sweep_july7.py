@@ -165,15 +165,22 @@ def diffend_wave(ts):
     return "%s-%s-%s" % (year.lower(), month.lower(), day)
 
 
+# Named July-wave gems from the JFrog blog that fall outside the XRAY-1079xxx
+# batch (verified July-wave examples must be swept regardless of batch id)
+EXTRA_CANDIDATES = ["attacker-xss-admin-1"]
+
+
 def load_candidates():
     cands = []
     csv_path = os.path.join(PROJ, "data/gemstuffer-jfrog-2026-09-27.csv")
     with open(csv_path, newline="") as f:
         for row in csv.DictReader(f):
-            if re.match(r"XRAY-1079\d{3}$", row["Xray ID"].strip()):
-                cands.append({"name": row["Package"].strip(),
+            name = row["Package"].strip()
+            xray = row["Xray ID"].strip()
+            if re.match(r"XRAY-1079\d{3}$", xray) or name in EXTRA_CANDIDATES:
+                cands.append({"name": name,
                               "versions": [v for v in row["Versions"].split(";") if v],
-                              "xray_id": row["Xray ID"].strip()})
+                              "xray_id": xray})
     return cands
 
 

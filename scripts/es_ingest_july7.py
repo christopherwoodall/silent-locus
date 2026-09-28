@@ -158,7 +158,7 @@ def verify():
     r = req("POST", "/%s/_count" % INDEX,
             {"query": {"bool": {"must": [
                 {"term": {"event.dataset": INDEX}},
-                {"term": {"wave": "july-7"}}]}}})
+                {"term": {"wave": "2026-july-07"}}]}}})
     july = r.get("count", 0)
     print("july7-wave: total=%d in_diffend=%d wave:july-7=%d" % (total, found, july))
     return total, found, july

@@ -33,20 +33,45 @@ metadata** (oast.online / webhook.site exfil) plus **SSTI probes**
    creation. Keep-all: every sweep record lands, discriminated by `in_diffend`
    / `diffend_wave`. record_kind: `diffend_sweep_july7`.
 
-## Results
-<!-- filled when the sweep completes -->
+## Results (final: two passes + top-up, 2026-09-28)
 
-- Candidates: 263 · found in Diffend: ___ · absent/miss: ___
-- Verified July-7 wave (Diffend publish ts): ___ packages / ___ releases
-- Mechanism marker tallies: (pending)
-- Name-grammar tallies: (pending)
-- Notable payloads: (pending)
+- Candidates: **264** (263 XRAY-1079xxx rows + `attacker-xss-admin-1`, a named
+  July example whose Xray id is XRAY-1078993, outside the batch range).
+- **In Diffend: 9 — all verified July-7 wave** (Diffend publish timestamps):
+  `apex-hijack-probe-a1` (Jul 7 18:43, 2 vers), `apex-oidc-probe` (15:43),
+  `test-xss-name` (05:32), `test-xss-xss-data` (04:53, **xss-exfil**),
+  `test-xss-xss-img` (04:53, **xss-exfil**), `test-xss-xss-link` (04:53,
+  **xss-exfil**), `test-xss-xss-html` (04:53), `test_gem_kangaroo` (03:32,
+  0.0.4, earliest), `test_gem_no_mfa` (06:34).
+- True misses (HTTP 200, no version entries — yanked versions scrubbed from
+  Diffend): 88, including `xss-test-gem` and `xss-dep-test`.
+- Connection failures (Diffend closed the connection, both passes): 167 —
+  includes `test-ssti-0/1/4`, `test-apex-gem`, `xssname-1783397821`,
+  `attacker-xss-admin-1`. These are UNKNOWN, not confirmed absent.
+- Mechanism markers: `xss-exfil` on 3 gems (the July XSS-PoC family confirmed
+  in Diffend bytes); 4 hits have unrecovered phase-2 diff pages
+  (IncompleteRead/RemoteDisconnected — markers unknown, not clean);
+  2 clean scans (`apex-hijack-probe-a1`, `test-xss-name`, first versions only).
+- Name grammars across candidates: apex_name 42, epoch_suffix 35,
+  zz_prefix 33, test_name 27, xss_name 17, proxy_name 12, attacker_name 10,
+  probe_name 4, ssti_name 3, oai_prefix 1, fetch_name 1.
+- Wave check on the Xray batch: 2 May-27 gems (`a--0zlink83721`, `zlink83721`)
+  were hits in the first pass but failed phase-1 in the retry pass — the
+  XRAY-1079xxx batch is **not** pure July; wave was verified per-gem from
+  Diffend timestamps, not assumed.
 
 ## Assessment
-<!-- verdict after results -->
 
-## Open
-- July-wave gems were yanked from rubygems.org the same day; several named July
-  examples (xss-test-gem, test-ssti-0) already show **zero version entries** on
-  their Diffend pages — the harvest hit rate for this wave may be low. Diffend
-  may have scrubbed yanked versions; the CSV remains the canonical inventory.
+The July-7 XSS/SSTI mechanism family is **real in Diffend bytes** (3 gems with
+xss-exfil markers, 04:53 UTC July 7), but Diffend has largely scrubbed the
+yanked July versions: only 9 of 264 candidates still have version entries, and
+JFrog's headline examples (`xss-test-gem`, the `test-ssti-*` trio) are either
+gone or unreachable through the current hostility. The CSV remains the
+canonical July inventory; Diffend is a partial, decaying mirror. 167
+connection-failures are candidates for a later calm-window retry pass
+(`--retry-failed` is implemented and resume-safe).
+
+## Elastic
+Index `july7-wave`: **264 docs** (keep-all), record_kind
+`diffend_sweep_july7`, shared canonical schema, `event.dataset.keyword`
+multi-field at creation. 9 docs `wave:2026-july-07`, 3 with mechanism markers.
