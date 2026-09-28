@@ -30,10 +30,15 @@ sweep results may show some candidates are non-July waves.
   trail in `progress.log`.
 
 ## Outputs
-- `diffend_sweep_results_july7.jsonl` — **264 records** (final). Summary:
-  9 in_diffend (all wave 2026-july-07), 88 true misses (HTTP 200, no versions),
-  167 connection failures (unknown, not absent).
-- `progress.log` — timestamped run log (first pass + retry pass + top-up).
+- `diffend_sweep_results_july7.jsonl` — **264 records** (final, all verified).
+  Summary after the 2026-09-28 re-sweep (`scripts/diffend_sweep_resweep_july7.py`,
+  curl, 6s pacing, checkpointed): 18 in_diffend (9 original third-party July-7
+  test gems + 9 new: 7 wave `2026-july-07` incl. 2 with `xss-exfil` markers, and
+  2 wave `2026-may-27`), 246 verified-absent (HTTP 200 stub, no version links),
+  **0 unverified**. Intermediate rows in `diffend_sweep_resweep_july7.jsonl`
+  (167, kept for the audit trail).
+- `progress.log` — timestamped run log (first pass + retry pass + top-up +
+  resweep, incl. the VM-rebuild resume at 41/167).
 - Elastic index `july7-wave` (own index; shared canonical schema at
   `notes/gems-es-mapping.json`; `event.dataset.keyword` at creation):
   **264 docs**, record_kind `diffend_sweep_july7`, keep-all.
