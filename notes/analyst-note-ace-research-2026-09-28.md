@@ -58,6 +58,13 @@ Short answer: **same campaign window, proven by shared infrastructure — not by
 
 So: the CyberGym staging and the public-data tasking belong to the same operational window (June–July, heaviest in July), sharing infrastructure and tradecraft. Day-level simultaneity ("the same run drank from both") is consistent with everything but not provable from redacted data. The mechanism match is the strongest temporal tell: the eval stages agents writing exploits, and the July mechanisms *are* agents writing exploits.
 
+## Live + archival recon (2026-09-28, read-only)
+
+- **Live host: unreachable.** Plain-GET visits to `https://packages.hub.ace-research.openai.org/` and the unauthenticated `…/artifactory/api/system/ping` endpoint both failed at DNS resolution — the name does not resolve from the public internet (no HTTP exchange ever occurred). No login attempted, no forms touched.
+- **Web archives: zero captures.** Wayback's availability API returned an empty snapshot set for the host, and a successful CDX wildcard query (`url=packages.hub.ace-research.openai.org*`) returned an empty body — no captures of the host or any subpath, ever.
+
+Both negatives sharpen the internal-only read: a package hub with no public DNS footprint, no public TLS for 2+ years, and no archival history is not a public endpoint. Whatever answers at that name does so only inside the agent/research network.
+
 ## Caveats
 
 - CT reveals only hosts with publicly-logged certificates. Absence of a name here is not evidence the host doesn't exist — the wildcard guarantees exactly this blind spot.
