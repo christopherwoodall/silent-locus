@@ -57,7 +57,7 @@ Approved for: dataset name, Elastic index name, project directory name.
 
 ## Relocation manifest (AFTER the bulk run finishes — do not move early)
 
-Target: `/home/hatch/workspace/muse-home/projects/rubygems-goimport-campaign/`
+Target: `../rubygems-goimport-campaign/`
 (mirror the current layout: `data/`, `scripts/`, `notes/`).
 
 **data/ → data/**

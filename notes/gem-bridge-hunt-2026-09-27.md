@@ -1,7 +1,7 @@
 # Bridge analysis: gem campaign vs frozen urlquery hunt — 2026-09-27
 
 **Question from Christopher:** "Anything connected to our other dataset?"
-**Hunt source (READ-ONLY, frozen):** `/home/hatch/workspace/muse-home/projects/urlquery-api-hunt/`
+**Hunt source (READ-ONLY, frozen):** `../urlquery-api-hunt/`
 (359 IOC rows, 1,275 graph nodes / 2,550-node Elastic export, 51,643 unified reports — nothing written there.)
 **Gem source:** `data/gem-ioc-log.jsonl` (336 gem names, 199 payload URLs, 9 domains) + `notes/rubygems-rescan-2026-09-27.md`.
 
