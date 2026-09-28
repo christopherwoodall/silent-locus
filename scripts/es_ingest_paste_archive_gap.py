@@ -147,6 +147,26 @@ def build_docs():
         "labels": {"host": "cors.bwa.workers.dev", "actor_page_hits": "8",
                    "in_rmn_re": "true", "lane": "M"},
     }
+    # workstream C3 recovery check (2026-09-28): /api/recent re-pull
+    docs["paste-archive-gap:repull:2026-09-28"] = {
+        "@timestamp": TS,
+        "event": {"dataset": INDEX, "created": NOW},
+        "record_kind": "recovery_check",
+        "description": ("Workstream C3 re-pull of https://anna.fyi/api/recent "
+                        "(2026-09-28 ~11:30 UTC): the 15 most recent pastes are "
+                        "identical to the 15 already recovered in Lane M (same pids, "
+                        "same order) — zero new pastes since the Lane M pull. The 81 "
+                        "historical IDs remain investigator-held and unpublished "
+                        "(termina.digital DB's held anna.fyi listing); /api/recent "
+                        "accepts no pagination params, Wayback holds homepage captures "
+                        "only. Gap still open."),
+        "source_url": "https://anna.fyi/api/recent",
+        "observer": OBSERVER,
+        "tags": ["venue:anna.fyi", "gap:still-open", "recovery-check"],
+        "labels": {"recent_ids_returned": "15", "new_pastes": "0",
+                   "gap_status": "historical_ids_unpublished", "lane": "M",
+                   "workstream": "C3"},
+    }
     return docs
 
 

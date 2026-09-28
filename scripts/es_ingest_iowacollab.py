@@ -114,6 +114,28 @@ def build_docs():
             "corpus_record_ids": m.get("corpus_record_ids"),
         }))
         docs["paste:" + pid] = doc
+    # workstream C3 live re-check (2026-09-28): site still pruned, 7 IDs still unenumerated
+    docs["recheck:2026-09-28"] = {
+        "@timestamp": NOW,
+        "record_kind": "live_recheck",
+        "event": {"dataset": INDEX, "created": NOW},
+        "observer": dict(OBSERVER),
+        "retrieved_via": "read-only HEAD/GET status check",
+        "source_url": "https://paste.linuxiarz.pl/view/df40f1f1",
+        "description": ("Workstream C3 live re-check (2026-09-28 ~11:35 UTC): "
+                        "paste.linuxiarz.pl/view/df40f1f1 -> 404 (still pruned), "
+                        "/view/raw/df40f1f1 -> 404, /api/recent -> 403 anonymous "
+                        "(unchanged since lane G). Wayback availability endpoint "
+                        "returned 429 (rate-limited); backed off per policy, no "
+                        "retry storm. The 7 other relay IDs were deliberately "
+                        "unenumerated by the source report; no new IDs surfaced. "
+                        "Gap still open."),
+        "tags": ["source:paste-linuxiarz", "cluster:iowacollab-relay",
+                 "gap:still-open", "recovery-check"],
+        "labels": {"view_status": "404", "api_recent_status": "403",
+                   "wayback_status": "429-rate-limited", "lane": "G",
+                   "workstream": "C3"},
+    }
     return docs
 
 

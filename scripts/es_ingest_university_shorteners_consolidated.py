@@ -104,13 +104,15 @@ def bulk_load(docs):
 def verify():
     c = req("GET", "/%s/_count" % INDEX)
     print("doc count:", c.get("count"))
-    assert c.get("count") == 8, "expected 8 docs, got %s" % c.get("count")
+    # 12 = 7 batch-1 stats pages + 4 goto.unm.edu per-URL referrer/detail docs
+    # (workstream C3, 2026-09-28) + 1 batch-2 doc.
+    assert c.get("count") == 12, "expected 12 docs, got %s" % c.get("count")
     r = req("POST", "/%s/_search" % INDEX,
             {"size": 0, "aggs": {"datasets": {"terms": {"field": "event.dataset.keyword"}}}})
     b = r["aggregations"]["datasets"]["buckets"]
     print("event.dataset.keyword buckets:", [(x["key"], x["doc_count"]) for x in b])
     got = {x["key"]: x["doc_count"] for x in b}
-    assert got == {"university-shorteners": 7, "university-shorteners-batch2": 1}, got
+    assert got == {"university-shorteners": 11, "university-shorteners-batch2": 1}, got
     s = req("POST", "/%s/_search" % INDEX, {"size": 100, "_source": True})
     unexpected = set()
     for h in s["hits"]["hits"]:
@@ -122,7 +124,7 @@ def verify():
     print("record_kind:", [(x["key"], x["doc_count"]) for x in r["aggregations"]["kinds"]["buckets"]])
     ids = sorted(h["_id"] for h in s["hits"]["hits"])
     assert ids == sorted(set(ids)), "duplicate doc IDs!"
-    print("VERIFY OK: 8 docs, no drift, unique deterministic IDs")
+    print("VERIFY OK: 12 docs, no drift, unique deterministic IDs")
 
 
 def retire_old():

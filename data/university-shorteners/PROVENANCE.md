@@ -90,3 +90,32 @@ web.archive.org). Best-day spikes land on 2026-06-18 (goto.unm.edu/7t6-o:
 these as Referer headers when requesting the short links; YOURLS logged
 them verbatim — a passive, operator-side fingerprint of the toolkit on
 official university infrastructure.
+
+## Workstream C3 (2026-09-28): July 5-6 referrer-row gap + per-URL referrer recovery
+
+**July 5-6 per-day referrer tables: verdict = not publicly retrievable.**
+The YOURLS public stats UI exposes only three data surfaces: (a) a decimated
+all-time daily series (~6-week sampling, includes zero-hit days — no
+2026-07-05/06 point sampled on any of the 4 slugs), (b) last-30d daily
+(Aug 30–Sep 28 2026), and (c) per-URL referrer "details" tables with no
+per-day drill-down. There is no per-day-per-referrer endpoint in the public
+interface, so July 5-6 2026 referrer rows cannot be pulled. Gap remains
+structurally unpullable (recorded, not filled).
+
+**Recovered instead (read-only raw-HTML parse, polite pacing): 1,159 full
+per-URL referrer rows** — 7t6-o: 740 across 35 hosts; reso: 285/11; urphy21:
+77/8; discvr: 57/9 — plus all-time (31 pts/slug) and last-30d daily series.
+Evidence: `goto-unm-edu/*_referrer_urls_daily_2026-09-28.json` (4 files;
+Census API key values redacted as `[REDACTED]` on 24 rows).
+
+New markers in the per-URL tables:
+- `jqp.vercel.app/OAIDATAUSATESTXYZ` — oai + XYZ generated grammar, Data USA
+  API test (7t6-o, 1 hit).
+- `tinyurl.com/2dhwlfmj` nested inside SIX wrapper chains: allorigins get+raw,
+  api.allorigins.win get+raw, jsonhero.io, proxy.cors.sh, corsproxy.io —
+  corroborates the benchmark note (vanderbi.lt/is.gd/tinyurl shortlinks inside
+  proxy chains).
+- `goto.unm.edu/yourls-infos.php/CTXWIN12ZZ0?id=7t6-o` (4 hits) — ZZ-grammar
+  probe of the stats endpoint itself.
+- `win13=<decimal-nonce>` params on county.json via allorigins (8 rows) —
+  decimal nonce variant of the epoch-nonce pattern family.
