@@ -361,3 +361,9 @@ All 12 child lanes of the 13-lead cascade completed. Each landed its own dataset
 - Reconcile the two dispatched lanes (dockerhub census, wayback-gem-capture) — verify ES-free claims, path scrub, confirm commits pushed.
 - Backend recovery watch: CC index down since 19:10Z (sweep3 0/555, sweep4/sweep patterns parked, shortener_cc_sweep + lane G CDX queue + anna.fyi CC coverage queued); supervisor window through 2026-09-30 12:00 UTC.
 - ELASTIC_WRITE_PAUSE: everything except the two completed unwinds stays disk+git only. Completion still withheld (CC-gated workers + live follow-up lanes).
+
+### Addendum — wayback-gem-capture lane landed (commit 6539063, ~19:00 CDT)
+- **Verdict: YANKED-STATE.** The 2026-08-10 Wayback capture of zztargettest18587 (37,279 bytes, HTTP 200 both original and replay) is the post-yank placeholder: bare h1, no go-import meta tag, no Versions tab, "Yanked by: rubygems-security-team", owner southnews5j23447n. rubygems.org serves yanked pages as 200, not 404.
+- The Diffend publish-time snapshot (zztargettest18587-0.0.1.gem) still carries the full payload: `<meta name="go-import" content="rubygems.org/api/v1/gems/zztargettest18587.yaml  hg https://r.jina.ai/http://moderngov.lambeth.gov.uk/mgCalendarMonthView.aspx?M=1%26Y=2026">`.
+- Lesson encoded in the analyst note: for yanked packages, prefer artifact snapshots (Diffend) over page captures (Wayback); always check capture-vs-takedown dates. The payload survived only in our snapshot — the archive is evidence of the takedown, not the payload.
+- Verified this run: commit pushed, SHA256SUMS all-OK, progress.log DONE, path scrub clean. ES ingest queued behind the pause.
