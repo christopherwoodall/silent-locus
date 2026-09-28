@@ -39,3 +39,22 @@ All 12 child lanes of the 13-lead cascade completed. Each landed its own dataset
 - The swarm's data diet is now visible across three independent task families: **SEC county JSON** (public-records), **Czech cemetery JSON** (bulk public records), **Vietnam GSO PX-Web API** (national stats), plus **census.gov/api.datausa.io/sec.gov** via the same proxy stack. Pattern: they drink from free, unauthenticated, structured public data APIs and launder through the same proxy ladder (jqp → pure.md/md.succ.ai → r.jina.ai/allorigins → markdown.new).
 - Prediction: every country's PX-Web instance and every unauthenticated national-stats API (World Bank, Eurostat, UNdata) is a candidate task venue — lane N is testing this.
 - The 2026-06-18 peak is now a cross-dataset anchor: UNM/ETH shortener referrers, hamzah2304 five-hop proxy chains (21:01:20Z), Medicare stats reporting breach (June 18, agent accessed health data), gem wave #2 (June 18). If a venue shows June-18 traffic, it belongs to the same evaluation run.
+
+## Night watch 2026-09-28 ~01:51 CDT (this run)
+
+### State on wake
+- No live subagents in scope; all four lane12 sweep workers (sweep3/sweep4/pattern_sweep/wb_sweep) were DEAD — victims of the dead backends, not data corruption. Their resumable states are intact: sweep3 0/555, wb_sweep 180/370 (state_wb.json saved at the 180 milestone), results jsonls 0 bytes = zero hits so far (wb_sweep only writes hits).
+- Both lane12 backends confirmed down independently: index.commoncrawl.org returns empty/connection-failed (HTTP:000), web.archive.org/cdx returns 503 "Temporarily Offline". Workers' "backend down, cooling" loop behavior was correct; they then expired (2h deadlines) or were orphaned.
+- ES verification (read-only, secure-vault credential): paste-archive-gap=26, pxweb-national-stats=12, university-shorteners=7, july7-wave=264, cors-bwa-proxy=154, gem83-reconciliation=83, iowacollab-pastes=4. All landed indexes match their lane claims; earlier "pending ES ingest + commit" on lane M resolved before this run.
+- OSV diffend retry lane: DONE (137/137, found=68 absent=69 unconfirmed=0, 2026-09-28T05:07Z). The "Diffend retry lane errored at 535/672" open follow-up is closed.
+- Absolute-home-path scrub over new/changed lane files: clean.
+
+### Actions this run
+- **lane12 supervisor installed** (`hidden_files/lane12/supervisor.sh`, backgrounded): polls every 10 min until 2026-09-28 11:45 UTC (~06:45 CDT), relaunches wb_sweep when Wayback CDX is green and sweep3/sweep4/pattern_sweep when the CC index is green. First two probes confirmed both still down — no workers launched, correct behavior. Workers are resume-safe and self-terminating.
+- **Dispatched timeline-anchors lane** (new subagent): cross-corpus dated-events dataset (data/timeline-anchors/ + `timeline-anchors` ES index + notes) built from notes/ + read-only ES, anchored on 2026-06-18, mapping which lanes share which dates. Local-only work — unaffected by the backend outage.
+- Theory-of-mind note: the two archive backends (Common Crawl, Wayback) being simultaneously down while Elasticsearch, Rubydoc, and Diffend are up is environmental, not adversarial — no evidence of targeted blocking.
+
+### Open for next run (07:00 final sweep)
+- Supervisor window ends 06:45 CDT; 07:00 run should check supervisor.log + worker states and summarize lane12.
+- If backends recovered: sweep3 (555), sweep4 (rubydoc x2), pattern_sweep (379), wb_sweep (190 remaining of 370) resume from durable state.
+- timeline-anchors lane result (dispatched this run) should be folded in.
