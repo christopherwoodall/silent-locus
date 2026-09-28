@@ -26,6 +26,9 @@ read-only HTTP GETs of public pages.
 | t-mdcdev-me/squarespacefreeemail934785_plus_2026-09-28.html | https://t.mdcdev.me/squarespacefreeemail934785+ | 2026-09-28 |
 | t-mdcdev-me/evegelendiyarbakrescort772509_plus_2026-09-28.html | https://t.mdcdev.me/evegelendiyarbakrescort772509+ | 2026-09-28 |
 | t-mdcdev-me/mattressstoresaroundmyarea909270_plus_2026-09-28.html | https://t.mdcdev.me/mattressstoresaroundmyarea909270+ | 2026-09-28 |
+| t-mdcdev-me/bayanescortdiyarbakr401683_plus_2026-09-28.html | https://t.mdcdev.me/bayanescortdiyarbakr401683+ | 2026-09-28 |
+| t-mdcdev-me/hkigaprw_plus_2026-09-28.html | https://t.mdcdev.me/hkigaprw+ | 2026-09-28 |
+| t-mdcdev-me/i2mrjnck_plus_2026-09-28.html | https://t.mdcdev.me/i2mrjnck+ | 2026-09-28 |
 
 ## Corpus links
 - uoft.me agent slugs (maagentxyz99999, zzagent740558, amass932899504,
