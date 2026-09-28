@@ -196,3 +196,26 @@ All 12 child lanes of the 13-lead cascade completed. Each landed its own dataset
 - Supervisor window ends 06:45 CDT; 07:00 run self-terminates this job (cron.remove agent-hunt-night-watch) and delivers the final night report.
 - Lane12 expected still parked (both backends down); summarize final worker states.
 - Remaining open gaps: 81 anna.fyi historical paste IDs; 7 iowacollab relay IDs; lane-P open thread (July 5–6 referrer-stats rows on goto.unm.edu historical days).
+
+## Night watch 2026-09-28 ~13:51 CDT (this run)
+
+### State on wake
+- VM restarted at 17:22:34 UTC (12:22 CDT); `hidden_files/watch_heartbeat.txt` absent — treated all in-memory state as lost and re-audited from disk + git + Elastic. Prior machinery had already resumed after the reboot: lane12 supervisor (setsid-detached) alive, all four lane12 workers running, shortener-cdx retry (PID 12835) alive. No live subagents in scope; no stale locks found.
+- Git clean except live runtime logs (lane12 v3 logs, shortener-cdx retry.log) — swept and committed.
+
+### Actions this run
+- **ES health check (read-only _count, vault surrogate): all 37 swarmtraces indexes match lane claims exactly** — zero drift. Landed values: timeline-anchors 48, paste-archive-gap 27, july7-wave 264, march7-rce-modality 38, ludism-wikis 31, proxy-primitives 1522, cors-bwa-proxy 154, gem83-reconciliation 83, iowacollab-pastes 5, pxweb-national-stats 12, university-shorteners 16, webhook-deaddrops 8, powerbi-fronting 182, fieldnotes-gem 7, reverse-tunnels 95, july6-staging 11, worldpoverty-task-family 22, open-data-api-venues 46, vanderbilt-shortener 24, admin-deletions 26, rubygems-goimport-campaign 6619, agent-surfaces 11, counter-channel 4, demowiki 23, jsonhero-docs 17, jsonhero-docs-archive 6, paste-archive 76, paste-linuxiarz 131, public-board 861, rmn-re-history/linktable 764/764, tantive-space 1124, termina-digital 107, thecolony-ai 27, collusion-wiki 80434 (urlquery-hunt 3504 / urlquery-incidents 51643 frozen, untouched).
+- **Lane-J (july7-wave) verified closed:** resweep 127/127 (found=6, absent=121, unconfirmed=0), merged 264 rows, ES=264. DONE marker written.
+- **Lane-C (reverse-tunnels) DONE marker written** (ES=95 verified).
+- **Lane-P open thread CLOSED as verified negative:** goto.unm.edu 7t6-o `daily_all_time` is a decimated 31-point series (Mar 2023–Sep 2026) with ZERO 2026-07-05/06 points — granular daily rows aged out of the public YOURLS 30-day window before capture. Not recoverable from the public surface. No new lane dispatched; the gap is recorded, not open.
+- **Absolute-home-path scrub:** all changed/new files clean (lane12 logs, retry.log, progress.logs).
+- Committed 0825874 (explicit pathspecs, 9 files) + pushed to origin/main.
+
+### Standing blockers (reported, not acted on)
+- **ELASTIC_WRITE_PAUSE in effect.** Two unwinds staged on disk awaiting it: `admin-deletions` (26 summaries → 5,217 explicit events + 26-rollup index) and `university-shorteners` (16 summaries → 1,492 explicit events + 16-rollup index). Scripts pause-guarded; no cluster writes issued. Completion criterion (c) [index counts match lane claims] cannot be satisfied for these two indexes until the unwinds are reviewed and the pause lifted.
+- **Both lane12 backends still down:** Common Crawl index (supervisor probe 18:48Z) and Wayback CDX (retry probe 18:43Z → 503). All four lane12 workers healthy in cooling loops on durable state (sweep3 0/555, sweep4 23/370, pattern_sweep 23/379, wb_sweep 225/370, wayback_results 0 rows). Shortener-cdx retry polls until 2026-09-30 12:00 UTC.
+- Open gaps: 81 anna.fyi historical paste IDs (investigator-held, unpublished); 7 iowacollab relay IDs (deliberate closure — source never enumerated).
+
+### Open for next run
+- Lane12 backend recovery watch (supervisor + retry scripts are self-managing; verify they progressed).
+- The two staged unwinds + the pause-lift decision remain the only completion-criterion blocker — needs Christopher's word.
