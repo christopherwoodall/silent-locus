@@ -5,11 +5,13 @@ Workstream A (2026-09-28): batches 1 and 2 are the same dataset family
 (shortener public-stats pages, canonical shared schema). Both JSONL files
 are ingested into index `university-shorteners`; per-batch provenance is
 preserved in each doc's `event.dataset` (batch1 -> "university-shorteners",
-batch2 -> "university-shorteners-batch2") and in `labels.shortener.*`.
+batch2 -> "university-shorteners-batch2",
+batch3 -> "university-shorteners-batch3") and in `labels.shortener.*`.
 
 Sources (untouched on disk):
-  data/university-shorteners/university-shorteners.jsonl          (7 docs)
-  data/university-shorteners-batch2/university-shorteners-batch2.jsonl (1 doc)
+  data/university-shorteners/university-shorteners.jsonl                (11 docs)
+  data/university-shorteners-batch2/university-shorteners-batch2.jsonl   (1 doc)
+  data/university-shorteners-batch3/university-shorteners-batch3.jsonl   (3 docs)
 
 Idempotent: deterministic _id "yourls:<instance>:<slug>", re-runs overwrite.
 Index `university-shorteners-batch2` is retired after a verified consolidate
@@ -33,6 +35,7 @@ OLD_INDEX = "university-shorteners-batch2"
 JSONLS = [
     BASE + "/data/university-shorteners/university-shorteners.jsonl",
     BASE + "/data/university-shorteners-batch2/university-shorteners-batch2.jsonl",
+    BASE + "/data/university-shorteners-batch3/university-shorteners-batch3.jsonl",
 ]
 EXPECTED_FIELDS = set(json.load(open(BASE + "/notes/gems-es-mapping.json"))["mappings"]["properties"])
 
@@ -104,15 +107,16 @@ def bulk_load(docs):
 def verify():
     c = req("GET", "/%s/_count" % INDEX)
     print("doc count:", c.get("count"))
-    # 12 = 7 batch-1 stats pages + 4 goto.unm.edu per-URL referrer/detail docs
-    # (workstream C3, 2026-09-28) + 1 batch-2 doc.
-    assert c.get("count") == 12, "expected 12 docs, got %s" % c.get("count")
+    # 15 = 7 batch-1 stats pages + 4 goto.unm.edu per-URL referrer/detail docs
+    # (workstream C3, 2026-09-28) + 1 batch-2 doc + 3 batch-3 go.uvm.edu docs.
+    assert c.get("count") == 15, "expected 15 docs, got %s" % c.get("count")
     r = req("POST", "/%s/_search" % INDEX,
             {"size": 0, "aggs": {"datasets": {"terms": {"field": "event.dataset.keyword"}}}})
     b = r["aggregations"]["datasets"]["buckets"]
     print("event.dataset.keyword buckets:", [(x["key"], x["doc_count"]) for x in b])
     got = {x["key"]: x["doc_count"] for x in b}
-    assert got == {"university-shorteners": 11, "university-shorteners-batch2": 1}, got
+    assert got == {"university-shorteners": 11, "university-shorteners-batch2": 1,
+                    "university-shorteners-batch3": 3}, got
     s = req("POST", "/%s/_search" % INDEX, {"size": 100, "_source": True})
     unexpected = set()
     for h in s["hits"]["hits"]:
@@ -124,7 +128,7 @@ def verify():
     print("record_kind:", [(x["key"], x["doc_count"]) for x in r["aggregations"]["kinds"]["buckets"]])
     ids = sorted(h["_id"] for h in s["hits"]["hits"])
     assert ids == sorted(set(ids)), "duplicate doc IDs!"
-    print("VERIFY OK: 12 docs, no drift, unique deterministic IDs")
+    print("VERIFY OK: 15 docs, no drift, unique deterministic IDs")
 
 
 def retire_old():

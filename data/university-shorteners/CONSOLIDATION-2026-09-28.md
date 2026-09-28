@@ -51,3 +51,12 @@ no duplicates. Zero top-level fields outside the canonical mapping;
 python3 scripts/es_ingest_university_shorteners_consolidated.py --verify
 python3 scripts/es_ingest_pxweb.py --verify
 ```
+
+## Addendum 2026-09-28 17:55Z — batch3 consolidated, count 15
+
+Commit d559942 folded batch-3 (go.uvm.edu, 3 docs, `event.dataset=university-shorteners-batch3`)
+into `university-shorteners` and retired index `university-shorteners-batch3` (404 verified).
+Live `_count` = **15** (11 + 3 + 1). The C3 gap-recovery progress.log entry (11:40Z) predates
+that merge, hence its "index now 12 docs" line — stale, not wrong at write time.
+`scripts/es_ingest_university_shorteners_consolidated.py` is the canonical ingest: it now
+reads all three JSONL sources and asserts 15 with the three-bucket breakdown (`--verify` green).
