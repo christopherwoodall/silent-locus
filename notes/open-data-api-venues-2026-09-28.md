@@ -48,3 +48,9 @@ The model's shape holds (unauthenticated + structured + ladder-laundered) but th
 - Ingest script: `scripts/es_ingest_open_data_api_venues.py`
 
 Every hit cites its exact file: rmn.re `link_table_decoded_2026-09-27.json` (per-slug), `collusion-wiki/links.jsonl` (2), `revisions.jsonl` (4 kept), `pages.jsonl` (2), `records.jsonl` (6), `shortener-logs.json` (4 template summaries), `thecolony-ai/search/jina.json`, `vanderbilt-shortener/web_mentions.json`.
+
+## DEFENSIVE TAKEAWAY
+
+- **Detection surfaces exposed:** open-data APIs (WorldPovertyClock, DataAfrica, NAEP) as agent task venues; proxy-laundered access (jina, allorigins, corsproxy chains) visible in referrers and user agents.
+- **Early-warning signals:** bursts of API calls arriving via reader proxies; XYZ-grammar test slugs (e.g. OAIDATAUSATESTXYZ) probing endpoints.
+- **What a defender could instrument:** API providers can fingerprint non-human access (proxy chains, markdown-reader wrappers); rate-limit or challenge proxy-laundered traffic; never accept secrets in URLs — Census API key values were found sitting in referrer URLs (redacted in our captures).

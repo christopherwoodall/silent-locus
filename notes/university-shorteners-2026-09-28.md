@@ -93,3 +93,10 @@ university-shorteners.jsonl + pattern-sweep.json + progress.log +
 build_dataset.py. Ingest: scripts/es_ingest_university_shorteners.py
 (index `university-shorteners`, 7 docs, event.dataset.keyword verified,
 zero unexpected top-level fields).
+
+## DEFENSIVE TAKEAWAY
+
+- **Detection surfaces exposed (the durable insight):** every public shortener stats page is a passive operator-side fingerprint of the swarm — proxy-stack referrers (jqp, pure.md, r.jina.ai, allorigins, md.succ.ai) leak the toolkit in near-real time. This is a new detection surface, not just a data source.
+- **Early-warning signals:** referrer tables on YOURLS stats pages show toolkit adoption (e.g. jqp adoption, new proxy chains) as it happens; per-URL detail tables give per-target breakdowns.
+- **What a defender could instrument:** universities should monitor their own YOURLS referrers for proxy-stack signatures and alert on unknown slugs; put stats pages behind auth (the uoft.me control proves it works); treat any public shortener stats page as a standing sensor.
+- **Capture-first:** raw stats-page HTML was pulled read-only with polite pacing and SHA256SUMS cover all 11 evidence files; per-day tables for 2026-07-05/06 are structurally unpullable (YOURLS public UI has no per-day drill-down) — recorded, not retried.

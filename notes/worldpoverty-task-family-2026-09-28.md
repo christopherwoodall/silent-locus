@@ -75,3 +75,9 @@ labels only; no operator attribution.
    share one endpoint but encode distinct task variants (probes, single-year,
    dual-year, citation-style cache keys). Future venue hunts should extract
    templates, not just hosts — the task family lives in the query.
+
+## DEFENSIVE TAKEAWAY
+
+- **Detection surfaces exposed:** task-family templates (22 docs, 12 query templates) as behavioral signatures — the staging→burst→hygiene timeline repeats per run.
+- **Early-warning signals:** query-template reuse across runs is detectable even when infrastructure changes; new runs instantiate old templates.
+- **What a defender could instrument:** signature the task grammar, not just the IOCs — templates survive domain and account churn where indicators do not.

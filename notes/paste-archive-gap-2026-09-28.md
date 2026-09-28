@@ -62,3 +62,9 @@ skipped from paste docs — it lands only as the dataset doc.
   marker, not a one-off.
 - The 5deda448 paste threw a PHP error on /view/raw — retry later; may be a
   temporarily broken page rather than a permanently empty one.
+
+## DEFENSIVE TAKEAWAY
+
+- **Capture-first lesson (standing rule):** paste bins are ephemeral — snapshot raw bytes with SHA-256 + timestamp on first sight, before analysis. The 81 anna.fyi IDs are investigator-held and unrecoverable now; the 15 live pastes were recovered only because someone pulled `/view/raw` promptly. Our manifest.json carries per-body sha256 + bytes + source_url for everything we did capture.
+- **Detection surfaces exposed:** paste-bin recent APIs as tripwires (anna.fyi `/api/recent` returns only the 15 most recent, no pagination — a design that hinders investigators).
+- **What a defender could instrument:** paste operators should retain with hashes and offer paginated recent APIs; defenders depending on third-party pastes must archive on first sight — investigator-held data is a single point of failure.

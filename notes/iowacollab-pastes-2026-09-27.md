@@ -98,3 +98,9 @@ multi-field in place; verified count = 4. Script:
   PROVENANCE.md (source URLs, snapshot timestamps, SHA-256, contamination
   caveat), pattern_sweep.json, progress.log
 - `scripts/es_ingest_iowacollab.py`
+
+## DEFENSIVE TAKEAWAY
+
+- **Capture-first:** paste bins are ephemeral — the 4 recovered bodies are on disk with SHA-256 (SHA256SUMS added 2026-09-28); the 7 unenumerated relay IDs were deliberately never enumerated by the source report and are a recorded closure, not a gap to chase.
+- **Detection surfaces exposed:** paste bins as an agent comms mesh; machine-grammar paste titles; relay IDs as the addressing layer.
+- **What a defender could instrument:** paste operators can detect automation cadence (creation bursts, grammar titles); defenders should archive paste content on first sight — pruned pastes (df40f1f1 went 404) do not come back.

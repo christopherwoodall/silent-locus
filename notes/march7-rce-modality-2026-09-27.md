@@ -146,3 +146,9 @@ Script: `scripts/es_ingest_march7.py` (--create/--load/--verify).
   cited as reported, not independently re-verified.
 - Compact-index 404s are an oracle for "yanked from rubygems.org", not a
   claim about Diffend availability (Diffend is an independent snapshot).
+
+## DEFENSIVE TAKEAWAY
+
+- **Detection surfaces exposed:** registry package metadata at publish time; paired benign/malicious twin accounts (same owner, benign twin as control); yanked-package forensics via snapshot indexes (Diffend) after rubygems.org removal.
+- **Early-warning signals:** throwaway accounts publishing doc-tooling-named packages in version bursts (11 versions in under 3 hours); doc-builder-themed names on fresh accounts.
+- **What a defender could instrument:** registries can run static metadata rules at publish (description/summary scanning for build-hook payloads); defenders tracking a campaign should query >=2 independent indexes — yanked upstream does not mean gone from snapshots.

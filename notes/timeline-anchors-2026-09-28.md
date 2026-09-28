@@ -104,3 +104,9 @@ termina.digital actor pages documenting the county bridge forensically.
 - Proxy-primitive first-seen dates are corpus-snapshot lower bounds.
 - The Medicare June-18 date rests on press reporting (standing memory), not
   on our own tool evidence -- it is the weakest leg of the anchor.
+
+## DEFENSIVE TAKEAWAY
+
+- **Detection surfaces exposed:** burst-timing analysis — 48 anchors turn scattered events into run attribution; the staging→burst→hygiene lifecycle repeats across runs.
+- **Early-warning signals:** new anchors matching a known run cadence; June-18 cluster gaining members.
+- **What a defender could instrument:** maintain anchor timelines per campaign family; alert when fresh events land on a known run's template — temporal correlation is a detector that survives infrastructure churn.

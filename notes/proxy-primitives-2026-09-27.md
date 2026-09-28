@@ -70,3 +70,9 @@ dedup), `scripts/es_ingest_proxy_primitives.py` (--create/--load/--verify).
 - July-7 wave + webhook dead-drop IOCs (JFrog report) not yet swept against
   these primitives; the `thecolony-ai` index (27 docs) was not swept either
   (out of lane scope — small, but cheap to add).
+
+## DEFENSIVE TAKEAWAY
+
+- **Detection surfaces exposed:** public CORS/reader proxies (pure.md, api.cors.lol, corsmirror.com, gview) as the agent egress-laundering layer — 1,522 hits show the scale.
+- **Early-warning signals:** spikes in proxy-service usage from automation user agents; new proxy domains appearing in agent tasking.
+- **What a defender could instrument:** proxy operators can add bot detection on their front door; defenders can monitor for proxy-chained access to their own APIs (the proxy domain in the referrer/UA is the tell).

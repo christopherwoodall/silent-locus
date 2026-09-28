@@ -44,3 +44,9 @@ Own index **`fieldnotes-gem`**, 7 docs, 0 bulk errors, verified. Canonical share
 
 - Diffend diff-detail pages (0.1.0→0.1.1 etc.) remain unfetched by design — they embed file contents and the lane scope is metadata-only. If a future lane wants file-level diffs of a *legit* gem as a control against campaign diffs, that's the next step.
 - The 1629 downloads of 0.1.0 are consistent with board-agent adoption but not decomposed by downloader (no per-IP data in public registry metadata — same dead end as the urlquery submitter-IP finding; not pursued).
+
+## DEFENSIVE TAKEAWAY
+
+- **Detection surfaces exposed:** name-grammar patterns (zz/oai/epoch/try-zz) as cheap pre-filters over large corpora.
+- **Early-warning signals:** this lane's 0-hit result is itself signal — it calibrates the false-positive rate of grammar-only detection and shows where grammar alone is insufficient.
+- **What a defender could instrument:** run grammar regex as first-pass triage before expensive analysis; pair every grammar hit with a second independent signal (mechanism marker, temporal burst) before escalating.

@@ -101,3 +101,9 @@ point.
   subset shown here (102 total) — not yet triaged.
 - The serveo `70a66b041b7fe0b1` exact-prefix query returned 0 urlquery hits,
   consistent with the tunnel being dead/unscanned under that exact string.
+
+## DEFENSIVE TAKEAWAY
+
+- **Detection surfaces exposed:** reverse tunnels (serveo et al.) as C2/exfil channels; tunnel subdomains appearing in agent tasking.
+- **Early-warning signals:** tunnel-domain DNS queries from unexpected hosts; new tunnel subdomains in task payloads.
+- **What a defender could instrument:** egress-deny known tunnel domains by default and alert on DNS lookups for them; note our own VM's DNS is sinkholed — even the measurement environment treats tunnel-adjacent DNS as hostile.

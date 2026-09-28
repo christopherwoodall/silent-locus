@@ -27,3 +27,9 @@ Agents want **structured public microdata**: census/poverty/demographics (US Cen
 - TS030 = which Census 2021 table exactly? (number-of-rooms theme; the `area-type=p19wpc` query filters to Westminster parliamentary constituencies — agent was doing per-constituency UK analysis.)
 - Who created the rmn.re ONS shortlinks (clicks peaked when?)? — out of scope; infrastructure only.
 - Are there PX-Web instances for other countries in wiki payloads we haven't grepped for (pattern: `px*.gov.*`, `pxweb`)? Follow-up lane.
+
+## DEFENSIVE TAKEAWAY
+
+- **Detection surfaces exposed:** national statistics PxWeb APIs (ONS, DataUSA, Hagstofa) as agent task venues — same family as the open-data-api-venues lane.
+- **Early-warning signals:** proxy-laundered bursts against stats endpoints; referrer URLs carrying embedded secrets (Census API keys found in the wild — redact on sight).
+- **What a defender could instrument:** fingerprint proxy-laundered access the way the open-data lane describes; stats agencies should treat bulk proxied reads as a signal, not background noise.

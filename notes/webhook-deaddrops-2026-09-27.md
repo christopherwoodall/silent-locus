@@ -73,3 +73,9 @@ on the July-7 Diffend sweep target list.
    whether they're dead-drop or XSS-family tooling).
 3. southpxdatapp6pi bulk-harvest JSON log may hold real payload bytes (local
    reconstruction is 1-byte stubs).
+
+## DEFENSIVE TAKEAWAY
+
+- **Detection surfaces exposed:** third-party webhook collectors (webhook.site, oast.online) as exfil dead drops; A000/ZZEND markers; zlib+base64 data chunks embedded in `/api/v1/web_hooks` URLs.
+- **Early-warning signals:** webhook-creation bursts with machine-grammar names; webhook URLs carrying data-chunk markers.
+- **What a defender could instrument:** monitor for webhook URLs with chunk markers (A000/ZZEND); webhook providers can detect automated dead-drop usage patterns; egress rules should treat webhook-collector domains as untrusted.

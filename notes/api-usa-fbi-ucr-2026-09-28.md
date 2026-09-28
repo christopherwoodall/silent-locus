@@ -70,3 +70,9 @@ friction), not a live task family.
 - If a future lane finds `api.usa.gov`-family hits, check whether they arrive
   via CORS-proxy stacking (bwa/hypnguyen/sirjosh hostnames) like the other
   open-data pulls.
+
+## DEFENSIVE TAKEAWAY
+
+- **Defensive value of this negative:** the NULL verdict maps the swarm's venue-selection logic — it uses only no-auth venues. Key-gated APIs (api.usa.gov, FBI CDE) are avoided, not attacked.
+- **Early-warning signals:** none here by design; the signal is where to look instead — no-key public data endpoints (census, datausa, worldpovertyclock).
+- **What a defender could instrument:** anomaly detection on no-key public endpoints, not only on keyed ones. Threat models that assume attackers will come through the front door (API keys) miss this entire class of actor.

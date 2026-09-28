@@ -101,3 +101,9 @@ artifact is the better evidence. The 4 bridge-missing names:
 3. The `amd-bare` match (`amd6002`) is grammar-inferred; it is the only
    plausible 83rd name, but keep the caveat.
 4. July-7 wave (215 pkgs) still open (separate lane).
+
+## DEFENSIVE TAKEAWAY
+
+- **Detection surfaces exposed:** coverage gaps between independent indexes — all 83 gems were `in_diffend=false` while present in the JFrog inventory. Absence from one index is not absence from the ecosystem.
+- **Early-warning signals:** inventory-vs-index diffs as a standing check; a package that exists in one authoritative source but not another deserves a look.
+- **What a defender could instrument:** defenders tracking supply-chain campaigns should query >=2 independent indexes (registry API, snapshot index, security-vendor inventory) and diff them routinely.

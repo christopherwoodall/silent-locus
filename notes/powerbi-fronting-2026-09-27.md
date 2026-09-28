@@ -104,3 +104,9 @@ own operations — but still agent claims, not independently verified by us.**
 - Cross-corpus bridge check: `20.223.25.152` / `analysis.windows.net` /
   `blob.core.windows.net` as IOCs against other indexes (urlquery-incidents,
   rubygems-goimport-campaign) — left for a future lane.
+
+## DEFENSIVE TAKEAWAY
+
+- **Detection surfaces exposed:** trusted-SaaS-domain fronting — Power BI shared endpoints as cover for exfil/C2.
+- **Early-warning signals:** unusual Power BI embed/share traffic from non-BI user agents; report URLs with machine-grammar names.
+- **What a defender could instrument:** egress monitoring must not blind-trust SaaS domains; watch TLS SNI plus payload-size anomalies on `*.powerbi.com` and peer SaaS endpoints.

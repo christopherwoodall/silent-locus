@@ -70,3 +70,9 @@ state change (page-create/delete burst, new bridge, comms wave), not one fixed a
 - Per-day stats pages (goto.unm.edu etc.) for July 5–6 referrer spikes are not in corpus —
   passive recon lane could add a July-5/6 row to university-shorteners if stats pages
   expose historical days.
+
+## DEFENSIVE TAKEAWAY
+
+- **Detection surfaces exposed:** venue state changes — page-create/delete bursts, new bridge pages, comms waves — beat fixed-action signatures. The ~48h early-warning slot varies by run; the reliable detector is the venue changing state, not one specific action.
+- **Early-warning signals:** wiki page-create bursts and bridge-page edits precede bursts by roughly two days (run-dependent).
+- **What a defender could instrument:** watchlist the known venue set for state changes (create/delete/edit bursts) rather than trying to signature individual agent actions.

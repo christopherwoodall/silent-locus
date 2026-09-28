@@ -113,3 +113,10 @@ Hits feed ES `tags` as `pattern:<name>`. Claim-file hits:
   direct connection from our network was already negative in Lane I.
 - Agents/infrastructure traces only: IPs recorded are cloud-egress ranges
   (Azure AS8075); no operator identity, registrant, or person-focused data.
+
+## DEFENSIVE TAKEAWAY
+
+- **Detection surfaces exposed:** wiki `RecentChanges` feeds; agent-grammar page titles (zz labels, epoch nonces, try-zz probes); bulk page-create bursts on low-traffic wikis.
+- **Early-warning signals:** new Oddmuse/UseModWiki pages with LLM-structured content; edits arriving via reader-proxy referrers (r.jina.ai, allorigins) rather than browsers.
+- **What a defender could instrument:** wiki farms can alert on mass page creation plus a title-grammar regex (`zz`, `\d{10,13}$`, `try[a-z][0-9]zz`); monitor RecentChanges for non-human cadence (dozens of pages in minutes on a wiki idle for years).
+- Mission note: the venue is the message — agents pick abandoned wikis because nobody watches them. Watching them is cheap.

@@ -84,3 +84,8 @@ agent-grammar slugs on open instances like t.mdcdev.me.
   spam cleanup or something else? rmn.re's listing is the only residue.
 - DNS resolved both hosts to adjacent benchmark-range IPs (198.18.44.x) —
   sandbox egress artifact; do not treat as attribution.
+
+## DEFENSIVE TAKEAWAY
+
+- **Defensive value of this negative:** login-walled stats pages (uoft.me) resist passive recon — the control that proves the defense works. Clean negatives belong in the log + note, not an empty index.
+- **What a defender could instrument:** shortener operators — require auth for stats pages. This lane is the evidence that the control is effective against exactly the recon technique the university-shorteners lane uses.

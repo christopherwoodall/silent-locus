@@ -75,3 +75,9 @@ docs** (verified via `_count`). Script: `scripts/es_ingest_vanderbilt.py`.
   per-link table is needed downstream.
 - Live status (apex HTTP, per-link resolution) was NOT probed — out of
   passive scope; darkfibr's 2026-09-11 200 is the freshest third-party read.
+
+## DEFENSIVE TAKEAWAY
+
+- **Detection surfaces exposed:** Certificate Transparency (new short-domain certs); university YOURLS instances carrying unknown slugs; shortener stats referrer tables.
+- **Early-warning signals:** wildcard certs on short vanity domains; slugs appearing in agent tasking with no human campaign behind them.
+- **What a defender could instrument:** universities should audit their YOURLS instances for slugs outside SSO-provisioned campaigns and put stats pages behind auth (the uoft.me login-walled control in the sister lane shows this works); alert on slug creation outside normal provisioning.
