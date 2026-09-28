@@ -180,7 +180,8 @@ def load_candidates():
 def main():
     os.makedirs(OUTDIR, exist_ok=True)
     if "--retry-failed" in sys.argv:
-        # drop connection-failure records so the resume pass re-attempts them
+        # drop connection-failure records so the resume pass re-attempts them:
+        # phase-1 fetch failures AND phase-2 diff-fetch failures
         kept, dropped = [], 0
         if os.path.exists(OUT):
             for line in open(OUT):
@@ -189,7 +190,9 @@ def main():
                 except Exception:
                     continue
                 st = str(rec.get("http_status", ""))
-                if st.startswith("fetch_failed"):
+                derr = str(rec.get("diff_error", ""))
+                if st.startswith("fetch_failed") or derr.startswith(
+                        "diff_fetch_fetch_failed"):
                     dropped += 1
                 else:
                     kept.append(line)
