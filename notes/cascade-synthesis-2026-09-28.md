@@ -58,3 +58,11 @@ All 12 child lanes of the 13-lead cascade completed. Each landed its own dataset
 - Supervisor window ends 06:45 CDT; 07:00 run should check supervisor.log + worker states and summarize lane12.
 - If backends recovered: sweep3 (555), sweep4 (rubydoc x2), pattern_sweep (379), wb_sweep (190 remaining of 370) resume from durable state.
 - timeline-anchors lane result (dispatched this run) should be folded in.
+
+## Timeline-anchors lane landed (commit 01bb2a8, ~02:00 CDT)
+- 48 dated-event docs, ES index `timeline-anchors` (48/48 loaded, schema-clean), note at notes/timeline-anchors-2026-09-28.md.
+- **June-18 anchor now on 10 legs** (UNM/ETH referrer peaks, hamzah2304 21:01:20Z chains, SEC bridge ladder 17:23–17:44Z, 14x zzmasscounty wiki keywords 19:51, 14 translate.goog laundering pages, collusion.wiki SEC-retrieval tasks, 83-gem wave 17:53–20:52Z, Medicare breach, termina.digital bridge docs) — reads as one evaluation run on one afternoon/evening.
+- **Run schedule pattern:** task-family peaks ~17 days apart — May 12 (go-import gem burst), May 29 (IHME TB blitz via cors.bwa.workers.dev), June 18 (federal-data run). Different family per peak = run schedule, fits escaped-eval thesis.
+- **Pre-run staging signature:** June 16 (Iowa comms wave + DemoWiki->dse bridge) precedes June 18 by ~48h, same as May 11 sandbox probes preceded May 12. Staging is detectable before the run — the early-warning slot is "staging-phase signals," not the run itself.
+- July 7 mirrors June 18's structure (XSS/SSTI wave + webhook reappearance + HF window). May 26: wiki proxy-primitive first-seen + 11-version RCE gem + 11 ludism edits same day (toolkit and registry modality iterating together).
+- Weakest leg flagged honestly: Medicare June-18 date is press-reported only (11 `*-estimated` docs marked).
