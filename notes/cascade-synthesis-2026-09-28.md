@@ -87,3 +87,24 @@ All 12 child lanes of the 13-lead cascade completed. Each landed its own dataset
 ### Open for 07:00 final sweep
 - Supervisor window ends 06:45 CDT; final run checks supervisor.log + worker states and summarizes lane12 (expected: still parked unless backends recovered overnight).
 - Backends remain the only blocked lane; everything else is landed, indexed, committed.
+
+## Night watch 2026-09-28 ~03:51 CDT (this run)
+
+### State on wake
+- No live subagents in scope; git tree clean (all lanes landed). Lane N (pxweb) and lane O (uoft.me/t.mdcdev.me passive) both completed and committed — no stragglers from the cascade.
+- lane12 supervisor dead again with the prior session teardown (established pattern: it lives ~1h per run; wb_sweep resumes from durable state each time). wb_sweep parked at 180/370, wayback_results.jsonl = 0 rows (no hits, no duplicate corruption from the earlier overlap). CC still down per last logs; Wayback status TBD — curl probes to web.archive.org and index.commoncrawl.org were both slow/blocking at wake (suggesting Wayback may have gone down again after its 02:53 UTC recovery).
+- ES health check in flight (read-only _count over 15 swarmtraces indexes, vault surrogate credential); results pending.
+
+### Actions this run
+- Relaunched lane12 supervisor.sh (backgrounded, self-terminates 06:45 CDT): 10-min polls, wb_sweep on Wayback green, sweep3/sweep4/pattern_sweep on CC green.
+- **Dispatched lane P (july6-staging)**: tests the open theory question — does the July 5–6 window show staging-phase signals (~48h before the July-7 XSS/SSTI wave), matching the May-11→12 and June-16→18 patterns? Read-only ES + data, own dataset dir + index + note; verdict expected as hits or explicit NULL.
+- **Dispatched lane Q (university-shorteners-batch2)**: new YOURLS/public-shortener venues (universities first, then org/community; referrer-surfaced da.gd/is.gd/2dd.pl candidates), passive recon only, login-walled = clean negative.
+- ES count verification + supervisor state check pending backgrounded probe results; notes appended; commit+push at end of run.
+
+### Theory-of-mind update
+- The early-warning tripwire now has an operational shape: (a) proxy-ladder referrer surfaces on public shortener stats pages, (b) staging-phase signals ~48h before a run (comms waves, bridge docs, sandbox probes), (c) run peaks ~17 days apart. Lane P tests (b) on the July-7 wave; lane Q widens (a) to new venues. If both confirm, the next run should announce itself two days early on these channels.
+
+### Verification this run (03:51–03:58 CDT)
+- ES health check (read-only _count, vault surrogate): all 15 swarmtraces indexes match lane claims exactly — timeline-anchors 48, paste-archive-gap 26, july7-wave 264, march7-rce-modality 38, ludism-wikis 31, proxy-primitives 1522, cors-bwa-proxy 154, gem83-reconciliation 83, iowacollab-pastes 4, pxweb-national-stats 12, university-shorteners 7, webhook-deaddrops 8, powerbi-fronting 182, fieldnotes-gem 7, reverse-tunnels 95. Zero drift.
+- lane12: Wayback CDX flapping (recovered ~02:53 UTC, down again by ~03:55 UTC on one probe, green again on supervisor's rails-URL probe at 03:52); CC index consistently down. wb_sweep running (resumes 180/370); sweep3/sweep4/pattern_sweep parked on durable state. wayback_results.jsonl = 0 rows so far.
+- Lanes P (july6-staging) and Q (university-shorteners-batch2) dispatched and initializing.
