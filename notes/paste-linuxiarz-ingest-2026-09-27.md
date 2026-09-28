@@ -21,9 +21,10 @@ Elastic index: `paste-linuxiarz` (own index, shared schema, `event.dataset=paste
 ## Live-vs-archive check
 
 - Method: one HEAD per paste URL, ≥5–6s pacing, browser UA, read-only.
-- Result: **{LIVE} live / {DEAD} dead-or-error of 131** (checked {TS}).
-  Sampled IDs returned 404 on `/view/<id>` and `/view/raw/<id>`; the live pastebin
-  (Stikked) no longer serves these pastes. Bodies in this dataset are the
+- Result: **0 live / 131 dead-or-error of 131** (checked 2026-09-28T03:06:44Z:
+  107 HTTP 404, 24 connection errors).
+  Every paste 404s on `/view/<id>` and `/view/raw/<id>`; the live pastebin
+  (Stikked) no longer serves any of them. Bodies in this dataset are the
   investigators' archived copies — treat as the canonical source.
 
 ## Content shape (pattern sweep, `data/paste-linuxiarz/sweep.json`)
@@ -88,7 +89,9 @@ shorteners) is shared; naming/mechanism grammars are absent.
   `published_at`/`@timestamp` from `source_date_literal` epoch,
   `tags`=[source:paste-linuxiarz, family:iowa|ref|other],
   paste detail in `labels` (flattened). Zero new top-level fields.
-- Verified count: **{ESCOUNT}** docs in `paste-linuxiarz`.
+- Verified count: **131** docs in `paste-linuxiarz`
+  (`event.dataset` / `event.dataset.keyword` = `paste-linuxiarz`; tag split:
+  family:iowa 118, family:ref 3, family:other 10).
 
 ## Files
 
