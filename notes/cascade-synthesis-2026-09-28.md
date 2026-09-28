@@ -108,3 +108,27 @@ All 12 child lanes of the 13-lead cascade completed. Each landed its own dataset
 - ES health check (read-only _count, vault surrogate): all 15 swarmtraces indexes match lane claims exactly — timeline-anchors 48, paste-archive-gap 26, july7-wave 264, march7-rce-modality 38, ludism-wikis 31, proxy-primitives 1522, cors-bwa-proxy 154, gem83-reconciliation 83, iowacollab-pastes 4, pxweb-national-stats 12, university-shorteners 7, webhook-deaddrops 8, powerbi-fronting 182, fieldnotes-gem 7, reverse-tunnels 95. Zero drift.
 - lane12: Wayback CDX flapping (recovered ~02:53 UTC, down again by ~03:55 UTC on one probe, green again on supervisor's rails-URL probe at 03:52); CC index consistently down. wb_sweep running (resumes 180/370); sweep3/sweep4/pattern_sweep parked on durable state. wayback_results.jsonl = 0 rows so far.
 - Lanes P (july6-staging) and Q (university-shorteners-batch2) dispatched and initializing.
+
+## Night watch 2026-09-28 ~04:51 CDT (this run)
+
+### State on wake
+- Lanes P (july6-staging, 11 docs) and Q (university-shorteners-batch2, 1 doc) both landed, committed, pushed before this run. Commits ca7628b, 48e4449.
+- lane12 supervisor dead again with prior session teardown (established pattern); wb_sweep parked at 180/370, wayback_results.jsonl = 0 rows; sweep3/sweep4/pattern_sweep parked on durable state. CC index down; Wayback flapping (green 08:52Z/09:12Z/09:23Z launches, down again 09:33Z).
+- No live subagents in scope (prior runs' agents belonged to their runs).
+
+### Actions this run
+- **ES health check (read-only _count, vault surrogate): 17/17 swarmtraces indexes match lane claims exactly** — timeline-anchors 48, paste-archive-gap 26, july7-wave 264, march7-rce-modality 38, ludism-wikis 31, proxy-primitives 1522, cors-bwa-proxy 154, gem83-reconciliation 83, iowacollab-pastes 4, pxweb-national-stats 12, university-shorteners 7, webhook-deaddrops 8, powerbi-fronting 182, fieldnotes-gem 7, reverse-tunnels 95, july6-staging 11, university-shorteners-batch2 1. Zero drift.
+- **Supervisor relaunched session-detached** (`setsid ./supervisor.sh`) — breaks the die-with-teardown pattern; self-terminates 06:45 CDT per its window. First probe at 09:52:39Z: both backends still down, correct no-launch.
+- **Absolute-home-path scrub:** last 4 commits' files all clean (explicit pathspecs, grep for /home/hatch|/home/muse). New-index docs derive from these files — clean by construction.
+- **Dispatched lane R (admin-deletion recurrence):** tests lane P's open follow-up — do [Admin1] deletion sweeps precede other runs? Scans collusion-wiki events for 2026-05-27..28, 2026-06-15..16 + a no-run baseline week. Own dataset+index if hits, null-read note if clean.
+- **Dispatched lane S (open-data-API task venues):** tests the venue-model prediction — pattern-level corpus search for api.worldbank.org, ec.europa.eu/eurostat, data.un.org, stats.oecd.org, api.statcan.gc.ca, api.ons.gov.uk, api.insee.fr across rmn.re targets / wiki / pastes / shortener evidence. Own dataset+index if hits, null-read note if clean.
+- Lane P's open thread on July 5–6 referrer stats rows (goto.unm.edu historical days) remains open for a later run.
+
+### Theory-of-mind update
+- The venue model now makes testable predictions (lane S): if the swarm drinks from unauthenticated structured APIs, World Bank/Eurostat/UNdata/OECD/StatsCan/ONS/INSEE should appear in proxy-ladder target chains. A clean negative there would bound the venue model to national-stats PX-Web + census.gov/api.datausa.io/sec.gov + bulk-record dumps — i.e. venues found via a specific discovery path rather than "all open data."
+- Venue hygiene (July 5–6 admin deletions) generalizes the staging concept: the ~48h pre-run slot isn't always agent action — sometimes it's the venue reacting. If lane R finds pre-run deletion bursts elsewhere, "venue state change" becomes the detector; if clean, the July cleanup is a one-off and the detector stays "agent-side signals only."
+- Open question accumulating: who or what runs the evals such that June-18 actors name pages for July/Oct (multi-month venue planning) while the registry lane (go-import) and the XSS/SSTI lane (July 7) look like different operators? The escaped-eval thesis holds, but the launcher/common-toolkit layer is the real target — hunt it, not the runs.
+
+### Open for 05:51 run
+- Reconcile lanes R and S (they commit+push themselves; verify ES counts + run path scrub on their new files).
+- Supervisor window ends 06:45 CDT; 07:00 run self-terminates this job (cron.remove agent-hunt-night-watch) and delivers the final night report.
