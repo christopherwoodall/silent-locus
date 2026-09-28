@@ -203,6 +203,21 @@ def load_links():
     return docs
 
 
+def norm_ts(v):
+    """records' source_date_literal is ISO, bare epoch, or the literal 'current'"""
+    if not v:
+        return None
+    v = str(v).strip()
+    if re.match(r"^\d{4}-\d{2}-\d{2}T", v):
+        return v
+    if re.match(r"^\d{9,10}$", v):
+        try:
+            return datetime.fromtimestamp(int(v), tz=timezone.utc).isoformat().replace("+00:00", "Z")
+        except Exception:
+            return None
+    return None
+
+
 def load_records():
     docs = {}
     no_ts = 0
@@ -212,10 +227,13 @@ def load_records():
             continue
         r = json.loads(line)
         ts = None
+        raw_ts = None
         for o in r.get("origins") or []:
             if o.get("source_date_literal"):
-                ts = o["source_date_literal"]
-                break
+                raw_ts = o["source_date_literal"]
+                ts = norm_ts(raw_ts)
+                if ts:
+                    break
         if not ts:
             no_ts += 1
         doc = base_doc("wiki_record", ts)
@@ -236,6 +254,7 @@ def load_records():
             "origin_sites": sorted({o.get("site") for o in r.get("origins") or []
                                     if o.get("site")}),
             "sha256": r.get("source_text_sha256"),
+            "source_date_literal_raw": str(raw_ts) if raw_ts else None,
         }))
         docs["wiki:record:%s" % r.get("id")] = doc
     print("records without timestamp: %d" % no_ts)
@@ -326,7 +345,10 @@ def load_bridge():
         meta = g.get("meta", {})
         home = meta.get("homepage_uri") or ""
         host = ""
-        if not home.startswith("[operational"):
+        m = re.search(r"host=([A-Za-z0-9.\-]+)", home)
+        if m:
+            host = m.group(1).lower()  # redaction placeholder carries the host
+        elif home and not home.startswith("[operational"):
             host = re.sub(r"^https?://", "", home).split("/")[0].lower()
         doc = base_doc("wiki_bridge", "2026-06-18T00:00:00Z")
         doc["gem"] = gem
@@ -392,6 +414,7 @@ def bulk_load(docs):
 
 
 def count_kind(kind):
+    req("POST", "/%s/_refresh" % INDEX)
     r = req("POST", "/%s/_count" % INDEX, {"query": {"term": {"record_kind": kind}}})
     return r.get("count", 0)
 

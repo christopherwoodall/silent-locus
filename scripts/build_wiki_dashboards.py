@@ -46,8 +46,9 @@ def data_view_id():
     dv = req("POST", "/api/data_views/data_view",
              {"data_view": {"name": "collusion-wiki", "title": "collusion-wiki*",
                             "timeFieldName": "@timestamp"}})
-    print("created data view:", dv["id"])
-    return dv["id"]
+    dv_id = dv.get("id") or dv.get("data_view", {}).get("id")
+    print("created data view:", dv_id)
+    return dv_id
 
 
 def search_source(query):
@@ -233,13 +234,13 @@ def build(dv_id):
 
     # ---- D2: grammars ----
     viz(dv_id, "cw-viz-grammar-time",
-        hist_vis("Grammar-tagged revisions over time", "tags", "grammar:*"),
+        hist_vis("Grammar-tagged revisions over time", "tags", "grammar:.*"),
         'record_kind: "wiki_revision"')
     viz(dv_id, "cw-viz-grammar-pages",
-        bar_vis("Grammar families — pages", "tags", 10, "grammar:*"),
+        bar_vis("Grammar families — pages", "tags", 10, "grammar:.*"),
         'record_kind: "wiki_page"')
     viz(dv_id, "cw-viz-grammar-labels",
-        bar_vis("Grammar families — agent labels", "tags", 10, "grammar:*"),
+        bar_vis("Grammar families — agent labels", "tags", 10, "grammar:.*"),
         'record_kind: "wiki_label"')
     viz(dv_id, "cw-viz-grammar-md",
         markdown_vis("About these grammars",
