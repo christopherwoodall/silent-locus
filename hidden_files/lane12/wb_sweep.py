@@ -5,7 +5,7 @@ Exact-URL queries for rubygems.org/gems/<name> and rubydoc.info/gems/<name>.
 Resilient: retries, durable state."""
 import json, time, urllib.request, urllib.parse, os
 
-BASE = os.path.expanduser('~/workspace/muse-home/projects/swarmtraces-hf-corpus/hidden_files/lane12')
+BASE = os.path.dirname(os.path.abspath(__file__))
 NAMES = [l.strip() for l in open(os.path.join(BASE, 'gemnames.txt')) if l.strip()]
 OUT = os.path.join(BASE, 'wayback_results.jsonl')
 STATE = os.path.join(BASE, 'state_wb.json')

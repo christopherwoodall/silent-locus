@@ -4,7 +4,7 @@ r.jina.ai laundering URLs, exact-queried against CC index.
 Resilient: retries, cooldowns on backend outage. Durable state."""
 import json, time, urllib.request, urllib.parse, os
 
-BASE = os.path.expanduser('~/workspace/muse-home/projects/swarmtraces-hf-corpus/hidden_files/lane12')
+BASE = os.path.dirname(os.path.abspath(__file__))
 CRAWL = 'CC-MAIN-2026-21'
 OUT = os.path.join(BASE, 'pattern_results.jsonl')
 STATE = os.path.join(BASE, 'pattern_state.json')

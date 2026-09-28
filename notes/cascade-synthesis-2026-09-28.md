@@ -297,3 +297,38 @@ All 12 child lanes of the 13-lead cascade completed. Each landed its own dataset
 ### Open for next run
 - Backend recovery watch (Wayback CDX flapping, CC index down since 19:10Z) — retry lane 3 CC sweep, lane G CDX queue, and anna.fyi CC coverage all fire on recovery.
 - wb_sweep progress (180/370) — verify it advances; stall diagnosis if Wayback stays flapping.
+
+## Night watch 2026-09-28 ~17:50 CDT (this run)
+
+### State on wake — VM RESTARTED
+- Boot log: `boot=2026-09-28 22:46:43` UTC; heartbeat was 21:52:40Z (pre-reboot). All in-memory state lost per protocol: re-audited from disk + git + Elastic, no stale locks on disk (reboot clears them).
+- No live subagents. Git HEAD was e32db9c at wake; a new commit 549a201 ("Analyst note: ExploitGym deep-dive") landed 22:52:02Z from the pre-reboot lane tail — legitimate hunt output, already pushed; note passes the credential rule (discusses the flag-forgery mechanism, does not print secret values).
+- lane12 supervisor + all 5 workers died in the reboot. Wayback CDX probe: UP (HTTP 200, valid JSON, ~2.6s); CC index: DOWN (HTTP 000).
+
+### ROOT CAUSE FOUND: workers wrote to the old repo (migration bug)
+- `wb_sweep.py`, `sweep3.py`, `sweep4.py`, `pattern_sweep.py` hardcoded `BASE = ~/workspace/muse-home/projects/swarmtraces-hf-corpus/hidden_files/lane12` — the pre-migration path. Every relaunch since the 19:08 migration read gem lists from and wrote durable state into the OLD (archive) repo.
+- Real wb_sweep progress: 300/370 (old-repo `state_wb.json`, mtime 22:46:16 — killed mid-flight by the reboot), zero hits (`wayback_results.jsonl` 0 bytes both repos). sweep3/4/pattern never progressed (CC down), so no data lost there.
+- Fixed: all four scripts now use `BASE = os.path.dirname(os.path.abspath(__file__))` (script-relative, like `shortener_cc_sweep.py` already did); copied the 300-done `state_wb.json` into the new repo; `git checkout -- .` in the old repo to restore the untouched archive (old repo clean again).
+- The new-repo `state_wb.json` stuck at 180/370 was stale — now at 300/370. Resume math is correct.
+
+### Recovery actions
+- Relaunched `supervisor.sh` (setsid-detached, verified alive via pgrep + `supervisor.log` "start" line at 22:54:09Z; window through 2026-09-30 12:00 UTC). Note: the earlier "invalid regex" scare on `wb_up()`'s `'^\['` pattern was a display-layer artifact (tool output doubled the backslash) — the file is correct and the probe works.
+- Launched `wb_sweep.py` directly against Wayback (resumed 300/370, 70 queries left, full new-repo path in argv so the supervisor's `alive()` sees it and won't double-launch). Alive at wake-end; grinding silently between milestones as designed.
+- CC-gated workers (sweep3 0/555, sweep4 0/370, pattern 0/379, shortener_cc_sweep) remain parked; supervisor relaunches on CC recovery.
+
+### ES verification (read-only _count, vault surrogate)
+- 14/14 spot checks pass, zero drift: admin-deletions 5217 (+rollup 26), university-shorteners 1520 (+rollup 16), rubygems-goimport-campaign 6619, july7-wave 264, paste-archive-gap 27, iowacollab-pastes 5, pxweb-national-stats 12, gem83-reconciliation 83, timeline-anchors 48, proxy-primitives 1522, vanderbilt-shortener 24, webhook-deaddrops 8.
+- transfer-test-family + agent-convo-venues correctly absent (disk-only per freeze).
+
+### Path scrub
+- All changed files clean (no absolute home-dir paths); the BASE fix removes the last hardcoded home path in lane12 workers.
+
+### Completion check — NOT complete, job continues
+- (a) all data/*/progress.log carry DONE/verified-closed; (b) clean after this commit; (c) all ES checks pass; (d) no live subagents.
+- Withheld anyway: wb_sweep mid-flight (300/370, live), CC index down (4 workers parked), supervisor window through 2026-09-30 12:00 UTC. Natural completion point is window close or backend recovery.
+- Standing: ELASTIC_WRITE_PAUSE in effect for everything except the two authorized unwinds (complete).
+
+### Open for next run
+- wb_sweep finish (expect DONE wayback sweep when the 70 tail queries complete; zero hits so far).
+- CC index recovery watch — retry lane 3 (UNM July 5-6), lane G CDX queue, anna.fyi CC coverage all fire on recovery.
+- Durable lesson: after any repo migration, grep workers for hardcoded old paths before relaunching them.

@@ -5,7 +5,7 @@ cooldown loop (up to ~2h) when the CDX backend is broadly failing.
 Writes durably to the project hidden_files dir."""
 import json, time, urllib.request, urllib.parse, sys, os
 
-BASE = os.path.expanduser('~/workspace/muse-home/projects/swarmtraces-hf-corpus/hidden_files/lane12')
+BASE = os.path.dirname(os.path.abspath(__file__))
 NAMES = [l.strip() for l in open(os.path.join(BASE, 'gemnames.txt')) if l.strip()]
 CRAWLS = ['CC-MAIN-2026-21', 'CC-MAIN-2026-25', 'CC-MAIN-2026-30']
 OUT = os.path.join(BASE, 'results.jsonl')
