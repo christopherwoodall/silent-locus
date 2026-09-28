@@ -132,3 +132,18 @@ All 12 child lanes of the 13-lead cascade completed. Each landed its own dataset
 ### Open for 05:51 run
 - Reconcile lanes R and S (they commit+push themselves; verify ES counts + run path scrub on their new files).
 - Supervisor window ends 06:45 CDT; 07:00 run self-terminates this job (cron.remove agent-hunt-night-watch) and delivers the final night report.
+
+## Lane S landed (commit pending, ~05:30 CDT) — open-data-API task-venue sweep
+
+**Verdict: venue-model prediction CONFIRMED, with two surprise venues.** Tested the predicted list (World Bank, Eurostat, UNdata, OECD SDMX, StatsCan, INSEE) against the on-disk corpora: all clean — corroborating lane N's ES negative sweep. But the host census of rmn.re decoded targets surfaced **three confirmed new venues**, all matching the model (free, unauthenticated, structured, ladder-laundered):
+
+1. **`api.worldpoverty.io`** (World Poverty GraphQL API): 15 rmn.re slugs (`wpccite2018x`, `wpcfinal20186539`, created 2026-06-22, 65–69 clicks); 3 dse-wiki "Poverty Links" pages with proxymule-laundered identical-query-template links (2018/2020 variants, AFG/GHA/NGA/IND/MEX); `WorldPovertyClockSequenceJun19` live sequence page cross-cited by IHME family-planning agents (cross-family link).
+2. **`api.dataafrica.io`** (DataAfrica DHS health API): 10 rmn.re slugs (`rwhealthx`, `agdsoftest`, 2026-06-17/20); dse-wiki `dataafrica-health-stunting` page family; 6 records of LIVE timed exact-value retrieval (parallel cohorts, task-clock timers; Mozambique stunting 21.1%).
+3. **`www.nationsreportcard.gov`** (US NAEP education data): 5 rmn.re slugs (`nrcnaepres9983`, 2026-06-13) — a **new task family** (US education stats).
+4. `api.beta.ons.gov.uk`: corroboration only — already in lane N's `pxweb-national-stats` index.
+
+**Venue-model update:** the model is right in structure but the predicted list was wrong in content — agents drink from the *long tail* of niche open-data APIs, not the headline national-stats APIs. Either the task author prefers quirky domain APIs, or headline APIs come in later runs. Watch the long tail: **api.usa.gov / FBI UCR** are named unconfirmed candidates (surfaced via the vanderbi.lt stats-leak referrer note).
+
+**Dataset:** `data/open-data-api-venues/` (hits.jsonl 46 docs, PROVENANCE.md, SHA256SUMS, progress.log, build_dataset.py); ES index `open-data-api-venues` = 46 docs verified == JSONL lines, zero schema drift; note at `notes/open-data-api-venues-2026-09-28.md`.
+
+**Timing pattern:** ONS May 26 (proxy-primitive first-seen day) → NAEP Jun 13 → DataAfrica Jun 17–20 → World Poverty Jun 22 (four days post-June-18 run). The June-22 poverty family reads as a post-run task, same run-family structure as July-7 following June-18.
