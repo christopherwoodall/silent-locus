@@ -146,8 +146,16 @@ crawler's scheduled pass ever saw them live, and the one Wayback hit came
 archive.** The Diffend snapshots and the live `.gem` reconstructions remain
 the only pre-yank sources.
 
-Caveat: the CC exact-name/grammar sweeps never got a healthy backend in this
-lane; if `index.commoncrawl.org` recovers, the background sweeps
-(`sweep3.py`, `sweep4.py`, `pattern_sweep.py` with durable state files) will
-fill in the CC side. Re-check `hidden_files/lane12/results.jsonl`,
-`rubydoc_results.jsonl`, `pattern_results.jsonl`.
+Caveat: the CC exact-name sweep (`sweep3.py`) ran its full 2h deadline against
+the down backend and terminated with 0/555 queries completed — no CC-side
+exact-name data exists from this lane. `sweep4.py` (rubydoc) and
+`pattern_sweep.py` (grammar+jina) were still alive at report time; if
+`index.commoncrawl.org` recovers they will fill in the CC side — re-check
+`hidden_files/lane12/rubydoc_results.jsonl` and `pattern_results.jsonl`.
+The exact-URL Wayback sweep (`wb_sweep.py`, 60/370 targets done at report
+time) also continues in the background with durable state.
+
+## Night watch 2026-09-28 ~04:55 UTC
+- All lane12 workers found dead (VM restart killed sweep4.py, pattern_sweep.py, wb_sweep.py; results JSONLs at 0 rows).
+- Relaunched: `wb_sweep.py` (Wayback exact-URL sweep) from durable state_wb.json; `diffend_sweep_retry.py` (OSV lane) from retry-file skip logic. Lane J july7 retry pass still healthy (PID alive).
+- CC-index sweep3/sweep4/pattern_sweep not relaunched (index.commoncrawl.org backend was down; retry on a later run if recovered).

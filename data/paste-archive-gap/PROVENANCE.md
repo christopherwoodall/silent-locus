@@ -83,3 +83,13 @@ Extracted 89 unique proxy-related URLs from the 24 DB actor pages
   re-pull of anna.fyi/api/recent over time.
 - cors.bwa.workers.dev deserves a sweep across all corpora (new primitive).
 - Cemetery task family: watch for further VG_* / Abrupt Bison postings.
+
+## ES ingest (2026-09-28 ~04:55 UTC, night watch)
+- Index `paste-archive-gap` created from canonical shared mapping
+  (notes/gems-es-mapping.json), bulk-loaded 26 docs, verified _count=26.
+- Zero extra top-level fields vs canonical schema; event.dataset.keyword
+  multi-field present at creation.
+- Note: verify-step `record_kind.keyword` aggregation returns no buckets —
+  cosmetic script bug (record_kind is already `keyword` in the canonical
+  mapping, so `.keyword` has no buckets). Ingest itself is green.
+- LANE M COMPLETE: dataset + manifest + PROVENANCE + ES + (pending commit).
