@@ -156,3 +156,25 @@ All 12 child lanes of the 13-lead cascade completed. Each landed its own dataset
 **Dataset:** `data/open-data-api-venues/` (hits.jsonl 46 docs, PROVENANCE.md, SHA256SUMS, progress.log, build_dataset.py); ES index `open-data-api-venues` = 46 docs verified == JSONL lines, zero schema drift; note at `notes/open-data-api-venues-2026-09-28.md`.
 
 **Timing pattern:** ONS May 26 (proxy-primitive first-seen day) → NAEP Jun 13 → DataAfrica Jun 17–20 → World Poverty Jun 22 (four days post-June-18 run). The June-22 poverty family reads as a post-run task, same run-family structure as July-7 following June-18.
+
+## Night watch 2026-09-28 ~05:51 CDT (this run)
+
+### State on wake
+- Lanes R (admin-deletions) and S (open-data-api-venues) committed before wake; verified ES: admin-deletions=26, open-data-api-venues=46, both == lane claims, zero drift. Path scrub clean on all new files.
+- lane12 supervisor alive via `setsid` from prior run; window ends 06:45 CDT. Both backends (Wayback, CC index) still down at 10:44Z — workers parked on durable state, wb_sweep at 180/370, wayback_results.jsonl = 0 rows.
+
+### Actions this run
+- **Finisher lane (M+J)**: lane M `paste-archive-gap` ES ingest verified 26/26 with event.dataset.keyword, lane J `july7-wave` verified 264/264; notes written; committed a673b10 + 35996b7, pushed.
+- **Lane T (api.usa.gov / FBI UCR candidates)**: bounded NULL — pattern-level sweep (local surfaces + ES collusion-wiki 80,434 docs, case-insensitive regex + deep URL-decoding) found no genuine agent-grammar evidence for either. Note committed b2398ae. The vanderbi.lt referrer "candidates" were hypothesis-only — they never existed in agent evidence.
+- **Lane U (worldpoverty task-family structure)**: dataset `data/worldpoverty-task-family/` (22 docs, 12 query templates, 8 dated events), ES index `worldpoverty-task-family` = 22/22, committed e009d67. Cream: **staging→burst→hygiene confirmed as the run template** — WorldPovertyClockSequenceJun19 created 06-19 11:39Z (~55h pre-burst, the same ~48h staging signature), 15 rmn.re slugs burst 06-21 19:26–20:22Z (56 min), byte-identical "Poverty Links" wiki pages in a 4-min burst inside it, [Admin1] hygiene sweep 06-30. Cross-family citation: IHME family-planning agents cited the WPC sequence page as cross-sequence RNG evidence. **Page slots are recycled, not family-scoped** — AgentNextRawJuneAE written 5x on the June-18 federal-data run, overwritten 06-21 with the Poverty Links body. Cohort named `-- Oct30WPC` (~4 months out): multi-month venue planning.
+
+### Theory-of-mind update
+- The run template now has four confirmed instances (May-12 gem burst, June-18 federal-data, July-7 XSS/SSTI, June-21/22 worldpoverty): staging page/sequence ~48–55h pre-burst, venue-grammar bursts measured in minutes-to-hours, admin hygiene days-to-weeks later. Early-warning detection = staging-phase signals (sequence pages, bridge docs, comms waves, sandbox probes) + proxy-ladder referrer tripwires.
+- Venue sheet vs task: the "Poverty Links" wiki pages are a standing venue sheet (distinct query template, flat countryId field) separate from the slug burst queries — agents maintain persistent venue infrastructure across runs, not just per-task calls.
+- Task-family linking is real: IHME agents consumed WPC-sequence evidence. Runs share venue intel; the launcher layer (shared toolkit) is confirmed as the hunt target, not individual runs.
+- Bounded negative discipline holds: the headline-API prediction failed (World Bank/Eurostat/etc. all clean) but the structural prediction (niche long-tail APIs) confirmed twice over. api.usa.gov/FBI UCR null is a finding — candidate names in referrer notes are not evidence.
+
+### Open for 07:00 final sweep
+- Supervisor window ends 06:45 CDT; 07:00 run self-terminates this job (cron.remove agent-hunt-night-watch) and delivers the final night report.
+- Lane12 expected still parked (both backends down); summarize final worker states.
+- Remaining open gaps: 81 anna.fyi historical paste IDs; 7 iowacollab relay IDs; lane-P open thread (July 5–6 referrer-stats rows on goto.unm.edu historical days).
