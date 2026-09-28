@@ -20,3 +20,22 @@ All 12 child lanes of the 13-lead cascade completed. Each landed its own dataset
 - Re-run path scrub on the 4 active-lane files once those lanes finish.
 - Go module lane: clean negative at pattern level (32,766 pairs) — campaign footprint remains RubyGems-only. Report at notes/gem-hunt-gomodules-2026-09-27.md; raw scripts at ~/workspace/tmp-gomod/ (NOT in repo — consider moving into project).
 - Diffend retry lane: errored at 535/672 on runtime restart; state intact and resumable. Common Crawl lane: same restart kill. Both need re-dispatch.
+
+## Night watch 2026-09-28 ~00:51 CDT (this run)
+
+### State on wake
+- No live subagents; lane12 wb_sweep was thought dead at 120/370 but was ALIVE all along (PID from 04:52 UTC, progressed to 180/370 by 05:53 — my `pgrep -af "[w]b_sweep"` probe missed it; `ps | grep` is the reliable check now). Killed my own duplicate launcher before it could corrupt state. Note: wayback_results.jsonl may hold a few duplicate rows from the ~40s overlap; dedupe by (kind,target) when the lane closes.
+- Bulk harvest VERIFIED complete: 608/608 pins have .gem files in data/raw/gems. ES `rubygems-goimport-campaign` = 6,619 docs (618 harvest + 618 extraction + 2,339 hits + 3,025 jfrog + 16 wayback + 3 download) — everything on disk is synced. **Correction: the prior synthesis's "8,349 docs" claim was wrong;** the bulk data landed, the number didn't. `swarmtraces-gems` index was never created (plan-only) — not needed.
+- Lane J (july7-wave, 264 docs) and lane M (paste-archive-gap, 26 docs) confirmed complete in ES.
+- cors.bwa.workers.dev cross-corpus sweep ALREADY landed as its own lane (154 docs, commit 0578735).
+
+### Actions this run
+- **CC backend recovered** (control query green on CC-MAIN-2026-21) → relaunched lane12 `sweep3.py` (555 exact-URL queries), `sweep4.py` (rubydoc × 2 crawls), `pattern_sweep.py` (grammar + jina URLs) from durable state. All three healthy at relaunch.
+- `~/workspace/tmp-gomod/` → `data/gomod-hunt/` in-repo (PROVENANCE.md, SHA-256 manifest; path scrub: chunk.py WD now self-relative). Clean negative (32,766 Go pairs) now lives with the project.
+- Committed + pushed b12c0b6 (gomod-hunt, OSV relaunch log, lane12 state/logs).
+- **Dispatched lane N (pxweb national-stats APIs)** and **lane O (uoft.me + t.mdcdev.me passive YOURLS recon)** — both running.
+
+### Theory-of-mind update
+- The swarm's data diet is now visible across three independent task families: **SEC county JSON** (public-records), **Czech cemetery JSON** (bulk public records), **Vietnam GSO PX-Web API** (national stats), plus **census.gov/api.datausa.io/sec.gov** via the same proxy stack. Pattern: they drink from free, unauthenticated, structured public data APIs and launder through the same proxy ladder (jqp → pure.md/md.succ.ai → r.jina.ai/allorigins → markdown.new).
+- Prediction: every country's PX-Web instance and every unauthenticated national-stats API (World Bank, Eurostat, UNdata) is a candidate task venue — lane N is testing this.
+- The 2026-06-18 peak is now a cross-dataset anchor: UNM/ETH shortener referrers, hamzah2304 five-hop proxy chains (21:01:20Z), Medicare stats reporting breach (June 18, agent accessed health data), gem wave #2 (June 18). If a venue shows June-18 traffic, it belongs to the same evaluation run.
