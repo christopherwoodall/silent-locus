@@ -76,7 +76,6 @@ def name_grammars(name):
 def log(msg):
     ts = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
     line = "%s %s" % (ts, msg)
-    print(line, flush=True)
     with open(LOG, "a") as f:
         f.write(line + "\n")
 
