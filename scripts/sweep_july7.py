@@ -30,7 +30,7 @@ import http.client
 DIFFEND = "https://my.diffend.io"
 UA = "rubygems-july7-research/1.0 (read-only inventory sweep; no install)"
 PACE = 3.0
-MAX_RETRIES = 4
+MAX_RETRIES = 2  # first pass: fail fast on hostile connections; --retry-failed later
 
 PROJ = "/home/hatch/workspace/muse-home/projects/swarmtraces-hf-corpus"
 OUTDIR = os.path.join(PROJ, "data/july7-wave")
@@ -179,6 +179,24 @@ def load_candidates():
 
 def main():
     os.makedirs(OUTDIR, exist_ok=True)
+    if "--retry-failed" in sys.argv:
+        # drop connection-failure records so the resume pass re-attempts them
+        kept, dropped = [], 0
+        if os.path.exists(OUT):
+            for line in open(OUT):
+                try:
+                    rec = json.loads(line)
+                except Exception:
+                    continue
+                st = str(rec.get("http_status", ""))
+                if st.startswith("fetch_failed"):
+                    dropped += 1
+                else:
+                    kept.append(line)
+        with open(OUT, "w") as f:
+            f.writelines(kept)
+        log("retry-failed pass: dropped %d failed-fetch records, %d kept" %
+            (dropped, len(kept)))
     cands = load_candidates()
     done = done_names()
     todo = [c for c in cands if c["name"] not in done]
