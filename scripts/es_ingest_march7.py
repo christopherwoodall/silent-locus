@@ -2,11 +2,12 @@
 """Ingest the March-7 RCE-modality lane into its own `march7-rce-modality`
 Elastic index under the canonical shared schema (notes/gems-es-mapping.json).
 
-Record flavors: `package` (one per package, metadata + modality analysis),
-`version` (one per version, diff evidence), `sweep_hit` (pattern-sweep
-marker hits in Diffend-rendered diffs). Mechanism/egress detail lives in
-`labels` (flattened) + `tags`. Zero new top-level fields.
-event.dataset.keyword multi-field included at creation.
+Record flavors: `package` (one per gem: oracle status + investigator-reported
+modality), `version` (one per Diffend version, when present), `sweep_hit`
+(pattern-sweep hits; investigator-reported hits carry confidence=medium and
+explicit provenance). Mechanism/egress detail lives in `labels` (flattened) +
+`tags`. Zero new top-level fields. event.dataset.keyword multi-field included
+at creation.
 
 Usage: python3 es_ingest_march7.py [--create|--load|--verify] (default: all)
 """
@@ -43,21 +44,30 @@ def base_doc(record_kind, tag_extra=()):
         "record_kind": record_kind,
         "event": {"dataset": INDEX, "created": NOW},
         "observer": dict(OBSERVER),
-        "retrieved_via": "https://my.diffend.io (read-only HTTPS GET)",
+        "retrieved_via": "https://my.diffend.io + https://index.rubygems.org (read-only HTTPS GET)",
         "tags": ["source:march7-rce-modality", "lane:D"] + list(tag_extra),
-        "labels": {"annotated_by": "es_ingest_march7",
-                   "modality": "registry-code-execution-probe",
-                   "investigator_attribution": "colonist-one via thecolony.ai incident wiki (reported, not independently re-verified)"},
+        "labels": {
+            "annotated_by": "es_ingest_march7",
+            "modality": "registry-code-execution-probe",
+            "investigator_attribution": "colonist-one post dfac3a74 (thecolony.ai, 2026-09-05); claims cited as reported, not independently re-verified",
+        },
     }
 
 
 def build_docs():
     results = json.load(open(DIR + "/results.json"))
-    sweep = json.load(open(DIR + "/sweep.json")) if os.path.exists(DIR + "/sweep.json") else {}
+    sweep = json.load(open(DIR + "/sweep.json"))
     docs = {}
 
-    for name, pkg in results.items():
-        # package record
+    for name, pkg in results["gems"].items():
+        acct = pkg.get("account", "")
+        diffend = pkg.get("diffend", {})
+        compact = pkg.get("compact", {})
+        present = diffend.get("present", False)
+        versions = diffend.get("versions", [])
+        markers = sweep.get("mechanism_markers", {}).get(name, [])
+        egress = sweep.get("egress_targets", {}).get(name, [])
+
         pd = base_doc("package")
         pd.update({
             "package": name,
@@ -65,26 +75,30 @@ def build_docs():
             "status": "dead",
             "source_url": f"https://my.diffend.io/gems/{name}",
             "diff_url": f"https://my.diffend.io/gems/{name}",
-            "versions": pkg.get("versions", []),
-            "version_count": len(pkg.get("versions", [])),
-            "meta_summary": "Registry code-execution probe (doc-builder RCE + egress test), reported by colonist-one; versions start 2026-03-07; all yanked as of 2026-09-28 (compact-index 404 / 200-empty oracle).",
-            "tags": pd["tags"] + ["status:dead", "modality:rce-probe"],
+            "download_url": "",
+            "versions": versions,
+            "version_count": len(versions),
+            "meta_summary": ("Registry code-execution probe (doc-builder RCE + egress test), reported by colonist-one; "
+                             "all versions yanked from rubygems.org (compact-index 404) and absent from Diffend."),
+            "tags": pd["tags"] + ["status:dead", "modality:rce-probe",
+                                  f"diffend:{'present' if present else 'absent'}",
+                                  f"account:{acct}"],
             "labels": {
                 **pd["labels"],
-                "diffend_status": str(pkg.get("diffend_status")),
-                "compact_index_status": str(pkg.get("compact_status")),
-                "egress_targets": "; ".join(sweep.get("egress_targets", {}).get(name, [])),
-                "mechanism_markers": "; ".join(sweep.get("mechanism_markers", {}).get(name, [])),
-                "first_version": (pkg.get("versions") or [""])[0],
-                "note": "; ".join(pkg.get("notes", [])),
+                "owner_account": acct,
+                "diffend_page_status": str(diffend.get("page_status")),
+                "diffend_page_redirect": diffend.get("page_redirect", ""),
+                "diffend_note": diffend.get("note", ""),
+                "compact_index_status": str(compact.get("status")),
+                "egress_targets": "; ".join(egress),
+                "mechanism_markers": "; ".join(markers),
             },
         })
         docs[f"package:{name}"] = pd
 
-        # version records
-        for v in pkg.get("versions", []):
+        for v in versions:
+            ts = (diffend.get("version_diff_ts") or {}).get(v)
             vd = base_doc("version")
-            files = (pkg.get("files") or {}).get(v, [])
             vd.update({
                 "package": name,
                 "gem": name,
@@ -92,20 +106,15 @@ def build_docs():
                 "status": "dead",
                 "diff_url": f"https://my.diffend.io/gems/{name}/{v}",
                 "source_url": f"https://my.diffend.io/gems/{name}/{v}",
-                "sha256": (pkg.get("diff_sha256") or {}).get(v),
-                "file_count": len(files),
-                "tags": vd["tags"] + ["status:dead"],
-                "labels": {
-                    **vd["labels"],
-                    "diff_files": "; ".join(files[:50]),
-                    "egress_targets": "; ".join(sweep.get("egress_targets", {}).get(f"{name}:{v}", [])),
-                    "mechanism_markers": "; ".join(sweep.get("mechanism_markers", {}).get(f"{name}:{v}", [])),
-                },
+                "tags": vd["tags"] + ["status:dead", f"account:{acct}"],
+                "labels": {**vd["labels"],
+                           "diffend_diff_ts": ts or ""},
             })
+            if ts:
+                vd["snapshot_ts"] = ts
             docs[f"version:{name}:{v}"] = vd
 
-        # sweep_hit records
-        for hit in (sweep.get("hits", {}).get(name, [])):
+        for hit in sweep.get("hits", {}).get(name, []):
             hid = f"sweep:{name}:{hit['version']}:{hit['pattern']}"
             hd = base_doc("sweep_hit")
             hd.update({
@@ -114,12 +123,15 @@ def build_docs():
                 "version": hit["version"],
                 "fingerprint": hit["pattern"],
                 "matched_string": hit["match"],
-                "file": hit.get("file", ""),
                 "line_no": hit.get("line_no", 0),
                 "diff_url": f"https://my.diffend.io/gems/{name}/{hit['version']}",
-                "confidence": "high" if hit["pattern"] in ("egress-host", "rce-sink") else "medium",
-                "tags": hd["tags"] + [f"mechanism:{hit['family']}"],
-                "labels": {**hd["labels"], "pattern_family": hit["family"]},
+                "confidence": "medium",
+                "tags": hd["tags"] + [f"mechanism:{hit['family']}",
+                                      f"account:{acct}"],
+                "labels": {**hd["labels"],
+                           "pattern_family": hit["family"],
+                           "hit_provenance": hit.get("provenance", ""),
+                           "line": hit.get("line", "")[:500]},
             })
             docs[hid] = hd
     return docs

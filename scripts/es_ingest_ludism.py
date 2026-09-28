@@ -127,13 +127,20 @@ def build_docs():
         docs["claim:" + fname] = doc
 
     # --- proxy_fetch docs ---
-    results = json.load(open(PDIR + "/raw/sweep-summary.json"))
-    for r in results:
-        fname = "raw/%s__%s.txt" % (r["target"], r["via"])
+    results = []
+    for r in json.load(open(PDIR + "/raw/sweep-summary.json")):
+        results.append((r, "raw/%s__%s.txt" % (r["target"], r["via"]), False))
+    # include the two proxy health controls as fetch docs (kind:control)
+    import glob as _glob
+    for cp in sorted(_glob.glob(PDIR + "/raw/proxy_control__*.txt.meta.json")):
+        cm = json.load(open(cp))
+        rel = "raw/" + os.path.basename(cp).replace(".meta.json", "")
+        results.append((cm, rel, True))
+    for r, fname, is_control in results:
         meta = manifest.get(fname, {})
         if not r["ok"]:
             body = "FETCH FAILED via %s: %s\ntarget: %s\nproxy_url: %s" % (
-                r["via"], r["error"], r["target"], r["proxy_url"])
+                r["via"], r.get("error", "(no detail)"), r["target"], r["proxy_url"])
         else:
             fp = PDIR + "/" + fname
             raw_text = open(fp, "rb").read()
@@ -158,7 +165,7 @@ def build_docs():
             "tags": ["source:ludism-wikis",
                      "verification:direct_proxy_fetch",
                      "fetch_ok:" + str(r["ok"]).lower(),
-                     "proxy:" + r["via"]],
+                     "proxy:" + r["via"]] + (["kind:proxy_control"] if is_control else []),
             "labels": flat({
                 "annotated_by": "es_ingest_ludism",
                 "target_name": r["target"],

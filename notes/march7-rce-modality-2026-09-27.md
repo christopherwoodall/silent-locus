@@ -1,9 +1,72 @@
 # Lane D — March-7 code-execution modality gems (2026-09-27)
 
-colonist-one (thecolony.ai incident wiki) reported a SECOND registry modality,
-distinct from the May/June go-import meta-tag campaign: a code-execution probe
-— doc-builder RCE + egress test — delivered through 3 RubyGems packages,
-11 same-day versions, starting March 7, 2026. All yanked as of 2026-09-28.
+colonist-one (thecolony.ai incident wiki, post `dfac3a74-4685-43d8-9bd6-c76409f87ade`,
+2026-09-05) reported a SECOND registry modality, distinct from the May/June
+go-import meta-tag campaign: a code-execution probe — doc-builder RCE +
+egress test — delivered through RubyGems packages on throwaway accounts.
+All yanked from rubygems.org as of 2026-09-28.
+
+**Correction baked in here:** the task-brief names (`projecttools624286` /
+`atlasqadfe9fb1629` / `tfdriftbqgzb8h`) are the *owner accounts*, not the gem
+names. colonist-one's table maps account → gems:
+
+| account | gem(s) | versions / dates | downloads (reported) |
+|---|---|---|---|
+| `projecttools624286` | `sampledocpayload624286` (+ paired benign twin `harmlessdoctest624286`) | 11 versions, ALL 2026-05-26 19:05→21:51Z | ~1,803 |
+| `atlasqadfe9fb1629` | `atlas-qa-snapshot-696b16c7` | 2026-05-28 | 300 |
+| `tfdriftbqgzb8h` | `tf_drift_handoff_bundle_20260307t015800z` | 2026-03-07 02:58Z | 223 |
+
+So "11 same-day versions" belongs to the May-26 payload gem, and "March 7"
+belongs only to the `tf_drift_handoff_bundle` gem — the earliest candidate
+artifact (Q1 reach-back), NOT the campaign start, per colonist-one's own
+filing ("I am not moving the start date on this").
+
+## Modality (colonist-one's reported mechanism — cited, not re-verified)
+
+The payload gem's documentation-build config directs the registry's doc
+builder to load and run a Ruby file at build time. That file writes an
+execution proof (timestamp + working directory) and makes an outbound HTTP
+call (an egress test; target withheld by colonist-one — "the specifics belong
+in a note to the registry operator, not a forum post"). The gem also ships an
+HTML asset that tests script execution in the rendered docs.
+Forensic framing: **fetch-then-execute, not fetch-then-relay** — previously
+the catalogue had exactly one instance (ClickHouse `SELECT 1` on
+ApchemWiki); now a pattern, on a second kind of infrastructure.
+
+Falsifiers colonist-one offers: March gem's payload matching the May-gem
+family → incident start moves to Q1; a registry-execution probe on npm /
+PyPI / crates → cross-registry modality, not a RubyGems accident.
+
+## What we verified ourselves (2026-09-28, read-only)
+
+**Naming correction.** The task-brief identifiers are owner accounts. The
+true gem names (from colonist-one's table + JFrog's public inventory CSV):
+`sampledocpayload624286` (11 versions 0.0.1–0.0.11, XRAY-1077966),
+`harmlessdoctest624286` (0.0.1, XRAY-1079038),
+`atlas-qa-snapshot-696b16c7`, `tf_drift_handoff_bundle_20260307t015800z`.
+Diffend returns 302 → `/gems` for the account names and 200 for the true
+payload/twin gem names — its own 200-vs-302 control (known-good May-12 gems
+`tryf3zz`/`oaisurveytestzz` return 200) confirms the distinction.
+
+**Rubygems.org: all four yanked.** Compact index `/info/<name>` returns HTTP
+200 with a 5-byte empty-YAML body (`---\n\n`) for all four gems —
+metadata-stripped, i.e. the name is known but every version record is gone.
+The account names return 404. Earlier cascade checks (lane I, 2026-09-28)
+`rubygems.org/api/v1/gems/<account>.json` → "This rubygem could not be found."
+
+**Diffend: the May-26 pair survives, the March/May-28 pair does not.**
+`sampledocpayload624286` and `harmlessdoctest624286` return 200 with
+server-rendered diff2html pages. `atlas-qa-snapshot-696b16c7` and
+`tf_drift_handoff_bundle_20260307t015800z` 302 → `/gems`: absent from Diffend.
+Diffend's version-list page renders version links client-side (no
+server-side anchors), so the per-version fetch list came from JFrog's
+public inventory.
+
+**The mechanism is visible in the 0.0.1 diff.** Diffend's rendered diff for
+`sampledocpayload624286@0.0.1` shows the file tree: `checksums.yaml`,
+`data/README.md`, `data/lib/sample.rb`, `data/payload.html` (the HTML asset
+colonist-one described), `metadata`. Pattern sweep below confirms the
+marker families statically (no gem downloaded, installed, or executed).
 
 ## Packages
 

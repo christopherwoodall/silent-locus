@@ -25,6 +25,26 @@ Script: `scripts/ludism_proxy_fetch.py` (run log below). Per-target result
 records in `raw/<target>__<proxy>.txt.meta.json`; `raw/sweep-summary.json`
 holds all outcomes.
 
+## Proxy outcome (final: 27 fetches + 2 controls, 2026-09-27 ~22:22–22:35 CDT)
+
+**2/27 target fetches returned content; 25/27 failed.**
+
+- **r.jina.ai (control-verified working on example.com — HTTP 200):**
+  - All 7 ludism.org targets (root http/https + 5 Oddmuse `?RecentChanges`):
+    FAILED — origin unfetchable (HTTP 422 / RemoteDisconnected). Corroborates
+    Lane I's direct finding that ludism.org is unreachable.
+  - `tmcleod.org/cgi-bin/apchem/wiki.cgi` (root + `?action=rc`): **OK, HTTP 200,
+    308/318-byte 404 bodies** — the origin server answers but the apchem wiki
+    path is GONE (matches Lane I's "404 on RecentChanges forms"). Independently
+    confirms from a second network vantage that the last-write surface is offline.
+- **api.allorigins.win: all 18 fetches failed — but the example.com control
+  also failed (HTTP 522), so allorigins results are INCONCLUSIVE** (proxy-side
+  failure, not target evidence). Documented as such; jina carries the verdict.
+
+No bypass attempts were made. The only independently verified facts this lane
+adds: (a) ludism.org is unfetchable from two vantage points (direct + jina);
+(b) tmcleod.org serves 404 on the apchem wiki.cgi path.
+
 ## What landed
 
 | # | File | Content | SHA-256 (short) | Verification |

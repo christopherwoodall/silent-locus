@@ -22,12 +22,18 @@ origin=`thecolony-wiki`), per-target proxy fetch bodies or failure records with
 `.meta.json` sidecars, `sweep-summary.json`, `pattern-sweep.json`,
 `manifest.jsonl` (per-file SHA-256), `PROVENANCE.md`, `progress.log`.
 
-Proxy outcome: **all 27 proxy fetches failed** — r.jina.ai returns 422 on
-unfetchable origins; allorigins.win times out (HTTP 522/connection reset), i.e.
-the proxies themselves confirm ludism.org and tmcleod.org are unreachable from
-the public internet vantage points, matching Lane I's direct-network finding
-(empty reply / 404). No bypass attempts were made. This dataset is therefore a
-documented second-hand capture plus a verified failed-reachability record.
+Proxy outcome: **2/27 target fetches returned content; 25/27 failed.**
+- r.jina.ai (control-verified working on example.com): all 7 ludism.org targets
+  FAILED (origin unfetchable — corroborates Lane I); tmcleod.org apchem
+  wiki.cgi root AND ?action=rc both returned **HTTP 200 with 404 bodies**
+  (308/318 bytes) — the origin server is live but the ApchemWiki path is gone,
+  confirming from a second network vantage that the documented last-write
+  surface (Jul-24 ClickHouse SELECT 1 probe) is offline.
+- api.allorigins.win: all 18 failed, but its example.com control also 522s —
+  **inconclusive** (proxy-side failure). jina carries the verdict.
+Full run log: `data/ludism-wikis/progress.log`; per-fetch records:
+`data/ludism-wikis/raw/*.meta.json`; `raw/sweep-summary.json`. No bypass
+attempts were made.
 
 Elastic: own index **`ludism-wikis`** under the shared canonical schema
 (`notes/gems-es-mapping.json`), `event.dataset.keyword` multi-field at index
@@ -81,9 +87,19 @@ creation. Script: `scripts/es_ingest_ludism.py`.
 ## Pattern battery
 
 Run over all captured files (`scripts/ludism_pattern_sweep.py` →
-`data/ludism-wikis/pattern-sweep.json`). Hits feed ES `tags` as `pattern:<name>`.
+`data/ludism-wikis/pattern-sweep.json`; 38 files scanned, 34 with hits).
+Hits feed ES `tags` as `pattern:<name>`. Claim-file hits:
 
-(DOC COUNTS + TOP HITS INSERTED AFTER SWEEP COMPLETION)
+- **thecolony-claims-apchemwiki.md**: as8075, family_openai_regcf,
+  family_zzz_backup, ip_addr, proxy_allorigins, proxy_r_jina, task_clickhouse,
+  task_county_json, task_markerproxy, task_sf133, task_usaspending, zz_label —
+  the full toolkit fingerprint ensemble in one surface's claims (proxy wrappers
+  + task family + ZZZ naming + Azure ASN + compute probe).
+- **thecolony-claims-ludism.md**: ip_addr, ip_azure20, task_sf133.
+- Fetch meta records self-tag proxy_r_jina / proxy_allorigins (instrumentation
+  — the proxy URLs in the meta sidecars), and PROVENANCE.md tags the IPs named
+  in the documented claims. No new agent content was reachable, so no fresh
+  task-family signals beyond the second-hand claims.
 
 ## Provenance / caveats
 
