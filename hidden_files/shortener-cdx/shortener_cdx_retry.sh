@@ -10,7 +10,7 @@
 # Window: until 2026-09-30 12:00 UTC (matches lane12 supervisor window).
 # Disk-only: no hosted-Elastic writes (pause in effect). Commits results via git.
 set -u
-PROJ="$HOME/workspace/muse-home/projects/swarmtraces-hf-corpus"
+PROJ="$(cd "$(dirname "$0")/../.." && pwd)"
 cd "$PROJ" || exit 1
 LOG="hidden_files/shortener-cdx/retry.log"
 DEADLINE="2026-09-30T12:00:00Z"

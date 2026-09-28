@@ -1,13 +1,15 @@
 #!/bin/bash
-# lane12 supervisor v3: relaunches sweep workers when backends recover.
-# Window: 2026-09-28 ~17:35 UTC -> 2026-09-30 12:00 UTC, checks every 10 min.
-# Installed after v2 died in a runtime restart drain (~2026-09-28 11:54 UTC).
+# lane12 supervisor v4: relaunches sweep workers when backends recover.
+# v4 2026-09-28 ~19:15 UTC: migrated to christopherwoodall/silent-locus
+# (was muse-home/projects/swarmtraces-hf-corpus); BASE now derives from
+# script location. Window: through 2026-09-30 12:00 UTC, checks every 10 min.
+# v3 history: installed after v2 died in a runtime restart drain (~11:54 UTC).
 # Workers: sweep3/4/pattern_sweep need index.commoncrawl.org; wb_sweep needs web.archive.org/cdx.
 # All workers are resumable (durable state in this dir) and self-terminate.
 # Probes carry a nonce (cache-busting on liveness checks is mandatory).
 # Note: egress-proxy quirk — curl may report HTTP 000 with "Empty reply from
 #   server" even on a live backend; probes demand real JSON/body matches.
-BASE="$HOME/workspace/muse-home/projects/swarmtraces-hf-corpus/hidden_files/lane12"
+BASE="$(cd "$(dirname "$0")" && pwd)"
 LOG="$BASE/supervisor.log"
 END_TS=$(date -d '2026-09-30 12:00 UTC' +%s)
 
@@ -22,9 +24,9 @@ wb_up() {
 alive() { pgrep -f "[l]ane12/$1.py" >/dev/null; }
 launch() {  # $1 script, $2 log — full path in argv so alive() matches
   nohup python3 "$BASE/$1" >> "$BASE/$2" 2>&1 &
-  echo "$(date -u +%FT%TZ) supervisor v3: launched $1 (backend recovered)" >> "$LOG"
+  echo "$(date -u +%FT%TZ) supervisor v4: launched $1 (backend recovered)" >> "$LOG"
 }
-log() { echo "$(date -u +%FT%TZ) supervisor v3: $1" >> "$LOG"; }
+log() { echo "$(date -u +%FT%TZ) supervisor v4: $1" >> "$LOG"; }
 
 # Completion markers (workers print DONE on natural completion, then exit).
 wb_done()      { grep -q '^DONE wayback sweep' "$BASE"/wb_sweep*.log 2>/dev/null; }
