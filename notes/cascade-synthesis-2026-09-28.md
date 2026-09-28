@@ -219,3 +219,25 @@ All 12 child lanes of the 13-lead cascade completed. Each landed its own dataset
 ### Open for next run
 - Lane12 backend recovery watch (supervisor + retry scripts are self-managing; verify they progressed).
 - The two staged unwinds + the pause-lift decision remain the only completion-criterion blocker — needs Christopher's word.
+
+## Night watch 2026-09-28 ~14:50 CDT (this run)
+
+### State on wake
+- No VM restart (boot 17:22 UTC, heartbeat 18:55:19Z). No live subagents in scope. No stale workers: all lane12/shortener-cdx processes are new-root (supervisor.sh PIDs 21514/21515, shortener_cdx_retry.sh PIDs 20382/20383). The old repo's v3 workers died with the 19:08 migration — its logs are stale, not growing; archive untouched otherwise.
+- Three retry lanes landed and pushed before wake (7caa58c, 74a37d8, b099c68) — all from Christopher's three-gap retry order.
+
+### Verification this run
+- **Lane 1 retry (81 anna.fyi IDs): 51/51 new body files in commit 7caa58c** — 66 total on disk, zero zero-byte files; PROVENANCE.md documents all five angles (live re-probe: /api/recent byte-identical 15, zero new; new /api/paste/<pid> endpoint → 50 live bodies + 1 deleted). aux/joshuadavid-anna-revisions jsonl present (103 lines). Claims check out; bodies committed + documented. ES ingest of the 51 stays queued behind the write pause. Gap materially shrunk: 81 → 30 remaining (Wayback/CC coverage queued in common-crawl-anna-fyi-query.md for the lane12 supervisor).
+- **Lane G retry (7 iowacollab relay IDs): 0/7 confirmed** (live instance up, no ID exposure in bodies/robots/recent; Wayback 500/503/429). 12 relay-family siblings narrowed in the Sept-25 hunt archive (10 genuine June-16 Iowa-wave task pastes + 2 tests), kept in lane note only (verified-only bar). CDX recovery queue filed at hidden_files/shortener-cdx/iowacollab-cdx-queue.md (re-crawl diff + reply-chain check on recovery).
+- **Retry lane 3 (July 5–6 UNM rows):** shortener_cc_sweep.py + shortener_cc_job.json + shortener_cc_query.md committed; supervisor.sh extended to launch it on CC-backend recovery. Verified sane; job covers all 10 http/https variants of the 5 goto.unm.edu '+' stats pages, 2026-06-01..08-15 window.
+- **vanderbilt-shortener CLOSED:** appended verified-closed DONE marker (dataset + PROVENANCE + SHA manifest on disk, ES _count=24 verified 13:51Z).
+- **lane12/shortener-cdx:** both loops alive and polling; Wayback CDX + CC index still down at 19:42Z/19:41Z. Workers parked on durable state; no action needed.
+- **Path scrub:** files changed since the 13:51 run are clean (one self-referential line in this note mentions the grep pattern — false positive). Both live logs clean.
+- **ELASTIC_WRITE_PAUSE still in effect** (notes/ELASTIC_WRITE_PAUSE present). The two staged unwinds (admin-deletions 26→5,217 explicit + rollup; university-shorteners 16→1,492 explicit + rollup) remain the only completion-criterion (c) blockers, awaiting Christopher's word.
+
+### Actions this run
+- Heartbeat updated (2026-09-28T19:52:51Z). Committing lane12/retry logs + vanderbilt DONE + this note; pushing.
+
+### Open for next run
+- Backend recovery watch (Wayback CDX, CC index) — the retry lane 3 CC sweep and lane G CDX queue fire on recovery.
+- The pause-lift decision on the two staged unwinds remains the completion blocker — needs Christopher's word.
