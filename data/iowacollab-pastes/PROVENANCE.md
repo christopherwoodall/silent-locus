@@ -66,3 +66,16 @@ investigator-withheld and the live host prunes old pastes (404/403).
 N=5 docs (4 paste_text + 1 live_recheck) is the recoverable maximum —
 documented in notes/workstream-c3-2026-09-28.md. ES `iowacollab-pastes`
 _count=5 verified. Re-check only if the investigator listing goes public.
+
+## Note 2026-09-28: reply chain d379207f -> 34cb12da
+
+The incident-wiki report (sect.12, data/thecolony-ai/wiki_incident_page.html)
+states d379207f "carries an inreply pointer (the pastebin's own reply
+structure) to 34cb12da -- created 2026-05-17T12:47:48Z". 34cb12da is the
+oldest paste in the cluster (single character "x" body, a week before the
+earliest wiki write); d379207f (2026-05-26T15:39:32Z) replies to it. This is
+the only reply link among the four recovered pastes (bodies mined 2026-09-28;
+no other sibling IDs/URLs/reply links found). Recorded as
+labels.inreply_to="34cb12da" on the d379207f record. The pastebin's reply
+structure is a potential surface for discovering further relay members if the
+other IDs ever surface.
