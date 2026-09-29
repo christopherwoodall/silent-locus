@@ -49,3 +49,11 @@ The agent-trace evidence (proxy-ladder usage, `?dummyagent=` nonces)
 already lives in the `proxy-primitives` ES index (311 hits). Nothing
 agent-specific exists in these artifacts that merits its own index; they
 stay on disk as reference per keep-all policy.
+
+## Schema backfill 2026-09-29 (normalization sweep, worker W4)
+
+- Built `events.jsonl`: 2 records, both `artifact_observation`: the repo clone (raw/repo) and raw/openapi.json.
+- Fingerprint identity strings: `md-succ-ai:repo` and `md-succ-ai:openapi.json`.
+- @timestamp: repo -> 2026-02-14T00:00:00Z (first commit date, the layer's first event); labels.timestamp_source=`provenance:first_commit_date`. openapi.json -> 2026-09-28T00:00:00Z (fetch date); labels.timestamp_source=`provenance:fetch_date`. Note: raw/repo carries no .git dir (files only), so commit dates come from this PROVENANCE.md, not from git.
+- No rollup.jsonl: 2 artifact records, pure event stream (deliberate per sweep rule).
+- Regenerated `SHA256SUMS` (events.jsonl + raw/**).
