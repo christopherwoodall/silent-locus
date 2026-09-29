@@ -11,8 +11,8 @@ zlib+base64 Southwark calendar chunks in `/api/v1/web_hooks` URLs shaped
 
 **Method:**
 1. Local: `grep -rlE "southpxdatapp|web_hooks|webhook.site|oast.online|ZZEND|A000"`
-   across all `data/` dirs (excluding this output dir), both
-   `data/osv/diffend_sweep_results*.jsonl`, all 28 recovered `.gem` tarballs
+   across all `data/` dirs (excluding this output dir),
+   `data/2026-05-11-osv/events.jsonl` (merged Diffend sweep results), all 28 recovered `.gem` tarballs
    (byte-level scan of outer tar + inner data tar), chunk-label variant greps
    (`/A0[0-9]{2,4}/`, `A0000`, `web_hook` singular, `ZZEN[^D]`).
 2. ES read-only: `collusion-wiki` index — 0 hits for every marker
