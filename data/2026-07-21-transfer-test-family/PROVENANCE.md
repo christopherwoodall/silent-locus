@@ -31,3 +31,15 @@ Body bytes/hashes in this dataset are copied from that manifest — no re-fetch.
 - `transfer-test-family.jsonl` — 28 records: 13 `transfer_test_paste`, 2 `file_drop_probe`,
   3 `web_search_negative`, 8 `pastebin_probe`, 1 `corpus_grep_negative`, 1 `surface_negative`.
 - `../notes/transfer-test-family-2026-09-28.md` — family characterization.
+
+## raw/-missing exception 2026-09-29
+
+2026-09-29: no raw/ layer — seed paste bytes are preserved in the sibling
+data/2018-05-09-paste-archive-gap/raw/bodies/anna.fyi/ layer (collection
+renamed post-normalization; this PROVENANCE still cites the old
+data/2026-03-12-paste-archive-gap/ path — flagged for the data-verification
+crew, not changed here); the lane's new observations were ephemeral live reads
+(API polls, web searches, HTTP HEAD, front-page GETs) recorded inline as
+probe/negative records, with no captures kept. Verified: no raw/ files ever
+committed in git history; no stray evidence files on disk; SHA256SUMS green.
+Ratified as a canonical-layout exception.
