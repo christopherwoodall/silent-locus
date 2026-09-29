@@ -48,7 +48,7 @@ Forensic reconstruction of the July-7 RubyGems wave's third mechanism family
 | `PROVENANCE.md` | this file | — |
 | `SHA256SUMS` | manifest | — |
 | `raw-manifest.json` | 50 entries | — |
-| `progress.log` | run log | — |
+| `raw/run-logs/progress.log` | run log | — |
 
 ## Key facts established
 
@@ -103,10 +103,18 @@ Concatenated 2 event shards (july7-gem-forensics-campaign-specimens-jfrog.jsonl,
 ## Run-log merge (2026-09-29)
 
 Merged `progress.log` from the pre-normalization stub `data/july7-gem-forensics/`
-into the dataset root (matching the inventory table above). The stub held only
+into the dataset root (see the 2026-09-29 relocation note below). The stub held only
 this file (untracked). The log covers the 2026-09-29T00:28–00:34Z fetch run: 18
 Diffend gem pages, 50/50 captures OK — the exact inputs that produced `raw/`
 (50 HTML captures). Stub dir removed after verification. SHA256SUMS regenerated
 for the whole dir; note the pre-existing entries for `raw/` were stale relative
 to disk (drift from the earlier layout-normalization commits), so the regenerated
 manifest also corrects those.
+
+## Run-log relocation (2026-09-29)
+
+Moved `progress.log` from the collection root to `raw/run-logs/progress.log`
+for consistency with the house convention (`2026-09-29-separate-eval-test`,
+`2026-09-29-gem-temporal-pivot` both keep run logs under `raw/run-logs/`).
+The log is the fetch run's own record of producing `raw/`, so it belongs under
+`raw/`. Inventory table updated; SHA256SUMS regenerated.
