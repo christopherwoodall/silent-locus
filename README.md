@@ -1,7 +1,6 @@
 ---
 pretty_name: "silent-locus: agent-activity and supply-chain forensics corpus"
 language: en
-license: "see-license-section"
 task_categories:
 - other
 tags:
@@ -338,9 +337,6 @@ truncated, byte_size, sha256`. Collections with `payloads`:
 
 ## License
 
-**Not yet chosen.** This repository ships without a license file. The
-dataset author (Christopher Woodall) must select a license before
-publishing to the Hugging Face Hub — see the frontmatter placeholder
-(`license: "see-license-section"`). Worker 1 recommends **CC-BY-4.0**
-(attribution required) or **CC0-1.0** (public domain) for this data,
-with the choice recorded here once made.
+**No license is assigned.** The dataset ships without a license file
+and without a license declared in the frontmatter; publication (and
+any license choice) is undecided.
