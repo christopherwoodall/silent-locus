@@ -57,3 +57,21 @@ Naturally small: full read-only crawl of a 9-edit wiki (2021-10-30 →
 bodies, per-revision diffs) is the venue exhaustively captured by construction;
 there is no more history to pull. ES `demowiki` _count=23 verified,
 schema-drift clean.
+
+## Schema normalization 2026-09-29 (W2)
+
+Built `events.jsonl` (16 rows) from `raw/demowiki_crawl.json` on the canonical
+record schema (`scripts/validate_schema.py`: 16/16 clean).
+- 9 × `wiki_revision` — one per RecentChanges entry, merged with its
+  `action=browse&diff` text; `@timestamp` parsed from German `rc_day` +
+  `time_str` (e.g. "22. Juni 2026" + "20:28" → 2026-06-16T20:28:00Z);
+  identity `demowiki|rev|<page_id>|<iso_timestamp>` (timestamp disambiguates the
+  two WikiSandbox rev4 entries). Swarm-agent authors flagged in
+  `labels.wiki.swarm_agent`; epoch nonces extracted to
+  `labels.wiki.epoch_nonce` when present.
+- 7 × `wiki_page_snapshot` (new kind) — current page bodies at crawl time;
+  identity `demowiki|page|<page_id>`; `@timestamp` = crawl time
+  2026-09-28T03:19:41Z.
+Fingerprint = sha256 hex of the documented identity string (verified against
+the 2023-11-14-hfspace-proxies reference implementation before writing).
+SHA256SUMS regenerated (events.jsonl + all raw contents); `sha256sum -c` OK.
