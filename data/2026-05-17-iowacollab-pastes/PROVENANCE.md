@@ -79,3 +79,16 @@ no other sibling IDs/URLs/reply links found). Recorded as
 labels.inreply_to="34cb12da" on the d379207f record. The pastebin's reply
 structure is a potential surface for discovering further relay members if the
 other IDs ever surface.
+
+## Ingest-script consolidation 2026-09-29
+
+Per the single-collection convention, `es_ingest_iowacollab.py` moved from
+`scripts/` into this directory (name kept); `REPO_ROOT`/`PDIR` fixed to
+resolve from the new location. NOTE: the script is currently UN-RUNNABLE —
+its required input `dataset.jsonl` was removed in the 21312cf layout
+normalization, and the `*.txt` pastes moved to `raw/`. The collection's
+staged `events.jsonl` (4 `relay_paste` docs, `event.dataset` =
+`2026-05-17-iowacollab-pastes`) is auto-discovered by
+`push_to_local_es.py discover_staged()` and is the current source of truth.
+Flagged as a delete candidate: if the parent confirms the staged track
+supersedes it, remove this script and its `via_script` manifest entry.
