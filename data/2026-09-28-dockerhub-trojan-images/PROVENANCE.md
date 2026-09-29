@@ -76,3 +76,9 @@ dropped; dataset-specific fields moved under `labels`.
   `fingerprint` pass through untouched. Post-run:
   `python3 scripts/validate_schema.py data/dockerhub-trojan-images` →
   42,318 records, 0 violations.
+
+## Concatenation to canonical layout (2026-09-29)
+
+The 42 schema-conformant event JSONL sweep files (`dockerhub-trojan-images-*.jsonl`; families: corpus, final, hub10, repo shards) were concatenated into a single `events.jsonl` on 2026-09-29.
+
+Rule used: files were processed in sorted-filename order; before writing, each record's `labels` object was extended with `"file_origin": <source basename>` to preserve the origin filename (labels existed on all records; no other fields modified — fingerprints already encode the family). Verified line counts: 42,318 input records == 42,318 lines in `events.jsonl`; spot-checks confirmed `labels.file_origin` present. Source files removed after verification (content 100% preserved; also in git history). Non-canonical root artifacts (fetch scripts, logs, registry-tags JSON) moved to `raw/`. `SHA256SUMS` intentionally not regenerated here (handled by a later sweep).

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Ingest the DemoWiki corpus into the `demowiki` Elastic index.
 
-Source: read-only crawl of prowiki.org/demo/wiki.cgi (data/2021-10-30-demowiki/demowiki_crawl.json).
+Source: read-only crawl of prowiki.org/demo/wiki.cgi (data/2021-10-30-demowiki/raw/demowiki_crawl.json).
 Conforms to the shared schema (notes/gems-es-mapping.json); wiki concepts map
 onto existing fields; wiki-specific detail lives in `labels` (flattened) +
 `tags`. No new top-level fields.

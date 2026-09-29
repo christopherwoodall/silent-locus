@@ -27,3 +27,7 @@ All eight `matches_N.jsonl` files transformed by `temp/backfill_w3.py`.
   `Path` -> `gomod.path`, `Version` -> `gomod.version`,
   `Timestamp` -> `gomod.timestamp`.
 - event.dataset = `gomod-hunt`.
+
+## Canonical layout migration (2026-09-29)
+
+Concatenated 8 event shards (gomod-hunt-matches-1.jsonl, gomod-hunt-matches-2.jsonl, gomod-hunt-matches-3.jsonl, gomod-hunt-matches-4.jsonl, gomod-hunt-matches-5.jsonl, gomod-hunt-matches-6.jsonl, gomod-hunt-matches-7.jsonl, gomod-hunt-matches-8.jsonl) into `events.jsonl` in sorted-filename order (35014 records; count verified against inputs). Each record gained `labels.file_origin` = original shard basename; no other fields changed. Source shards removed after verification.

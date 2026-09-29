@@ -9,9 +9,9 @@ batch2 -> "2026-09-28-university-shorteners-batch2",
 batch3 -> "2026-09-28-university-shorteners-batch3") and in `labels.shortener.*`.
 
 Sources (untouched on disk):
-  data/2026-09-28-university-shorteners/university-shorteners.jsonl                (11 docs)
-  data/2026-09-28-university-shorteners-batch2/university-shorteners-batch2.jsonl   (1 doc)
-  data/2026-09-28-university-shorteners-batch3/university-shorteners-batch3.jsonl   (3 docs)
+  data/2026-09-28-university-shorteners/events.jsonl                (11 docs)
+  data/2026-09-28-university-shorteners-batch2/events.jsonl   (1 doc)
+  data/2026-09-28-university-shorteners-batch3/events.jsonl   (3 docs)
 
 Idempotent: deterministic _id "yourls:<instance>:<slug>", re-runs overwrite.
 Index `university-shorteners-batch2` is retired after a verified consolidate
@@ -41,9 +41,9 @@ BASE = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), 
 INDEX = "2026-05-12-university-shorteners"
 OLD_INDEX = "2026-09-28-university-shorteners-batch2"
 JSONLS = [
-    BASE + "/data/2026-09-28-university-shorteners/university-shorteners.jsonl",
-    BASE + "/data/2026-09-28-university-shorteners-batch2/university-shorteners-batch2.jsonl",
-    BASE + "/data/2026-09-28-university-shorteners-batch3/university-shorteners-batch3.jsonl",
+    BASE + "/data/2026-09-28-university-shorteners/events.jsonl",
+    BASE + "/data/2026-09-28-university-shorteners-batch2/events.jsonl",
+    BASE + "/data/2026-09-28-university-shorteners-batch3/events.jsonl",
 ]
 EXPECTED_FIELDS = set(json.load(open(BASE + "/notes/gems-es-mapping.json"))["mappings"]["properties"])
 

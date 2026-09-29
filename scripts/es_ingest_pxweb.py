@@ -13,7 +13,7 @@ auto-generated ES IDs (duplication risk) and had a dead `load()` path
 
 Usage:
   python3 es_ingest_pxweb.py --create   # create index w/ canonical mapping (idempotent)
-  python3 es_ingest_pxweb.py --load     # bulk ingest data/2026-09-28-pxweb-national-stats/pxweb-national-stats.jsonl
+  python3 es_ingest_pxweb.py --load     # bulk ingest data/2026-09-28-pxweb-national-stats/events.jsonl
   python3 es_ingest_pxweb.py --verify   # count + top-level field hygiene vs mapping
 """
 import sys, json, hashlib, urllib.request
@@ -33,7 +33,7 @@ REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 HOSTS = ["agent-apocalypse-f1f7ba.es.us-east-1.aws.elastic.cloud"]
 CRED = "custom.elastic-cloud"
 BASE = REPO_ROOT
-HITS = BASE + "/data/2026-09-28-pxweb-national-stats/pxweb-national-stats.jsonl"
+HITS = BASE + "/data/2026-09-28-pxweb-national-stats/events.jsonl"
 MAPPING_SRC = BASE + "/notes/gems-es-mapping.json"
 INDEX = "2026-09-28-pxweb-national-stats"
 MAPPING_KEYS = set(json.load(open(MAPPING_SRC))["mappings"]["properties"])

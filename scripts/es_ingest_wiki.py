@@ -355,7 +355,7 @@ def load_other():
 
 def load_bridge():
     docs = {}
-    b = json.load(open(BASE + "/data/aggregates/2026-09-29-overlap-analysis/wiki_gem_bridge.json"))
+    b = json.load(open(BASE + "/data/aggregates/2026-09-29-overlap-analysis/raw/wiki_gem_bridge.json"))
     for g in b.get("gem_metadata_records", []):
         gem = g.get("gem")
         meta = g.get("meta", {})

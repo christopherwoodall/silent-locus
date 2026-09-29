@@ -16,7 +16,7 @@ one JSON doc per event:
                           rollup)
 
 Output is staged ON DISK ONLY (hosted-Elastic writes are paused):
-  data/2026-05-12-university-shorteners-events/university-shorteners-events.jsonl
+  data/2026-05-12-university-shorteners-events/events.jsonl
   + PROVENANCE.md + SHA256SUMS (re-verified after write)
 
 The JSONL is directly loadable by the local-push script: one JSON doc
@@ -31,7 +31,7 @@ from datetime import datetime, timezone
 
 BASE = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
 OUTDIR = os.path.join(BASE, "data", "2026-05-12-university-shorteners-events")
-OUT = os.path.join(OUTDIR, "university-shorteners-events.jsonl")
+OUT = os.path.join(OUTDIR, "events.jsonl")
 
 INSTANCES = {
     "goto.unm.edu":   {"org": "University of New Mexico", "scope": "university"},
@@ -363,11 +363,11 @@ hosted-Elastic writes paused — staged on disk for the local-push script).
 
 ## Sources (untouched)
 
-- data/2026-09-28-university-shorteners/goto-unm-edu/{7t6-o,discvr,reso,urphy21}_referrer_urls_daily_2026-09-28.json
-- data/2026-09-28-university-shorteners/u-ethz-ch/nB1nv_referrer_urls_daily_2026-09-28.json
-- data/2026-09-28-university-shorteners-batch2/goto-unm-edu/vbudg_stats_2026-09-28.txt (control)
-- data/2026-09-28-university-shorteners-batch3/go-uvm-edu/{-4s0q,tgmtq,xc26}_stats_2026-09-28.txt (UVM controls)
-- data/2026-09-28-university-shorteners/url-popcat-xyz/{5vtSk2RG2f,IRZTIxDlZ}_info_2026-09-28.txt
+- data/2026-09-28-university-shorteners/raw/goto-unm-edu/{7t6-o,discvr,reso,urphy21}_referrer_urls_daily_2026-09-28.json
+- data/2026-09-28-university-shorteners/raw/u-ethz-ch/nB1nv_referrer_urls_daily_2026-09-28.json
+- data/2026-09-28-university-shorteners-batch2/raw/goto-unm-edu/vbudg_stats_2026-09-28.txt (control)
+- data/2026-09-28-university-shorteners-batch3/raw/go-uvm-edu/{-4s0q,tgmtq,xc26}_stats_2026-09-28.txt (UVM controls)
+- data/2026-09-28-university-shorteners/raw/url-popcat-xyz/{5vtSk2RG2f,IRZTIxDlZ}_info_2026-09-28.txt
 
 ## Supersedes
 
@@ -375,7 +375,7 @@ The 16 consolidated docs currently in the `university-shorteners` hosted
 index (record_kind yourls_stats_page / yourls_stats_detail /
 shortener_info_page, one doc per stats page) are earmarked for the support
 index `university-shorteners-rollup`. The per-event docs in
-university-shorteners-events.jsonl are their replacement in the primary
+events.jsonl are their replacement in the primary
 index. labels.event_id is deterministic for idempotent loads.
 
 ## Caveats
@@ -391,7 +391,7 @@ index. labels.event_id is deterministic for idempotent loads.
 """ % NOW
     open(os.path.join(OUTDIR, "PROVENANCE.md"), "w").write(prov)
     sums = []
-    for fn in ("university-shorteners-events.jsonl", "PROVENANCE.md"):
+    for fn in ("events.jsonl", "PROVENANCE.md"):
         p = os.path.join(OUTDIR, fn)
         sums.append("%s  %s" % (file_sha256(p), fn))
     open(os.path.join(OUTDIR, "SHA256SUMS"), "w").write("\n".join(sums) + "\n")

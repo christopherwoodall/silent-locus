@@ -79,7 +79,7 @@ def req(method, path, body=None):
 
 def docs():
     out = []
-    for line in open(f"{BASE}/timeline-anchors.jsonl"):
+    for line in open(f"{BASE}/events.jsonl"):
         row = json.loads(line)
         _id = row.pop("_id")
         out.append((_id, row))
@@ -116,7 +116,7 @@ def load():
 
 def verify():
     n = req("GET", f"/{INDEX}/_count")["count"]
-    lines = sum(1 for _ in open(f"{BASE}/timeline-anchors.jsonl"))
+    lines = sum(1 for _ in open(f"{BASE}/events.jsonl"))
     print(f"ES _count={n} jsonl lines={lines} match={n == lines}")
     m = req("GET", f"/{INDEX}/_mapping")[INDEX]["mappings"]["properties"]
     ed = m["event"]["properties"]["dataset"]

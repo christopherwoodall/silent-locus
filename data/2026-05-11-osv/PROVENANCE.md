@@ -50,3 +50,7 @@ and `sweep-stdout-relaunch.log` for run logs.
   diffend_sweep_results_retry.jsonl (gem names repeat across the two files;
   the pass disambiguates).
 - event.dataset = `osv`; event.created = backfill run time.
+
+## Canonical layout migration (2026-09-29)
+
+Concatenated 2 event shards (osv-diffend-sweep-results-retry.jsonl, osv-diffend-sweep-results.jsonl) into `events.jsonl` in sorted-filename order (1956 records; count verified against inputs). Each record gained `labels.file_origin` = original shard basename; no other fields changed. Source shards removed after verification. file_origin preserves the initial/retry pass identity that the fingerprint identity string encodes.

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Lane J — pattern battery over tantive.space messages/threads.
 Standard campaign-toolkit sweep + task-family + cross-corpus refs.
-Writes data/2026-08-19-tantive-space/sweep.json."""
+Writes data/2026-08-19-tantive-space/raw/sweep.json."""
 import json, re, os
 from collections import Counter
 

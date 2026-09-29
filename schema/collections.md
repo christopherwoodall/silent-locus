@@ -66,18 +66,32 @@ dir is `YYYY-MM-DD-<subject>[-<activity>]`, dated by its first event.
 
 ## File layout inside a collection
 
-Two layers per collection directory:
+Canonical layout (2026-09-29):
 
-- **Event layer** — JSONL records conforming to `schema/record.schema.json`,
-  loadable into ES. Event files are named `<dataset>.jsonl` or
-  `<dataset>-<variant>.jsonl` (variant = shard/family, lowercase,
-  hyphens): `proxy-primitives.jsonl`, `dockerhub-trojan-images-final-n132-arvo.jsonl`.
-- **Raw layer** — `data/<collection>/raw/` holds pre-event source material:
-  script-consumed transform inputs, upstream captures, source tables. Raw
-  files **keep their upstream/source-native names** (provenance stays
-  traceable) and are exempt from `record.schema.json`
-  (`validate_schema.py` skips them), but they must be covered by the
-  collection's `SHA256SUMS` and listed in its `PROVENANCE.md`.
+```
+data/YYYY-MM-DD-<slug>/
+  events.jsonl      # the event stream — single file, schema-conformant
+  rollup.jsonl      # only when a rollup layer exists (feeds the -rollup index)
+  PROVENANCE.md
+  SHA256SUMS
+  raw/              # every non-event data artifact
+```
+
+- **events.jsonl** — one file per collection. Collections produced as
+  families/shards (e.g. dockerhub's 42 sweep files) are concatenated; each
+  record keeps its origin in `labels.file_origin` (the pre-concat filename).
+- **rollup.jsonl** — rollup-layer docs feeding the `<slug>-rollup` index.
+- **raw/** — captures, manifests, transform inputs, intermediates,
+  `evidence/`. Raw files keep upstream/source-native names, are exempt
+  from `record.schema.json` (`validate_schema.py` skips them), and are
+  covered by `SHA256SUMS` + listed in `PROVENANCE.md`.
+- **Nothing else at the root.** Collection-local helper scripts live in
+  the repo-level `scripts/` directory, not in `data/`.
+
+Loading is generic: `scripts/push_to_local_es.py` discovers
+`events.jsonl`/`rollup.jsonl` under `data/` and loads each into the index
+named by its records' `event.dataset`. The manifest's `staged` list is
+derived, not maintained by hand.
 
 Decision rule for a pre-schema file: if a script consumes it as input, or
 it is an upstream capture, it is raw layer → `raw/`. Otherwise it is a

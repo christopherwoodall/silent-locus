@@ -65,7 +65,8 @@ convention), `tags` (array of strings), `observer` (`{product, type, vendor}`),
 Snake-case, one per record class. Observed (2026-09-29, after the
 boundary backfill):
 
-`admin_cleanup_burst`, `campaign_specimen`, `corpus_grep_negative`,
+`admin_cleanup_burst`, `artifact_observation`, `campaign_specimen`,
+`corpus_grep_negative`,
 `corpus_hit`, `delete_event`, `diffend_harvest`, `diffend_probe`,
 `download`, `eval_candidate`, `exfil_identifier`, `extraction`,
 `file_drop_probe`, `forged_flag_ioc`, `gem_name_fragment`, `gomod_proxy_match`,

@@ -12,12 +12,16 @@ Env:
     ES_URL               target cluster (default http://localhost:9200)
     ES_USER / ES_PASS    basic auth if your local instance has security on
 
-Two tracks (see scripts/local_es_manifest.json):
-  staged      verified final shared-schema JSONL -> bulk-loaded directly here.
+Two tracks:
+  staged      AUTO-DISCOVERED from the canonical layout
+              (schema/collections.md): every data/YYYY-MM-DD-<slug>/
+              events.jsonl (and rollup.jsonl) is bulk-loaded into the index
+              named by its records' event.dataset. No hand-maintained list.
   via_script  docs are built by a transform inside the ingest script -> the
               driver runs that script as a subprocess with SWARMTRACES_ES_URL
-              pointed at your local instance. The ingest scripts honor that
-              env var and skip vault auth for localhost.
+              pointed at your local instance (see local_es_manifest.json).
+              The ingest scripts honor that env var and skip vault auth for
+              localhost.
 
 Reruns are idempotent: every doc gets a deterministic _id (doc's own _id when
 present, else sha256 of the canonical JSON), so re-pushing the same files is a
@@ -31,6 +35,48 @@ import argparse, base64, hashlib, json, os, subprocess, sys, urllib.request, url
 BASE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 MANIFEST = os.path.join(BASE, "scripts", "local_es_manifest.json")
 BATCH = 500
+# canonical layout: only these filenames at a collection root are event data
+EVENT_FILES = ("events.jsonl", "rollup.jsonl")
+SKIP_DIRS = {"raw", "indexes", "aggregates"}
+
+
+def discover_staged():
+    """Find event files under data/ + data/aggregates/ per the canonical
+    layout. Returns {index: [repo-relative file, ...]}; the index is the
+    records' event.dataset (source of truth, not the directory name)."""
+    found = {}
+    roots = [os.path.join(BASE, "data"),
+             os.path.join(BASE, "data", "aggregates")]
+    for root in roots:
+        if not os.path.isdir(root):
+            continue
+        for entry in sorted(os.listdir(root)):
+            p = os.path.join(root, entry)
+            if not os.path.isdir(p) or (root.endswith("data")
+                                        and entry in SKIP_DIRS):
+                continue
+            for fn in EVENT_FILES:
+                fp = os.path.join(p, fn)
+                if not os.path.exists(fp):
+                    continue
+                idx = None
+                with open(fp) as f:
+                    for line in f:
+                        line = line.strip()
+                        if not line:
+                            continue
+                        try:
+                            idx = (json.loads(line).get("event") or {}
+                                   ).get("dataset")
+                        except ValueError:
+                            pass
+                        break
+                if not idx:
+                    print(f"  !! no event.dataset in first record of {fp}")
+                    continue
+                found.setdefault(idx, []).append(
+                    os.path.relpath(fp, BASE))
+    return found
 
 
 def es_req(es, method, path, body=None, raw=None, auth=None, timeout=120):
@@ -216,19 +262,20 @@ def main():
         wanted = None
 
     rows = []
-    # staged track
-    for entry in man["staged"]:
-        idx = entry["index"]
+    # staged track: auto-discovered from the canonical layout
+    staged = discover_staged()
+    for idx in sorted(staged):
+        files = staged[idx]
         if wanted and idx not in wanted:
             continue
         if a.dry_run:
-            n = bulk_load(es, auth, idx, entry["files"], dry=True)
+            n = bulk_load(es, auth, idx, files, dry=True)
             rows.append((idx, "staged", n if n is not None else "MISSING FILES", "-", "dry-run"))
             continue
         if not ensure_index(es, auth, idx, man["mapping"], reset=a.reset):
             rows.append((idx, "staged", "-", "-", "CREATE FAILED"))
             continue
-        res = bulk_load(es, auth, idx, entry["files"])
+        res = bulk_load(es, auth, idx, files)
         if res is None:
             rows.append((idx, "staged", "-", "-", "MISSING FILES"))
             continue

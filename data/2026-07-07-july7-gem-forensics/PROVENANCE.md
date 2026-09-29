@@ -95,3 +95,7 @@ payload-reconstructions.jsonl:
   satisfy the flat-labels rule (lossless; parse with `json.loads`).
 
 event.dataset = `july7-gem-forensics` for both files.
+
+## Canonical layout migration (2026-09-29)
+
+Concatenated 2 event shards (july7-gem-forensics-campaign-specimens-jfrog.jsonl, july7-gem-forensics-payload-reconstructions.jsonl) into `events.jsonl` in sorted-filename order (57 records; count verified against inputs). Each record gained `labels.file_origin` = original shard basename; no other fields changed. Source shards removed after verification.

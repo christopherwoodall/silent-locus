@@ -126,7 +126,7 @@ def build_docs():
          "the Power BI backend (section 11); recovered answers Czech 9.69, "
          "Hungary 9.91, Poland 16.38, Slovak 14.59."),
     ]
-    wiki_html = BASE + "/data/2025-02-04-thecolony-ai/wiki_incident_page.html"
+    wiki_html = BASE + "/data/2025-02-04-thecolony-ai/raw/wiki_incident_page.html"
     for pid, desc in passages:
         docs[f"powerbi:passage:{pid}"] = base(
             WIKI_TS, "powerbi_wiki_passage", desc,

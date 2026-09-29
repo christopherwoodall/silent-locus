@@ -11,7 +11,7 @@ Cross-references each name against:
   - JFrog inventory (versions, Xray ID)
   - Diffend corpus metadata (data/2026-05-11-osv/diffend_sweep_results*.jsonl)
   - Wayback June metadata (data/2025-03-04-rubygems-goimport-campaign/raw/gem-june18-wayback.jsonl)
-  - collusion.wiki gem bridge (data/aggregates/2026-09-29-overlap-analysis/wiki_gem_bridge.json)
+  - collusion.wiki gem bridge (data/aggregates/2026-09-29-overlap-analysis/raw/wiki_gem_bridge.json)
 
 Outputs into data/aggregates/2026-09-28-gem83-reconciliation/:
   gem83-names.json, gem83-reconciliation.csv/.jsonl, pattern-sweep.txt,

@@ -3,8 +3,8 @@
 ladder chains, timing, other workers.dev hostnames. Writes:
   data/aggregates/2025-09-26-cors-bwa-proxy/raw/bwa_targets.jsonl
   data/aggregates/2025-09-26-cors-bwa-proxy/raw/ladder_edges.jsonl
-  data/aggregates/2025-09-26-cors-bwa-proxy/other_workers_dev_hostnames.json
-  data/aggregates/2025-09-26-cors-bwa-proxy/summary_stats.json
+  data/aggregates/2025-09-26-cors-bwa-proxy/raw/other_workers_dev_hostnames.json
+  data/aggregates/2025-09-26-cors-bwa-proxy/raw/summary_stats.json
 Passive dataset work only — no live fetches."""
 import json, os, re
 from urllib.parse import urlparse, unquote

@@ -2,7 +2,7 @@
 """LANE D — March-7 code-execution modality gems (read-only).
 
 Source of truth for gem names: colonist-one's post
-data/2025-02-04-thecolony-ai/posts/dfac3a74-4685-43d8-9bd6-c76409f87ade.json
+data/2025-02-04-thecolony-ai/raw/posts/dfac3a74-4685-43d8-9bd6-c76409f87ade.json
 (2026-09-05). The task-brief names (projecttools624286 / atlasqadfe9fb1629 /
 tfdriftbqgzb8h) are the *owner accounts*; the actual gem names are:
 

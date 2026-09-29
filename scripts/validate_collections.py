@@ -7,7 +7,9 @@ schema/collections.json + schema/collections.md. Stdlib only, disk only (no ES).
 Violations (exit 1): unregistered data/ entry, bad collection name, loose
 JSONL not in the registry, records whose event.dataset matches neither the
 collection name nor its dataset_override, collections with records that no
-ingest path can load, manifest staged files missing on disk.
+ingest path can load (auto-discovered events.jsonl/rollup.jsonl or a
+manifest via_script entry), non-event files/dirs at a collection root
+(layout: events.jsonl + PROVENANCE.md + SHA256SUMS + raw/ only).
 
 Warnings (exit unaffected): missing PROVENANCE.md/SHA256SUMS on
 canonical/support collections, records with no event.dataset yet (pending
@@ -30,6 +32,10 @@ REGISTRY = os.path.join(REPO, "schema", "collections.json")
 MANIFEST = os.path.join(REPO, "scripts", "local_es_manifest.json")
 # collection dirs are date-prefixed: YYYY-MM-DD-<slug> (first-event date)
 SLUG_RE = re.compile(r"^\d{4}-\d{2}-\d{2}-[a-z0-9][a-z0-9-]*$")
+# canonical collection root layout (schema/collections.md)
+ROOT_FILES = {"events.jsonl", "rollup.jsonl", "PROVENANCE.md",
+              "SHA256SUMS", "SHA256SUMS.txt"}
+ROOT_DIRS = {"raw"}
 SAMPLE_LINES = 200
 MAX_FILES = 4
 
@@ -74,14 +80,48 @@ def cpath(c):
     return os.path.join(REPO, c.get("path", os.path.join("data", c["name"])))
 
 
+def discover_staged():
+    """Mirror of push_to_local_es.discover_staged: canonical layout event
+    files -> index (records' event.dataset). Kept standalone (stdlib)."""
+    found = {}
+    for root in (DATA, os.path.join(DATA, "aggregates")):
+        if not os.path.isdir(root):
+            continue
+        for entry in sorted(os.listdir(root)):
+            p = os.path.join(root, entry)
+            if not os.path.isdir(p) or (root == DATA and entry in
+                                        {"raw", "indexes", "aggregates"}):
+                continue
+            for fn in ("events.jsonl", "rollup.jsonl"):
+                fp = os.path.join(p, fn)
+                if not os.path.exists(fp):
+                    continue
+                idx = None
+                with open(fp, encoding="utf-8", errors="replace") as fh:
+                    for line in fh:
+                        line = line.strip()
+                        if not line:
+                            continue
+                        try:
+                            idx = (json.loads(line).get("event") or {}
+                                   ).get("dataset")
+                        except ValueError:
+                            pass
+                        break
+                if idx:
+                    found.setdefault(idx, []).append(fp)
+    return found
+
+
 def main():
     reg = json.load(open(REGISTRY))
     man = json.load(open(MANIFEST))
     collections = {c["name"]: c for c in reg["collections"]}
     reserved = set(reg["reserved_dirs"])
     loose = {f["file"] for f in reg["loose_files"]}
-    manifest_idx = {e["index"] for e in man.get("staged", [])}
-    manifest_idx |= {e["index"] for e in man.get("via_script", [])}
+    staged_idx = discover_staged()
+    manifest_idx = {e["index"] for e in man.get("via_script", [])}
+    loadable = manifest_idx | set(staged_idx)
 
     # entries to check: data/<name> plus data/aggregates/<name>
     roots = [(DATA, "")]
@@ -114,6 +154,16 @@ def main():
                     w(f"{entry}: missing PROVENANCE.md")
                 if not os.path.exists(os.path.join(p, "SHA256SUMS")):
                     w(f"{entry}: missing SHA256SUMS")
+            # canonical root layout: only events.jsonl/rollup.jsonl/
+            # PROVENANCE.md/SHA256SUMS + raw/ at the root
+            if not c.get("virtual"):
+                for item in sorted(os.listdir(p)):
+                    ip = os.path.join(p, item)
+                    if os.path.isdir(ip):
+                        if item not in ROOT_DIRS:
+                            v(f"{entry}: non-raw dir at root: {item}/")
+                    elif item not in ROOT_FILES:
+                        v(f"{entry}: non-event file at root: {item}")
             # records land in the right directory (raw/ files are the
             # raw layer: exempt from event.dataset checks)
             files = sorted(
@@ -145,9 +195,9 @@ def main():
                                   recursive=True)
             if all_files and not c.get("virtual"):
                 idx = c.get("index")
-                if idx and idx not in manifest_idx:
-                    v(f"{entry}: has records and index {idx!r} but no "
-                      f"local_es_manifest.json entry")
+                if idx and idx not in loadable:
+                    v(f"{entry}: has records and index {idx!r} but it is "
+                      f"neither discovered (events.jsonl) nor via_script")
                 if not idx and files and c.get("status") not in (
                         "support",) and c.get("class") != "aggregate":
                     w(f"{entry}: has JSONL records but registry index is null "
@@ -157,22 +207,18 @@ def main():
     for c in reg["collections"]:
         idx = c.get("index")
         if idx and not c.get("virtual") and c.get("status") in (
-                "canonical", "support") and idx not in manifest_idx \
+                "canonical", "support") and idx not in loadable \
                 and os.path.isdir(cpath(c)):
             files = glob.glob(os.path.join(cpath(c), "**", "*.jsonl"),
                               recursive=True)
             if files:
-                v(f"registry: {c['name']} has records + index {idx!r} but is "
-                  f"absent from local_es_manifest.json")
-    for e in man.get("staged", []):
-        for rel in e.get("files", []):
-            if not os.path.exists(os.path.join(REPO, rel)):
-                v(f"manifest staged file missing on disk: {rel}")
+                v(f"registry: {c['name']} has records + index {idx!r} but it "
+                  f"is neither discovered nor via_script")
+    for e in man.get("via_script", []):
         idx = e["index"]
         base = idx.split("-rollup")[0] if idx.endswith("-rollup") else idx
         if idx not in collections and base not in collections:
             w(f"manifest index {idx!r} has no collections.json entry")
-    for e in man.get("via_script", []):
         for s in e.get("scripts", []):
             if not os.path.exists(os.path.join(REPO, s)):
                 v(f"manifest via_script missing on disk: {s}")

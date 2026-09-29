@@ -54,3 +54,7 @@ schema-drift clean.
 ## Raw layer 2026-09-29
 
 - `hits.jsonl` -> `raw/hits.jsonl` (upstream capture; referenced only in docstring of scripts/es_unwind_admin_deletions.py) and `staged_rollup/admin-deletions-rollup.jsonl` -> `raw/admin-deletions-rollup.jsonl` (transform intermediate; consumer: scripts/es_unwind_admin_deletions.py). Upstream names preserved; raw layer exempt from event schema. `staged_rollup/admin-deletions-rollup-flat.jsonl` and `staged_primary/admin-deletions_explicit.jsonl` are manifest-staged event files handled separately.
+
+## Canonical layout migration (2026-09-29)
+
+Renamed `admin-deletions-explicit.jsonl` -> `events.jsonl` and `admin-deletions-rollup-flat.jsonl` -> `rollup.jsonl`, contents unchanged (rollup records carry dataset `2026-06-04-admin-deletions-rollup`). No file_origin labels added (pure renames). NOTE: source basenames differed from the original migration spec (no date prefix); mapping adapted accordingly.

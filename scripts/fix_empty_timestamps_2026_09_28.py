@@ -21,7 +21,7 @@ FLAG = "fallback:no_recoverable_date"
 
 TARGETS = [
     "data/2025-03-04-rubygems-goimport-campaign/raw/gem-ioc-log.jsonl",
-    "data/2026-07-21-transfer-test-family/transfer-test-family.jsonl",
+    "data/2026-07-21-transfer-test-family/events.jsonl",
 ]
 
 

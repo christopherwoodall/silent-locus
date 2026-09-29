@@ -18,7 +18,7 @@ REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 HOSTS = ["agent-apocalypse-f1f7ba.es.us-east-1.aws.elastic.cloud"]
 CRED = "custom.elastic-cloud"
 INDEX = "2026-09-27-rmn-re-linktable"
-SRC = REPO_ROOT + "/data/2026-09-27-rmn-re/link_table_decoded_2026-09-27.json"
+SRC = REPO_ROOT + "/data/2026-09-27-rmn-re/raw/link_table_decoded_2026-09-27.json"
 
 def req(method, path, body=None):
     r = urllib.request.Request(ES + path,

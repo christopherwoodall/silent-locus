@@ -4,7 +4,7 @@
 Captures: RecentChanges feed (days=3650), page index (spx), and for every
 edited page: current page HTML + history HTML. ~2s pacing, no writes.
 Saves raw HTML under data/2021-10-30-demowiki/raw/ and parsed records to
-data/2021-10-30-demowiki/demowiki_crawl.json.
+data/2021-10-30-demowiki/raw/demowiki_crawl.json.
 """
 import os, re, json, time, hashlib, urllib.request
 from datetime import datetime, timezone

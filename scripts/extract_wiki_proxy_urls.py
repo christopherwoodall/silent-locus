@@ -3,7 +3,7 @@
 
 For each hit: primitive, source record, laundered target (what URL the
 primitive wraps), and first-seen = earliest revision write_date containing
-that exact URL. Merges into data/aggregates/2026-05-26-proxy-primitives/proxy-primitives.jsonl with the
+that exact URL. Merges into data/aggregates/2026-05-26-proxy-primitives/events.jsonl with the
 earlier sweep's hits; collapses exact duplicates.
 """
 import gzip, json, re, hashlib, os, urllib.parse

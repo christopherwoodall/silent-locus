@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Ingest the university-shorteners dataset into the `university-shorteners` index.
 
-Source: data/2026-09-28-university-shorteners/university-shorteners.jsonl (7 docs).
+Source: data/2026-09-28-university-shorteners/events.jsonl (7 docs).
 Idempotent: deterministic _id "yourls:<instance>:<slug>", re-runs overwrite.
 
 Usage:
@@ -56,7 +56,7 @@ def doc_id(d):
 
 def load_docs():
     docs = {}
-    with open(DATA + "/university-shorteners.jsonl") as f:
+    with open(DATA + "/events.jsonl") as f:
         for line in f:
             line = line.strip()
             if line:

@@ -16,7 +16,7 @@ UNWIND (staged; Elastic writes PAUSED until Christopher says resume):
   4. Field check: event.dataset.keyword present on both indexes.
 
 Staged payloads (committed, on disk):
-  data/2026-06-04-admin-deletions/admin-deletions-explicit.jsonl (5217)
+  data/2026-06-04-admin-deletions/events.jsonl (5217)
   data/2026-06-04-admin-deletions/raw/admin-deletions-rollup.jsonl    (26)
 
 Usage:
@@ -41,7 +41,7 @@ PRIMARY = "2026-06-04-admin-deletions"
 ROLLUP = "2026-06-04-admin-deletions-rollup"
 PAUSE_SENTINEL = os.path.join(BASE, "notes", "ELASTIC_WRITE_PAUSE")
 EXPLICIT = os.path.join(BASE, "data", "2026-06-04-admin-deletions",
-                        "admin-deletions-explicit.jsonl")
+                        "events.jsonl")
 ROLLUP_DOCS = os.path.join(BASE, "data", "2026-06-04-admin-deletions", "raw",
                            "admin-deletions-rollup.jsonl")
 EXPECTED_PRIMARY = 5217

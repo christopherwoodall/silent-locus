@@ -26,7 +26,7 @@ UNWIND (staged; Elastic writes PAUSED until Christopher says resume):
 Staged payloads (committed, on disk):
   data/2026-09-28-university-shorteners/raw/staged_primary/university-shorteners_explicit.jsonl (1520)
   data/2026-09-28-university-shorteners/raw/staged_rollup/university-shorteners-rollup.jsonl    (16)
-Source of truth: data/2026-05-12-university-shorteners-events/university-shorteners-events.jsonl
+Source of truth: data/2026-05-12-university-shorteners-events/events.jsonl
 (the canonical explicit-event dataset; the staged primary is that file plus
 top-level _id = labels.event_id).
 

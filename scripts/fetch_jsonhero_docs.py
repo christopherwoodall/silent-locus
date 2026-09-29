@@ -4,7 +4,7 @@ import json, hashlib, time, urllib.request, sys, os
 from datetime import datetime, timezone
 
 BASE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-SRC = os.path.join(BASE, "data/2022-03-01-jsonhero/usage_patterns.json")
+SRC = os.path.join(BASE, "data/2022-03-01-jsonhero/raw/usage_patterns.json")
 OUT = os.path.join(BASE, "data/2026-09-28-jsonhero-docs")
 os.makedirs(OUT, exist_ok=True)
 

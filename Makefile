@@ -76,7 +76,7 @@ ingest: wait ## Full load: corpus -> swarmtraces -> dashboards
 	$(MAKE) ingest-swarmtraces
 	$(MAKE) ingest-dashboards
 
-ingest-corpus: wait ## Load the local corpus via scripts/local_es_manifest.json (staged + via_script)
+ingest-corpus: wait ## Load the corpus: auto-discovered events.jsonl + via_script builders (local_es_manifest.json)
 	$(PY) scripts/push_to_local_es.py --all
 
 ingest-swarmtraces: wait ## Load data/raw/redacted.jsonl.gz (189,579 records) into the swarmtraces index

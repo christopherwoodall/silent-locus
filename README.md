@@ -60,10 +60,13 @@ Overrides: `STACK_VERSION`, `ELASTIC_PASSWORD`, `ES_HEAP`, `ES_PORT`
   registry). Validators: `scripts/validate_schema.py`,
   `scripts/validate_collections.py`.
 - `data/` — one directory per collection, named per `schema/collections.md`.
-  Each collection splits into an event layer (schema-conformant
-  `<dataset>[-<variant>].jsonl` at the collection root) and a raw layer
-  (`<collection>/raw/`, upstream-named transform inputs/captures, exempt
-  from the event schema but checksummed). Reserved: `data/raw/` (datasets
+  Each collection follows the canonical layout: an event layer
+  (`events.jsonl`, schema-conformant, plus `rollup.jsonl` where a rollup
+  layer exists) and a raw layer (`raw/`, upstream-named transform
+  inputs/captures, exempt from the event schema but checksummed); the root
+  holds nothing else but `PROVENANCE.md` + `SHA256SUMS`. Loading is
+  generic: `push_to_local_es.py` discovers every `events.jsonl` and loads
+  it into the index named by its records' `event.dataset`. Reserved: `data/raw/` (datasets
   as published, untouched; MANIFEST.json lands here), `data/processed/`
   (normalized working copies), `data/site-captures/<host>/` (read-only
   surface captures, not datasets), `data/aggregates/<name>/` (multi-source

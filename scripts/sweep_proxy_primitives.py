@@ -8,9 +8,9 @@ Hunts longcat's 207-domain-audit primitives across:
 Primitives: pure.md, api.cors.lol, corsmirror.com, Google Docs Viewer gview.
 Catches URL-encoded variants (pure%2Emd, pure%252Emd, etc.).
 
-Output: data/aggregates/2026-05-26-proxy-primitives/proxy-primitives.jsonl (normalized, exact-dup collapsed)
+Output: data/aggregates/2026-05-26-proxy-primitives/events.jsonl (normalized, exact-dup collapsed)
         data/aggregates/2026-05-26-proxy-primitives/PROVENANCE.md
-        data/aggregates/2026-05-26-proxy-primitives/progress.log
+        data/aggregates/2026-05-26-proxy-primitives/raw/progress.log
 """
 import os, sys, json, re, hashlib, subprocess, urllib.request
 from datetime import datetime, timezone

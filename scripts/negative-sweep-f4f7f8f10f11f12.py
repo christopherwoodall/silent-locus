@@ -4,7 +4,7 @@ SwarmTraces redacted dataset. Read-only; payload content inspected as data,
 never executed.
 
 Outputs:
-  data/aggregates/2026-09-29-overlap-analysis/matches-f4f7f8f10f11f12.jsonl   (hit AND miss records)
+  data/aggregates/2026-09-29-overlap-analysis/events.jsonl   (hit AND miss records)
 Prints a per-fingerprint summary for the notes section.
 """
 import gzip, json, re, sys, os

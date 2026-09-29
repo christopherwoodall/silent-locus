@@ -150,7 +150,7 @@ json.dump({"n": len(short_entries),
            "target_hosts": short_target_hosts.most_common(25),
            "keyword_grammars": dict(short_kw_grammars),
            "entries": short_entries},
-          open(BASE + "/data/aggregates/2026-09-29-overlap-analysis/wiki_shortener_detail.json", "w"), indent=2)
+          open(BASE + "/data/aggregates/2026-09-29-overlap-analysis/raw/wiki_shortener_detail.json", "w"), indent=2)
 
 # links.jsonl host rollup
 link_hosts = Counter()
@@ -212,7 +212,7 @@ except Exception as e:
 # 79-bridge gems' homepage chains
 bridge = {}
 try:
-    bridge = json.load(open(BASE + "/data/aggregates/2026-09-29-overlap-analysis/wiki_gem_bridge.json"))
+    bridge = json.load(open(BASE + "/data/aggregates/2026-09-29-overlap-analysis/raw/wiki_gem_bridge.json"))
 except Exception as e:
     print("bridge note:", e, file=sys.stderr)
 bridge_hosts = Counter()
@@ -315,7 +315,7 @@ summary = {
     "bridge_top_hosts": [{"host": h, "count": c} for h, c in bridge_hosts.most_common(20)],
     "agent_wiki_span": {a: sorted(w) for a, w in agent_wikis.items() if len(w) > 1},
 }
-json.dump(summary, open(BASE + "/data/aggregates/2026-09-29-overlap-analysis/wiki_ioc_pivot_summary.json", "w"), indent=2)
+json.dump(summary, open(BASE + "/data/aggregates/2026-09-29-overlap-analysis/raw/wiki_ioc_pivot_summary.json", "w"), indent=2)
 print(json.dumps({k: (v if not isinstance(v, list) else len(v)) for k, v in summary.items()}, indent=1))
 print("TOP 15 PIVOTS:")
 for p in pivots[:15]:

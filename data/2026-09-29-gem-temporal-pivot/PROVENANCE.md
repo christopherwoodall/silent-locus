@@ -34,3 +34,7 @@ Both JSONL files transformed by `temp/backfill_w3.py` onto the shared schema.
   string (an HTTP error message) moved to labels, and a canonical
   `status = "probe-failed"` marker was set (both rows have `ok: false`).
 - event.dataset = `gem-temporal-pivot` for both files.
+
+## Canonical layout migration (2026-09-29)
+
+Concatenated 2 event shards (gem-temporal-pivot-diffend-targeted-check.jsonl, gem-temporal-pivot-diffend-temporal-sweep.jsonl) into `events.jsonl` in sorted-filename order (27 records; count verified against inputs). Each record gained `labels.file_origin` = original shard basename; no other fields changed. Source shards removed after verification.

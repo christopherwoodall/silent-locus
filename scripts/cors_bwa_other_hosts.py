@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """v2: refine other-workers.dev hostname analysis (strip ?/ ?url= prefixes,
 classify target hosts, doc-level counts per index). Appends results into
-data/aggregates/2025-09-26-cors-bwa-proxy/other_workers_dev_hostnames.json and prints summary."""
+data/aggregates/2025-09-26-cors-bwa-proxy/raw/other_workers_dev_hostnames.json and prints summary."""
 import json, re
 from urllib.parse import urlparse, unquote, parse_qs
 from collections import Counter, defaultdict

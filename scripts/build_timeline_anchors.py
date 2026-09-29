@@ -7,7 +7,7 @@ Uncertain dates are marked estimated with a confidence value -- precision is
 never invented.
 
 Outputs (all under data/2026-03-07-timeline-anchors/):
-  timeline-anchors.jsonl  ES-ready docs under the canonical shared schema
+  events.jsonl  ES-ready docs under the canonical shared schema
   PROVENANCE.md           method, sources, what's new
   manifest.sha256         SHA-256 of the dataset files
   progress.log            resumable run log
@@ -34,7 +34,7 @@ EVENTS = [
  "(jqp 648, pure.md 119, md.succ.ai 102, r.jina.ai 20, pxweb.nso.gov.vn 59, "
  "sec.gov 53) appears as HTTP Referer on official university infrastructure.",
  "2026-05-12-university-shorteners",
- "notes/university-shorteners-2026-09-28.md; data/2026-09-28-university-shorteners/goto-unm-edu/7t6-o_stats_2026-09-28.txt",
+ "notes/university-shorteners-2026-09-28.md; data/2026-09-28-university-shorteners/raw/goto-unm-edu/7t6-o_stats_2026-09-28.txt",
  "https://goto.unm.edu/7t6-o+", "high",
  ["anchor:june-18", "venue:shortener", "mechanism:proxy-stack"]),
 ("2026-06-18T00:00:00Z", "day",
@@ -405,7 +405,7 @@ EVENTS = [
  "records decoded from paste b3746a9f) -- public-records cemetery-scraping "
  "task family; content-date, paste capture date uncertain.",
  "2026-03-12-paste-archive-gap",
- "notes/cascade-synthesis-2026-09-28.md; data/2026-03-12-paste-archive-gap/vg_cemetery_person_v0_77.json",
+ "notes/cascade-synthesis-2026-09-28.md; data/2026-03-12-paste-archive-gap/raw/vg_cemetery_person_v0_77.json",
  "", "medium",
  ["family:public-records", "caveat:content-date-only"]),
 ("2026-09-20T16:33:00Z", "timestamp",
@@ -454,7 +454,7 @@ def main():
         print(m, flush=True)
         log.write(f"{datetime.now(timezone.utc).isoformat()} {m}\n")
     say("build start")
-    with open(os.path.join(BASE, "timeline-anchors.jsonl"), "w") as f:
+    with open(os.path.join(BASE, "events.jsonl"), "w") as f:
         n = 0
         for i, ev in enumerate(EVENTS):
             _id, doc = build_doc(i, *ev)
@@ -510,7 +510,7 @@ each run, so re-running is safe.
     open(os.path.join(BASE, "PROVENANCE.md"), "w").write(prov)
     # manifest
     import subprocess
-    out = subprocess.run(["sha256sum", "timeline-anchors.jsonl", "PROVENANCE.md"],
+    out = subprocess.run(["sha256sum", "events.jsonl", "PROVENANCE.md"],
                          cwd=BASE, capture_output=True, text=True)
     open(os.path.join(BASE, "manifest.sha256"), "w").write(out.stdout)
     say(f"manifest:\n{out.stdout.strip()}")
