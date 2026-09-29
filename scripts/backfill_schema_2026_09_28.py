@@ -32,7 +32,13 @@ CANONICAL_TOP = {
     "@timestamp", "event", "record_kind", "fingerprint", "labels",
     "observer", "retrieved_at", "retrieved_via", "source_url",
     "matched_string", "description", "note", "tags", "confidence",
-    "sha256", "size_bytes", "file", "status", "observed_at",
+    "sha256", "size_bytes", "file", "status",
+    # NOTE: observed_at is NOT a canonical top-level field. The schema
+    # contract (schema/record.schema.json: "Dataset-specific fields live
+    # here [labels], never at top level") puts it under labels, which is
+    # where every existing record carries it (labels.observed_at).
+    # Keeping it here would let order()/validate() bless a top-level
+    # observed_at that scripts/validate_schema.py (correctly) rejects.
 }
 
 
@@ -71,7 +77,9 @@ def order(rec: dict) -> dict:
     first = ["@timestamp", "event", "record_kind", "fingerprint", "labels",
              "observer", "retrieved_at", "retrieved_via", "source_url",
              "matched_string", "description", "note", "tags", "confidence",
-             "sha256", "size_bytes", "file", "status", "observed_at"]
+             "sha256", "size_bytes", "file", "status"]
+    # (no "observed_at": schema contract keeps it under labels; see
+    # CANONICAL_TOP note)
     out = {k: rec[k] for k in first if k in rec}
     out.update({k: v for k, v in rec.items() if k not in out})
     return out
