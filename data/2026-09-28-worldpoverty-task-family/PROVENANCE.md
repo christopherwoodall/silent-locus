@@ -42,3 +42,51 @@ joined with the YOURLS log for authoritative timestamps, 12 canonical query
 templates, 8-event timeline. No more worldpoverty slugs exist in the link
 table; the family is bounded by construction. ES `worldpoverty-task-family`
 _count=22 verified, schema-drift clean.
+
+## Repair 2026-09-29 (build-script rebuild + payload embedding)
+
+The collection's build inputs were lost in the 2026-09-28/29 normalization:
+the original `hits.jsonl` was folded into the staged `events.jsonl` and
+deleted, and the ingest script carried stale pre-rename paths plus a dead
+Elastic-load path. Repaired per the 2026-09-29 directive (do not delete;
+rebuild from the directory's data):
+
+- `es_ingest_worldpoverty_task_family.py` (co-located in this dir per
+  schema/collections.md) now rebuilds all 22 event docs from the surviving
+  PRIMARY sources: `data/2026-09-27-rmn-re/raw/link_table_decoded_2026-09-27.json`
+  (15/15 slugs verified present), `data/2026-05-17-collusion-wiki/raw/shortener-logs.json`
+  (15/15 keywords verified present), `data/2026-05-17-collusion-wiki/raw/revisions.jsonl`
+  (3 Poverty Links bodies + sequence page verified; original hits.jsonl also
+  recoverable from git history at 4487b53 `data/worldpoverty-task-family/hits.jsonl`).
+- Rebuild verified against the pre-repair staged events.jsonl: identical
+  fingerprints (22/22) and identical notes/matched_string/tags. Only intended
+  deltas: fixed `labels.source_file` paths (were `data/rmn-re/...` and
+  `data/collusion-wiki/...`, which never existed post-rename), one fixed
+  `source_url` on a run_shape doc (`data/worldpoverty-task-family/timeline.json`
+  -> `data/2026-09-28-worldpoverty-task-family/raw/timeline.json`), and the new
+  payloads below. Structural asserts kept: 15 slugs, 3 byte-identical Poverty
+  Links bodies, sequence page present, 22 docs.
+- Per-item payloads embedded in the new OPTIONAL top-level `payloads` array
+  (schema/record.schema.json 2026-09-29; item shape
+  {kind, content_type, content, encoding, truncated, byte_size, sha256}):
+  15x kind=decoded_shortlink_target (full decoded GraphQL target URL per slug,
+  26-464 B each, 3,408 B total) and 4x kind=wiki_page_body (full page bodies,
+  460-615 B each; matched_string carries only the first 400 chars). All
+  carried in full (truncated=false) -- no truncation cap exercised.
+  NOT embedded: cross_family_citation citing revision bodies (~21.6 KB across
+  10 revisions of another family's pages -- out of collection scope; the note
+  quotes the citing lines and the bodies remain addressable in the
+  2026-05-17-collusion-wiki collection). run_shape docs carry no per-item
+  payload (collection-level artifacts already in raw/).
+- Fingerprints use the legacy seed "worldpoverty-task-family" (pre-rename
+  index name) so they stay stable with already-indexed docs. Known quirk
+  (pre-existing, preserved): the 3 wiki_poverty_links_page docs share one
+  fingerprint (byte-identical bodies -> identical matched_string).
+  push_to_local_es.py derives the ES _id from the sha256 of the whole
+  canonical doc, so the added payloads mean new _ids on the next load --
+  recreate the 2026-09-28-worldpoverty-task-family index (or accept new _ids)
+  when the hosted write freeze lifts.
+- Pure builder: no network, no Elastic writes; deterministic (fixed
+  event.created/@timestamp), re-runs byte-identical. Loading is generic via
+  scripts/push_to_local_es.py auto-discovery. `python3 -m py_compile` clean;
+  scripts/validate_schema.py reports 0 violations on the rebuilt events.jsonl.
