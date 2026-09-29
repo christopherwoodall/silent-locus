@@ -213,3 +213,11 @@ see `aux/joshuadavid-anna-revisions-2026-09-28.jsonl` (`verdict`, `verdict_ratio
 ## Raw layer 2026-09-29
 
 - `data/paste-archive-gap/investigator-repo/joshuadavid-anna-revisions-2026-09-28.jsonl` -> `data/paste-archive-gap/raw/investigator-repo/joshuadavid-anna-revisions-2026-09-28.jsonl` (upstream investigator-repo capture; no script consumers, moved because it is a raw capture, not a final standalone output)
+
+## Schema backfill 2026-09-29 (normalization sweep, worker W4)
+
+- Built `events.jsonl`: 68 records — 67 `pastebin_probe` (one per raw/manifest.json entry: 15 lane-M + 51 lane-1 + b3746a9f_decoded) and 1 `artifact_observation` (raw/investigator-repo snapshot).
+- Fingerprint identity string: `anna.fyi:<paste_id>` (`anna.fyi:b3746a9f:decoded` for the decoded cemetery JSON); `anna.fyi:investigator-repo:joshuadavid-anna-revisions-2026-09-28` for the snapshot.
+- @timestamp = manifest `created_utc` per paste (labels.timestamp_source=`manifest.created_utc`); decoded record uses manifest `generated_at` 2026-09-14T21:56:52Z; the deleted paste d266bdde has no recoverable date -> sentinel 1970-01-01T00:00:00Z with labels.timestamp_source=`fallback:no_recoverable_date` (deletion confirmed in the 2026-09-28 lane-1 probe, recorded in note).
+- `rollup.jsonl`: 2 rows, one per recovery batch (`lane-m`, `lane-1-retry`; record_kind `extraction`, event.dataset `2026-03-12-paste-archive-gap-rollup`): paste count, total bytes, first/last created, confirmed deletions. Fingerprint identity: `anna.fyi-rollup:<source>`. (The investigator-repo snapshot is a provenance artifact, excluded from the batch rollup.)
+- Regenerated `SHA256SUMS` (events.jsonl + rollup.jsonl + raw/**).
