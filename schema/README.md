@@ -70,9 +70,12 @@ documented cap with `truncated: true`). No other top-level keys are allowed.
 
 Snake-case, one per record class. Enumerated 2026-09-28 against all
 141,804 records in the 84 event files under `data/`: **100 kinds in use**,
-all registered. Kinds newly added after the 2026-09-28 boundary backfill
-carry a one-line description **(inferred)** from actual usage; kinds from
-the previous registry are listed without change. Two 2026-09-29 additions
+all registered. Six kinds were added by the 2026-09-29 final-assembly round
+(`proxied_target`, `proxy_family`, `proxy_ladder`, `proxy_ladder_entry`,
+`venue_summary`, `gem_reconciliation`) as their collections gained event
+layers, bringing the registry to **106 kinds**. Kinds newly added after the
+2026-09-28 boundary backfill carry a one-line description **(inferred)** from
+actual usage; kinds from the previous registry are listed without change. Two 2026-09-29 additions
 (`live_recheck`, `paste_text`) are produced by the collections' ES ingest
 scripts as published index docs and are absent from the staged event
 files, so they were missed by the event-file enumeration.
@@ -109,6 +112,7 @@ files, so they were missed by the event-file enumeration.
 - `fork_day_rollup` — per-day rollup of repo forks (new + cumulative counts) **(inferred)**
 - `forum_message` — forum/chat message row with swarm-marker verdict **(inferred)**
 - `gem_name_fragment`
+- `gem_reconciliation` — one gem in the Lane-E 83-gem June-18 reconciliation table (identity, cross-corpus presence) **(inferred)**
 - `gist_scan_page` — one page of a public gist scan (scanned count, exploitgym hits) **(inferred)**
 - `gomod_proxy_match`
 - `graph_node`
@@ -128,6 +132,9 @@ files, so they were missed by the event-file enumeration.
 - `pastebin_probe`
 - `pattern_sweep_rollup` — rollup of a corpus pattern sweep (pattern, hit counts, files) **(inferred)**
 - `payload_reconstruction`
+- `proxied_target` — one incident URL wrapped behind cors.bwa.workers.dev, with decoded target and task family **(inferred)**
+- `proxy_family` — one other `*.workers.dev` CORS-proxy hostname found in the corpora **(inferred)**
+- `proxy_ladder` — one reconstructed (outer_wrapper -> cors.bwa.workers.dev -> target) proxy chain edge **(inferred)**
 - `proxy_ladder_entry` — one proxy-ladder URL extracted from an actor-page capture, with rmn.re overlap flags **(inferred)**
 - `recovery_census` — census of archive-recovery attempts for dead documents (recovered vs not-archived) **(inferred)**
 - `related_readme` — cached README of a related/fork-adjacent repo **(inferred)**
@@ -157,6 +164,7 @@ files, so they were missed by the event-file enumeration.
 - `urlquery_rollup` — rollup of a urlquery lane search (query, total hits, reports retrieved) **(inferred)**
 - `venue_finding`
 - `venue_probe`
+- `venue_summary` — one corpus venue's cors.bwa.workers.dev footprint (hit count, context) **(inferred)**
 - `verdict` — swarm-marker verdict row for a venue sweep **(inferred)**
 - `wayback_capture`
 - `web_search_negative`

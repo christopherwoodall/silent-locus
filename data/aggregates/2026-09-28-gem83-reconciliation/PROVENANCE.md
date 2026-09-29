@@ -46,7 +46,9 @@ Multi-source conglomerate collections now live under `data/aggregates/`.
 - `data/gem83-reconciliation/` -> `data/aggregates/2026-09-28-gem83-reconciliation/`
   (whole directory: PROVENANCE.md, SHA256SUMS, gem83-names.json,
   gem83-reconciliation.csv, gem83-reconciliation.jsonl, manifest.txt,
-  pattern-sweep.txt, progress.log).
+  pattern-sweep.txt). Correction 2026-09-29: the original draft of this line
+  also listed a `progress.log`, but no such file ever existed in the moved
+  directory — that was an overstatement, removed here.
 
 ## Raw layer 2026-09-29
 
@@ -71,3 +73,17 @@ from the new location (was two, pointed at `data/`), and `build_docs()` reads
 which no longer exists after the 2026-09-29 raw-layer move). Verified: builds
 83 reconciliation docs, `event.dataset` = `2026-09-28-gem83-reconciliation`.
 `via_script` entry in `scripts/local_es_manifest.json` updated to the new path.
+
+## Event layer 2026-09-29
+
+`events.jsonl` materialized by `build_events.py`, which imports
+`es_ingest_gem83.build_docs()` for the row mapping and adapts the output to
+`schema/record.schema.json` (the ES ingest docs carry non-schema top-level
+keys — `gem`, `package`, `versions`, `xray_id`, `in_diffend_corpus`, `wave` —
+and no `fingerprint`): non-schema keys are folded into namespaced labels
+(`gem.name`, `gem.package`, `gem.versions`, `gem.xray_id`,
+`gem.in_diffend_corpus`, `gem.wave`); fingerprint = sha256(gem name);
+description derived from the record's note; `labels.timestamp_source`
+documents the inferred June-18 wave date; `file` points at
+`raw/gem83-reconciliation.jsonl`. 83 records, record_kind
+`gem_reconciliation`, all validating green; SHA256SUMS regenerated.
