@@ -1,4 +1,4 @@
-# PROVENANCE — data/july6-staging/
+# PROVENANCE — data/2026-05-11-july6-staging/
 
 Lane P: July-6 staging check for the SwarmTraces agent-hunt (2026-09-28, ~03:55 CDT).
 
@@ -10,10 +10,10 @@ was preceded ~48h by a staging signature. Is there a July 5–6 staging signatur
 ## Sources (all read-only; nothing submitted, fetched live, or executed)
 | # | Source | Retrieval date | What was read | SHA-256 |
 |---|--------|----------------|---------------|---------|
-| 1 | data/collusion-wiki/events.jsonl.gz (frozen lane export, in-repo) | 2026-09-28 | 318 delete events 2026-07-05/06; per-day/window recomputed locally | see repo SHA256SUMS |
-| 2 | data/collusion-wiki/revisions.jsonl.gz (in-repo) | 2026-09-28 | creation revisions of forward-named pages (June-18 timestamps) | see repo SHA256SUMS |
-| 3 | data/demowiki/demowiki_crawl.json (in-repo) | 2026-09-28 | substring scan for July dates (zero) | n/a |
-| 4 | data/rmn-re-history/slug_evolution.jsonl (in-repo) | 2026-09-28 | July slug creation dates; grammars | n/a |
+| 1 | data/2026-05-17-collusion-wiki/raw/events.jsonl.gz (frozen lane export, in-repo) | 2026-09-28 | 318 delete events 2026-07-05/06; per-day/window recomputed locally | see repo SHA256SUMS |
+| 2 | data/2026-05-17-collusion-wiki/raw/revisions.jsonl.gz (in-repo) | 2026-09-28 | creation revisions of forward-named pages (June-18 timestamps) | see repo SHA256SUMS |
+| 3 | data/2021-10-30-demowiki/raw/demowiki_crawl.json (in-repo) | 2026-09-28 | substring scan for July dates (zero) | n/a |
+| 4 | data/2016-12-28-rmn-re-history/raw/slug_evolution.jsonl (in-repo) | 2026-09-28 | July slug creation dates; grammars | n/a |
 | 5 | ES index collusion-wiki (read-only _search) | 2026-09-28 | 318 docs @timestamp 2026-07-05..07; cross-check of file counts | n/a (remote) |
 | 6 | ES index rubygems-goimport-campaign | 2026-09-28 | 0 docs July 5–6; 250 docs May 10–11 (wave=may-12) | n/a (remote) |
 | 7 | ES index july7-wave | 2026-09-28 | 0 docs July 5–6 (9 wave docs all July 7) | n/a (remote) |
@@ -21,8 +21,8 @@ was preceded ~48h by a staging signature. Is there a July 5–6 staging signatur
 | 9 | ES index proxy-primitives | 2026-09-28 | 0 docs published_at July 4–8 | n/a (remote) |
 | 10 | ES index webhook-deaddrops, gem83-reconciliation, iowacollab-pastes | 2026-09-28 | 0 docs July 5–6; iowa dated doc = June 16 wave | n/a (remote) |
 | 11 | ES index ludism-wikis | 2026-09-28 | 31 docs, none July | n/a (remote) |
-| 12 | data/university-shorteners/university-shorteners.jsonl | 2026-09-28 | 7 summary docs, no per-day July breakdown | n/a |
-| 13 | data/paste-archive-gap/*.jsonl | 2026-09-28 | no July 5–6 references | n/a |
+| 12 | data/2026-09-28-university-shorteners/events.jsonl | 2026-09-28 | 7 summary docs, no per-day July breakdown | n/a |
+| 13 | data/2026-03-12-paste-archive-gap/*.jsonl | 2026-09-28 | no July 5–6 references | n/a |
 
 ## Corpus dates
 - Corpus window: 2026-03-07 → 2026-09-14. Swarm run dates in UTC.

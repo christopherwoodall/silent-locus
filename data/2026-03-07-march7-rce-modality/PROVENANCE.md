@@ -24,7 +24,7 @@ Diffend (`https://my.diffend.io/gems/<name>`): `sampledocpayload624286` and
 return 302 → `/gems` → **absent from Diffend**. Diffend's version-list page
 renders its version links client-side (no server-side `<a>` tags); the
 per-version fetch list therefore came from JFrog's public inventory CSV
-(`data/gemstuffer-jfrog-2026-09-27.csv`).
+(`data/2025-03-04-rubygems-goimport-campaign/raw/gemstuffer-jfrog-2026-09-27.csv`).
 
 Nothing was downloaded as a `.gem`, installed, or executed. Only Diffend's
 server-rendered HTML diffs (static text) and compact-index metadata were read.

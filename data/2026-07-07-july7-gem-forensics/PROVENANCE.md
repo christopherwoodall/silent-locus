@@ -1,4 +1,4 @@
-# Provenance — July-7 gem forensics (`data/july7-gem-forensics/`)
+# Provenance — July-7 gem forensics (`data/2026-07-07-july7-gem-forensics/`)
 
 Date: 2026-09-28/29. Worker 2 of the off-task web-mechanism hunt.
 Lane: July-7 gem forensics (XSS/SSTI reconstruction). Read-only throughout.
@@ -10,7 +10,7 @@ Forensic reconstruction of the July-7 RubyGems wave's third mechanism family
 
 1. **Our bytes** — `raw/` + `payload-reconstructions.jsonl`: read-only captures
    of Diffend (`my.diffend.io`) gem pages and version-diff pages for the 18
-   `in_diffend=true` gems from the Lane-J sweep (`data/july7-wave/`). These are
+   `in_diffend=true` gems from the Lane-J sweep (`data/2026-07-07-july7-wave/`). These are
    third-party test/security-researcher gems (NOT GemStuffer campaign gems —
    the campaign's named specimens are absent from Diffend, verified across the
    full 264-name re-sweep), but 5 carry real XSS payloads in their Diffend
@@ -102,7 +102,7 @@ Concatenated 2 event shards (july7-gem-forensics-campaign-specimens-jfrog.jsonl,
 
 ## Run-log merge (2026-09-29)
 
-Merged `progress.log` from the pre-normalization stub `data/july7-gem-forensics/`
+Merged `progress.log` from the former undated stub
 into the dataset root (see the 2026-09-29 relocation note below). The stub held only
 this file (untracked). The log covers the 2026-09-29T00:28–00:34Z fetch run: 18
 Diffend gem pages, 50/50 captures OK — the exact inputs that produced `raw/`

@@ -1,4 +1,4 @@
-# PROVENANCE — data/gem-temporal-pivot/
+# PROVENANCE — data/2026-09-29-gem-temporal-pivot/
 
 Partial artifacts from the 2026-09-28 temporal-pivot hunt (see
 `notes/gem-temporal-pivot-2026-09-28.md`; verdict: clean negative).
@@ -41,8 +41,7 @@ Concatenated 2 event shards (gem-temporal-pivot-diffend-targeted-check.jsonl, ge
 
 ## Stub merge 2026-09-29
 
-`raw/run-logs/diffend_temporal_sweep.stdout.log` moved in from the undated
-`data/gem-temporal-pivot/` stub (the file PROVENANCE already listed as the sweep
+`raw/run-logs/diffend_temporal_sweep.stdout.log` moved in from the former undated stub (the file PROVENANCE already listed as the sweep
 stdout, left behind by the canonical-layout migration). Contents verified: two
 progress-marker lines from the 2026-09-28 Diffend 3,025-name sweep
 (`total 3025, done 0, todo 3025`; `0/3025 ... oow_hits=0`). Stub dir removed after

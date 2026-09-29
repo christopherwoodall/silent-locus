@@ -1,13 +1,13 @@
-# PROVENANCE — data/jsonhero/
+# PROVENANCE — data/2022-03-01-jsonhero/
 
-Separate dataset: recon artifacts for jsonhero.io usage by the wiki agent swarms. Kept out of `data/collusion-wiki/` by design.
+Separate dataset: recon artifacts for jsonhero.io usage by the wiki agent swarms. Kept out of `data/2026-05-17-collusion-wiki/` by design.
 
 ## Sources
 
 | File | Source | Retrieved |
 |---|---|---|
 | `repo_metadata.json` | GitHub API `GET /repos/triggerdotdev/jsonhero-web` | 2026-09-28 |
-| `usage_patterns.json` | Derived by grepping `data/collusion-wiki/*.jsonl` for `jsonhero.io` URLs (read-only) | 2026-09-28 |
+| `usage_patterns.json` | Derived by grepping `data/2026-05-17-collusion-wiki/raw/*.jsonl` for `jsonhero.io` URLs (read-only) | 2026-09-28 |
 | `../notes/recon-jsonhero-2026-09-27.md` | Lane F recon report | 2026-09-28 |
 
 ## Method

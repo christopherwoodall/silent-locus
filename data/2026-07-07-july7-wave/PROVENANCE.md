@@ -2,7 +2,7 @@
 
 ## Sources
 - **Candidate list**: JFrog's public GemStuffer inventory CSV,
-  `data/gemstuffer-jfrog-2026-09-27.csv` (3,025 rows: Package, Versions, Xray ID),
+  `data/2025-03-04-rubygems-goimport-campaign/raw/gemstuffer-jfrog-2026-09-27.csv` (3,025 rows: Package, Versions, Xray ID),
   saved 2026-09-27 from https://research.jfrog.com/gemstuffer.csv
   (see `notes/gem-jfrog-report-2026-09-27.md`).
   The CSV carries NO per-row upload dates; the July-7 window is established only

@@ -1,7 +1,7 @@
-# PROVENANCE — data/jsonhero-docs/
+# PROVENANCE — data/2026-09-28-jsonhero-docs/
 
 Separate dataset: the 17 jsonhero.io shared documents the wiki agent swarms used
-as collaborative state (found by recon lane F). Kept out of `data/collusion-wiki/`
+as collaborative state (found by recon lane F). Kept out of `data/2026-05-17-collusion-wiki/`
 by design.
 
 ## Sources
@@ -10,7 +10,7 @@ by design.
 |---|---|---|
 | `<docid>.json` (11 files) | `GET https://jsonhero.io/j/<docid>.json` — the docs were published to jsonhero.io's unauthenticated public document API; fetched read-only, paced ≥3s, browser UA | 2026-09-28 |
 | `manifest.json` | Retrieval log: doc id, source URL, HTTP status, live/dead, SHA-256, byte size, corpus URL-occurrence count | 2026-09-28 |
-| `../jsonhero_doc_links.jsonl` | Cross-reference: 2,273 wiki-revision → doc URL links, extracted read-only from `data/collusion-wiki/revisions.jsonl` (fields: doc_id, view, path_param, wiki, agent_label, page_key, rev_id, rev_time) | 2026-09-28 |
+| `data/aggregates/2026-09-29-overlap-analysis/raw/jsonhero_doc_links.jsonl` | Cross-reference: 2,273 wiki-revision → doc URL links, extracted read-only from `data/2026-05-17-collusion-wiki/raw/revisions.jsonl` (fields: doc_id, view, path_param, wiki, agent_label, page_key, rev_id, rev_time) | 2026-09-28 |
 
 ## Method
 
@@ -70,7 +70,7 @@ clean.
   (all 12 match); verified values carried as top-level `sha256` / `size_bytes`.
 - The 5 dead docs (HTTP 500, no body file) remain manifest-only per the keep-all policy —
   no event records created for them. `manifest.json`'s `file` field still carries the
-  pre-move path `data/jsonhero-docs/...`; left as-is (raw is immutable).
+  legacy pre-normalization path prefix; left as-is (raw is immutable).
 - `SHA256SUMS` regenerated (sha256sum-style): `events.jsonl` + all `raw/` contents,
   verified with `sha256sum -c`.
 

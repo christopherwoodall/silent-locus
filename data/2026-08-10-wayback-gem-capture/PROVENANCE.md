@@ -1,4 +1,4 @@
-# PROVENANCE — data/wayback-gem-capture/
+# PROVENANCE — data/2026-08-10-wayback-gem-capture/
 
 Follow-up lane on the lane12 Wayback sweep's single HIT (agent-hunt-durable-watch, 2026-09-28).
 

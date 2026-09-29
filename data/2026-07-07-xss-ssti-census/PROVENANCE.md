@@ -1,4 +1,4 @@
-# PROVENANCE — XSS/SSTI census (`data/xss-ssti-census/`)
+# PROVENANCE — XSS/SSTI census (`data/2026-07-07-xss-ssti-census/`)
 
 Date: 2026-09-28. Worker 1 of the off-task web-mechanism hunt.
 Question: do any XSS/SSTI payloads in our own holdings carry eval-infrastructure
@@ -11,23 +11,23 @@ markers (artifactory paths, `m47` agent IDs, `m47bmbox/`, `zz` grammar,
    said 296; the brief's number is stale — verified 2026-09-28 via `_count`).
    Read via the surrogate-credential pattern from `scripts/audit_gem_counts.py`.
    No writes. 5 docs carry `mechanism_notes=["xss-exfil"]`.
-2. **`data/gemstuffer-jfrog-2026-09-27.csv`** — 3,025 rows (Package, Versions,
+2. **`data/2025-03-04-rubygems-goimport-campaign/raw/gemstuffer-jfrog-2026-09-27.csv`** — 3,025 rows (Package, Versions,
    Xray ID). 22 packages match `xss|ssti` in the name.
 3. **`data/raw/redacted.jsonl.gz`** — the 189,579-record redacted SwarmTraces
    corpus (eval agent-activity dataset). Swept `kind=payload` records only;
    `kind=recovered_text` page captures were excluded (they are third-party page
    HTML, not payloads).
-4. **`data/overlap-matches.jsonl` + `data/matches-f5f6.jsonl`** — F-fingerprint
+4. **`data/aggregates/2026-09-29-overlap-analysis/events.jsonl`** (merged home of both standalone files) — F-fingerprint
    match records; the 6 web-mechanism rows' full bytes were re-extracted from
    the raw corpus above.
 5. **urlquery report data** (frozen hunt archive,
    `projects/urlquery-api-hunt/artifacts/dataset/`): `decoded_payloads.json`
    (22 items), `hunt7_staging_reports.json` (1,205 reports).
-6. **Paste corpora**: `data/paste-archive/`, `data/paste-archive-gap/`,
-   `data/paste-linuxiarz/`, `data/pastebin-cluster-sweep/`,
-   `data/pastebin-pivot/`, `data/iowacollab-pastes/`.
-7. **Gem IOC corpus**: `data/gem-ioc-hits.jsonl`, `data/gem-ioc-log.jsonl`,
-   `data/gem-graph-nodes.jsonl`.
+6. **Paste corpora**: `data/2026-05-27-paste-archive/`, `data/2026-03-12-paste-archive-gap/`,
+   `data/2026-05-26-paste-linuxiarz/`, `data/2026-09-28-pastebin-cluster-sweep/`,
+   `data/2026-09-28-pastebin-pivot/`, `data/2026-05-17-iowacollab-pastes/`.
+7. **Gem IOC corpus**: `data/2025-03-04-rubygems-goimport-campaign/raw/gem-ioc-hits.jsonl`, `data/2025-03-04-rubygems-goimport-campaign/raw/gem-ioc-log.jsonl`,
+   `data/2025-03-04-rubygems-goimport-campaign/raw/gem-graph-nodes.jsonl`.
 
 ## Population definition (tiers)
 
@@ -43,7 +43,7 @@ markers (artifactory paths, `m47` agent IDs, `m47bmbox/`, `zz` grammar,
 
 ## Files
 
-- `payloads.jsonl` — 122 inventory rows (94 Tier A, 6 Tier B, 22 Tier C).
+- `events.jsonl` — 122 inventory rows (renamed from `payloads.jsonl` at the canonical-layout migration) (94 Tier A, 6 Tier B, 22 Tier C).
   Each row: payload_id, family, tier, mechanism, text_bytes, full text
   (truncated at 2 KB with flag), sha256, source + source_ref, first_seen,
   markers_present, markers_absent, notes.
