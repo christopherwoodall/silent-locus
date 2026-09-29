@@ -70,4 +70,4 @@ See `progress.log` for the ordered fetch log with per-file timestamps.
   notes/dir-triage-W3.md) — per-repo commit counts, first/last, and
   `rollup.in_breach_window_2026_07_10_13` (0 for all four). `event.dataset`
   suffixed `-rollup`.
-- `event.dataset = "2025-05-14-hf-tampering-check"`; `event.created` = build time.
+- `event.dataset = "2025-05-15-hf-tampering-check"`; `event.created` = build time.
