@@ -87,3 +87,20 @@ _count=107 verified, schema-drift clean.
   `labels:sweep.date` (=2026-09-28 lane date) for sweep rows;
   `labels:retrieved.date` / `labels:archive.date` for lane artifacts.
 - New record_kind: `pattern_sweep_rollup`.
+
+## 2026-09-28: ingest script repaired after co-location (hunt convention)
+- `es_ingest_termina.py` was co-located from `scripts/` into this directory
+  per Christopher's single-collection convention; it transforms the Wayback
+  captures (raw/wayback/ + raw/wayback_manifest.json) plus auxiliary
+  captures into shared-schema docs (real transform, not a pure loader).
+- Path repairs (the script's load path was broken even before the move, and
+  the bare move left `REPO_ROOT` resolving one level short): `REPO_ROOT`
+  is now three levels up; wayback manifest / walk root / aux files read
+  from `raw/` where they live (`D/wayback_manifest.json`, `D/wayback/`,
+  `D/<aux>` no longer exist). The manifest URL lookup was also fixed to
+  key on D-relative paths (it previously compared absolute walk paths
+  against repo-relative manifest entries and never matched).
+- Offline verification: `build_docs()` yields 107 docs; 7/7 manifest entries
+  carrying a wayback_url now resolve onto their docs.
+- `scripts/local_es_manifest.json` via_script entry points here.
+- SHA256SUMS regenerated (script file added to coverage).

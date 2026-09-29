@@ -27,7 +27,7 @@ except ImportError:  # local run: no vault on this machine, plain HTTP(S) instea
         return _json.load(response)
 
 ES = os.environ.get("SWARMTRACES_ES_URL", "https://agent-apocalypse-f1f7ba.es.us-east-1.aws.elastic.cloud:443")
-REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+REPO_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))  # script now lives in data/<collection>/
 HOSTS = ["agent-apocalypse-f1f7ba.es.us-east-1.aws.elastic.cloud"]
 CRED = "custom.elastic-cloud"
 BASE = REPO_ROOT
@@ -100,19 +100,21 @@ def kind_for(rel):
 def build_docs():
     docs = {}
     ts = "2026-09-28T03:30:00Z"
-    manifest = json.load(open(f"{D}/wayback_manifest.json"))
+    manifest = json.load(open(f"{D}/raw/wayback_manifest.json"))
     url_by_file = {}
     for m in manifest:
         f = m.get("file")
         if f and m.get("status") == "ok":
-            url_by_file[f] = m
-    for root, _, files in os.walk(f"{D}/wayback"):
+            # manifest "file" is repo-relative; key by D-relative path so the
+            # wayback walk below finds its capture metadata
+            url_by_file[os.path.relpath(os.path.join(BASE, f), D)] = m
+    for root, _, files in os.walk(f"{D}/raw/wayback"):
         for fn in sorted(files):
             p = os.path.join(root, fn)
             rel = os.path.relpath(p, D)
             if fn.endswith(".tar.gz"):
                 continue
-            m = url_by_file.get(p, {})
+            m = url_by_file.get(rel, {})
             kind = kind_for(rel)
             labels = {
                 "file": rel,
@@ -129,7 +131,7 @@ def build_docs():
                 labels["text_chars"] = str(len(t))
             elif fn.endswith(".json"):
                 desc = f"JSON artifact: {rel}"
-            src = m.get("url", f"https://swarm.termina.digital/{rel.replace('wayback/','')}")
+            src = m.get("url", f"https://swarm.termina.digital/{rel.replace('raw/wayback/','')}")
             tags = [f"kind:{kind}", "surface:termina-digital",
                     "provenance:wayback"]
             if "/db/incident/" in rel:
@@ -183,7 +185,7 @@ def build_docs():
          "binary"),
     ]
     for fname, url, desc, kind in aux:
-        p = f"{D}/{fname}"
+        p = f"{D}/raw/{fname}"
         if not os.path.exists(p):
             continue
         docs[f"termina:aux:{fname}"] = {
