@@ -234,3 +234,15 @@ verbatim — additive only.
 ## Raw layer 2026-09-29
 
 - `staged_primary/university-shorteners_explicit.jsonl` -> `raw/staged_primary/university-shorteners_explicit.jsonl` and `staged_rollup/university-shorteners-rollup.jsonl` -> `raw/staged_rollup/university-shorteners-rollup.jsonl` (transform intermediates; consumer: scripts/es_unwind_university_shorteners.py). Subdir names preserved; raw layer exempt from event schema.
+
+## File-pointer repair 2026-09-29
+
+The 21312cf raw-layer migration moved evidence files under `raw/` without
+rewriting the top-level `file` pointers in `events.jsonl`, leaving 12 stale
+pointers (all 12 rows carried one). Each stale pointer was resolved by
+basename against the collection tree: all 12 resolved unambiguously to
+`raw/<same subpath>` with the identical basename (e.g.
+`u-ethz-ch/nB1nv_stats_2026-09-28.txt` -> `raw/u-ethz-ch/nB1nv_stats_2026-09-28.txt`);
+byte integrity unchanged (no sha256/size_bytes drift on any row). Pointers
+rewritten to the collection-relative `raw/...` form per schema. **Fixed: 12;
+dropped: 0.** SHA256SUMS regenerated.
