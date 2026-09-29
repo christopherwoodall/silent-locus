@@ -88,7 +88,7 @@ def classify(did, body):
 
 
 def build_docs():
-    manifest = json.load(open(f"{D}/manifest.json"))
+    manifest = json.load(open(f"{D}/raw/manifest.json"))
     # wiki ref counts per doc
     refs = {}
     with open(BASE + "/data/aggregates/2026-09-29-overlap-analysis/raw/jsonhero_doc_links.jsonl") as f:
@@ -99,7 +99,7 @@ def build_docs():
     for m in manifest:
         did = m["doc_id"]
         body = None
-        fpath = f"{D}/{did}.json"
+        fpath = f"{D}/raw/{did}.json"
         if os.path.exists(fpath):
             body = open(fpath, "rb").read()
         tags, desc = classify(did, body)
