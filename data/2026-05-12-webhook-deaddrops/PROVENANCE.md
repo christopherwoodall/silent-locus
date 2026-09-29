@@ -90,3 +90,13 @@ the separate `july7-wave` lane, not this dataset.
   probe pings; May — not July — mechanism).
 
 Validation: 0 violations. SHA256SUMS regenerated.
+
+## raw/-missing exception 2026-09-29
+
+2026-09-29: no raw/ layer — bounded marker sweep over existing corpora: all
+hit evidence lives in the source-corpus raw/ layers (rubygems-goimport-campaign
+raw/, JFrog inventory CSV, paste corpora) and
+notes/gem-corpus-a000-webhook-search-2026-09-27.md; the lane stored only
+mechanism_notes, not per-hit captures. Verified: no raw/ files ever committed
+in git history; no stray evidence files on disk; SHA256SUMS green. Ratified as
+a canonical-layout exception.
