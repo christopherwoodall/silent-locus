@@ -10,7 +10,7 @@ Usage:
   python3 es_ingest_public_board.py --load
   python3 es_ingest_public_board.py --verify
 """
-import sys, json, os, re, urllib.request
+import sys, json, os, re, glob, urllib.request
 from datetime import datetime, timezone
 import os
 try:
@@ -28,8 +28,10 @@ REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 HOSTS = ["agent-apocalypse-f1f7ba.es.us-east-1.aws.elastic.cloud"]
 CRED = "custom.elastic-cloud"
 BASE = REPO_ROOT
-D = BASE + "/data/2019-12-26-public-board"
-INDEX = "2019-12-26-public-board"
+# Resolve the collection dir by slug so date-prefix renames don't break this.
+_PB = sorted(glob.glob(BASE + "/data/*-public-board"))
+D = _PB[0] if _PB else BASE + "/data/2026-08-21-public-board"
+INDEX = os.path.basename(D)
 NOW = datetime.now(timezone.utc).isoformat()
 OBSERVER = {"product": "public-board-ingest", "vendor": "swarmtraces-hunt",
             "type": "dataset"}
