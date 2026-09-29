@@ -59,3 +59,16 @@ the derived collections' notes.
   rule); retained in raw. `chain_depth`, `chain_wrappers`, `grammars`,
   `board_markers`, `final_encodings` retained.
 - `SHA256SUMS` regenerated covering every file in the directory.
+
+## Rollup 2026-09-29 (W8)
+
+Built `rollup.jsonl`: 47 rows x `link_growth_rollup` — monthly new/cumulative
+link counts derived from the per-link YOURLS `link.created` dates
+(2016-12 -> 2026-09; June 2026 burst: +484). Same shape as
+`data/2016-12-28-rmn-re-history/rollup.jsonl`. `@timestamp` = month start,
+`labels.timestamp_source="labels:curve.month"`; fingerprint identity string
+`growth_curve:<month>` (same convention; the `-rollup` dataset suffix
+disambiguates from the sibling dir). Builder: `temp/build_rollup_w8.py`
+(repo root passed as argv[1]); monthly counts independently recomputed from
+events (sum = 764 links). `scripts/validate_schema.py`: 0 violations.
+SHA256SUMS regenerated (6 entries, incl. rollup.jsonl); `sha256sum -c` OK.
