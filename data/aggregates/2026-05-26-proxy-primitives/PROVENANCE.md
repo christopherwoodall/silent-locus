@@ -136,3 +136,13 @@ remains for this index). The script now:
 - `event.payloads` was NOT added: `schema/record.schema.json` declares `event`
   with `additionalProperties: false` (`created` + `dataset` only), so an extra
   sub-object would fail validation.
+
+## raw/-missing exception 2026-09-29
+
+2026-09-29: no raw/ layer — aggregate over sibling raw/ layers (collusion-wiki
+raw/, gem corpus): matched URL strings are inline in events.jsonl
+(top-level matched_string, labels.context); per-item capture bodies are
+deliberately not duplicated here (see the 2026-09-29 repair note above; the
+single wiki_revision body lives in the upstream collusion-wiki corpus).
+Verified: no raw/ files ever committed in git history; no stray evidence files
+on disk; SHA256SUMS green. Ratified as a canonical-layout exception.
