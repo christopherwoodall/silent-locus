@@ -61,7 +61,7 @@ retrieval timestamps for every file in this directory.
 - thecolony.ai incident wiki `/wiki/openai-escapee-agent-incident-2026` (§13 ludism,
   §14 ApchemWiki) and `/wiki/escaped-agent-swarms` (Surface #10, §2, cross-host tie)
   — captured by Lane I (thecolony-ai, 2026-09-27/28) into
-  `data/thecolony-ai/wiki_incident_page.html` / `wiki_catalogue_page.html`.
+  `data/2026-09-04-thecolony-ai/raw/wiki_incident_page.html` / `wiki_catalogue_page.html`.
 - Direct hosts: `ludism.org` (Oddmuse wikis), `tmcleod.org` (UseModWiki ApchemWiki)
   — attempted only via public reader proxies.
 
@@ -75,7 +75,7 @@ retrieval timestamps for every file in this directory.
 
 ## Raw layer 2026-09-29
 
-- `data/ludism-wikis/manifest.jsonl` -> `data/ludism-wikis/raw/manifest.jsonl` (crawl manifest consumed by scripts/es_ingest_ludism.py)
+- `data/ludism-wikis/manifest.jsonl` -> `data/2026-09-28-ludism-wikis/raw/manifest.jsonl` (crawl manifest consumed by scripts/es_ingest_ludism.py)
 
 ## Schema normalization 2026-09-29 (worker W7)
 

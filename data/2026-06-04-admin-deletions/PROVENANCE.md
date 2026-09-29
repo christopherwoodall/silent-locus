@@ -1,11 +1,11 @@
-# data/admin-deletions/ — provenance
+# data/2026-06-04-admin-deletions/ — provenance
 
 Lane R (admin-deletion recurrence check), 2026-09-28. Follow-up to lane P's
 open question: do the dse wiki admin's deletion sweeps recur before other runs?
 
 ## Source
 
-`data/collusion-wiki/events.jsonl.gz` (19,913 events), filtered to
+`data/2026-05-17-collusion-wiki/raw/events.jsonl.gz` (19,913 events), filtered to
 `event_type == "delete"`. No other transformation: `hits.jsonl` carries the
 original event records verbatim (one JSON object per line, sorted by `time`).
 

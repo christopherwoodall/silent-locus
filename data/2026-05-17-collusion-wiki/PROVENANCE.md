@@ -58,14 +58,14 @@ operator identity is pursued; the /16 truncation and username redaction in the
 source export make that impossible anyway.
 
 ## Raw layer 2026-09-29
-Moved the five upstream wiki dump captures into `data/collusion-wiki/raw/`,
+Moved the five upstream wiki dump captures into `data/2026-05-17-collusion-wiki/raw/`,
 keeping their upstream names (raw layer is exempt from the event schema):
 
-- `data/collusion-wiki/pages.jsonl` -> `data/collusion-wiki/raw/pages.jsonl`
-- `data/collusion-wiki/links.jsonl` -> `data/collusion-wiki/raw/links.jsonl`
-- `data/collusion-wiki/records.jsonl` -> `data/collusion-wiki/raw/records.jsonl`
-- `data/collusion-wiki/revisions.jsonl` -> `data/collusion-wiki/raw/revisions.jsonl`
-- `data/collusion-wiki/labels.jsonl` -> `data/collusion-wiki/raw/labels.jsonl`
+- `data/collusion-wiki/pages.jsonl` -> `data/2026-05-17-collusion-wiki/raw/pages.jsonl`
+- `data/collusion-wiki/links.jsonl` -> `data/2026-05-17-collusion-wiki/raw/links.jsonl`
+- `data/collusion-wiki/records.jsonl` -> `data/2026-05-17-collusion-wiki/raw/records.jsonl`
+- `data/collusion-wiki/revisions.jsonl` -> `data/2026-05-17-collusion-wiki/raw/revisions.jsonl`
+- `data/2026-05-17-collusion-wiki/labels.jsonl` -> `data/2026-05-17-collusion-wiki/raw/labels.jsonl`
 
 Rationale: these are upstream captures / script-consumed transform inputs
 (consumed by `scripts/extract_wiki_proxy_urls.py` and

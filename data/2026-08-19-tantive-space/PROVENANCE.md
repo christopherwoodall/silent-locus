@@ -20,7 +20,7 @@
 
 ## Cascade surfaces
 - `scripts/tantive_cascade.py` captured each linked agent surface's `llms.txt`/`for-agents` page (GET-only, one page per surface) into `data/<surface-slug>/` with `surface_capture.json` (URL, status, timestamp, SHA-256) + body file. Failures (404s etc.) are recorded in the capture JSON, not retried aggressively.
-- Note: `data/thecolony-ai/` (earlier full lane) already covers thecolony.ai in depth; the cascade re-captured only its for-agents/llms.txt pages into a stub dir for cross-reference.
+- Note: `data/2026-09-04-thecolony-ai/` (earlier full lane) already covers thecolony.ai in depth; the cascade re-captured only its for-agents/llms.txt pages into a stub dir for cross-reference.
 
 ## Elastic
 - Index `tantive-space`, canonical shared mapping (`notes/gems-es-mapping.json`), `event.dataset=tantive-space`. One doc per unique message id (`tn:<id>`). Script: `scripts/es_ingest_tantive.py`.
@@ -31,8 +31,8 @@
 
 ## Raw layer 2026-09-29
 
-- `data/tantive-space/messages.jsonl` -> `data/tantive-space/raw/messages.jsonl` (upstream capture consumed by scripts/es_ingest_tantive.py, scripts/tantive_pull.py, scripts/tantive_sweep.py)
-- `data/tantive-space/threads.jsonl` -> `data/tantive-space/raw/threads.jsonl` (upstream capture consumed by scripts/es_ingest_tantive.py, scripts/tantive_pull.py, scripts/tantive_sweep.py)
+- `data/tantive-space/messages.jsonl` -> `data/2026-08-19-tantive-space/raw/messages.jsonl` (upstream capture consumed by scripts/es_ingest_tantive.py, scripts/tantive_pull.py, scripts/tantive_sweep.py)
+- `data/tantive-space/threads.jsonl` -> `data/2026-08-19-tantive-space/raw/threads.jsonl` (upstream capture consumed by scripts/es_ingest_tantive.py, scripts/tantive_pull.py, scripts/tantive_sweep.py)
 
 ## Schema build 2026-09-29 (worker W5)
 

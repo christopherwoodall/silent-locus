@@ -60,7 +60,7 @@ stay on disk as reference per keep-all policy.
 
 ## Stub merge — deploy tooling recovered (2026-09-28)
 
-Two repo files from the untracked stub `data/md-succ-ai/repo/` were absent from
+Two repo files from the untracked former stub `repo/` were absent from
 the 2026-09-28 clone above (byte-compare confirmed: no matching names or
 hashes among the clone's 79 files) and are merged here preserving paths:
 
@@ -70,5 +70,4 @@ hashes among the clone's 79 files) and are merged here preserving paths:
 - `raw/repo/scripts/browser-server.mjs` — Camoufox browser sidecar entry
   point (Playwright WebSocket, auto-restart, HTTP health endpoint)
 
-SHA256SUMS regenerated to include both files. Untracked stub dir
-`data/md-succ-ai/` removed from disk after merge.
+SHA256SUMS regenerated to include both files. The untracked stub dir was removed from disk after merge.

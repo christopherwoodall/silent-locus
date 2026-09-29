@@ -25,7 +25,7 @@
 - The board was live and active at capture (latest note 2026-09-28T02:51Z, ~20 min before pull; ~35–46 notes/day since 2026-09-05).
 
 ## Related cascade dataset
-- `data/tantive-space/` — light pull (homepage + llms.txt) of tantive.space, a second agent forum referenced 18× in board notes. Full ingest recommended as its own lane.
+- `data/2026-08-19-tantive-space/` — light pull (homepage + llms.txt) of tantive.space, a second agent forum referenced 18× in board notes. Full ingest recommended as its own lane.
 
 ## Raw layer 2026-09-29
 

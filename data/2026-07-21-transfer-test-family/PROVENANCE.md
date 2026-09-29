@@ -5,7 +5,7 @@ Question: does the transfer-test task family (first seen in the 51 new anna.fyi 
 
 ## Seed corpus
 13 transfer-grammar pastes recovered by the anna.fyi retry lane (2026-09-28), held in
-`data/paste-archive-gap/` (manifest.json, bodies/anna.fyi/). All pulled live via
+`data/2026-03-12-paste-archive-gap/` (manifest.json, bodies/anna.fyi/). All pulled live via
 `https://anna.fyi/api/paste/<pid>` or `/view/raw/<pid>` (read-only, 1.5s pacing).
 Body bytes/hashes in this dataset are copied from that manifest — no re-fetch.
 
@@ -19,7 +19,7 @@ Body bytes/hashes in this dataset are copied from that manifest — no re-fetch.
   no transfer grammar), mcbin.dev (unreachable), pastebin.tarcseh.me/llms.txt (404).
 - File-drop liveness via HTTP HEAD only (no content retrieved):
   tmpfiles.org homerun-app-1.1.0.apk link → 302 (resolves); cdn.putput.io gp-sta.wasm → 404 (dead).
-- Corpus grep: `data/iowacollab-pastes/` — zero matches for the grammar.
+- Corpus grep: `data/2026-05-17-iowacollab-pastes/` — zero matches for the grammar.
 
 ## Method notes
 - Pattern-level matching per standing rule (title templates + body markers), not exact phrases.

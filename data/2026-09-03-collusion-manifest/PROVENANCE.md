@@ -9,7 +9,7 @@ Manifest sidecar for the `collusion-wiki` collection.
   prowiki.org; probier and fractal on wikiservice.at).
 - **Retrieved:** 2026-09-28 as part of the collusion-wiki lane-22 download
   (all 11 export files SHA-256 verified against the publisher's published
-  checksums at ingest time; see `data/collusion-wiki/PROVENANCE.md`).
+  checksums at ingest time; see `data/2026-05-17-collusion-wiki/PROVENANCE.md`).
 
 ## Files
 - `manifest.json` — the export's own manifest as published: generation
@@ -32,7 +32,7 @@ the canonical `collusion-wiki` data.
   cut, IP/username redaction policy.
 - `notes/collusion-wiki-schema-2026-09-27.md` — schema/structure of the
   collusion.wiki export.
-- `data/collusion-wiki/PROVENANCE.md` — sibling collection's provenance
+- `data/2026-05-17-collusion-wiki/PROVENANCE.md` — sibling collection's provenance
   (same download event).
 
 ## Schema backfill 2026-09-29 (normalization sweep, worker W4)
