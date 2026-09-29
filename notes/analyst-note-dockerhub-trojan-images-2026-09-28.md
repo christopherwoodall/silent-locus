@@ -10,7 +10,7 @@ The ≥115 trojaned eval images **cannot be enumerated from the `cybergym/` or `
 
 **Evidence grade: ABSENT (clean negative, coverage documented).**
 
-- Full tag-name census via registry API (complete for all 20 repos, both orgs; 37,536 tags): **zero** tags in `cybergym/` or `n132/` carry agent-grammar names (`zz*`, `*gpt*`, `*dummy*`, `*sink*`, `*httpbun*`, epoch-nonce strings). Agent-grammar scan matched only false positives (`clusterfuzz-*`, `harfbuzz` — the `zz` in "fuzz").
+- Full tag-name census via registry API (complete for all 20 repos, both orgs; 37,437 tags): **zero** tags in `cybergym/` or `n132/` carry agent-grammar names (`zz*`, `*gpt*`, `*dummy*`, `*sink*`, `*httpbun*`, epoch-nonce strings). Agent-grammar scan matched only false positives (`clusterfuzz-*`, `harfbuzz` — the `zz` in "fuzz").
 - Corpus reference set (5 tags from our Artifactory records in `data/overlap-matches.jsonl`, `data/matches-f5f6.jsonl`), checked live against Hub per-tag API 2026-09-28:
   - `cybergym/arvo:zzgptimg21784227813` — **404 GONE** (strong: API-observed)
   - `cybergym/arvo:jan29pcldummy1700` — **404 GONE** (strong: API-observed)
@@ -46,7 +46,7 @@ The ≥115 trojaned eval images **cannot be enumerated from the `cybergym/` or `
 **Evidence grade: STRONG for covered tags; coverage limits documented.**
 
 - Per-tag `tag_last_pushed`/`last_updated` recorded for the newest 1000 tags per repo; complete (all tags) for every repo with ≤1000 tags. Docker Hub blocks anonymous pagination past offset 1000 (HTTP 403, message: "pagination offset too large for anonymous requests; sign in to page further") — no login created per read-only guard. July-window detection is unaffected (listing is newest-first; see PROVENANCE.md).
-- Gone vs live: the only trojan-candidate tags we can name (3 agent-named corpus tags) are 404; all 37,536 registry-listed tags are live by construction (registry `tags/list` reflects current state).
+- Gone vs live: the only trojan-candidate tags we can name (3 agent-named corpus tags) are 404; all 37,437 registry-listed tags are live by construction (registry `tags/list` reflects current state).
 
 ## What would settle the open questions
 
@@ -63,4 +63,4 @@ The ≥115 trojaned eval images **cannot be enumerated from the `cybergym/` or `
 
 ## Addendum — deep-pagination resume attempt (2026-09-28 23:58 → 2026-09-29 00:07 UTC)
 
-The stalled `fetch_tags.py` (`cybergym/oss-fuzz` pages 11–13, i.e. the 256 tags beyond offset 1000) was resumed after a probe returned HTTP 200 on the tags endpoint. The probe was misleading: it used `page_size=1&page=13` (offset 13), below the cap. The resume hit **HTTP 403 on all 8 tries** (5s→120s backoff) at `page_size=100&page=11` and raised; no retry, no login, no evasion — stopped per read-only instructions. This is a replicated confirmation that the anonymous offset-1000 wall is **standing API policy, not a transient block**, and it closes the lane's last open item as a verified-bounded partial: `repo-cybergym-oss-fuzz.jsonl` is 1000/1256 with full metadata (the newest 1000, pushed 2026-05-31 or earlier — no July-2026 activity possible below them in listing order); the remaining 256 tag *names* are fully enumerated via the registry list and reconciled 1:1 in `final-*.jsonl`. ES ingest remains QUEUED behind `ELASTIC_WRITE_PAUSE` (dataset lives disk+git). Verdict and census numbers above are unchanged: 37,337 tags across 20 repos, all reconciled, committed and pushed.
+The stalled `fetch_tags.py` (`cybergym/oss-fuzz` pages 11–13, i.e. the 256 tags beyond offset 1000) was resumed after a probe returned HTTP 200 on the tags endpoint. The probe was misleading: it used `page_size=1&page=13` (offset 13), below the cap. The resume hit **HTTP 403 on all 8 tries** (5s→120s backoff) at `page_size=100&page=11` and raised; no retry, no login, no evasion — stopped per read-only instructions. This is a replicated confirmation that the anonymous offset-1000 wall is **standing API policy, not a transient block**, and it closes the lane's last open item as a verified-bounded partial: `repo-cybergym-oss-fuzz.jsonl` is 1000/1256 with full metadata (the newest 1000, pushed 2026-05-31 or earlier — no July-2026 activity possible below them in listing order); the remaining 256 tag *names* are fully enumerated via the registry list and reconciled 1:1 in `final-*.jsonl`. ES ingest remains QUEUED behind `ELASTIC_WRITE_PAUSE` (dataset lives disk+git). Verdict and census numbers above are unchanged: 37,437 tags across 20 repos, all reconciled, committed and pushed.

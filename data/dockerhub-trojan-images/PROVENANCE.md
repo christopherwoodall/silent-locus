@@ -13,7 +13,7 @@ Retrieved 2026-09-28 ~23:35–23:56 UTC (18:35–18:56 CDT); deep-pagination res
 ## Method
 
 1. `org-{cybergym,n132}-repos.json` — full org repo listings (Hub API, page 1 of 1 each).
-2. `registry-tags-{org}-{repo}.json` — complete tag-name sets via registry `tags/list` (20 repos; 37,536 tags total). Cached; the fetch script skips existing files (resumable).
+2. `registry-tags-{org}-{repo}.json` — complete tag-name sets via registry `tags/list` (20 repos; 37,437 tags total). Cached; the fetch script skips existing files (resumable).
 3. `hub10-{org}-{repo}.jsonl` — tag metadata (newest 1000 per repo, Hub API pages 1–10). For repos with ≤1000 tags this is the complete set with timestamps.
 4. `corpus-trojan-tag-liveness.jsonl` — per-tag Hub lookups for the 5 corpus-referenced trojan tags (live vs 404).
 5. `final-{org}-{repo}.jsonl` — merged per-repo records: `org, repo, tag, tag_last_pushed, last_updated, tag_status, digest, images_arch, metadata_fetched, liveness, retrieved, sources`. `final-gone-trojan-tags.jsonl` holds the 3 corpus tags that 404.
