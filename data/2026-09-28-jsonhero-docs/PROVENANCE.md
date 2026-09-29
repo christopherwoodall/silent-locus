@@ -53,3 +53,23 @@ wiki-revision citations and died since. N=17 docs = the complete 17-ID corpus
 list from `../jsonhero/usage_patterns.json` (12 live + 5 dead) — the venue is
 exhaustively enumerated. ES `jsonhero-docs` _count=17 verified, schema-drift
 clean.
+
+## Schema normalization 2026-09-29 (worker W7)
+
+- Built `events.jsonl`: 12 records, one per live doc JSON in `raw/` (builder:
+  `temp/build_events_w7.py`, repo root passed as argv[1]).
+- record_kind: `artifact_observation` (existing registry kind; no new kinds introduced).
+- Fingerprint identity string: `jsonhero-doc:<doc_id>` (sha256 hex of that string).
+  Method verified against the reference: recomputing sha256("TheNacken/python-cors-proxy")
+  reproduces data/2023-11-14-hfspace-proxies' fingerprint `14c645d9…efbe94` exactly.
+- `@timestamp`: `2026-09-28T00:00:00Z` for all records
+  (`labels.timestamp_source = "fallback:dir_date_prefix;manifest retrieved_at_utc partially
+  redacted (02:5x:00Z)"`) — the manifest's retrieval timestamps carry a redacted digit
+  and are not parseable, so no per-doc event time is recoverable.
+- Body sha256 + byte_size verified per file against `manifest.json` at build time
+  (all 12 match); verified values carried as top-level `sha256` / `size_bytes`.
+- The 5 dead docs (HTTP 500, no body file) remain manifest-only per the keep-all policy —
+  no event records created for them. `manifest.json`'s `file` field still carries the
+  pre-move path `data/jsonhero-docs/...`; left as-is (raw is immutable).
+- `SHA256SUMS` regenerated (sha256sum-style): `events.jsonl` + all `raw/` contents,
+  verified with `sha256sum -c`.
