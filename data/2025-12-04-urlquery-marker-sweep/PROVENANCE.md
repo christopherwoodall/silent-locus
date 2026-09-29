@@ -42,6 +42,28 @@ Documented in full in `notes/analyst-note-urlquery-marker-sweep-2026-09-28.md`
   marker-in-URL hit; aggregate counts (e.g. the 134 Appwrite exploitgym
   content hits) are documented in the analyst note, not enumerated per report.
 
+## Continuation 2026-09-29: full pagination of the unscoped `"exploitgym"` query
+- Retrieved: 2026-09-29 ~09:55–10:00 UTC (04:55–05:00 CDT), single operator session.
+- Method: `uq.py search --query '"exploitgym"' --limit 30 --offset N` for
+  N = 30, 60, ..., 960 (32 pages), saved verbatim as
+  `raw/v2_exploitgym_unscoped_off<N>.json` in the same response format as the
+  original sweep. Polite pacing: 3s sleep between requests (~7s/request wall).
+- `total_hits` stayed 967 on every page; no rate limiting, no failures.
+- Coverage: the off-0 page returns only 29 rows despite limit=30, so
+  pagination covers 966 distinct report IDs out of the reported 967. A probe
+  fetch at offset 966 (`raw/v2_exploitgym_unscoped_off966.json`, 1 row)
+  returned an ID already seen on the off-960 page (result-window drift) — the
+  remaining 1 hit is not addressable via stable pagination. Recorded honestly:
+  966/967 distinct captured.
+- No cross-page duplicates among the 32 new pages; the v1 and v2 off-0 copies
+  are the same 29 rows.
+- events.jsonl extended: 966 one-per-hit `venue_finding` events added via
+  `build_events.py` (marker=exploitgym, evidence_grade=low — search-index
+  match, match location not verifiable via the public report API, per the
+  collection caveat). Fingerprint = sha256(report_id), same as the backfill.
+  9 original curated events preserved; 975 events total, all report_ids distinct.
+- Scope unchanged: read-only, public search API only, no submissions.
+
 ## Schema backfill 2026-09-29
 - Transform: `temp/backfill_w2.py`. Pre-schema flat records brought onto the
   shared schema. Renames: `report_url` -> `source_url`, `notes` -> `note`;
