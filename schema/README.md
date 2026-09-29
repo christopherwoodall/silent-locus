@@ -27,7 +27,9 @@ corpus files.
 `source_url`, `description`, `confidence` (`confirmed|high|medium|low` by
 convention), `tags` (array of strings), `observer` (`{product, type, vendor}`),
 `retrieved_at`, `retrieved_via`, `sha256`, `size_bytes`, `note`, `status`,
-`matched_string`. No other top-level keys are allowed.
+`matched_string`, `file` (relative path of the repo-local source artifact the
+record was materialized from, e.g. `data/<collection>/raw/...`; complements
+`source_url`, which is the upstream URL). No other top-level keys are allowed.
 
 ## Timestamp rules
 
