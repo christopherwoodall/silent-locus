@@ -82,3 +82,16 @@ dropped; dataset-specific fields moved under `labels`.
 The 42 schema-conformant event JSONL sweep files (`dockerhub-trojan-images-*.jsonl`; families: corpus, final, hub10, repo shards) were concatenated into a single `events.jsonl` on 2026-09-29.
 
 Rule used: files were processed in sorted-filename order; before writing, each record's `labels` object was extended with `"file_origin": <source basename>` to preserve the origin filename (labels existed on all records; no other fields modified — fingerprints already encode the family). Verified line counts: 42,318 input records == 42,318 lines in `events.jsonl`; spot-checks confirmed `labels.file_origin` present. Source files removed after verification (content 100% preserved; also in git history). Non-canonical root artifacts (fetch scripts, logs, registry-tags JSON) moved to `raw/`. `SHA256SUMS` intentionally not regenerated here (handled by a later sweep).
+
+## Stub merge — run logs recovered (2026-09-28)
+
+Two run logs from the pre-layout stub `data/dockerhub-trojan-images/` were not
+present in this dataset and are merged here (copied, hashes verified identical):
+
+- `raw/hub10_stdout.log` (1,180 bytes) — stdout of `fetch_hub10.py` (Hub pages
+  1–10 metadata pass, 2026-09-28 ~23:53–23:55 UTC)
+- `raw/registry_stdout.log` (1,387 bytes) — stdout of `registry_tags.py`
+  (registry `tags/list` enumeration, 2026-09-28 ~23:56 UTC)
+
+SHA256SUMS regenerated to include both files. Stub dir
+`data/dockerhub-trojan-images/` removed after merge.
