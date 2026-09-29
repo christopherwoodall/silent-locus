@@ -5,7 +5,7 @@ How does the api.worldpoverty.io agent task family run — slug set, query templ
 wiki venue sheets, cross-family citation, timing shape.
 
 ## Inputs (read-only, on disk)
-- `data/2026-09-27-rmn-re/raw/link_table_decoded_2026-09-27.json` — 15 decoded rmn.re slugs
+- `data/2016-12-28-rmn-re/raw/link_table_decoded_2026-09-27.json` — 15 decoded rmn.re slugs
   (slug, decoded_target, clicks, created (renders +4h vs UTC), creator_ip16, chain_wrappers)
 - `data/2026-05-17-collusion-wiki/raw/shortener-logs.json` — rmn.re YOURLS log (site rmn.re):
   authoritative ISO-UTC creation times + click counts per keyword; 11 of 15 worldpoverty
@@ -53,7 +53,7 @@ rebuild from the directory's data):
 
 - `es_ingest_worldpoverty_task_family.py` (co-located in this dir per
   schema/collections.md) now rebuilds all 22 event docs from the surviving
-  PRIMARY sources: `data/2026-09-27-rmn-re/raw/link_table_decoded_2026-09-27.json`
+  PRIMARY sources: `data/2016-12-28-rmn-re/raw/link_table_decoded_2026-09-27.json`
   (15/15 slugs verified present), `data/2026-05-17-collusion-wiki/raw/shortener-logs.json`
   (15/15 keywords verified present), `data/2026-05-17-collusion-wiki/raw/revisions.jsonl`
   (3 Poverty Links bodies + sequence page verified; original hits.jsonl also

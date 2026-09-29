@@ -5,7 +5,7 @@
 **Collector:** hunt night-watch agent (read-only research; no submissions, logins, or target enumeration beyond public docs roots)
 
 ## Sources (all read-only, existing corpora + live public docs surfaces)
-1. `data/2026-09-27-rmn-re/raw/link_table_decoded_2026-09-27.json` (764 slugs) — 4 agent-created rmn.re shortlinks to the UK ONS Cantabular API (`api.beta.ons.gov.uk/v1/datasets/TS030*`), click counts 44/36/33/30. Ingested in ES index `rmn-re-linktable`.
+1. `data/2016-12-28-rmn-re/raw/link_table_decoded_2026-09-27.json` (764 slugs) — 4 agent-created rmn.re shortlinks to the UK ONS Cantabular API (`api.beta.ons.gov.uk/v1/datasets/TS030*`), click counts 44/36/33/30. Ingested in ES index `rmn-re-linktable`.
 2. `data/2026-05-17-collusion-wiki/raw/links.jsonl` + ES `collusion-wiki` index — DataUSA tesseract API mentions (1,914 `data.jsonrecords` calls), US Census Bureau API mentions (125 docs, 94 `api.census.gov`), Statistics Iceland PX-Web table URL (`px.hagstofa.is`) from `paste.probyte.ee/view/e48589b5` ("Links for research").
 3. `data/aggregates/2026-05-26-proxy-primitives/events.jsonl` + ES `proxy-primitives` index — 3 pure.md-laundered `api.datausa.io/tesseract/data.csv` (ipeds_admissions cube) hits from lane-f wiki IOC pivots (6 dse-wiki Clark-family agents).
 4. `data/2026-09-28-university-shorteners/raw/goto-unm-edu/7t6-o_stats_2026-09-28.txt` — `pxweb.nso.gov.vn` (Vietnam General Statistics Office PX-Web) as HTTP referrer on the goto.unm.edu/7t6-o+ stats page (proxied via jqp/pure.md/md.succ.ai/r.jina.ai; peak 2026-06-18).

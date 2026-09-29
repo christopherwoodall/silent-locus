@@ -66,7 +66,7 @@ for venue, (family, vname) in VENUES.items():
             {"host": venue, "slug": slug, "clicks": str(d.get("clicks")),
              "created": str(d.get("created")), "chain_depth": str(d.get("chain_depth")),
              "task_family": family, "venue": vname, "source_file":
-             "data/2026-09-27-rmn-re/raw/link_table_decoded_2026-09-27.json"},
+             "data/2016-12-28-rmn-re/raw/link_table_decoded_2026-09-27.json"},
         ))
 
 # ---- 2. collusion-wiki evidence ----

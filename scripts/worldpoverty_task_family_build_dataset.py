@@ -8,7 +8,7 @@ live sequence page, the IHME family-planning cross-citation, and the
 staging -> burst -> hygiene timing shape.
 
 All paths project-relative. Sources:
-  data/2026-09-27-rmn-re/raw/link_table_decoded_2026-09-27.json          (15 decoded slugs)
+  data/2016-12-28-rmn-re/raw/link_table_decoded_2026-09-27.json          (15 decoded slugs)
   data/2026-05-17-collusion-wiki/raw/shortener-logs.json                (rmn.re YOURLS log, authoritative UTC timestamps)
   data/2026-05-17-collusion-wiki/revisions.jsonl                    (wiki page bodies + write dates)
   data/2026-05-17-collusion-wiki/events.jsonl                       (save/delete events)
@@ -104,7 +104,7 @@ for slug, (tpl, years) in SLUG_TPL.items():
          "created_utc": yl["time"], "clicks_log": str(yl["clicks"]),
          "clicks_table": str(d.get("clicks")), "creator_ip16": str(d.get("creator_ip16")),
          "chain_depth": str(d.get("chain_depth")), "task_family": "worldpoverty-graphql",
-         "source_file": "data/2026-09-27-rmn-re/raw/link_table_decoded_2026-09-27.json; data/2026-05-17-collusion-wiki/raw/shortener-logs.json"},
+         "source_file": "data/2016-12-28-rmn-re/raw/link_table_decoded_2026-09-27.json; data/2026-05-17-collusion-wiki/raw/shortener-logs.json"},
     ))
 assert n == 15, n
 
@@ -329,7 +329,7 @@ How does the api.worldpoverty.io agent task family run — slug set, query templ
 wiki venue sheets, cross-family citation, timing shape.
 
 ## Inputs (read-only, on disk)
-- `data/2026-09-27-rmn-re/raw/link_table_decoded_2026-09-27.json` — 15 decoded rmn.re slugs
+- `data/2016-12-28-rmn-re/raw/link_table_decoded_2026-09-27.json` — 15 decoded rmn.re slugs
   (slug, decoded_target, clicks, created (renders +4h vs UTC), creator_ip16, chain_wrappers)
 - `data/2026-05-17-collusion-wiki/raw/shortener-logs.json` — rmn.re YOURLS log (site rmn.re):
   authoritative ISO-UTC creation times + click counts per keyword; 11 of 15 worldpoverty
