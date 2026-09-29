@@ -9,10 +9,10 @@ identity strings. No dir BLOCKED. Nothing pushed (per instructions).
 | dir | events | rollup | notes |
 |---|---|---|---|
 | 2026-03-11-dse-wiki-verification | 21 | — | 6 downloads + 15 indicator sweeps (4 hit / 11 negative) |
-| 2025-01-13-jsonhero-docs-archive | 6 | 1 | 1 recovered + 5 CDX negatives; rollup = recovery census |
-| 2025-02-04-thecolony-ai | 55 | — | 10 posts, 9 searches, 6 cascades, 6 downloads, 24 sweep patterns |
+| 2026-09-12-jsonhero-docs-archive | 6 | 1 | 1 recovered + 5 CDX negatives; rollup = recovery census |
+| 2026-09-04-thecolony-ai | 55 | — | 10 posts, 9 searches, 6 cascades, 6 downloads, 24 sweep patterns |
 | 2025-03-04-rubygems-goimport-campaign | 10,421 | 5 | nodes 2830, ioc-log 1262, hits 2339 (2 dup lines dropped), iocs 334, wayback 16, pins 615, jfrog 3025; rollup = per-day graph aggregates |
-| 2025-05-14-hf-tampering-check | 21 | 4 | 15 commits, 1 discussion, 5 snapshots; rollup = per-repo commit summaries (0 commits in 2026-07-10/13 breach window) |
+| 2025-05-15-hf-tampering-check | 21 | 4 | 15 commits, 1 discussion, 5 snapshots; rollup = per-repo commit summaries (0 commits in 2026-07-10/13 breach window) |
 
 Rollup decisions: built ONLY where a genuine aggregate layer exists
 (jsonhero census, gems per-day waves, hf per-repo summaries). dse-wiki and
@@ -31,14 +31,14 @@ All event kinds used are existing registry kinds: `download`,
 
 ## Removal / rename / fix candidates (with evidence)
 
-1. **Stale MANIFEST.sha256** — `data/2025-05-14-hf-tampering-check/raw/MANIFEST.sha256`
+1. **Stale MANIFEST.sha256** — `data/2025-05-15-hf-tampering-check/raw/MANIFEST.sha256`
    lists `progress.log` (hash `b699414c…`), but no `progress.log` exists in
    `raw/` or the dir. The manifest also predates the regenerated SHA256SUMS.
    Candidate: lane owner regenerates or removes it. (Left untouched — read-only guard.)
-2. **Stale path in manifest** — `data/2025-01-13-jsonhero-docs-archive/raw/manifest.json`,
+2. **Stale path in manifest** — `data/2026-09-12-jsonhero-docs-archive/raw/manifest.json`,
    entry `swJMw8b6VwDC`, field `"file": "data/jsonhero-docs-archive/swJMw8b6VwDC.json"`.
    That path predates the date-prefix rename; the file now lives at
-   `data/2025-01-13-jsonhero-docs-archive/raw/swJMw8b6VwDC.json`. Candidate: fix the path.
+   `data/2026-09-12-jsonhero-docs-archive/raw/swJMw8b6VwDC.json`. Candidate: fix the path.
 3. **Pending relocation note** — `data/2025-03-04-rubygems-goimport-campaign/PROVENANCE.md`
    still says "pending-relocation … will relocate to the sibling repo
    `../rubygems-goimport-campaign/`". If the move is still planned, the new

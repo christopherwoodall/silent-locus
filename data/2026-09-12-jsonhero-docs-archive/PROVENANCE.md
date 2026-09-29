@@ -74,4 +74,4 @@ network is the recorded next step, not a blocker.
 - Rollup: `rollup.jsonl` with one `recovery_census` row (NEW kind, listed in
   notes/dir-triage-W3.md) aggregating the 6 events — 1 recovered, 5 not archived,
   Wayback-only scope. `event.dataset` suffixed `-rollup`.
-- `event.dataset = "2025-01-13-jsonhero-docs-archive"`; `event.created` = build time.
+- `event.dataset = "2026-09-12-jsonhero-docs-archive"`; `event.created` = build time.
