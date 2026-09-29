@@ -18,7 +18,7 @@ Dump types: labels pages events links records revisions shortener other bridge
 """
 import sys, json, re, hashlib, urllib.request
 from datetime import datetime, timezone
-import os
+import os, gzip
 try:
     sys.path.insert(0, "/opt/hatch/skills/skill-creator/bin")
     from dynamic_credentials import add_surrogate_to_request, read_json_response
@@ -35,6 +35,7 @@ HOSTS = ["agent-apocalypse-f1f7ba.es.us-east-1.aws.elastic.cloud"]
 CRED = "custom.elastic-cloud"
 BASE = REPO_ROOT
 WIKI = BASE + "/data/2026-05-17-collusion-wiki"
+RAW = WIKI + "/raw"  # dump files consolidated into raw/ (labels, pages, events, links, records, revisions, shortener-logs, other-wikis)
 INDEX = "2026-05-17-collusion-wiki"
 NOW = datetime.now(timezone.utc).isoformat()
 OBSERVER = {"product": "collusion-wiki-export", "vendor": "nightingale-collective",
@@ -121,7 +122,7 @@ def base_doc(kind, ts):
 
 def load_labels():
     docs = {}
-    for line in open(WIKI + "/labels.jsonl"):
+    for line in open(RAW + "/labels.jsonl"):
         line = line.strip()
         if not line:
             continue
@@ -148,7 +149,7 @@ def load_labels():
 
 def load_pages():
     docs = {}
-    for line in open(WIKI + "/pages.jsonl"):
+    for line in open(RAW + "/pages.jsonl"):
         line = line.strip()
         if not line:
             continue
@@ -174,7 +175,8 @@ def load_pages():
 
 def load_events():
     docs = {}
-    for line in open(WIKI + "/events.jsonl"):
+    # raw events dump is gzipped (raw/events.jsonl.gz); everything else is plain
+    for line in gzip.open(RAW + "/events.jsonl.gz", "rt"):
         line = line.strip()
         if not line:
             continue
@@ -195,7 +197,7 @@ def load_events():
 
 def load_links():
     docs = {}
-    for line in open(WIKI + "/links.jsonl"):
+    for line in open(RAW + "/links.jsonl"):
         line = line.strip()
         if not line:
             continue
@@ -237,7 +239,7 @@ def norm_ts(v):
 def load_records():
     docs = {}
     no_ts = 0
-    for line in open(WIKI + "/records.jsonl"):
+    for line in open(RAW + "/records.jsonl"):
         line = line.strip()
         if not line:
             continue
@@ -279,7 +281,7 @@ def load_records():
 
 def load_revisions():
     docs = {}
-    for line in open(WIKI + "/revisions.jsonl"):
+    for line in open(RAW + "/revisions.jsonl"):
         line = line.strip()
         if not line:
             continue
@@ -310,7 +312,7 @@ def load_revisions():
 
 def load_shortener():
     docs = {}
-    sl = json.load(open(WIKI + "/shortener-logs.json"))
+    sl = json.load(open(RAW + "/shortener-logs.json"))
     for site in sl.get("sites", []):
         for link in site.get("links", []):
             url = link.get("url") or ""
@@ -333,7 +335,7 @@ def load_shortener():
 
 def load_other():
     docs = {}
-    ow = json.load(open(WIKI + "/other-wikis.json"))
+    ow = json.load(open(RAW + "/other-wikis.json"))
     for p in ow.get("pages", []):
         revs = p.get("revisions", [])
         for rv in revs:
