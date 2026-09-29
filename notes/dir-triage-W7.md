@@ -80,7 +80,7 @@ None. All three built dirs used existing registry kinds:
 None. All three assigned dirs built cleanly:
 - `2026-09-28-jsonhero-docs`: 12 records (commit 3491944)
 - `2026-09-28-ludism-wikis`: 29 records (commit ad189cb)
-- `2026-09-28-paste-linuxiarz`: 131 records (commit 31c3bb2)
+- `2026-05-26-paste-linuxiarz`: 131 records (commit 31c3bb2)
 
 Verification per dir: `scripts/validate_schema.py` exit 0 (172 records, 0
 violations); `sha256sum -c SHA256SUMS` all-OK from inside each dir;

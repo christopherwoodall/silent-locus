@@ -67,3 +67,13 @@ Builder: `temp/build_rollup_w8.py` (repo root passed as argv[1]); per-day
 counts independently recomputed (sum = 131). `scripts/validate_schema.py`:
 0 violations. SHA256SUMS regenerated (135 entries, incl. rollup.jsonl);
 `sha256sum -c` OK.
+
+## Date-prefix audit 2026-09-29 (worker W5)
+
+Dir renamed `2026-09-28-paste-linuxiarz` -> `2026-05-26-paste-linuxiarz`.
+All 131 paste events carry @timestamp 2026-05-26 -> 2026-06-17 (paste creation
+dates; the 2026-06-16 burst holds 119/131). The old 2026-09-28 prefix was the
+lane/build date, not an event date. Per schema/collections.md (prefix = first
+event), the correct prefix is 2026-05-26. `event.dataset` updated in
+events.jsonl / rollup.jsonl (`...-rollup` suffix preserved); SHA256SUMS
+regenerated.

@@ -24,15 +24,15 @@ fingerprints recompute-verified against the documented identity strings.
 
 ## Per-dir results
 
-- **2016-01-05-termina-digital** — 223 events (104 wayback_capture, 105 corpus_hit,
+- **2026-09-05-termina-digital** — 223 events (104 wayback_capture, 105 corpus_hit,
   5 corpus_grep_negative, 7 artifact_observation, 2 surface_negative), 21-row
   per-pattern sweep rollup. Capture times joined from the lane CDX dump via SURT
   urlkeys (99/99).
 - **2016-05-06-reverse-tunnels** — 107 events, 6-row per-query rollup.
 - **2016-12-28-rmn-re-history** — 768 events (764 wiki_shortener), 47-row monthly
   growth-curve rollup.
-- **2018-10-01-uoft-shorteners** — 13 events, no rollup (pure recon stream).
-- **2019-12-26-public-board** — 888 events (861 board notes, dedup-verified against
+- **2026-09-28-uoft-shorteners** — 13 events, no rollup (pure recon stream).
+- **2026-08-21-public-board** — 888 events (861 board notes, dedup-verified against
   the 5 archive pages), no rollup.
 - **2021-05-10-vanderbilt-shortener** — 38 events, no rollup (heterogeneous census).
   12 of 13 web mentions undated → sentinel 1970 + `fallback:no_recoverable_date`.
@@ -43,16 +43,16 @@ fingerprints recompute-verified against the documented identity strings.
   peak 47 forks 2026-07-22→25 — + 1 issue summary).
 - **2026-03-11-dse-wiki-verification** — 21 events, no rollup. **PROVENANCE.md was
   missing; created.**
-- **2025-01-13-jsonhero-docs-archive** — 6 events, 1-row recovery census rollup.
-- **2025-02-04-thecolony-ai** — 55 events, no rollup.
+- **2026-09-12-jsonhero-docs-archive** — 6 events, 1-row recovery census rollup.
+- **2026-09-04-thecolony-ai** — 55 events, no rollup.
 - **2025-03-04-rubygems-goimport-campaign** — 10,421 events (largest dir: nodes,
   ioc-log, hits, IOCs, wayback, pins, JFrog), 5-row per-day wave rollup
   (2026-05-12: 567 campaign gems). `.pre-bulk` verified ⊆ current set, excluded;
   edges excluded (relationships, not events).
-- **2025-05-14-hf-tampering-check** — 21 events, 4-row per-repo rollup.
+- **2025-05-15-hf-tampering-check** — 21 events, 4-row per-repo rollup.
   **Notable: 0 commits in the 2026-07-10/13 breach window.**
-- **2026-01-25-agent-surfaces** — 87 venue_probe, 11-row per-surface rollup.
-- **2026-02-01-march7-rce-modality** — 5 events, no rollup.
+- **2026-09-28-agent-surfaces** — 87 venue_probe, 11-row per-surface rollup.
+- **2026-03-07-march7-rce-modality** — 5 events, no rollup.
 - **2026-02-14-md-succ-ai** — 2 events, no rollup.
 - **2026-03-12-paste-archive-gap** — 68 events, 2-row extraction-batch rollup.
 - **2026-09-03-collusion-manifest** — 111 events (110 coverage_gap), 7-row
@@ -71,7 +71,7 @@ fingerprints recompute-verified against the documented identity strings.
 - **2026-09-28-jsonhero-docs** — 12 events, 5-row doc-family rollup.
 - **2026-09-28-ludism-wikis** — 29 events, 9-row per-target rollup (2/9 reachable,
   jina-only; controls excluded).
-- **2026-09-28-paste-linuxiarz** — 131 events, 3-row per-day burst rollup
+- **2026-05-26-paste-linuxiarz** — 131 events, 3-row per-day burst rollup
   (2026-06-16: 119 pastes in 42 s — the agent-comms wave).
 
 ## FLAGGED for Christopher (no data invented, nothing moved)
