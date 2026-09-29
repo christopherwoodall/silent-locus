@@ -171,3 +171,11 @@ scripts/validate_schema.py` (extended 2026-09-29 to accept/verify the
 `events.jsonl`/`rollup.jsonl` were NOT overwritten in this repair — the
 build output was validated to disk in /tmp only; promotion is a separate
 decision.
+
+## 2026-09-29 — payloads promoted into canonical events (coordinator)
+The repaired build script's payload-embedded rebuild was promoted into
+`events.jsonl`/`rollup.jsonl` via `--build-events`: 100/107 event rows now
+carry top-level `payloads` (the 7 sweep_negative rows have empty 204
+bodies — file pointer only, by design). Fingerprint sets verified
+identical to the pre-promotion files (identity strings untouched).
+`sha256sum -c` green.
