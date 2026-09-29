@@ -44,3 +44,18 @@ the derived collections' notes.
 ## Raw layer 2026-09-29
 
 - `link_table_2026-09-27.jsonl` -> `raw/link_table_2026-09-27.jsonl` (upstream capture; scripts consume the decoded JSON instead). Upstream name preserved; raw layer exempt from event schema.
+
+## Schema build 2026-09-29 (worker W6)
+
+- `events.jsonl` built from `raw/link_table_decoded_2026-09-27.json`
+  (764 records in, 764 rows out). `record_kind`: `shortener_link` (new;
+  one link-table entry from a public YOURLS shortener).
+- Fingerprint identity string: the YOURLS short slug — `sha256(slug)`.
+  Slug is unique within the shortener.
+- `@timestamp` = `link.created` parsed from the YOURLS display format
+  ("Sep 25, 2026 12:28"); `labels.timestamp_source = "labels:link.created"`.
+  No missing `created` values in this capture (no fallback rows).
+- Excluded from labels: `chain` (list of dicts — violates the flat-labels
+  rule); retained in raw. `chain_depth`, `chain_wrappers`, `grammars`,
+  `board_markers`, `final_encodings` retained.
+- `SHA256SUMS` regenerated covering every file in the directory.
