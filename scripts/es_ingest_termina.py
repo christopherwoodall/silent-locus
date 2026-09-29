@@ -13,7 +13,7 @@ Usage:
   python3 es_ingest_termina.py --load     # bulk-load the docs
   python3 es_ingest_termina.py --verify   # count + kind breakdown
 """
-import sys, json, os, re, html, hashlib, urllib.request
+import sys, json, os, re, html, hashlib, glob, urllib.request
 from datetime import datetime, timezone
 import os
 try:
@@ -31,8 +31,12 @@ REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 HOSTS = ["agent-apocalypse-f1f7ba.es.us-east-1.aws.elastic.cloud"]
 CRED = "custom.elastic-cloud"
 BASE = REPO_ROOT
-D = BASE + "/data/2016-01-05-termina-digital"
-INDEX = "2016-01-05-termina-digital"
+# Resolve the data dir by slug so date-prefix renames don't break the path.
+_SLUG = "termina-digital"
+_matches = sorted(glob.glob(BASE + "/data/*-" + _SLUG))
+assert _matches, f"no data dir matches slug {_SLUG}"
+D = _matches[-1]
+INDEX = os.path.basename(D)
 NOW = datetime.now(timezone.utc).isoformat()
 OBSERVER = {"product": "termina-digital-ingest", "vendor": "swarmtraces-hunt",
             "type": "dataset"}
