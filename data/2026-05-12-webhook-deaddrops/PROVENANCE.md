@@ -71,3 +71,22 @@ confirmed May-12 dead-drops, 3 July-7 name-only candidates, 2 ambiguous marker
 hits, 1 negative-sweep summary) is the full hit set. ES `webhook-deaddrops`
 _count=8 verified, schema-drift clean. July-7 wave deep work continues under
 the separate `july7-wave` lane, not this dataset.
+
+## Notes-farm addition (2026-09-29, notes-farm worker)
+
+9 new records appended to `events.jsonl` from
+`notes/gem-corpus-a000-webhook-search-2026-09-27.md`:
+
+- 7 `webhook_deaddrop`: May-12 webhook dead-drop inventory
+  (wandzfetch1500929 0.0.1/0.0.2, lambtmp35293950 0.0.2, sl-yard-probe2 0.0.1,
+  fetchrootx1/fetchrootx2 0.0.1, wandcabfetchfix21736 0.0.1) with chunk
+  grammars, URL templates, terminators, scrape targets, delivery vectors,
+  and JFrog XRAY IDs. Existing records for these names in the gem campaign
+  collection are harvest/extraction/specimen rows with no mechanism detail
+  — this is the mechanism-specific observation layer, not a duplicate.
+- 1 `sweep_negative`: no oast.online / webhook.site / interactsh /
+  burpcollaborator / web_hooks strings in the 618-gem payload corpus.
+- 1 `finding`: webhook dead-drop mechanism taxonomy (4 chunk grammars + 2
+  probe pings; May — not July — mechanism).
+
+Validation: 0 violations. SHA256SUMS regenerated.
