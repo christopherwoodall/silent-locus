@@ -92,3 +92,12 @@ Generated at dataset freeze; verify with `sha256sum -c manifest.sha256`.
   `labels:lane.date` (=2026-09-28) for query/htmx/rollup rows;
   `labels:probe.at` (dns, from filename timestamp).
 - New record_kinds: `tunnel_candidate`, `dns_probe`, `urlquery_rollup`.
+
+## Rename 2026-09-29
+
+Directory renamed `2016-05-06-reverse-tunnels` → `2026-06-17-reverse-tunnels`:
+the old date label was wrong; the first event in the stream is
+2026-06-17T07:52:49Z (corpus_hit, ResearchHelperNovOne) and all corpus
+evidence dates to 2026-06-17/19/21. `event.dataset` updated in
+events.jsonl (107 rows) and rollup.jsonl (6 rows); fingerprints unchanged
+(identity strings carry no dataset name).

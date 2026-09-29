@@ -38,3 +38,12 @@ Both JSONL files transformed by `temp/backfill_w3.py` onto the shared schema.
 ## Canonical layout migration (2026-09-29)
 
 Concatenated 2 event shards (gem-temporal-pivot-diffend-targeted-check.jsonl, gem-temporal-pivot-diffend-temporal-sweep.jsonl) into `events.jsonl` in sorted-filename order (27 records; count verified against inputs). Each record gained `labels.file_origin` = original shard basename; no other fields changed. Source shards removed after verification.
+
+## Stub merge 2026-09-29
+
+`raw/run-logs/diffend_temporal_sweep.stdout.log` moved in from the undated
+`data/gem-temporal-pivot/` stub (the file PROVENANCE already listed as the sweep
+stdout, left behind by the canonical-layout migration). Contents verified: two
+progress-marker lines from the 2026-09-28 Diffend 3,025-name sweep
+(`total 3025, done 0, todo 3025`; `0/3025 ... oow_hits=0`). Stub dir removed after
+the move; no other stub content existed.
