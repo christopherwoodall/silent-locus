@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build rollup.jsonl for 2026-09-27-rmn-re.
+"""Build rollup.jsonl for 2016-12-28-rmn-re.
 
 Monthly link_growth_rollup (new/cumulative) derived from the per-link
 YOURLS created dates — same shape as data/2016-12-28-rmn-re-history/rollup.jsonl.
@@ -14,7 +14,7 @@ from collections import Counter
 from datetime import datetime, timezone
 
 REPO = sys.argv[1]
-DIR = "2026-09-27-rmn-re"
+DIR = "2016-12-28-rmn-re"
 DATASET = DIR + "-rollup"
 CREATED = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
 OBSERVER = {"product": "muse", "type": "research-agent", "vendor": "meta"}
