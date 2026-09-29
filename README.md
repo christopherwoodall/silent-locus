@@ -279,8 +279,8 @@ Limitations:
 
 ## Loading with 🤗 datasets
 
-Verified 2026-09-29 with `datasets` 5.0.1: the full corpus (141,804 rows,
-84 files) loads cleanly. The collections use 33 distinct top-level key sets,
+Verified 2026-09-29 with `datasets` 5.0.1: the full corpus (142,657 rows,
+91 files) loads cleanly. The collections use 33 distinct top-level key sets,
 so schema inference needs an explicit union `features`; `@timestamp` stays
 a string (zone-offset ISO-8601 values fail pyarrow timestamp casting).
 
@@ -312,7 +312,7 @@ features = Features({
 })
 files = sorted(f for f in glob.glob("data/**/*.jsonl", recursive=True)
                if "raw" not in f.split("/"))
-ds = load_dataset("json", data_files=files, features=features)["train"]  # 141,804 rows
+ds = load_dataset("json", data_files=files, features=features)["train"]  # 142,657 rows
 # streaming (no local cache needed):
 # ds = load_dataset("json", data_files=files, features=features, streaming=True)["train"]
 ```
