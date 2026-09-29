@@ -56,3 +56,14 @@ Transformed by `temp/backfill_w3.py`.
   publication prose (e.g. "2025-05 (arXiv 2505.15216)"), not an event time.
 - All original fields moved to labels unchanged. event.dataset =
   `separate-eval-test`.
+
+## Merge 2026-09-29
+
+Moved the worker-4 run log from the undated stub `data/separate-eval-test/`
+into `raw/run-logs/progress.log`; stub dir removed. Log covers
+2026-09-28T19:27Z–20:20Z and was read and verified before the move: same lane
+("separate-eval test (worker 4)"), same research question, step entries
+consistent with the sources table above (BountyBench/CVE-Bench/AutoPenBench/
+Cybench sweeps, JFrog post fetch with matching SHA-256, hackerone-disclosed-
+reports sweep). No contradictions found. File force-added (`*.log` is
+gitignored repo-wide; this is a curated lane run log, not a build artifact).
