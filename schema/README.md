@@ -29,7 +29,11 @@ convention), `tags` (array of strings), `observer` (`{product, type, vendor}`),
 `retrieved_at`, `retrieved_via`, `sha256`, `size_bytes`, `note`, `status`,
 `matched_string`, `file` (relative path of the repo-local source artifact the
 record was materialized from, e.g. `data/<collection>/raw/...`; complements
-`source_url`, which is the upstream URL). No other top-level keys are allowed.
+`source_url`, which is the upstream URL), `payloads` (array of embedded
+per-item payload material: `{kind, content_type, content, encoding,
+truncated, byte_size, sha256}`; complements `file`, which points at the full
+repo-local artifact — embed small payloads fully, truncate large ones at a
+documented cap with `truncated: true`). No other top-level keys are allowed.
 
 ## Timestamp rules
 
