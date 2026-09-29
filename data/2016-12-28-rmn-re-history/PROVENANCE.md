@@ -44,3 +44,26 @@ identity is pursued. Read-only throughout; nothing was created on rmn.re.
 ## Raw layer 2026-09-29
 
 - `slug_evolution.jsonl` -> `raw/slug_evolution.jsonl` (script-consumed transform input; consumer: scripts/es_ingest_rmn_history.py). Upstream name preserved; raw layer exempt from event schema.
+
+## Normalization 2026-09-29 (events.jsonl + rollup.jsonl)
+
+- `events.jsonl`: 768 rows, all schema-conformant.
+  - 764 `wiki_shortener` — one per row of `raw/slug_evolution.jsonl`
+    (764 slugs; `created` is YOURLS-authoritative).
+  - 3 `timeline_anchor` — one per grammar in
+    `grammar_first_appearance.json` (zz/epoch10/oai first slugs).
+  - 1 `archive_probe` — the `archive_lookup.json` availability/CDX/playback
+    probes (single 2025-06-22 snapshot; CDX 500; playback 500).
+  - `growth_curve.json` is a derived aggregate: it does NOT appear in
+    events.jsonl (fully reconstructible from the per-slug events); it lives
+    in `rollup.jsonl`. `manifest.json` is lane bookkeeping (not an event).
+- `rollup.jsonl`: 47 rows, `link_growth_rollup` — the monthly
+  new/cumulative link counts from `growth_curve.json` (2016-12 -> 2026-09;
+  genuine aggregate layer).
+- Fingerprint identity strings: `rmn.re/<slug>` (per-slug);
+  `grammar_first:<name>` (grammar first-appearance);
+  `archive_lookup:rmn.re` (archive probe); `growth_curve:<month>` (rollup).
+- `labels.timestamp_source`: `labels:slug.created` (per-slug);
+  `labels:grammar.created`; `labels:probe.attempted_at` (=2026-09-28T03:05Z);
+  `labels:curve.month` (rollup).
+- New record_kinds: `archive_probe`, `link_growth_rollup`.
