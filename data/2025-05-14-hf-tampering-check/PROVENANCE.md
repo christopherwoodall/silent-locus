@@ -41,3 +41,33 @@ Method: public Hugging Face Hub API (JSON) + one dataset-discussion page; no log
 ## Retrieval log
 
 See `progress.log` for the ordered fetch log with per-file timestamps.
+
+## Schema normalization 2026-09-29 (worker W3)
+
+- Transform: `temp/build_events_w3_hf.py` (repo root passed as argv[1]).
+- Grain (21 event records):
+  - 15 commits -> `artifact_observation` (1 main + 1 refs/convert/parquet on
+    sunblaze-ucb/cybergym; 4 shirman/exploitgym-answers; 4 shirman/exploitgym-results;
+    5 SpeckledCerberus/exploitgym-answers), `@timestamp` = commit date
+    (`labels.timestamp_source = "labels:commit.date"`)
+  - 1 discussion thread (#1, "Distribution across Programming Languages") ->
+    `artifact_observation`; `discussions-p1.json` is an empty page (no records)
+  - 5 metadata snapshots -> `extraction` (dataset-meta, 2 repo metas,
+    file-listing-summary, author-repos sweep of 8 org datasets),
+    `@timestamp` = documented retrieval date 2026-09-28
+  - `MANIFEST.sha256` excluded from records (lane file inventory; superseded by
+    the regenerated SHA256SUMS below)
+- Finding preserved in the rollup: ZERO commits fall in the July 10-13, 2026
+  breach window on any of the 4 repos.
+- Fingerprint identity strings:
+  - commits: `sha256("hf-commit:<repo>:<sha>")`
+  - discussions: `sha256("hf-discussion:<repo>#<num>")`
+  - snapshots: `sha256("hf-meta-snapshot:<key>")`
+  - rollup: `sha256("hf-repo-rollup:<repo>")`
+  Reference method verified against data/2023-11-14-hfspace-proxies
+  (sha256("TheNacken/python-cors-proxy") -> `14c645d9…efbe94`).
+- Rollup: `rollup.jsonl` with 4 `repo_commit_rollup` rows (NEW kind, listed in
+  notes/dir-triage-W3.md) — per-repo commit counts, first/last, and
+  `rollup.in_breach_window_2026_07_10_13` (0 for all four). `event.dataset`
+  suffixed `-rollup`.
+- `event.dataset = "2025-05-14-hf-tampering-check"`; `event.created` = build time.
