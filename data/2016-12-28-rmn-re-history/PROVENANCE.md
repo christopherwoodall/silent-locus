@@ -67,3 +67,13 @@ identity is pursued. Read-only throughout; nothing was created on rmn.re.
   `labels:grammar.created`; `labels:probe.attempted_at` (=2026-09-28T03:05Z);
   `labels:curve.month` (rollup).
 - New record_kinds: `archive_probe`, `link_growth_rollup`.
+
+## 2026-09-29: ingest script co-located (hunt convention)
+- `es_ingest_rmn_history.py` moved from `scripts/` into this directory per
+  Christopher's single-collection convention; transforms
+  `raw/slug_evolution.jsonl` into shared-schema docs (YOURLS dates, June-log
+  membership, grammar tags — real transform, not a pure loader).
+- `REPO_ROOT` in the script adjusted (repo root is now three levels up).
+  Offline verification: `python3 -m py_compile` clean.
+- `scripts/local_es_manifest.json` via_script entry repointed here.
+- SHA256SUMS regenerated (script file added to coverage).
