@@ -90,3 +90,11 @@ by `scripts/cors_bwa_analyze.py`, `scripts/cors_bwa_ladders.py`, and
 `scripts/es_ingest_cors_bwa.py` as transform inputs/outputs, not event-schema
 documents. The pre-existing `raw/` contents (per-index upstream captures)
 came along with the directory move unchanged.
+
+## Build-script relocation 2026-09-29 (ingest-script condensation)
+
+- Moved `scripts/es_ingest_cors_bwa.py` into this collection dir per Christopher's build-script convention (single-collection build scripts live in the event directory).
+- Path fixes in the moved script: `BASE` is now the script's own dir (self-locating, runs from any cwd); repo-root-relative mapping path (`notes/gems-es-mapping.json`).
+- BUG FIX: `build_docs()` read `{BASE}/other_workers_dev_hostnames.json` but the file lives at `raw/other_workers_dev_hostnames.json` — the old path never existed, so `--load` was broken; fixed to the `raw/` path.
+- Verified offline (2026-09-29): `build_docs()` assembles 154 docs from disk (113 proxied_target, 29 proxy_ladder, 6 proxy_family, 6 venue_summary) with no network/ES access.
+- ES ingest driver: `push_to_local_es.py --all` runs the path in `scripts/local_es_manifest.json` `via_script` for index `2025-09-26-cors-bwa-proxy`; manifest entry updated to the new script location.

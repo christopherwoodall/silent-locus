@@ -35,7 +35,11 @@ import urllib.request
 ES = os.environ.get("SWARMTRACES_ES_URL", "https://agent-apocalypse-f1f7ba.es.us-east-1.aws.elastic.cloud:443")
 HOSTS = ["agent-apocalypse-f1f7ba.es.us-east-1.aws.elastic.cloud"]
 CRED = "custom.elastic-cloud"
-BASE = "data/aggregates/2025-09-26-cors-bwa-proxy"
+# Moved into the collection dir 2026-09-28 (per build-script convention):
+# self-locating paths so the script runs from anywhere.
+HERE = os.path.dirname(os.path.abspath(__file__))
+REPO_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(HERE)))
+BASE = HERE
 INDEX = "2025-09-26-cors-bwa-proxy"
 NOW = datetime.now(timezone.utc).isoformat()
 TS = "2026-09-28T05:30:00Z"
@@ -106,7 +110,7 @@ def build_docs():
                        "occurrences": str(e["occurrences"]),
                        "venues": ",".join(e["venues"])},
         }
-    fam = json.load(open(f"{BASE}/other_workers_dev_hostnames.json"))
+    fam = json.load(open(f"{BASE}/raw/other_workers_dev_hostnames.json"))
     for h, st in fam.items():
         uid = hashlib.sha256(h.encode()).hexdigest()[:12]
         docs[f"cors-bwa-proxy:family:{uid}"] = {
@@ -147,7 +151,7 @@ def build_docs():
 
 
 def create_index():
-    mapping = json.load(open("notes/gems-es-mapping.json"))["mappings"]
+    mapping = json.load(open(os.path.join(REPO_ROOT, "notes/gems-es-mapping.json")))["mappings"]
     try:
         req("DELETE", f"/{INDEX}")
         print("deleted existing index")
@@ -187,7 +191,7 @@ def verify():
     print("count:", r.get("count"))
     r = req("GET", f"/{INDEX}/_mapping")
     tops = set(r[INDEX]["mappings"]["properties"].keys())
-    canon = set(json.load(open("notes/gems-es-mapping.json"))["mappings"]["properties"].keys())
+    canon = set(json.load(open(os.path.join(REPO_ROOT, "notes/gems-es-mapping.json")))["mappings"]["properties"].keys())
     print("extra top-level fields:", tops - canon)
     print("event.dataset.keyword multi-field:",
           "keyword" in r[INDEX]["mappings"]["properties"]["event"]["properties"]["dataset"].get("fields", {}))
