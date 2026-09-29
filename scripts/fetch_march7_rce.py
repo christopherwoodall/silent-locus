@@ -2,7 +2,7 @@
 """LANE D — March-7 code-execution modality gems (read-only).
 
 Source of truth for gem names: colonist-one's post
-data/thecolony-ai/posts/dfac3a74-4685-43d8-9bd6-c76409f87ade.json
+data/2025-02-04-thecolony-ai/posts/dfac3a74-4685-43d8-9bd6-c76409f87ade.json
 (2026-09-05). The task-brief names (projecttools624286 / atlasqadfe9fb1629 /
 tfdriftbqgzb8h) are the *owner accounts*; the actual gem names are:
 
@@ -27,7 +27,7 @@ import time
 from datetime import datetime, timezone
 
 BASE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-DIR = os.path.join(BASE, "data", "march7-rce-modality")
+DIR = os.path.join(BASE, "data", "2026-02-01-march7-rce-modality")
 RAW = os.path.join(DIR, "raw")
 UA = ("Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) "
       "Chrome/126.0 Safari/537.36")

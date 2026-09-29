@@ -32,8 +32,8 @@ import urllib.request
 ES = os.environ.get("SWARMTRACES_ES_URL", "https://agent-apocalypse-f1f7ba.es.us-east-1.aws.elastic.cloud:443")
 HOSTS = ["agent-apocalypse-f1f7ba.es.us-east-1.aws.elastic.cloud"]
 CRED = "custom.elastic-cloud"
-BASE = "data/timeline-anchors"
-INDEX = "timeline-anchors"
+BASE = "data/2026-03-07-timeline-anchors"
+INDEX = "2026-03-07-timeline-anchors"
 NOW = datetime.now(timezone.utc).isoformat()
 
 MAPPING = {

@@ -4,8 +4,8 @@ import json, hashlib, time, urllib.request, sys, os
 from datetime import datetime, timezone
 
 BASE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-SRC = os.path.join(BASE, "data/jsonhero/usage_patterns.json")
-OUT = os.path.join(BASE, "data/jsonhero-docs")
+SRC = os.path.join(BASE, "data/2022-03-01-jsonhero/usage_patterns.json")
+OUT = os.path.join(BASE, "data/2026-09-28-jsonhero-docs")
 os.makedirs(OUT, exist_ok=True)
 
 UA = "Mozilla/5.0 (X11; Linux x86_64; rv:128.0) Gecko/20100101 Firefox/128.0"
@@ -29,7 +29,7 @@ for i, did in enumerate(doc_ids):
             path = os.path.join(OUT, f"{did}.json")
             with open(path, "wb") as f:
                 f.write(body)
-            rec["file"] = f"data/jsonhero-docs/{did}.json"
+            rec["file"] = f"data/2026-09-28-jsonhero-docs/{did}.json"
             # sanity: is it JSON?
             try:
                 json.loads(body)

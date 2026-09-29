@@ -30,8 +30,8 @@ REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 HOSTS = ["agent-apocalypse-f1f7ba.es.us-east-1.aws.elastic.cloud"]
 CRED = "custom.elastic-cloud"
 BASE = REPO_ROOT
-DIR = BASE + "/data/march7-rce-modality"
-INDEX = "march7-rce-modality"
+DIR = BASE + "/data/2026-02-01-march7-rce-modality"
+INDEX = "2026-02-01-march7-rce-modality"
 NOW = datetime.now(timezone.utc).isoformat()
 OBSERVER = {"product": "march7-rce-ingest", "vendor": "nightingale-collective",
             "type": "dataset"}

@@ -29,8 +29,8 @@ REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 HOSTS = ["agent-apocalypse-f1f7ba.es.us-east-1.aws.elastic.cloud"]
 CRED = "custom.elastic-cloud"
 BASE = REPO_ROOT
-D = BASE + "/data/paste-archive"
-INDEX = "paste-archive"
+D = BASE + "/data/2026-05-27-paste-archive"
+INDEX = "2026-05-27-paste-archive"
 NOW = datetime.now(timezone.utc).isoformat()
 OBSERVER = {"product": "paste-archive-ingest", "vendor": "swarmtraces-hunt",
             "type": "dataset"}
@@ -56,7 +56,7 @@ def req(method, path, body=None):
 def build_docs():
     docs = {}
     # k4be.pl metadata
-    for line in open(f"{D}/k4be.pl/metadata.jsonl"):
+    for line in open(f"{D}/raw/k4be.pl/metadata.jsonl"):
         m = json.loads(line)
         pid = m["id"]
         body = None
@@ -91,7 +91,7 @@ def build_docs():
             doc["size_bytes"] = len(body.encode())
         docs[f"paste-archive:k4be:{pid}"] = doc
     # anna.fyi titles
-    for line in open(f"{D}/anna.fyi/titles.jsonl"):
+    for line in open(f"{D}/raw/anna.fyi/titles.jsonl"):
         m = json.loads(line)
         pid = m["id"]
         live = m["live_2026_09_28"]
@@ -116,7 +116,7 @@ def build_docs():
                        "live_2026_09_28": str(live)},
         }
     # infinitypaste.club
-    for line in open(f"{D}/infinitypaste.club/metadata.jsonl"):
+    for line in open(f"{D}/raw/infinitypaste.club/metadata.jsonl"):
         m = json.loads(line)
         body = open(f"{D}/infinitypaste.club/{m['id']}.txt").read()
         docs[f"paste-archive:inf:{m['id']}"] = {

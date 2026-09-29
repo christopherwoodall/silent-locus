@@ -17,8 +17,8 @@ ES = os.environ.get("SWARMTRACES_ES_URL", "https://agent-apocalypse-f1f7ba.es.us
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 HOSTS = ["agent-apocalypse-f1f7ba.es.us-east-1.aws.elastic.cloud"]
 CRED = "custom.elastic-cloud"
-INDEX = "rmn-re-linktable"
-SRC = REPO_ROOT + "/data/rmn-re/link_table_decoded_2026-09-27.json"
+INDEX = "2026-09-27-rmn-re-linktable"
+SRC = REPO_ROOT + "/data/2026-09-27-rmn-re/link_table_decoded_2026-09-27.json"
 
 def req(method, path, body=None):
     r = urllib.request.Request(ES + path,
@@ -52,7 +52,7 @@ def doc(l):
         tags.append("board-surface")
     return {
         "@timestamp": parse_ts(l.get("created")) or now,
-        "event": {"dataset": "rmn-re-linktable", "created": now},
+        "event": {"dataset": "2026-09-27-rmn-re-linktable", "created": now},
         "record_kind": "shortlink",
         "package": l["slug"],
         "source_url": f"https://rmn.re/{l['slug']}",

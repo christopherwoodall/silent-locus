@@ -25,8 +25,8 @@ ES = os.environ.get("SWARMTRACES_ES_URL", "https://agent-apocalypse-f1f7ba.es.us
 HOSTS = ["agent-apocalypse-f1f7ba.es.us-east-1.aws.elastic.cloud"]
 CRED = "custom.elastic-cloud"
 BASE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-PDIR = BASE + "/data/worldpoverty-task-family"
-INDEX = "worldpoverty-task-family"
+PDIR = BASE + "/data/2026-09-28-worldpoverty-task-family"
+INDEX = "2026-09-28-worldpoverty-task-family"
 
 
 def req(method, path, body=None):

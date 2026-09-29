@@ -3,7 +3,7 @@
 
 VIOLATION: primary index `admin-deletions` holds 26 per-day summary docs
 (record_kind=admin_cleanup_burst); the 5,217 verbatim delete events in
-data/admin-deletions/hits.jsonl were never indexed.
+data/2026-06-04-admin-deletions/raw/hits.jsonl were never indexed.
 
 UNWIND (staged; Elastic writes PAUSED until Christopher says resume):
   1. Create `admin-deletions-rollup` from the canonical mapping
@@ -16,8 +16,8 @@ UNWIND (staged; Elastic writes PAUSED until Christopher says resume):
   4. Field check: event.dataset.keyword present on both indexes.
 
 Staged payloads (committed, on disk):
-  data/admin-deletions/staged_primary/admin-deletions_explicit.jsonl (5217)
-  data/admin-deletions/staged_rollup/admin-deletions-rollup.jsonl    (26)
+  data/2026-06-04-admin-deletions/admin-deletions-explicit.jsonl (5217)
+  data/2026-06-04-admin-deletions/raw/admin-deletions-rollup.jsonl    (26)
 
 Usage:
   python3 scripts/es_unwind_admin_deletions.py --verify-only   # read-only checks
@@ -37,12 +37,12 @@ ES = os.environ.get("SWARMTRACES_ES_URL",
 HOSTS = ["agent-apocalypse-f1f7ba.es.us-east-1.aws.elastic.cloud"]
 CRED = "custom.elastic-cloud"
 BASE = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
-PRIMARY = "admin-deletions"
-ROLLUP = "admin-deletions-rollup"
+PRIMARY = "2026-06-04-admin-deletions"
+ROLLUP = "2026-06-04-admin-deletions-rollup"
 PAUSE_SENTINEL = os.path.join(BASE, "notes", "ELASTIC_WRITE_PAUSE")
-EXPLICIT = os.path.join(BASE, "data", "admin-deletions", "staged_primary",
-                        "admin-deletions_explicit.jsonl")
-ROLLUP_DOCS = os.path.join(BASE, "data", "admin-deletions", "staged_rollup",
+EXPLICIT = os.path.join(BASE, "data", "2026-06-04-admin-deletions",
+                        "admin-deletions-explicit.jsonl")
+ROLLUP_DOCS = os.path.join(BASE, "data", "2026-06-04-admin-deletions", "raw",
                            "admin-deletions-rollup.jsonl")
 EXPECTED_PRIMARY = 5217
 EXPECTED_ROLLUP = 26
@@ -137,7 +137,7 @@ def main():
         ag = req("POST", f"/{idx}/_search",
                  {"size": 0, "aggs": {"ds": {"terms": {"field": "event.dataset.keyword", "size": 5}}}})
         b = ag["aggregations"]["ds"]["buckets"]
-        assert b and b[0]["key"] == "admin-deletions", (idx, b)
+        assert b and b[0]["key"] == "2026-06-04-admin-deletions", (idx, b)
         print(idx, "event.dataset.keyword OK:", [x["key"] for x in b])
     print("UNWIND COMPLETE: primary=5217 explicit, rollup=26 summaries.")
 

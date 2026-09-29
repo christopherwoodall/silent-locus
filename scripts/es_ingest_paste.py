@@ -28,8 +28,8 @@ REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 HOSTS = ["agent-apocalypse-f1f7ba.es.us-east-1.aws.elastic.cloud"]
 CRED = "custom.elastic-cloud"
 BASE = REPO_ROOT
-PDIR = BASE + "/data/paste-linuxiarz"
-INDEX = "paste-linuxiarz"
+PDIR = BASE + "/data/2026-09-28-paste-linuxiarz"
+INDEX = "2026-09-28-paste-linuxiarz"
 NOW = datetime.now(timezone.utc).isoformat()
 OBSERVER = {"product": "paste-linuxiarz-ingest", "vendor": "nightingale-collective",
             "type": "dataset"}
@@ -78,7 +78,7 @@ def epoch_to_iso(e):
 
 def build_docs():
     docs = {}
-    for line in open(PDIR + "/manifest.jsonl"):
+    for line in open(PDIR + "/raw/manifest.jsonl"):
         m = json.loads(line)
         pid = m["id"]
         body = open(f"{PDIR}/{pid}.txt").read()

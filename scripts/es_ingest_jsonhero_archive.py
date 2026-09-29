@@ -28,8 +28,8 @@ REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 HOSTS = ["agent-apocalypse-f1f7ba.es.us-east-1.aws.elastic.cloud"]
 CRED = "custom.elastic-cloud"
 BASE = REPO_ROOT
-D = BASE + "/data/jsonhero-docs-archive"
-INDEX = "jsonhero-docs-archive"
+D = BASE + "/data/2025-01-13-jsonhero-docs-archive"
+INDEX = "2025-01-13-jsonhero-docs-archive"
 NOW = datetime.now(timezone.utc).isoformat()
 OBSERVER = {"product": "jsonhero-archive-ingest", "vendor": "swarmtraces-hunt",
             "type": "dataset"}
@@ -56,7 +56,7 @@ def req(method, path, body=None, raw=None):
 def build_docs():
     manifest = json.load(open(f"{D}/manifest.json"))
     refs = {}
-    with open(BASE + "/data/jsonhero_doc_links.jsonl") as f:
+    with open(BASE + "/data/aggregates/2026-09-29-overlap-analysis/raw/jsonhero_doc_links.jsonl") as f:
         for line in f:
             r = json.loads(line)
             refs.setdefault(r["doc_id"], []).append(r)

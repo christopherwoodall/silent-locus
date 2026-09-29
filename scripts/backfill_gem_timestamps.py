@@ -9,7 +9,7 @@ import json, os
 from datetime import datetime, timezone
 
 BASE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-LOG = BASE + "/data/gem-ioc-log.jsonl"
+LOG = BASE + "/data/2025-03-04-rubygems-goimport-campaign/raw/gem-ioc-log.jsonl"
 FALLBACK_TS = "2026-09-27T00:00:00.000Z"
 
 

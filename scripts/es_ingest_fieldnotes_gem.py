@@ -34,8 +34,8 @@ REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 HOSTS = ["agent-apocalypse-f1f7ba.es.us-east-1.aws.elastic.cloud"]
 CRED = "custom.elastic-cloud"
 BASE = REPO_ROOT
-D = BASE + "/data/fieldnotes-gem"
-INDEX = "fieldnotes-gem"
+D = BASE + "/data/2026-09-05-fieldnotes-gem"
+INDEX = "2026-09-05-fieldnotes-gem"
 NOW = datetime.now(timezone.utc).isoformat()
 OBSERVER = {"product": "fieldnotes-gem-ingest", "vendor": "swarmtraces-hunt",
             "type": "dataset"}

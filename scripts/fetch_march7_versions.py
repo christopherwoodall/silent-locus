@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Fetch per-version Diffend diff pages for the March-7 modality gems.
 
-Version list comes from JFrog's public inventory (data/gemstuffer-jfrog-2026-09-27.csv)
+Version list comes from JFrog's public inventory (data/2025-03-04-rubygems-goimport-campaign/raw/gemstuffer-jfrog-2026-09-27.csv)
 because Diffend's version-list page renders client-side (no server links).
 ~1 req/3s via curl, resume-friendly via state.json.
 """
@@ -14,7 +14,7 @@ import time
 from datetime import datetime, timezone
 
 BASE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-DIR = os.path.join(BASE, "data", "march7-rce-modality")
+DIR = os.path.join(BASE, "data", "2026-02-01-march7-rce-modality")
 RAW = os.path.join(DIR, "raw")
 DIFFEND = "https://my.diffend.io"
 UA = ("Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) "
@@ -43,7 +43,7 @@ def state_save(st):
 
 
 def jfrog_versions(name):
-    with open(os.path.join(BASE, "data/gemstuffer-jfrog-2026-09-27.csv")) as f:
+    with open(os.path.join(BASE, "data/2025-03-04-rubygems-goimport-campaign/raw/gemstuffer-jfrog-2026-09-27.csv")) as f:
         for row in csv.reader(f):
             if row and row[0] == name:
                 return row[1].split(";"), row[2] if len(row) > 2 else ""

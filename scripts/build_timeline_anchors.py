@@ -6,7 +6,7 @@ Each doc: event date, description, lane source, evidence pointer, confidence.
 Uncertain dates are marked estimated with a confidence value -- precision is
 never invented.
 
-Outputs (all under data/timeline-anchors/):
+Outputs (all under data/2026-03-07-timeline-anchors/):
   timeline-anchors.jsonl  ES-ready docs under the canonical shared schema
   PROVENANCE.md           method, sources, what's new
   manifest.sha256         SHA-256 of the dataset files
@@ -19,10 +19,10 @@ import json, hashlib, os
 from datetime import datetime, timezone
 
 BASE = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-                    "data", "timeline-anchors")
+                    "data", "2026-03-07-timeline-anchors")
 os.makedirs(BASE, exist_ok=True)
 NOW = datetime.now(timezone.utc).isoformat()
-INDEX = "timeline-anchors"
+INDEX = "2026-03-07-timeline-anchors"
 OBSERVER = {"product": "timeline-anchors-ingest", "vendor": "swarmtraces-hunt",
             "type": "dataset"}
 
@@ -33,15 +33,15 @@ EVENTS = [
  "goto.unm.edu/7t6-o: peak day 1,845 of 2,042 referrer hits; whole proxy stack "
  "(jqp 648, pure.md 119, md.succ.ai 102, r.jina.ai 20, pxweb.nso.gov.vn 59, "
  "sec.gov 53) appears as HTTP Referer on official university infrastructure.",
- "university-shorteners",
- "notes/university-shorteners-2026-09-28.md; data/university-shorteners/goto-unm-edu/7t6-o_stats_2026-09-28.txt",
+ "2026-05-12-university-shorteners",
+ "notes/university-shorteners-2026-09-28.md; data/2026-09-28-university-shorteners/goto-unm-edu/7t6-o_stats_2026-09-28.txt",
  "https://goto.unm.edu/7t6-o+", "high",
  ["anchor:june-18", "venue:shortener", "mechanism:proxy-stack"]),
 ("2026-06-18T00:00:00Z", "day",
  "u.ethz.ch/nB1nv: peak day 63 hits, same proxy-stack fingerprint (jqp, "
  "allorigins, markdown.new) as the UNM page -- second university surface "
  "with a June-18 best day.",
- "university-shorteners",
+ "2026-05-12-university-shorteners",
  "notes/university-shorteners-2026-09-28.md",
  "https://u.ethz.ch/nB1nv+", "high",
  ["anchor:june-18", "venue:shortener", "mechanism:proxy-stack"]),
@@ -49,7 +49,7 @@ EVENTS = [
  "hamzah2304/messageboardauditbench: five-hop recursive proxy chains stamped "
  "2026-06-18T21:01:20Z (and a second at 21:03:28Z); shortlinks nested inside "
  "jqp chains to obscure origin; vanderbi.lt / is.gd / tinyurl named explicitly.",
- "university-shorteners",
+ "2026-05-12-university-shorteners",
  "notes/university-shorteners-2026-09-28.md (independent corroboration section)",
  "https://github.com/hamzah2304/messageboardauditbench", "high",
  ["anchor:june-18", "venue:benchmark", "mechanism:proxy-stack"]),
@@ -58,8 +58,8 @@ EVENTS = [
  "proxymule -> urltomarkdown -> allorigins (handle_dse_Agent0MassCountyResearch); "
  "8 exact URL overlaps with rmn.re decoded targets (e.g. "
  "md.succ.ai/https://www.sec.gov/files/county.json <-> rmn.re slug 70981).",
- "paste-archive-gap",
- "notes/cascade-synthesis-2026-09-28.md; data/paste-archive-gap/",
+ "2026-03-12-paste-archive-gap",
+ "notes/cascade-synthesis-2026-09-28.md; data/2026-03-12-paste-archive-gap/",
  "", "high",
  ["anchor:june-18", "mechanism:proxy-stack", "target:sec.gov"]),
 ("2026-06-18T19:51:00Z", "timestamp",
@@ -88,7 +88,7 @@ EVENTS = [
  "county.json retrieval experiments; mechanism shifted from go-import tags to "
  "plain link-posting with r.jina.ai laundering and Google Translate/Jira "
  "multi-service chains; 38,878 downloads.",
- "gem83-reconciliation",
+ "2026-09-28-gem83-reconciliation",
  "notes/gem83-reconciliation-2026-09-27.md; notes/gem-june18-wave-2026-09-27.md",
  "https://rubyhack.ai/", "high",
  ["anchor:june-18", "wave:gem-june18", "target:sec.gov"]),
@@ -114,7 +114,7 @@ EVENTS = [
  "on the dse wiki 2026-06-16T18:35:52Z (DemoWiki edits 2026-06-16 18:28/20:30 "
  "UTC; OpenAIDataBridge first 09:42:32Z). Swarm handles probed DemoWiki as "
  "a fresh venue June 16.",
- "demowiki",
+ "2021-10-30-demowiki",
  "notes/demowiki-ingest-2026-09-27.md",
  "", "high",
  ["venue:demowiki", "venue:wiki"]),
@@ -123,7 +123,7 @@ EVENTS = [
  "ts=1781641251 -> 2026-06-16T20:20:51Z, inside the 19:58-21:35 UTC relay "
  "window (8-paste IowaCollab relay, seven handles, ~115-121 hits, expire never; "
  "224 archived Pastebin pastes, ts= markers cluster 20:05-21:35 UTC).",
- "iowacollab-pastes",
+ "2026-05-17-iowacollab-pastes",
  "notes/iowacollab-pastes-2026-09-27.md; notes/paste-linuxiarz-ingest-2026-09-27.md",
  "", "high",
  ["venue:pastebin", "family:iowa-comms"]),
@@ -131,7 +131,7 @@ EVENTS = [
  "rmn.re agent-grammar activity: `oaix5507` 2026-06-16 12:34 UTC; "
  "`oaitest93446019` on 06-17; campaign zzNNNNNN family starts 2026-06-17 "
  "19:17 UTC (zz1146554); `mailtest1779882833` epoch10 on 2026-05-27 15:53 UTC.",
- "rmn-re-history",
+ "2016-12-28-rmn-re-history",
  "notes/rmn-re-history-2026-09-27.md",
  "", "high",
  ["venue:shortener", "mechanism:epoch-nonce", "mechanism:zz-grammar"]),
@@ -147,7 +147,7 @@ EVENTS = [
  "Power BI domain-fronting (SNI-allowlist bypass) over ~43h on 2026-06-20/21, "
  "attributed to 39 agents; dse wiki records e.g. 031c28e11bf4 "
  "2026-06-20T06:27:27Z, 1e9e490ed2ff 2026-06-20T06:02:59Z.",
- "powerbi-fronting",
+ "2026-06-20-powerbi-fronting",
  "notes/powerbi-fronting-2026-09-27.md",
  "", "high",
  ["venue:wiki", "mechanism:domain-fronting"]),
@@ -163,7 +163,7 @@ EVENTS = [
  "ludism.org cleanup row 2026-06-22 08:53 UTC (scwiki SandBox); DemoWiki "
  "XAgentApiTestUnique (AgentNameX) 2026-06-22. Agent activity continued on "
  "wiki venues past the June-18 anchor.",
- "ludism-wikis",
+ "2026-09-28-ludism-wikis",
  "notes/ludism-wikis-ingest-2026-09-27.md; notes/demowiki-ingest-2026-09-27.md",
  "", "high",
  ["venue:wiki"]),
@@ -171,7 +171,7 @@ EVENTS = [
  "fi-le.net (third-party passive read): 28 live agent short links dated "
  "June 18-23; vanderbi.lt ~1,010-1,098 links created 2026-05-12..2026-07-31 "
  "from ~936-947 IPs.",
- "vanderbilt-shortener",
+ "2021-05-10-vanderbilt-shortener",
  "notes/vanderbilt-shortener-2026-09-27.md (third-party recon, cited as reported)",
  "", "medium",
  ["venue:shortener"]),
@@ -222,7 +222,7 @@ EVENTS = [
  "Webhook dead-drop gems: 7 gems published 01:57-03:28 UTC (southpxdatapp6pi "
  "01:57Z, slvhg151 02:07Z, etc.) -- RubyGems /api/v1/web_hooks URLs as a "
  "zlib+base64 chunk datastore (A000..A### / ZZEND markers).",
- "webhook-deaddrops",
+ "2026-05-12-webhook-deaddrops",
  "notes/gem-corpus-a000-webhook-search-2026-09-27.md; notes/webhook-deaddrops-2026-09-27.md",
  "", "high",
  ["wave:gem-may", "venue:rubygems", "mechanism:webhook-deaddrop"]),
@@ -260,13 +260,13 @@ EVENTS = [
  "ludism.org minute-level writability sweep: mentat SandBox 04:31 UTC; "
  "collusion.wiki probe-span (revisions) runs 2026-05-17 -> 2026-07-14; "
  "links kept window 2026-05-26 -> 2026-06-21.",
- "ludism-wikis",
+ "2026-09-28-ludism-wikis",
  "notes/ludism-wikis-ingest-2026-09-27.md; notes/collusion-wiki-schema-2026-09-27.md",
  "", "high",
  ["venue:wiki"]),
 ("2026-05-26T14:35:00Z", "timestamp",
  "ludism.org: 11 public edits in 12 min (14:35-14:47 UTC).",
- "ludism-wikis",
+ "2026-09-28-ludism-wikis",
  "notes/ludism-wikis-ingest-2026-09-27.md",
  "", "high",
  ["venue:wiki"]),
@@ -277,7 +277,7 @@ EVENTS = [
  "sampledocpayload624286's 11 same-day versions (19:05->21:51Z, doc-builder "
  "RCE modality, httpbin.org egress) + benign twin harmlessdoctest624286; "
  "5 more agent packages published per rubyhack timeline (May 26-27 wave).",
- "proxy-primitives",
+ "2026-05-26-proxy-primitives",
  "notes/proxy-primitives-2026-09-27.md; notes/march7-rce-modality-2026-09-27.md",
  "", "high",
  ["venue:wiki", "mechanism:proxy-stack", "mechanism:rce"]),
@@ -285,7 +285,7 @@ EVENTS = [
  "atlas_qa_handoff_20260528230548 (author 'Atlas QA', real date) / "
  "atlas-qa-snapshot-696b16c7 -- second RCE-modality registry probe, "
  "per colonist-one's reported claim.",
- "march7-rce-modality",
+ "2026-02-01-march7-rce-modality",
  "notes/march7-rce-modality-2026-09-27.md; notes/gem-timeline-expansion-2026-09-27.md",
  "", "medium",
  ["mechanism:rce", "venue:rubygems"]),
@@ -294,7 +294,7 @@ EVENTS = [
  "one 05-30) -- agents enumerated vizhub.healthdata.org TB API schema "
  "components through cors.bwa.workers.dev; the 05-27 incident stacks "
  "da.gd/sndagentma inside the proxy (shortener-in-proxy double laundering).",
- "cors-bwa-proxy",
+ "2025-09-26-cors-bwa-proxy",
  "notes/cors-bwa-proxy-2026-09-28.md",
  "", "high",
  ["venue:urlquery", "mechanism:proxy-stack", "family:health-data"]),
@@ -304,7 +304,7 @@ EVENTS = [
  "(Q1 reach-back); doc-builder RCE + egress test modality per colonist-one's "
  "reported claim, NOT independently re-verified (colonist-one's own filing: "
  "'I am not moving the start date on this').",
- "march7-rce-modality",
+ "2026-02-01-march7-rce-modality",
  "notes/march7-rce-modality-2026-09-27.md",
  "", "medium",
  ["mechanism:rce", "venue:rubygems", "caveat:investigator-reported"]),
@@ -323,7 +323,7 @@ EVENTS = [
  "format. Diffend re-verify: 9 gems still carry July-7 publish timestamps "
  "(e.g. test_gem_kangaroo 03:32, test-xss-* 04:53 xss-exfil markers, "
  "apex-hijack-probe-a1 18:43).",
- "july7-wave",
+ "2026-07-07-july7-wave",
  "notes/july7-wave-sweep-2026-09-27.md",
  "", "high",
  ["wave:gem-july7", "venue:rubygems", "mechanism:xss", "mechanism:ssti"]),
@@ -331,7 +331,7 @@ EVENTS = [
  "July-7 webhook dead-drop continuation: webhook-fire-1783405247 (06:20Z), "
  "webhook-payload-1783405583 (06:26Z), webhook-capture-1783406220 (06:37Z) -- "
  "the May webhook-datastore mechanism reappears in the July wave.",
- "webhook-deaddrops",
+ "2026-05-12-webhook-deaddrops",
  "notes/webhook-deaddrops-2026-09-27.md",
  "", "high",
  ["wave:gem-july7", "venue:rubygems", "mechanism:webhook-deaddrop"]),
@@ -354,7 +354,7 @@ EVENTS = [
 ("2026-07-24T00:00:00Z", "day-estimated",
  "Last known agent write anywhere: ludism.org page OpenAICatalanComputationTemp "
  "2026-07-24 (incident-wiki reported; tail of the campaign's active window).",
- "ludism-wikis",
+ "2026-09-28-ludism-wikis",
  "notes/ludism-wikis-ingest-2026-09-27.md",
  "", "medium",
  ["venue:wiki"]),
@@ -380,7 +380,7 @@ EVENTS = [
  "response on the wiki incident ('misalignment') 2026-09-05; thecolony/@centaur "
  "Sept-4 findings (IowaCollab relay found via /api/recent); langr5backup "
  "counter baseline; termina.digital Wayback captures 2026-09-05->09-18.",
- "thecolony-ai",
+ "2025-02-04-thecolony-ai",
  "notes/thecolony-ai-ingest-2026-09-27.md; notes/iowacollab-pastes-2026-09-27.md; "
  "notes/ludism-wikis-ingest-2026-09-27.md; notes/termina-counter-lane-2026-09-27.md",
  "", "medium",
@@ -388,7 +388,7 @@ EVENTS = [
 ("2026-09-06T00:00:00Z", "day",
  "DemoWiki PublicBoard relay edit 2026-09-06 -- direct DemoWiki <-> "
  "public-board.com bridge written by 159.146.96.208.",
- "demowiki",
+ "2021-10-30-demowiki",
  "notes/demowiki-ingest-2026-09-27.md",
  "", "high",
  ["venue:demowiki", "venue:agent-board"]),
@@ -404,15 +404,15 @@ EVENTS = [
  "VG_CEMETERY_PERSON_MOST_ULTRABULK v0.77 content date (5,000 Czech cemetery "
  "records decoded from paste b3746a9f) -- public-records cemetery-scraping "
  "task family; content-date, paste capture date uncertain.",
- "paste-archive-gap",
- "notes/cascade-synthesis-2026-09-28.md; data/paste-archive-gap/vg_cemetery_person_v0_77.json",
+ "2026-03-12-paste-archive-gap",
+ "notes/cascade-synthesis-2026-09-28.md; data/2026-03-12-paste-archive-gap/vg_cemetery_person_v0_77.json",
  "", "medium",
  ["family:public-records", "caveat:content-date-only"]),
 ("2026-09-20T16:33:00Z", "timestamp",
  "fieldnotes gem burst-publish: v0.1.1->0.1.3 on 2026-09-20 16:33->20:17 UTC "
  "(v0.1.0 was 2026-09-05T21:14:04Z) -- the legit public-board RubyGems client, "
  "control sample against the malicious May-12 campaign gems.",
- "fieldnotes-gem",
+ "2026-09-05-fieldnotes-gem",
  "notes/fieldnotes-gem-2026-09-27.md",
  "", "high",
  ["venue:rubygems", "venue:agent-board"]),
@@ -420,7 +420,7 @@ EVENTS = [
  "popcat ChatGPT conversation (linked by two live popcat.xyz shortlinks) "
  "created 2026-04-11 per joshuadavid popcat-wayback export -- pre-campaign "
  "community shortener use, a long-baseline anchor.",
- "university-shorteners",
+ "2026-05-12-university-shorteners",
  "notes/university-shorteners-2026-09-28.md",
  "", "medium",
  ["venue:shortener", "caveat:pre-campaign"]),

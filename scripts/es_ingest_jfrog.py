@@ -2,7 +2,7 @@
 """Ingest JFrog's public GemStuffer inventory CSV into `rubygems-goimport-campaign`.
 
 record_kind := "jfrog_inventory" (sixth flavor in the shared schema).
-Source: data/gemstuffer-jfrog-2026-09-27.csv (Package, Versions, Xray ID),
+Source: data/2025-03-04-rubygems-goimport-campaign/raw/gemstuffer-jfrog-2026-09-27.csv (Package, Versions, Xray ID),
 saved from https://research.jfrog.com/gemstuffer.csv on 2026-09-27.
 Provenance: https://research.jfrog.com/post/gemstuffer-openai-rubygems/
 
@@ -34,7 +34,7 @@ REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 HOSTS = ["agent-apocalypse-f1f7ba.es.us-east-1.aws.elastic.cloud"]
 CRED = "custom.elastic-cloud"
 BASE = REPO_ROOT
-INDEX = "rubygems-goimport-campaign"
+INDEX = "2025-03-04-rubygems-goimport-campaign"
 NOW = datetime.now(timezone.utc).isoformat()
 FALLBACK_TS = "2026-09-27T00:00:00.000Z"  # CSV acquisition date; never "now"
 REPORT_URL = "https://research.jfrog.com/post/gemstuffer-openai-rubygems/"
@@ -85,7 +85,7 @@ def wave_for(published_at):
 def corpus_wave_lookup():
     """gem name -> (published_at ISO, wave) from our dated Diffend corpus."""
     lookup = {}
-    with open(BASE + "/data/gem-ioc-log.jsonl") as f:
+    with open(BASE + "/data/2025-03-04-rubygems-goimport-campaign/raw/gem-ioc-log.jsonl") as f:
         for line in f:
             line = line.strip()
             if not line:
@@ -117,7 +117,7 @@ def load_docs():
     print("corpus wave lookup: %d gems" % len(lookup))
     docs = {}
     overlap = 0
-    with open(BASE + "/data/gemstuffer-jfrog-2026-09-27.csv", newline="") as f:
+    with open(BASE + "/data/2025-03-04-rubygems-goimport-campaign/raw/gemstuffer-jfrog-2026-09-27.csv", newline="") as f:
         for row in csv.DictReader(f):
             gem = (row.get("Package") or "").strip()
             if not gem:
@@ -143,7 +143,7 @@ def load_docs():
                 "csv_source_url": CSV_URL,
                 "in_diffend_corpus": in_corpus,
                 "@timestamp": published_at,
-                "event": {"dataset": "rubygems-goimport-campaign",
+                "event": {"dataset": "2025-03-04-rubygems-goimport-campaign",
                           "created": NOW},
                 "observer": dict(OBSERVER),
                 "status": "dead",

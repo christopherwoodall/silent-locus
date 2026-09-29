@@ -1,16 +1,16 @@
 #!/usr/bin/env python3
 """Analyze the cors-bwa-proxy raw pulls: target extraction, classification,
 ladder chains, timing, other workers.dev hostnames. Writes:
-  data/cors-bwa-proxy/bwa_targets.jsonl
-  data/cors-bwa-proxy/ladder_edges.jsonl
-  data/cors-bwa-proxy/other_workers_dev_hostnames.json
-  data/cors-bwa-proxy/summary_stats.json
+  data/aggregates/2025-09-26-cors-bwa-proxy/raw/bwa_targets.jsonl
+  data/aggregates/2025-09-26-cors-bwa-proxy/raw/ladder_edges.jsonl
+  data/aggregates/2025-09-26-cors-bwa-proxy/other_workers_dev_hostnames.json
+  data/aggregates/2025-09-26-cors-bwa-proxy/summary_stats.json
 Passive dataset work only — no live fetches."""
 import json, os, re
 from urllib.parse import urlparse, unquote
 from collections import Counter, defaultdict
 
-D = "data/cors-bwa-proxy"
+D = "data/aggregates/2025-09-26-cors-bwa-proxy"
 RAW = f"{D}/raw"
 
 BWA = "cors.bwa.workers.dev"
@@ -35,8 +35,8 @@ def find_strings(obj, needle, out, path=""):
 
 
 # ---- shape inspection: where does the bwa string live per index? ----
-for name in ["collusion-wiki", "urlquery-hunt", "proxy-primitives",
-             "paste-archive-gap", "rmn-re-linktable"]:
+for name in ["2026-05-17-collusion-wiki", "urlquery-hunt", "2026-05-26-proxy-primitives",
+             "2026-03-12-paste-archive-gap", "2026-09-27-rmn-re-linktable"]:
     docs = load(name)
     path_counts = Counter()
     for d in docs[:20]:
@@ -182,11 +182,11 @@ for name in ["urlquery-incidents-allworkersdev", "collusion-wiki-allworkersdev"]
                 if h != BWA:
                     other_hosts[h] += 1
 
-with open(f"{D}/bwa_targets.jsonl", "w") as f:
+with open(f"{D}/raw/bwa_targets.jsonl", "w") as f:
     for r in targets:
         f.write(json.dumps(r) + "\n")
 
-with open(f"{D}/ladder_edges.jsonl", "w") as f:
+with open(f"{D}/raw/ladder_edges.jsonl", "w") as f:
     for src_h, via, dst in sorted(edge_set):
         f.write(json.dumps({"source": src_h, "via": via,
                             "target": dst}) + "\n")

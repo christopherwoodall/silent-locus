@@ -31,8 +31,8 @@ REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 HOSTS = ["agent-apocalypse-f1f7ba.es.us-east-1.aws.elastic.cloud"]
 CRED = "custom.elastic-cloud"
 BASE = REPO_ROOT
-D = BASE + "/data/termina-digital"
-INDEX = "termina-digital"
+D = BASE + "/data/2016-01-05-termina-digital"
+INDEX = "2016-01-05-termina-digital"
 NOW = datetime.now(timezone.utc).isoformat()
 OBSERVER = {"product": "termina-digital-ingest", "vendor": "swarmtraces-hunt",
             "type": "dataset"}

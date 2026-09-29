@@ -7,7 +7,7 @@ Writes pattern-sweep.json (per-file hit table). Pure recon — no network.
 """
 import json, os, re, hashlib
 
-DDIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data", "ludism-wikis")
+DDIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data", "2026-09-28-ludism-wikis")
 OUT = DDIR + "/pattern-sweep.json"
 
 PATTERNS = {

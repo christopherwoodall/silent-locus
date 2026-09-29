@@ -44,7 +44,7 @@ REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 HOSTS = ["agent-apocalypse-f1f7ba.es.us-east-1.aws.elastic.cloud"]
 CRED = "custom.elastic-cloud"
 BASE = REPO_ROOT
-INDEX = "rubygems-goimport-campaign"
+INDEX = "2025-03-04-rubygems-goimport-campaign"
 NOW = datetime.now(timezone.utc).isoformat()
 FALLBACK_TS = "2026-09-27T00:00:00.000Z"  # harvest date; never "now"
 OBSERVER = {"product": "diffend-gem-harvest", "vendor": "independent-research",
@@ -121,7 +121,7 @@ def load_docs():
     def put(_id, doc):
         docs[_id] = doc
 
-    with open(BASE + "/data/gem-ioc-log.jsonl") as f:
+    with open(BASE + "/data/2025-03-04-rubygems-goimport-campaign/raw/gem-ioc-log.jsonl") as f:
         for line in f:
             line = line.strip()
             if not line:
@@ -187,10 +187,10 @@ def load_docs():
                 status_lookup[(gem, ver)] = status
 
             enrich_common(doc, gem, ver, doc.get("published_at"), ts_source,
-                          status, "rubygems-goimport-campaign")
+                          status, "2025-03-04-rubygems-goimport-campaign")
             put("log:%s:%s:%s" % (rk, gem, ver), doc)
 
-    with open(BASE + "/data/gem-ioc-hits.jsonl") as f:
+    with open(BASE + "/data/2025-03-04-rubygems-goimport-campaign/raw/gem-ioc-hits.jsonl") as f:
         for line in f:
             line = line.strip()
             if not line:
@@ -228,7 +228,7 @@ def load_docs():
 
     # June-18 wave: Wayback-recovered metadata records (no .gem bytes exist).
     try:
-        with open(BASE + "/data/gem-june18-wayback.jsonl") as f:
+        with open(BASE + "/data/2025-03-04-rubygems-goimport-campaign/raw/gem-june18-wayback.jsonl") as f:
             for line in f:
                 line = line.strip()
                 if not line:
@@ -242,7 +242,7 @@ def load_docs():
                 doc["source_url"] = r.get("wayback_url")
                 enrich_common(doc, gem, ver, r.get("published_at"),
                               r.get("date_source"), "dead",
-                              "rubygems-goimport-campaign")
+                              "2025-03-04-rubygems-goimport-campaign")
                 put("wayback:%s:%s" % (gem, ver or "noversion"), doc)
     except FileNotFoundError:
         pass

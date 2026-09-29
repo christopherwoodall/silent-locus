@@ -8,9 +8,9 @@ Hunts longcat's 207-domain-audit primitives across:
 Primitives: pure.md, api.cors.lol, corsmirror.com, Google Docs Viewer gview.
 Catches URL-encoded variants (pure%2Emd, pure%252Emd, etc.).
 
-Output: data/proxy-primitives/hits.jsonl (normalized, exact-dup collapsed)
-        data/proxy-primitives/PROVENANCE.md
-        data/proxy-primitives/progress.log
+Output: data/aggregates/2026-05-26-proxy-primitives/proxy-primitives.jsonl (normalized, exact-dup collapsed)
+        data/aggregates/2026-05-26-proxy-primitives/PROVENANCE.md
+        data/aggregates/2026-05-26-proxy-primitives/progress.log
 """
 import os, sys, json, re, hashlib, subprocess, urllib.request
 from datetime import datetime, timezone
@@ -31,7 +31,7 @@ CRED = "custom.elastic-cloud"
 BASE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA = BASE + "/data"
 OUT = DATA + "/proxy-primitives"
-INDEX = "collusion-wiki"
+INDEX = "2026-05-17-collusion-wiki"
 NOW = datetime.now(timezone.utc).isoformat()
 
 # primitive -> (plain fragment, encoded-variant fragments)
@@ -122,7 +122,7 @@ def local_sweep():
         DATA + "/gemstuffer-jfrog-2026-09-27.csv",
         DATA + "/gem-graph-nodes.jsonl",
         DATA + "/gem-graph-edges.jsonl",
-        DATA + "/osv/diffend_sweep_results.jsonl",
+        DATA + "/osv/osv-diffend-sweep-results.jsonl",
         DATA + "/wiki_ioc_pivots.jsonl",
         DATA + "/wiki_shortener_detail.json",
         DATA + "/wiki_ioc_pivot_summary.json",

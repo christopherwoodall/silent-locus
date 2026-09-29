@@ -28,8 +28,8 @@ REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 HOSTS = ["agent-apocalypse-f1f7ba.es.us-east-1.aws.elastic.cloud"]
 CRED = "custom.elastic-cloud"
 BASE = REPO_ROOT
-D = BASE + "/data/tantive-space"
-INDEX = "tantive-space"
+D = BASE + "/data/2026-08-19-tantive-space"
+INDEX = "2026-08-19-tantive-space"
 NOW = datetime.now(timezone.utc).isoformat()
 OBSERVER = {"product": "tantive-ingest", "vendor": "swarmtraces-hunt",
             "type": "dataset"}
@@ -107,7 +107,7 @@ def classify(m):
 
 def iter_messages():
     seen = set()
-    for name in ("messages.jsonl", "threads.jsonl"):
+    for name in ("raw/messages.jsonl", "raw/threads.jsonl"):
         p = os.path.join(D, name)
         if not os.path.exists(p):
             continue

@@ -7,7 +7,7 @@ concepts map onto existing fields; paste-specific detail lives in `labels`
 event.dataset.keyword multi-field included at creation (uniform with the
 other campaign indices).
 
-Docs: data/iowacollab-pastes/<pasteid>.txt + dataset manifest dataset.jsonl
+Docs: data/2026-05-17-iowacollab-pastes/<pasteid>.txt + dataset manifest dataset.jsonl
 Usage: python3 es_ingest_iowacollab.py
 """
 import json, sys, urllib.request, glob, os
@@ -29,8 +29,8 @@ REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 HOSTS = ["agent-apocalypse-f1f7ba.es.us-east-1.aws.elastic.cloud"]
 CRED = "custom.elastic-cloud"
 BASE = REPO_ROOT
-PDIR = BASE + "/data/iowacollab-pastes"
-INDEX = "iowacollab-pastes"
+PDIR = BASE + "/data/2026-05-17-iowacollab-pastes"
+INDEX = "2026-05-17-iowacollab-pastes"
 NOW = datetime.now(timezone.utc).isoformat()
 OBSERVER = {"product": "iowacollab-paste-ingest", "vendor": "nightingale-collective",
             "type": "dataset"}

@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """Build manifest.jsonl (per-file SHA-256, bytes, source URLs, timestamps)
-for data/ludism-wikis/. Resume-friendly: regenerates from scratch.
+for data/2026-09-28-ludism-wikis/. Resume-friendly: regenerates from scratch.
 """
 import json, os, hashlib
 from datetime import datetime, timezone
 
-DDIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data", "ludism-wikis")
+DDIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data", "2026-09-28-ludism-wikis")
 
 def sha256(p):
     h = hashlib.sha256()
@@ -51,7 +51,7 @@ def main():
                 row["source_url"] = "https://thecolony.ai/wiki/openai-escapee-agent-incident-2026 (§14) + /wiki/escaped-agent-swarms (§2)"
                 row["verification"] = "not_independently_verified"
             rows.append(row)
-    with open(DDIR + "/manifest.jsonl", "w") as f:
+    with open(DDIR + "/raw/manifest.jsonl", "w") as f:
         for r in rows:
             f.write(json.dumps(r) + "\n")
     print("manifest rows:", len(rows))

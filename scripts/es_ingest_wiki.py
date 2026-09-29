@@ -34,8 +34,8 @@ REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 HOSTS = ["agent-apocalypse-f1f7ba.es.us-east-1.aws.elastic.cloud"]
 CRED = "custom.elastic-cloud"
 BASE = REPO_ROOT
-WIKI = BASE + "/data/collusion-wiki"
-INDEX = "collusion-wiki"
+WIKI = BASE + "/data/2026-05-17-collusion-wiki"
+INDEX = "2026-05-17-collusion-wiki"
 NOW = datetime.now(timezone.utc).isoformat()
 OBSERVER = {"product": "collusion-wiki-export", "vendor": "nightingale-collective",
             "type": "dataset"}
@@ -355,7 +355,7 @@ def load_other():
 
 def load_bridge():
     docs = {}
-    b = json.load(open(BASE + "/data/wiki_gem_bridge.json"))
+    b = json.load(open(BASE + "/data/aggregates/2026-09-29-overlap-analysis/wiki_gem_bridge.json"))
     for g in b.get("gem_metadata_records", []):
         gem = g.get("gem")
         meta = g.get("meta", {})

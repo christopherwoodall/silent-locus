@@ -2,6 +2,11 @@
 """Corpus validator: every JSONL record under data/ must match
 schema/record.schema.json. Stdlib only.
 
+Raw layer: files under any `raw/` path segment (e.g. data/<collection>/raw/)
+are pre-event source material — script-consumed transform inputs and raw
+captures that keep upstream-native names for provenance. They are exempt
+from the event-record schema and reported as skipped, not checked.
+
 Usage:
     python3 scripts/validate_schema.py [path ...]   # files or dirs (default: data/)
 Exit 0 when all records validate, 1 otherwise. Prints per-file error counts
@@ -105,7 +110,15 @@ def main():
     total_errs = 0
     bad_files = 0
     checked = 0
+    raw_skipped = 0
+    event_files = []
     for p in sorted(files):
+        rel = os.path.relpath(p, REPO)
+        if "raw" in rel.split(os.sep):
+            raw_skipped += 1
+            continue
+        event_files.append(p)
+    for p in event_files:
         ferrs = []
         with open(p) as f:
             for i, line in enumerate(f, 1):
@@ -129,7 +142,8 @@ def main():
             print(f"FAIL {rel} ({len(ferrs)} shown)")
             for e in ferrs[:6]:
                 print(f"    {e}")
-    print(f"checked {checked} records in {len(files)} files; "
+    print(f"checked {checked} records in {len(event_files)} event files "
+          f"({raw_skipped} raw-layer files skipped); "
           f"{bad_files} files with violations")
     sys.exit(1 if total_errs else 0)
 

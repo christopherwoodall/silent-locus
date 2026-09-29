@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
-"""Build final ladder_edges.jsonl: (outer_wrapper -> cors.bwa.workers.dev -> target)
+"""Build final raw/ladder_edges.jsonl: (outer_wrapper -> cors.bwa.workers.dev -> target)
 chains parsed from wiki external_links, proxy-primitives matched_strings,
 and the urlquery-incident stacks. Each edge: {edge, layers, venue, n_docs}."""
 import json, re
 from urllib.parse import urlparse, unquote
 from collections import Counter
 
-D = "data/cors-bwa-proxy"
+D = "data/aggregates/2025-09-26-cors-bwa-proxy"
 edges = Counter()
 edge_meta = {}
 
@@ -49,7 +49,7 @@ def add_chain(url, venue):
 
 
 # incident stacks
-for l in open(f"{D}/bwa_targets.jsonl"):
+for l in open(f"{D}/raw/bwa_targets.jsonl"):
     r = json.loads(l)
     inner = re.sub(r"(https?://)?cors\.bwa\.workers\.dev/", "", r["full_proxied_url"], flags=re.I)
     inner_h = inner.split("/")[0].lower()
@@ -66,16 +66,16 @@ for l in open(f"{D}/bwa_targets.jsonl"):
 for l in open(f"{D}/raw/collusion-wiki.jsonl"):
     d = json.loads(l)
     for el in (d["_source"].get("external_links") or []):
-        add_chain(str(el), "collusion-wiki")
+        add_chain(str(el), "2026-05-17-collusion-wiki")
 
 # proxy-primitives matched_string
 for l in open(f"{D}/raw/proxy-primitives.jsonl"):
     d = json.loads(l)
     ms = d["_source"].get("matched_string")
     if ms:
-        add_chain(str(ms), "proxy-primitives")
+        add_chain(str(ms), "2026-05-26-proxy-primitives")
 
-with open(f"{D}/ladder_edges.jsonl", "w") as f:
+with open(f"{D}/raw/ladder_edges.jsonl", "w") as f:
     for (outer, via, tgt), n in edges.most_common():
         f.write(json.dumps({"edge": f"{outer} --{via}--> {tgt}",
                             "layers": [outer, via, tgt],

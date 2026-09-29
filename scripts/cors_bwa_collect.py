@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Lane cors-bwa-proxy: pull every doc matching *cors.bwa.workers.dev* across
 the corpus indices (read-only), plus a *.workers.dev sweep to find other
-CORS-proxy hostnames. Saves raw docs per index to data/cors-bwa-proxy/raw/.
+CORS-proxy hostnames. Saves raw docs per index to data/aggregates/2025-09-26-cors-bwa-proxy/raw/.
 """
 import sys, json, urllib.request, os
 sys.path.insert(0, "/opt/hatch/skills/skill-creator/bin")
@@ -17,11 +17,11 @@ except ImportError:  # local run: no vault on this machine, plain HTTP(S) instea
 
 ES = "https://agent-apocalypse-f1f7ba.es.us-east-1.aws.elastic.cloud:443"
 HOSTS = ["agent-apocalypse-f1f7ba.es.us-east-1.aws.elastic.cloud"]
-D = "data/cors-bwa-proxy"
+D = "data/aggregates/2025-09-26-cors-bwa-proxy"
 os.makedirs(f"{D}/raw", exist_ok=True)
 
-INDICES = ["collusion-wiki", "urlquery-incidents", "urlquery-hunt",
-           "proxy-primitives", "paste-archive-gap", "rmn-re-linktable"]
+INDICES = ["2026-05-17-collusion-wiki", "urlquery-incidents", "urlquery-hunt",
+           "2026-05-26-proxy-primitives", "2026-03-12-paste-archive-gap", "2026-09-27-rmn-re-linktable"]
 
 
 def req(method, path, body=None):
@@ -62,7 +62,7 @@ def main():
                  f"{D}/raw/urlquery-incidents-allworkersdev.jsonl")
     totals["urlquery-incidents-allworkersdev"] = n
     print("urlquery-incidents allworkersdev", n, flush=True)
-    n = pull_all("collusion-wiki", "*.workers.dev*",
+    n = pull_all("2026-05-17-collusion-wiki", "*.workers.dev*",
                  f"{D}/raw/collusion-wiki-allworkersdev.jsonl")
     totals["collusion-wiki-allworkersdev"] = n
     print("collusion-wiki allworkersdev", n, flush=True)

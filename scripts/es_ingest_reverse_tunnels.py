@@ -34,8 +34,8 @@ REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 HOSTS = ["agent-apocalypse-f1f7ba.es.us-east-1.aws.elastic.cloud"]
 CRED = "custom.elastic-cloud"
 BASE = REPO_ROOT
-PDIR = BASE + "/data/reverse-tunnels"
-INDEX = "reverse-tunnels"
+PDIR = BASE + "/data/2016-05-06-reverse-tunnels"
+INDEX = "2016-05-06-reverse-tunnels"
 NOW = datetime.now(timezone.utc).isoformat()
 OBSERVER = {"product": "reverse-tunnels-ingest", "vendor": "nightingale-collective",
             "type": "dataset"}

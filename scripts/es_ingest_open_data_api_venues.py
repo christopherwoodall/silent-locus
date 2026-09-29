@@ -26,8 +26,8 @@ REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 HOSTS = ["agent-apocalypse-f1f7ba.es.us-east-1.aws.elastic.cloud"]
 CRED = "custom.elastic-cloud"
 BASE = REPO_ROOT
-PDIR = BASE + "/data/open-data-api-venues"
-INDEX = "open-data-api-venues"
+PDIR = BASE + "/data/2026-09-28-open-data-api-venues"
+INDEX = "2026-09-28-open-data-api-venues"
 
 
 def req(method, path, body=None):

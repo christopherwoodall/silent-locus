@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Ingest Lane-K webhook dead-drop marker sweep into NEW index `webhook-deaddrops`.
 
-Source: data/webhook-deaddrops/webhook-deaddrop-hits-2026-09-27.jsonl (8 docs).
+Source: data/2026-05-12-webhook-deaddrops/webhook-deaddrops.jsonl (8 docs).
 Schema: shared canonical schema (notes/gems-es-mapping.json) + `marker` and
 `evidence_level` keywords, with `event.dataset.keyword` multi-field at creation.
 
@@ -29,8 +29,8 @@ REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 HOSTS = ["agent-apocalypse-f1f7ba.es.us-east-1.aws.elastic.cloud"]
 CRED = "custom.elastic-cloud"
 BASE = REPO_ROOT
-INDEX = "webhook-deaddrops"
-HITS = BASE + "/data/webhook-deaddrops/webhook-deaddrop-hits-2026-09-27.jsonl"
+INDEX = "2026-05-12-webhook-deaddrops"
+HITS = BASE + "/data/2026-05-12-webhook-deaddrops/webhook-deaddrops.jsonl"
 SCHEMA = BASE + "/notes/gems-es-mapping.json"
 
 

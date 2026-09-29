@@ -29,8 +29,8 @@ REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 HOSTS = ["agent-apocalypse-f1f7ba.es.us-east-1.aws.elastic.cloud"]
 CRED = "custom.elastic-cloud"
 BASE = REPO_ROOT
-D = BASE + "/data/counter-channel"
-INDEX = "counter-channel"
+D = BASE + "/data/2026-09-28-counter-channel"
+INDEX = "2026-09-28-counter-channel"
 NOW = datetime.now(timezone.utc).isoformat()
 OBSERVER = {"product": "counter-channel-ingest", "vendor": "swarmtraces-hunt",
             "type": "dataset"}

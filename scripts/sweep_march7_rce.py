@@ -6,11 +6,11 @@ Two sources:
      analysis only, nothing executed. Strip diff2html markup, match
      mechanism/egress/temporal patterns per +/- line.
   B. Investigator-reported markers from colonist-one's post
-     (data/thecolony-ai/posts/dfac3a74-4685-43d8-9bd6-c76409f87ade.json) —
+     (data/2025-02-04-thecolony-ai/posts/dfac3a74-4685-43d8-9bd6-c76409f87ade.json) —
      recorded with provenance "colonist-one (reported)", not our own
      observation, since the gems are absent from Diffend.
 
-Writes data/march7-rce-modality/sweep.json.
+Writes data/2026-02-01-march7-rce-modality/sweep.json.
 """
 import html
 import json
@@ -18,7 +18,7 @@ import os
 import re
 
 BASE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-DIR = os.path.join(BASE, "data", "march7-rce-modality")
+DIR = os.path.join(BASE, "data", "2026-02-01-march7-rce-modality")
 RAW = os.path.join(DIR, "raw")
 
 PATTERNS = {

@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 """v2: refine other-workers.dev hostname analysis (strip ?/ ?url= prefixes,
 classify target hosts, doc-level counts per index). Appends results into
-data/cors-bwa-proxy/other_workers_dev_hostnames.json and prints summary."""
+data/aggregates/2025-09-26-cors-bwa-proxy/other_workers_dev_hostnames.json and prints summary."""
 import json, re
 from urllib.parse import urlparse, unquote, parse_qs
 from collections import Counter, defaultdict
 
-D = "data/cors-bwa-proxy"
+D = "data/aggregates/2025-09-26-cors-bwa-proxy"
 HOSTS = ["cors.hypnguyen.workers.dev", "cors-get-proxy.sirjosh.workers.dev",
          "cloudflare-cors-anywhere.hanpengchen.workers.dev",
          "test.cors.workers.dev", "cf-cors.findme-19.workers.dev",

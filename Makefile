@@ -16,8 +16,8 @@ export ES_URL ES_USER ES_PASS
 .DEFAULT_GOAL := help
 
 .PHONY: help doctor up down restart ps logs logs-es logs-kibana wait status kibana \
-        ingest ingest-snapshot ingest-corpus ingest-swarmtraces ingest-dashboards \
-        dry-run clean reset
+        ingest ingest-corpus ingest-swarmtraces ingest-dashboards \
+        dry-run validate validate-collections clean reset
 
 ##@ Stack
 
@@ -71,14 +71,10 @@ kibana: ## Print URLs and credentials
 
 ##@ Ingest
 
-ingest: wait ## Full load: snapshot -> corpus -> swarmtraces -> dashboards
-	$(MAKE) ingest-snapshot
+ingest: wait ## Full load: corpus -> swarmtraces -> dashboards
 	$(MAKE) ingest-corpus
 	$(MAKE) ingest-swarmtraces
 	$(MAKE) ingest-dashboards
-
-ingest-snapshot: wait ## Restore the elastic-exports/*.jsonl.gz cloud snapshot (sha256-verified, original _ids)
-	$(PY) scripts/restore_elastic_exports.py
 
 ingest-corpus: wait ## Load the local corpus via scripts/local_es_manifest.json (staged + via_script)
 	$(PY) scripts/push_to_local_es.py --all
@@ -103,10 +99,18 @@ ingest-dashboards: ## Import the latest kibana-exports/all-dashboards-*.ndjson i
 	  -H "kbn-xsrf: true" --form "file=@$$f" | tee /dev/stderr | grep -q '"success":true' \
 	  && echo "dashboards imported" || { echo "dashboard import FAILED"; exit 1; }
 
-dry-run: ## Preview everything (snapshot verify, corpus plan, dataset counts); writes nothing
-	$(PY) scripts/restore_elastic_exports.py --dry-run
+dry-run: ## Preview everything (corpus plan, dataset counts); writes nothing
 	$(PY) scripts/push_to_local_es.py --dry-run
 	$(PY) scripts/es_ingest_swarmtraces.py --dry-run
+
+##@ Validation
+
+validate: ## Record-schema + collection validation; exits non-zero on violations
+	-$(PY) scripts/validate_schema.py
+	$(PY) scripts/validate_collections.py
+
+validate-collections: ## Collection naming/registration/right-directory checks only
+	$(PY) scripts/validate_collections.py
 
 ##@ Maintenance
 

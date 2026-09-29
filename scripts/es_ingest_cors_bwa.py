@@ -35,8 +35,8 @@ import urllib.request
 ES = os.environ.get("SWARMTRACES_ES_URL", "https://agent-apocalypse-f1f7ba.es.us-east-1.aws.elastic.cloud:443")
 HOSTS = ["agent-apocalypse-f1f7ba.es.us-east-1.aws.elastic.cloud"]
 CRED = "custom.elastic-cloud"
-BASE = "data/cors-bwa-proxy"
-INDEX = "cors-bwa-proxy"
+BASE = "data/aggregates/2025-09-26-cors-bwa-proxy"
+INDEX = "2025-09-26-cors-bwa-proxy"
 NOW = datetime.now(timezone.utc).isoformat()
 TS = "2026-09-28T05:30:00Z"
 OBSERVER = {"product": "cors-bwa-proxy-ingest", "vendor": "swarmtraces-hunt",
@@ -62,7 +62,7 @@ def req(method, path, body=None):
 
 def build_docs():
     docs = {}
-    targets = [json.loads(l) for l in open(f"{BASE}/bwa_targets.jsonl")]
+    targets = [json.loads(l) for l in open(f"{BASE}/raw/bwa_targets.jsonl")]
     for t in targets:
         uid = hashlib.sha256((t["source_index"] + t["doc_id"]).encode()).hexdigest()[:12]
         docs[f"cors-bwa-proxy:target:{uid}"] = {
@@ -88,7 +88,7 @@ def build_docs():
                        "chain": t["chain"], "chain_layers": " > ".join(t["chain_layers"]),
                        "incident_ts": t["incident_ts"]},
         }
-    for i, l in enumerate(open(f"{BASE}/ladder_edges.jsonl")):
+    for i, l in enumerate(open(f"{BASE}/raw/ladder_edges.jsonl")):
         e = json.loads(l)
         uid = hashlib.sha256(e["edge"].encode()).hexdigest()[:12]
         docs[f"cors-bwa-proxy:ladder:{uid}"] = {
@@ -123,15 +123,15 @@ def build_docs():
                        "docs_per_index": json.dumps(st["docs_per_index"]),
                        "top_targets": json.dumps(dict(list(st["targets"].items())[:10]))},
         }
-    venue_hits = {"collusion-wiki": 578, "urlquery-incidents": 113,
-                  "urlquery-hunt": 36, "proxy-primitives": 17,
-                  "paste-archive-gap": 1, "rmn-re-linktable": 1}
-    venue_ctx = {"collusion-wiki": "link_in_selected_agent_related_text / wiki_link+wiki_record+wiki_revision docs referencing bwa as an agent tool",
+    venue_hits = {"2026-05-17-collusion-wiki": 578, "urlquery-incidents": 113,
+                  "urlquery-hunt": 36, "2026-05-26-proxy-primitives": 17,
+                  "2026-03-12-paste-archive-gap": 1, "2026-09-27-rmn-re-linktable": 1}
+    venue_ctx = {"2026-05-17-collusion-wiki": "link_in_selected_agent_related_text / wiki_link+wiki_record+wiki_revision docs referencing bwa as an agent tool",
                  "urlquery-incidents": "live submitted scan URLs behind the bwa proxy",
                  "urlquery-hunt": "graph edges labeled 'cors.bwa.workers.dev laundering'",
-                 "proxy-primitives": "matched_string hits (lane caught but never elevated it)",
-                 "paste-archive-gap": "lane-M ladder doc (termina.digital DB actor pages)",
-                 "rmn-re-linktable": "gem-era shortener decoded target"}
+                 "2026-05-26-proxy-primitives": "matched_string hits (lane caught but never elevated it)",
+                 "2026-03-12-paste-archive-gap": "lane-M ladder doc (termina.digital DB actor pages)",
+                 "2026-09-27-rmn-re-linktable": "gem-era shortener decoded target"}
     for v, n in venue_hits.items():
         docs[f"cors-bwa-proxy:venue:{v}"] = {
             "@timestamp": TS,

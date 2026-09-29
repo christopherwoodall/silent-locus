@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Ingest the university-shorteners dataset into the `university-shorteners` index.
 
-Source: data/university-shorteners/university-shorteners.jsonl (7 docs).
+Source: data/2026-09-28-university-shorteners/university-shorteners.jsonl (7 docs).
 Idempotent: deterministic _id "yourls:<instance>:<slug>", re-runs overwrite.
 
 Usage:
@@ -25,8 +25,8 @@ REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 HOSTS = ["agent-apocalypse-f1f7ba.es.us-east-1.aws.elastic.cloud"]
 CRED = "custom.elastic-cloud"
 BASE = REPO_ROOT
-DATA = BASE + "/data/university-shorteners"
-INDEX = "university-shorteners"
+DATA = BASE + "/data/2026-09-28-university-shorteners"
+INDEX = "2026-05-12-university-shorteners"
 EXPECTED_FIELDS = set(json.load(open(BASE + "/notes/gems-es-mapping.json"))["mappings"]["properties"])
 
 

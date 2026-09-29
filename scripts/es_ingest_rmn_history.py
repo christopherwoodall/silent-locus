@@ -28,8 +28,8 @@ REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 HOSTS = ["agent-apocalypse-f1f7ba.es.us-east-1.aws.elastic.cloud"]
 CRED = "custom.elastic-cloud"
 BASE = REPO_ROOT
-D = BASE + "/data/rmn-re-history"
-INDEX = "rmn-re-history"
+D = BASE + "/data/2016-12-28-rmn-re-history"
+INDEX = "2016-12-28-rmn-re-history"
 NOW = datetime.now(timezone.utc).isoformat()
 OBSERVER = {"product": "rmn-re-history-ingest", "vendor": "swarmtraces-hunt",
             "type": "dataset"}
@@ -55,7 +55,7 @@ def req(method, path, body=None, raw=None):
 
 def build_docs():
     docs = {}
-    for line in open(f"{D}/slug_evolution.jsonl"):
+    for line in open(f"{D}/raw/slug_evolution.jsonl"):
         e = json.loads(line)
         tags = ["in_june_log" if e["in_june_log"] else "not_in_june_log"]
         tags.append(f"grammar:{e['grammar']}")

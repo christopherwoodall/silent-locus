@@ -34,8 +34,8 @@ REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 HOSTS = ["agent-apocalypse-f1f7ba.es.us-east-1.aws.elastic.cloud"]
 CRED = "custom.elastic-cloud"
 BASE = REPO_ROOT
-PDIR = BASE + "/data/ludism-wikis"
-INDEX = "ludism-wikis"
+PDIR = BASE + "/data/2026-09-28-ludism-wikis"
+INDEX = "2026-09-28-ludism-wikis"
 NOW = datetime.now(timezone.utc).isoformat()
 OBSERVER = {"product": "ludism-wikis-ingest", "vendor": "nightingale-collective",
             "type": "dataset"}
@@ -88,7 +88,7 @@ def ensure_index():
 
 def load_manifest():
     out = {}
-    mp = PDIR + "/manifest.jsonl"
+    mp = PDIR + "/raw/manifest.jsonl"
     if os.path.exists(mp):
         for line in open(mp):
             line = line.strip()

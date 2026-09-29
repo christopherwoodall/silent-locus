@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """LANE H — ingest the 11 agent-surface capture records into `agent-surfaces`.
 
-One doc per surface, built from data/agent-surfaces/<slug>/{pages.json,
+One doc per surface, built from data/2026-01-25-agent-surfaces/<slug>/{pages.json,
 PROVENANCE.md}. Conforms to the canonical shared schema
 (notes/gems-es-mapping.json): triage detail lives in `labels` (flattened) +
 `tags`. Zero new top-level fields. event.dataset.keyword multi-field included
@@ -28,8 +28,8 @@ REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 HOSTS = ["agent-apocalypse-f1f7ba.es.us-east-1.aws.elastic.cloud"]
 CRED = "custom.elastic-cloud"
 BASE = REPO_ROOT
-PDIR = BASE + "/data/agent-surfaces"
-INDEX = "agent-surfaces"
+PDIR = BASE + "/data/2026-01-25-agent-surfaces"
+INDEX = "2026-01-25-agent-surfaces"
 NOW = datetime.now(timezone.utc).isoformat()
 OBSERVER = {"product": "capture-agent-surfaces", "vendor": "nightingale-collective",
             "type": "dataset"}

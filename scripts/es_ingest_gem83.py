@@ -29,8 +29,8 @@ REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 HOSTS = ["agent-apocalypse-f1f7ba.es.us-east-1.aws.elastic.cloud"]
 CRED = "custom.elastic-cloud"
 BASE = REPO_ROOT
-PDIR = BASE + "/data/gem83-reconciliation"
-INDEX = "gem83-reconciliation"
+PDIR = BASE + "/data/aggregates/2026-09-28-gem83-reconciliation"
+INDEX = "2026-09-28-gem83-reconciliation"
 NOW = datetime.now(timezone.utc).isoformat()
 OBSERVER = {"product": "gem83-reconciliation-ingest", "vendor": "nightingale-collective",
             "type": "dataset"}
@@ -66,7 +66,7 @@ def create_index():
 
 def build_docs():
     docs = []
-    for line in open(PDIR + "/gem83-reconciliation.jsonl"):
+    for line in open(PDIR + "/raw/raw/gem83-reconciliation.jsonl"):
         r = json.loads(line)
         doc = {
             "record_kind": "gem_reconciliation",

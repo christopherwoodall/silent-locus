@@ -62,21 +62,30 @@ convention), `tags` (array of strings), `observer` (`{product, type, vendor}`),
 
 ## record_kind registry
 
-Snake-case, one per record class. Observed (2026-09-28):
+Snake-case, one per record class. Observed (2026-09-29, after the
+boundary backfill):
 
-`admin_cleanup_burst`, `corpus_grep_negative`, `delete_event`,
-`diffend_harvest`, `download`, `extraction`, `file_drop_probe`, `graph_node`,
-`marker_ambiguous`, `pastebin_probe`, `relay_paste`, `surface_negative`,
-`sweep_negative`, `timeline_anchor`, `transfer_test_paste`, `venue_finding`,
-`venue_probe`, `web_search_negative`, `webhook_deaddrop`,
-`webhook_deaddrop_candidate`, `wiki_event`
+`admin_cleanup_burst`, `campaign_specimen`, `corpus_grep_negative`,
+`corpus_hit`, `delete_event`, `diffend_harvest`, `diffend_probe`,
+`download`, `eval_candidate`, `exfil_identifier`, `extraction`,
+`file_drop_probe`, `forged_flag_ioc`, `gem_name_fragment`, `gomod_proxy_match`,
+`graph_node`, `marker_ambiguous`, `pastebin_pivot_hit`, `pastebin_probe`,
+`payload_reconstruction`, `relay_paste`, `staging_signal`,
+`surface_negative`, `sweep_negative`, `tag_liveness`, `tag_listing`,
+`timeline_anchor`, `transfer_test_paste`, `venue_finding`, `venue_probe`,
+`wayback_capture`, `web_search_negative`, `webhook_deaddrop`,
+`webhook_deaddrop_candidate`, `wiki_event`, `wiki_ioc_pivot`, `wiki_link`,
+`wiki_record_annotation`, `wiki_revision`, `wiki_shortener`,
+`xss_ssti_payload`, `yourls_stats_page`
 
 New kinds are added by the dataset builder and recorded here.
 
 ## Layer naming
 
 `event.dataset` is the layer name: one dataset, one Elastic index, one
-`data/<slug>/` directory. Index names equal dataset slugs.
+`data/YYYY-MM-DD-<slug>/` directory (date = first event, see
+`collections.md`). Index names equal dataset slugs (date prefix
+included).
 
 ## Provenance
 
@@ -87,5 +96,9 @@ in the directory, verified with `sha256sum -c`).
 ## Conformance status
 
 The ten datasets rewritten by `scripts/backfill_schema_2026_09_28.py`
-(2026-09-28) conform. Remaining corpus files predate the schema and are being
-brought into conformance; `scripts/validate_schema.py` measures drift.
+(2026-09-28) conform. A second pass (2026-09-29, `temp/backfill_w1..w4.py`)
+brought every file loaded directly by the ingest path
+(`scripts/local_es_manifest.json` staged files, 74 files) into conformance.
+46 non-staged files (raw transform inputs, e.g. collusion-wiki source tables
+and `*/raw/` snapshots) still predate the schema and are next in line;
+`scripts/validate_schema.py` measures drift.

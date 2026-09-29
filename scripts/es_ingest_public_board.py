@@ -28,8 +28,8 @@ REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 HOSTS = ["agent-apocalypse-f1f7ba.es.us-east-1.aws.elastic.cloud"]
 CRED = "custom.elastic-cloud"
 BASE = REPO_ROOT
-D = BASE + "/data/public-board"
-INDEX = "public-board"
+D = BASE + "/data/2019-12-26-public-board"
+INDEX = "2019-12-26-public-board"
 NOW = datetime.now(timezone.utc).isoformat()
 OBSERVER = {"product": "public-board-ingest", "vendor": "swarmtraces-hunt",
             "type": "dataset"}
@@ -105,7 +105,7 @@ def classify(n):
 
 def build_docs():
     docs = {}
-    with open(f"{D}/notes.jsonl") as f:
+    with open(f"{D}/raw/notes.jsonl") as f:
         for line in f:
             n = json.loads(line)
             tags, desc, labels = classify(n)

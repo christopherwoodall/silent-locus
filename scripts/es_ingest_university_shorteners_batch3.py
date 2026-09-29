@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Ingest the university-shorteners-batch3 dataset into the `university-shorteners-batch3` index.
 
-Source: data/university-shorteners-batch3/university-shorteners-batch3.jsonl (3 docs).
+Source: data/2026-09-28-university-shorteners-batch3/university-shorteners-batch3.jsonl (3 docs).
 Idempotent: deterministic _id "yourls:<instance>:<slug>", re-runs overwrite.
 
 Usage:
@@ -24,8 +24,8 @@ ES = os.environ.get("SWARMTRACES_ES_URL", "https://agent-apocalypse-f1f7ba.es.us
 HOSTS = ["agent-apocalypse-f1f7ba.es.us-east-1.aws.elastic.cloud"]
 CRED = "custom.elastic-cloud"
 BASE = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
-DATA = BASE + "/data/university-shorteners-batch3"
-INDEX = "university-shorteners-batch3"
+DATA = BASE + "/data/2026-09-28-university-shorteners-batch3"
+INDEX = "2026-09-28-university-shorteners-batch3"
 EXPECTED_FIELDS = set(json.load(open(BASE + "/notes/gems-es-mapping.json"))["mappings"]["properties"])
 
 

@@ -16,7 +16,7 @@ one JSON doc per event:
                           rollup)
 
 Output is staged ON DISK ONLY (hosted-Elastic writes are paused):
-  data/university-shorteners-events/university-shorteners-events.jsonl
+  data/2026-05-12-university-shorteners-events/university-shorteners-events.jsonl
   + PROVENANCE.md + SHA256SUMS (re-verified after write)
 
 The JSONL is directly loadable by the local-push script: one JSON doc
@@ -30,7 +30,7 @@ import json, os, re, hashlib
 from datetime import datetime, timezone
 
 BASE = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
-OUTDIR = os.path.join(BASE, "data", "university-shorteners-events")
+OUTDIR = os.path.join(BASE, "data", "2026-05-12-university-shorteners-events")
 OUT = os.path.join(OUTDIR, "university-shorteners-events.jsonl")
 
 INSTANCES = {
@@ -86,7 +86,7 @@ def base_doc(instance, slug, source_url, retrieved_at, evidence_file, record_kin
     return {
         "@timestamp": retrieved_at,
         "description": description,
-        "event": {"created": retrieved_at, "dataset": "university-shorteners"},
+        "event": {"created": retrieved_at, "dataset": "2026-05-12-university-shorteners"},
         "file": os.path.relpath(evidence_file, BASE),
         "labels": labels,
         "matched_string": matched_string,
@@ -307,21 +307,21 @@ def main():
     os.makedirs(OUTDIR, exist_ok=True)
     docs = []
     # 5 rich JSON captures
-    for f in sorted(os.listdir(os.path.join(BASE, "data", "university-shorteners", "goto-unm-edu"))):
+    for f in sorted(os.listdir(os.path.join(BASE, "data", "2026-09-28-university-shorteners", "goto-unm-edu"))):
         if f.endswith("_referrer_urls_daily_2026-09-28.json"):
-            docs += explode_referrer_json(os.path.join(BASE, "data", "university-shorteners", "goto-unm-edu", f))
-    docs += explode_referrer_json(os.path.join(BASE, "data", "university-shorteners", "u-ethz-ch",
+            docs += explode_referrer_json(os.path.join(BASE, "data", "2026-09-28-university-shorteners", "goto-unm-edu", f))
+    docs += explode_referrer_json(os.path.join(BASE, "data", "2026-09-28-university-shorteners", "u-ethz-ch",
                                                "nB1nv_referrer_urls_daily_2026-09-28.json"))
     # vbudg control
-    docs += explode_vbudg_txt(os.path.join(BASE, "data", "university-shorteners-batch2", "goto-unm-edu",
+    docs += explode_vbudg_txt(os.path.join(BASE, "data", "2026-09-28-university-shorteners-batch2", "goto-unm-edu",
                                           "vbudg_stats_2026-09-28.txt"))
     # UVM controls
     for slug in ("-4s0q", "tgmtq", "xc26"):
-        docs += explode_uvm_txt(os.path.join(BASE, "data", "university-shorteners-batch3", "go-uvm-edu",
+        docs += explode_uvm_txt(os.path.join(BASE, "data", "2026-09-28-university-shorteners-batch3", "go-uvm-edu",
                                              "%s_stats_2026-09-28.txt" % slug), slug)
     # popcat
     for code in ("5vtSk2RG2f", "IRZTIxDlZ"):
-        docs += explode_popcat_txt(os.path.join(BASE, "data", "university-shorteners", "url-popcat-xyz",
+        docs += explode_popcat_txt(os.path.join(BASE, "data", "2026-09-28-university-shorteners", "url-popcat-xyz",
                                                 "%s_info_2026-09-28.txt" % code), code)
 
     # dedupe on event_id (keep first)
@@ -363,11 +363,11 @@ hosted-Elastic writes paused — staged on disk for the local-push script).
 
 ## Sources (untouched)
 
-- data/university-shorteners/goto-unm-edu/{7t6-o,discvr,reso,urphy21}_referrer_urls_daily_2026-09-28.json
-- data/university-shorteners/u-ethz-ch/nB1nv_referrer_urls_daily_2026-09-28.json
-- data/university-shorteners-batch2/goto-unm-edu/vbudg_stats_2026-09-28.txt (control)
-- data/university-shorteners-batch3/go-uvm-edu/{-4s0q,tgmtq,xc26}_stats_2026-09-28.txt (UVM controls)
-- data/university-shorteners/url-popcat-xyz/{5vtSk2RG2f,IRZTIxDlZ}_info_2026-09-28.txt
+- data/2026-09-28-university-shorteners/goto-unm-edu/{7t6-o,discvr,reso,urphy21}_referrer_urls_daily_2026-09-28.json
+- data/2026-09-28-university-shorteners/u-ethz-ch/nB1nv_referrer_urls_daily_2026-09-28.json
+- data/2026-09-28-university-shorteners-batch2/goto-unm-edu/vbudg_stats_2026-09-28.txt (control)
+- data/2026-09-28-university-shorteners-batch3/go-uvm-edu/{-4s0q,tgmtq,xc26}_stats_2026-09-28.txt (UVM controls)
+- data/2026-09-28-university-shorteners/url-popcat-xyz/{5vtSk2RG2f,IRZTIxDlZ}_info_2026-09-28.txt
 
 ## Supersedes
 

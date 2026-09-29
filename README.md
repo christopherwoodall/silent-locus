@@ -41,11 +41,12 @@ The Makefile is self-documenting — `make` prints every target.
 ```sh
 make up            # start ES (:9200) + Kibana (:5601), creds elastic/changeme
 make wait          # block until cluster health is green/yellow
-make dry-run       # preview ALL ingest paths; verifies snapshot sha256s, writes nothing
-make ingest        # full load: cloud snapshot -> corpus manifest -> swarmtraces -> dashboards
+make dry-run       # preview ALL ingest paths; writes nothing
+make ingest        # full load: corpus manifest -> swarmtraces -> dashboards
+make validate      # record-schema + collection naming/registration checks
 make status        # _cat/indices
-make clean         # delete all data indices (containers + volume stay)
-make reset         # full wipe incl. volume
+make clean         # delete all data indices (containers + ./elk/data stay)
+make reset         # full wipe incl. ./elk/data
 ```
 
 Overrides: `STACK_VERSION`, `ELASTIC_PASSWORD`, `ES_HEAP`, `ES_PORT`
@@ -54,13 +55,29 @@ Overrides: `STACK_VERSION`, `ELASTIC_PASSWORD`, `ES_HEAP`, `ES_PORT`
 ## Layout
 
 - `docker-compose.yml`, `Makefile` — local ELK stack + self-documenting tasks.
-- `data/raw/` — dataset as published, untouched. MANIFEST.json lands here.
-- `data/processed/` — parsed/normalized working copies.
-- `elastic-exports/` — verified cloud snapshot (10 indices, gz JSONL + sha256
-  sidecars); restored locally by `scripts/restore_elastic_exports.py`.
+- `schema/` — corpus rules: `record.schema.json` (record shape),
+  `collections.md` + `collections.json` (collection naming taxonomy and
+  registry). Validators: `scripts/validate_schema.py`,
+  `scripts/validate_collections.py`.
+- `data/` — one directory per collection, named per `schema/collections.md`.
+  Each collection splits into an event layer (schema-conformant
+  `<dataset>[-<variant>].jsonl` at the collection root) and a raw layer
+  (`<collection>/raw/`, upstream-named transform inputs/captures, exempt
+  from the event schema but checksummed). Reserved: `data/raw/` (datasets
+  as published, untouched; MANIFEST.json lands here), `data/processed/`
+  (normalized working copies), `data/site-captures/<host>/` (read-only
+  surface captures, not datasets), `data/aggregates/<name>/` (multi-source
+  conglomerate collections). Every collection dir is date-prefixed
+  `YYYY-MM-DD-<slug>` (first-event date, see `schema/collections.md`), and
+  the prefix is part of the dataset slug / ES index name.
+- `elk/` — local cluster runtime state (git-ignored).
 - `kibana-exports/` — dashboard saved-object NDJSON; imported by
   `make ingest-dashboards`.
 - `scripts/` — ingestion, fingerprint extraction, overlap joins.
   ES drivers: `push_to_local_es.py` (corpus manifest),
-  `restore_elastic_exports.py` (snapshot), `es_ingest_swarmtraces.py` (raw dataset).
+  `es_ingest_swarmtraces.py` (raw dataset).
 - `notes/` — working notes, verification reports, the overlap plan.
+- `archive/` — retired artifacts, kept for reference (e.g. the old
+  cloud-snapshot restore script; the snapshot itself was deleted 2026-09-29,
+  obsoleted by the collection rename/schema rebuild).
+- `temp/` — agent scratch scripts (visible working, not pipeline code).

@@ -29,8 +29,8 @@ REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 HOSTS = ["agent-apocalypse-f1f7ba.es.us-east-1.aws.elastic.cloud"]
 CRED = "custom.elastic-cloud"
 BASE = REPO_ROOT
-HITS = BASE + "/data/proxy-primitives/hits.jsonl"
-INDEX = "proxy-primitives"
+HITS = BASE + "/data/aggregates/2026-05-26-proxy-primitives/proxy-primitives.jsonl"
+INDEX = "2026-05-26-proxy-primitives"
 NOW = datetime.now(timezone.utc).isoformat()
 OBSERVER = {"product": "lane-f-proxy-sweep", "vendor": "hunt",
             "type": "transform"}

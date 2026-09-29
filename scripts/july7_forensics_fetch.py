@@ -7,7 +7,7 @@ Resumable: skips files already on disk. Pacing 4s + backoff (Diffend is hostile)
 import os, sys, time, json, subprocess, hashlib
 
 PROJ = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-OUTDIR = os.path.join(PROJ, "data", "july7-gem-forensics")
+OUTDIR = os.path.join(PROJ, "data", "2026-07-07-july7-gem-forensics")
 RAW = os.path.join(OUTDIR, "raw")
 LOG = os.path.join(OUTDIR, "progress.log")
 UA = "rubygems-july7-forensics/1.0 (read-only forensic capture; no install)"

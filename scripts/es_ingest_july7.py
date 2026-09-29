@@ -30,8 +30,8 @@ REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 HOSTS = ["agent-apocalypse-f1f7ba.es.us-east-1.aws.elastic.cloud"]
 CRED = "custom.elastic-cloud"
 BASE = REPO_ROOT
-SWEEP = BASE + "/data/july7-wave/diffend_sweep_results_july7.jsonl"
-INDEX = "july7-wave"
+SWEEP = BASE + "/data/2026-07-07-july7-wave/raw/diffend_sweep_results_july7.jsonl"
+INDEX = "2026-07-07-july7-wave"
 NOW = datetime.now(timezone.utc).isoformat()
 OBSERVER = {"product": "july7-wave-sweep", "vendor": "nightingale-collective",
             "type": "dataset"}
