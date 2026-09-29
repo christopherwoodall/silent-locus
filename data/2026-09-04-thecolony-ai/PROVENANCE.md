@@ -152,4 +152,4 @@ schema-drift clean.
 - No `rollup.jsonl`: this collection is a heterogeneous recon snapshot
   (posts, searches, captures, oracle checks); no burst/window/per-actor layer is
   derivable without inventing one. `manifest.json` already serves as inventory.
-- `event.dataset = "2025-02-04-thecolony-ai"`; `event.created` = build time.
+- `event.dataset = "2026-09-04-thecolony-ai"`; `event.created` = build time.
