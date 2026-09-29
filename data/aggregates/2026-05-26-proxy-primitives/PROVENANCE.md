@@ -92,3 +92,47 @@ Multi-source conglomerate collections now live under `data/aggregates/`.
   backfill from 2026-09-29 above still applies verbatim).
 - SHA256SUMS not regenerated (orchestrator handles checksums/manifest
   references centrally).
+
+## Repair note 2026-09-29 (repair-don't-delete directive)
+
+**Why the old script emitted degraded docs.** `scripts/es_ingest_proxy_primitives.py`
+was written against pre-backfill `hits.jsonl`, whose per-hit fields sat at top
+level. The 2026-09-28/29 schema backfill (see "Schema backfill 2026-09-29"
+above) moved every one of those fields under `labels.*` (primitive, source,
+host, relation, wikis, n_agents, hit_sha, context, first_seen_effective),
+adopted the identity sha256 as top-level `fingerprint`, and gave each row a
+meaningful `record_kind`. The old `to_doc()` reads therefore all returned
+`None`: labels came out empty, `fingerprint`/`@timestamp` were dropped,
+`note` was lost, and `record_kind` was hardcoded to the bogus single kind
+`proxy_primitive_hit`. A `--load` would have bulk-indexed 1,522 degraded docs
+over the correct index.
+
+**Disposition: genuinely superseded → converted to a rebuild-from-events.jsonl
+shim (not deleted).** The canonical ingest is `events.jsonl` itself — it
+validates clean against `schema/record.schema.json` and is staged directly by
+`scripts/push_to_local_es.py` auto-discovery (no manifest `via_script` entry
+remains for this index). The script now:
+- lives in the event dir per the single-collection convention (moved from
+  `scripts/` via `git mv`; ES mapping updated to cover the canonical fields
+  present in events.jsonl: `record_kind`, `source_url`, `tags`);
+- `build_docs()` reads `events.jsonl` VERBATIM — no field remapping, no
+  top-level reads, no post-backfill `labels.*` misses possible;
+- `--emit PATH` (default, no network) writes the doc stream to disk and runs
+  `scripts/validate_schema.py` on it. Dry-run 2026-09-29: 1,522 docs,
+  0 violations, byte-identical to events.jsonl; every doc carries a 64-hex
+  fingerprint, @timestamp, non-empty labels, and its real record_kind
+  (553 wiki_link / 827 wiki_ioc_pivot / 128 wiki_record_annotation /
+  4 wiki_shortener / 3 corpus_hit / 6 gem_name_fragment / 1 wiki_revision).
+
+**Payload-embedding decision (2026-09-29): no embedding performed, by design.**
+- This collection has no `raw/` layer. The old SHA256SUMS pointer
+  `raw/progress.log` was stale (artifact dropped in the condense move); it is
+  removed below. There are no per-item capture bodies on disk to embed.
+- Per-item payload material is already inline: top-level `matched_string`
+  (the exact matched URL string) and `labels.context` (9 rows, ≤188 chars).
+- The one `wiki_revision` row's 1,398-byte revision body lives in the upstream
+  collusion-wiki corpus (referenced by its `doc_id`/`source_url`); it is
+  deliberately not duplicated here to avoid cross-collection corpus duplication.
+- `event.payloads` was NOT added: `schema/record.schema.json` declares `event`
+  with `additionalProperties: false` (`created` + `dataset` only), so an extra
+  sub-object would fail validation.
