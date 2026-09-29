@@ -188,3 +188,11 @@ carry top-level `payloads` (the 7 sweep_negative rows have empty 204
 bodies — file pointer only, by design). Fingerprint sets verified
 identical to the pre-promotion files (identity strings untouched).
 `sha256sum -c` green.
+
+## 2026-09-29 — htmx_search .pyc re-added (recompiled)
+Per operator direction, the `.pyc` is back as a curated run artifact at
+`raw/run-logs/htmx_search.cpython-312.pyc`, with an explanatory note beside it
+(`raw/run-logs/NOTE-htmx_search.pyc.md`) and a `*.py[cod]` gitignore exemption
+in the repo `.gitignore`. This is a **recompilation** of the verified-identical
+original source, not the deleted original bytes (header mtime differs;
+code/constants structurally identical — verified by recursive comparison).
