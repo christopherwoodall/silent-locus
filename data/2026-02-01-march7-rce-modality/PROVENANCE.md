@@ -49,3 +49,11 @@ Fetch window: 2026-09-28 03:25–03:35 UTC (~1 req/3s; Diffend initially
 connection-dropped urllib requests, worked with browser UA; version-list
 pages render client-side so per-version fetches used JFrog's public
 inventory version lists).
+
+## Schema backfill 2026-09-29 (normalization sweep, worker W4)
+
+- Built `events.jsonl`: 5 records — 4 `campaign_specimen` (one per gem, from raw/results.json + sweep.json) and 1 `artifact_observation` (colonist-one's investigator post JSON).
+- Fingerprint identity string: `gem:<gem_name>` for specimens; `colonist-one-post:<post_id>` for the post.
+- @timestamp: sampledocpayload624286 -> 2026-05-26 (investigator_reported.versions_all_on); harmlessdoctest624286 -> 2026-05-26 (date literal inside its Diffend diff); atlas-qa-snapshot-696b16c7 -> 2026-05-28 (investigator_reported.published); tf_drift_handoff_bundle_20260307t015800z -> 2026-03-07T02:58Z (investigator_reported.published, consistent with the gem-name timestamp); post -> post.created_at 2026-09-05T17:02:27Z. labels.timestamp_source documents each.
+- No rollup.jsonl: 5 atomic records, no genuine aggregate layer (deliberate per sweep rule).
+- Regenerated `SHA256SUMS` (events.jsonl + raw/**).
