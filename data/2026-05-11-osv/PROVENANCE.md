@@ -54,3 +54,18 @@ and `sweep-stdout-relaunch.log` for run logs.
 ## Canonical layout migration (2026-09-29)
 
 Concatenated 2 event shards (osv-diffend-sweep-results-retry.jsonl, osv-diffend-sweep-results.jsonl) into `events.jsonl` in sorted-filename order (1956 records; count verified against inputs). Each record gained `labels.file_origin` = original shard basename; no other fields changed. Source shards removed after verification. file_origin preserves the initial/retry pass identity that the fingerprint identity string encodes.
+
+## Notes-farm addition (2026-09-29, notes-farm worker)
+
+9 new records appended to `events.jsonl` from
+`notes/gem-hunt-osv-2026-09-27.md`:
+
+- 7 `osv_advisory`: MAL/GHSA advisory IDs for campaign gems
+  (zzjinavcsgit MAL-2026-9952, zzjinavcsbzr MAL-2026-9950, probejiqptzco
+  MAL-2026-8427, uxjinalamb2 MAL-2026-9062, wandsworthprobe1778551714
+  MAL-2026-9296, prx1b49033905 MAL-2026-8456, trya1zz MAL-2026-9003).
+- 1 `sweep_negative`: July-7 XSS/SSTI wave has zero advisories anywhere.
+- 1 `finding`: GHSA-9j48-x3c3-mrp2 (RubyGems CDN cache API-key leak).
+
+No pre-existing advisory-ID records in this collection. Validation: 0
+violations. SHA256SUMS regenerated.
