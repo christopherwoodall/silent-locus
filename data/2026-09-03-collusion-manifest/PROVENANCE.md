@@ -40,5 +40,15 @@ the canonical `collusion-wiki` data.
 - Built `events.jsonl`: 111 records — 110 `coverage_gap` (one per raw/coverage-gaps.csv row; new record_kind, see triage note) and 1 `artifact_observation` (raw/manifest.json itself).
 - Fingerprint identity strings: `coverage-gap:<site>|<host>` for rows; `collusion-manifest:db_sha256=<db_sha256>` for the manifest.
 - @timestamp: no per-row dates in the CSV -> manifest.generated_at 2026-09-03T03:42:36Z for all; labels.timestamp_source=`manifest.generated_at`.
-- `rollup.jsonl`: 7 rows, one per gap category (record_kind `coverage_gap`, event.dataset `2026-05-01-collusion-manifest-rollup`): site/host counts, gaps-remaining counts, saved-response and distinct-text totals. Fingerprint identity: `coverage-gap-rollup:<category>`.
+- `rollup.jsonl`: 7 rows, one per gap category (record_kind `coverage_gap`, event.dataset `2026-09-03-collusion-manifest-rollup`): site/host counts, gaps-remaining counts, saved-response and distinct-text totals. Fingerprint identity: `coverage-gap-rollup:<category>`.
 - Regenerated `SHA256SUMS` (events.jsonl + rollup.jsonl + raw/**).
+
+## Date-prefix audit 2026-09-29 (worker W5)
+
+Dir renamed `2026-05-01-collusion-manifest` -> `2026-09-03-collusion-manifest`.
+All 118 event records carry @timestamp 2026-09-03 (the export manifest's
+`generated_at`); the old 2026-05-01 prefix was the export's revision
+write-date *cut* (`revision.write_date >= 2026-05-01`), not an event date.
+Per schema/collections.md (prefix = first event), the correct prefix is
+2026-09-03. `event.dataset` updated in events.jsonl / rollup.jsonl
+(`...-rollup` suffix preserved); SHA256SUMS regenerated.

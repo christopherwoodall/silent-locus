@@ -55,7 +55,7 @@ fingerprints recompute-verified against the documented identity strings.
 - **2026-02-01-march7-rce-modality** — 5 events, no rollup.
 - **2026-02-14-md-succ-ai** — 2 events, no rollup.
 - **2026-03-12-paste-archive-gap** — 68 events, 2-row extraction-batch rollup.
-- **2026-05-01-collusion-manifest** — 111 events (110 coverage_gap), 7-row
+- **2026-09-03-collusion-manifest** — 111 events (110 coverage_gap), 7-row
   per-category rollup.
 - **2026-05-27-paste-archive** — 76 events (55 anna.fyi + 20 k4be.pl + 1
   infinitypaste), 3-row per-venue rollup.

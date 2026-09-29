@@ -2,13 +2,13 @@
 
 Dirs: `2026-01-25-agent-surfaces`, `2026-02-01-march7-rce-modality`,
 `2026-02-14-md-succ-ai`, `2026-03-12-paste-archive-gap`,
-`2026-05-01-collusion-manifest`.
+`2026-09-03-collusion-manifest`.
 Builder: `temp/build_w4.py` (repo root as argv; no network, read-only on raw/).
 
 ## New record_kinds (do NOT edit schema/README.md per sweep rules)
 
 - `coverage_gap` — one per row of `coverage-gaps.csv` plus one per category in
-  rollup (110 + 7 rows in `2026-05-01-collusion-manifest`). Semantics: a known
+  rollup (110 + 7 rows in `2026-09-03-collusion-manifest`). Semantics: a known
   coverage-gap assessment for a site/category (prior_status, compilation_status,
   gap_remains, saved-response counts). Did not reuse `corpus_grep_negative` /
   `sweep_negative` — those imply a search that found nothing; these rows are
@@ -32,7 +32,7 @@ Builder: `temp/build_w4.py` (repo root as argv; no network, read-only on raw/).
   (`lane-m` 16 pastes / `lane-1-retry` 51 pastes; counts, bytes, first/last
   created, confirmed deletions), identity `anna.fyi-rollup:<source>`. The
   investigator-repo snapshot is a provenance artifact, excluded from the rollup.
-- `2026-05-01-collusion-manifest`: rollup YES — 7 per-category `coverage_gap`
+- `2026-09-03-collusion-manifest`: rollup YES — 7 per-category `coverage_gap`
   rows (site/host counts, gaps-remaining, saved-response totals), identity
   `coverage-gap-rollup:<category>`.
 
