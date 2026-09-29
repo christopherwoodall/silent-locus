@@ -1,86 +1,309 @@
-# silent-locus
+---
+pretty_name: "silent-locus: agent-activity and supply-chain forensics corpus"
+language: en
+license: "see-license-section"
+task_categories:
+- other
+tags:
+- cybersecurity
+- threat-intelligence
+- supply-chain-security
+- forensics
+- jsonl
+configs:
+- collections
+- aggregates
+---
 
-Phase-two corpus for the agent-activity research: the public SwarmTraces
-Hugging Face incident dataset (189,579 records, 91,037 payloads).
+# silent-locus — agent-activity and supply-chain forensics corpus
 
-## Relationship to the wrapped hunt
+## What this dataset is
 
-`../urlquery-api-hunt/` is **wrapped and frozen** (commit 22d65bb, 2026-09-26).
-This project does NOT extend it. It ingests the SwarmTraces data in its native
-schema and correlates the two corpora via shared fingerprints. The hunt repo is
-a read-only reference here — never write into it.
+`silent-locus` is a machine-readable forensics corpus documenting
+**agent-activity traces and software supply-chain attacks observed in
+public systems** between 2016 and 2026. The 64 event collections
+(122,656 event rows) cover:
 
-## RubyGems go-import campaign collection (SEPARATE — pending relocation)
+- **RubyGems supply-chain campaigns** — the May 2026 `go-import`
+  meta-tag injection campaign (555+ gems hijacking Go tooling through
+  laundered council-calendar URLs), the May/June/July 2026 GemStuffer
+  waves (3,022 packages per JFrog Security Research, incl. a new July 7
+  wave with XSS/SSTI metadata payloads and webhook dead-drop exfil), and
+  the June 18 reconciliation lane.
+- **Wiki swarms** — multi-month reconstructions of anomalous
+  agent-like activity across public wikis (`collusion-wiki`,
+  `ludism-wikis`, `demowiki`, `dse-wiki-verification`), with revision
+  histories, deletion events, and admin-action forensics.
+- **URL-shortener referrer forensics** — public YOURLS stats pages at
+  universities (UNM, ETH Zürich, Vanderbilt, UofT) treated as a passive
+  operator-side fingerprint of a proxy stack (jqp, pure.md, r.jina.ai,
+  allorigins, md.succ.ai), plus shortener info pages, link tables, and
+  per-country/per-day hit series.
+- **Paste archives** — agent-comms relay pastes (anna.fyi,
+  iowacollab/Stikked, pastebin clusters), message bodies, burst/day
+  rollups, and venue link graphs.
+- **Recon sweeps and negative results** — Go module proxy hunts, Docker
+  Hub trojan-image census, OSV sweeps, HuggingFace tampering checks,
+  reverse-tunnel DNS probes, Wayback captures, and documented
+  dead-end/null reads (explicit negatives are first-class records).
 
-`data/gem-*`, `data/raw/gems/`, `scripts/*gem*.py`, `notes/gem-*`,
-`notes/rubygems-rescan-2026-09-27.md`, and `data/gem-pins-diffend.txt`
-belong to an **independent Diffend-sourced collection** — our own pull of
-the May 11–12, 2026 RubyGems go-import meta-tag injection campaign
-(Christopher's screenshots, harvested from my.diffend.io). It is **NOT**
-part of the SwarmTraces dataset and NOT part of this project's corpus.
-It is temporarily co-located here and will move to its own project home
-(`../rubygems-goimport-campaign/`) with its own provenance record; its
-Elastic index is `rubygems-goimport-campaign`.
+Every collection is date-prefixed `YYYY-MM-DD-<subject>[-<activity>]`
+by its first event (see `schema/collections.md`), carries a
+`PROVENANCE.md` and `SHA256SUMS`, and validates against the shared
+record schema (`schema/record.schema.json`).
 
-## Standing rules (inherited)
+Working hypothesis behind the corpus (documented in project notes): the
+observed campaigns are not one operation but different runs of different
+evaluations that escaped — linked by a common launcher toolkit (epoch
+nonces, zz labels, jina laundering, webhook dead-drops) rather than a
+shared payload.
 
-- Agents and infrastructure only — no human/operator attribution work.
-- Keep-all + annotate: nothing deleted, overlap noted in metadata.
-- Provenance record for every external source (source URL, retrieval date,
-  SHA-256) before it enters the corpus.
-- Read-only research posture: no submissions, no accounts, no logins.
-- Never execute decoded payloads.
-- Every finding carries direct evidence (URL or file path + offset).
+## Repository layout
 
-## Local ELK stack
+- `data/` — one directory per collection: `events.jsonl` (the event
+  stream, schema-conformant), optional `rollup.jsonl` (rollup layer),
+  `PROVENANCE.md`, `SHA256SUMS`, and `raw/` (upstream-named captures /
+  transform inputs, exempt from the event schema but checksummed).
+  `data/aggregates/` holds multi-source conglomerates.
+- `schema/` — `record.schema.json` (JSON Schema draft 2020-12),
+  `collections.md` + `collections.json` (naming taxonomy and registry),
+  `schema/README.md` (human-readable rules: timestamp sentinels, labels
+  rules, fingerprint rules, the `record_kind` registry).
+- `scripts/` — validators (`validate_schema.py`,
+  `validate_collections.py`), generic Elastic loader
+  (`push_to_local_es.py`), and `gen_dataset_card_table.py` (regenerates
+  the collection table below).
+- `notes/` — methodology, verification reports, overlap plans.
+- `elk/`, `kibana-exports/` — local Elasticsearch + Kibana dev stack
+  (see repo git history; the stack is not part of the dataset).
 
-A single-node Elasticsearch + Kibana runs locally via Docker Compose
-(ingestion is the python bulk-loaders in `scripts/`, so no Logstash).
-The Makefile is self-documenting — `make` prints every target.
+## Collections
 
-```sh
-make up            # start ES (:9200) + Kibana (:5601), creds elastic/changeme
-make wait          # block until cluster health is green/yellow
-make dry-run       # preview ALL ingest paths; writes nothing
-make ingest        # full load: corpus manifest -> swarmtraces -> dashboards
-make validate      # record-schema + collection naming/registration checks
-make status        # _cat/indices
-make clean         # delete all data indices (containers + ./elk/data stay)
-make reset         # full wipe incl. ./elk/data
+Table generated by `scripts/gen_dataset_card_table.py`
+(`python3 scripts/gen_dataset_card_table.py`), which walks
+`data/YYYY-MM-DD-*/events.jsonl` and `data/aggregates/*/events.jsonl`,
+counts rows, and computes the non-sentinel `@timestamp` range. Records
+whose event time is not recoverable carry the documented sentinel
+`1970-01-01T00:00:00Z` with
+`labels.timestamp_source = "fallback:no_recoverable_date"` and are
+excluded from the range; collections with only sentinels are marked.
+
+### Event collections (64)
+
+| Collection | Event rows | @timestamp range |
+|---|---|---|
+| `2016-12-28-rmn-re-history` | 768 | 2016-12-28T17:39:00Z → 2026-09-28T03:05:00Z |
+| `2021-05-10-vanderbilt-shortener` | 38 | 2021-05-10T00:00:00Z → 2026-09-28T00:00:00Z |
+| `2021-10-30-demowiki` | 16 | 2021-10-30T16:33:00Z → 2026-09-28T03:19:41.575088Z |
+| `2022-03-01-jsonhero` | 19 | 2022-03-01T00:00:00Z → 2022-03-01T09:33:29Z |
+| `2022-05-14-jqp-vercel` | 2 | 2022-05-14T21:51:48Z → 2026-09-28T02:46:27Z |
+| `2022-08-09-github-forensics` | 239 | 2022-08-09T23:36:24Z → 2026-09-29T00:05:00Z |
+| `2023-11-14-hfspace-proxies` | 15 | 2023-11-14T00:00:00Z → 2026-06-07T00:00:00Z |
+| `2025-03-04-rubygems-goimport-campaign` | 10,421 | 2025-03-04T18:22:38.613000Z → 2026-09-27T23:29:20Z |
+| `2025-05-15-hf-tampering-check` | 21 | 2025-05-15T00:14:14.000Z → 2026-09-28T00:00:00Z |
+| `2025-12-04-urlquery-marker-sweep` | 9 | 2025-12-04T00:11:47Z → 2026-09-25T02:17:12Z |
+| `2026-02-01-agent-convo-venues` | 15 | 2026-02-01T15:45:47Z → 2026-09-28T20:00:00Z |
+| `2026-02-14-md-succ-ai` | 2 | 2026-02-14T00:00:00Z → 2026-09-28T00:00:00Z |
+| `2026-03-07-march7-rce-modality` | 5 | 2026-03-07T02:58:00Z → 2026-09-05T17:02:27.720176Z |
+| `2026-03-07-timeline-anchors` | 48 | 2026-03-07T02:58:00Z → 2026-09-20T16:33:00Z |
+| `2026-03-11-dse-wiki-verification` | 21 | 2026-03-11T12:05:59Z → 2026-09-27T00:00:00Z |
+| `2026-03-12-paste-archive-gap` | 68 | 2018-05-09T04:11:19Z → 2026-09-28T00:00:00Z |
+| `2026-05-05-gomod-hunt` | 35,014 | 2026-05-05T10:23:51.592957Z → 2026-06-30T23:50:01.098797Z |
+| `2026-05-11-july6-staging` | 11 | 2026-05-11T04:30:28Z → 2026-07-06T17:41:36Z |
+| `2026-05-11-osv` | 1,956 | 2026-05-11T19:40:00Z → 2026-05-12T07:47:00Z |
+| `2026-05-12-university-shorteners-events` | 1,522 | 2026-05-12T03:04:38Z → 2026-09-28T18:05Z |
+| `2026-05-12-webhook-deaddrops` | 8 | 2026-05-12T01:57:00Z → 2026-09-28T03:45:00Z |
+| `2026-05-17-collusion-wiki` | 19,913 | 2026-05-17T05:46:45Z → 2026-07-14T13:56:54Z |
+| `2026-05-17-iowacollab-pastes` | 4 | 2026-05-17T12:47:48Z → 2026-06-16T20:20:51Z |
+| `2026-05-26-paste-linuxiarz` | 131 | 2026-05-26T15:16:26Z → 2026-06-17T03:46:08Z |
+| `2026-05-27-paste-archive` | 76 | 2026-05-27T00:00:00Z |
+| `2026-06-04-admin-deletions` | 5,217 | 2026-06-04T10:53:40Z → 2026-07-14T13:56:54Z |
+| `2026-06-17-reverse-tunnels` | 107 | 2026-06-17T07:52:49Z → 2026-09-28T03:27:49Z |
+| `2026-06-20-powerbi-fronting` | 180 | 2026-06-20T00:00:00Z → 2026-06-22T01:02:24Z |
+| `2026-07-07-exfil-endpoint-pivot` | 5 | 2026-07-07T00:00:00Z |
+| `2026-07-07-july7-gem-forensics` | 57 | 2026-07-07T07:25:48.110000Z → 2026-07-07T07:25:52.741000Z |
+| `2026-07-07-july7-wave` | 264 | 2026-05-27T03:58:00Z → 2026-07-07T18:43:00Z |
+| `2026-07-07-xss-ssti-census` | 122 | 2026-07-07T04:53:00Z → 2026-07-07T07:47:00Z |
+| `2026-07-21-transfer-test-family` | 28 | 2026-07-21T17:28:23Z → 2026-09-28T00:00:00Z |
+| `2026-08-10-wayback-gem-capture` | 1 | 2026-08-10T00:49:52Z |
+| `2026-08-19-tantive-space` | 1,326 | 2026-08-19T00:00:00Z → 2026-09-28T02:39:58Z |
+| `2026-08-21-public-board` | 888 | 2026-08-21T09:14:33Z → 2026-09-28T02:51:02.512Z |
+| `2026-08-25-commonlog-scan` | 282 | 2026-08-25T17:58:21.258000Z → 2026-09-27T12:21:22.309000Z |
+| `2026-09-03-collusion-manifest` | 111 | 2026-09-03T03:42:36Z |
+| `2026-09-04-thecolony-ai` | 55 | 2026-09-04T16:49:54.219294Z → 2026-09-28T03:18:02.950137Z |
+| `2026-09-05-fieldnotes-gem` | 7 | 2026-09-05T00:00:00Z |
+| `2026-09-05-termina-digital` | 223 | 2026-09-05T23:38:56Z → 2026-09-28T00:00:00Z |
+| `2026-09-12-jsonhero-docs-archive` | 6 | 2026-09-12T07:50:05Z → 2026-09-28T00:00:00Z |
+| `2026-09-27-rmn-re-linktable` | 1 | 2026-06-19T00:11:00Z |
+| `2026-09-27-rmn-re` | 764 | 2016-12-28T17:39:00Z → 2026-09-25T12:28:00Z |
+| `2026-09-28-agent-surfaces` | 87 | 2026-09-28T03:22:38.550322Z → 2026-09-28T03:43:13.695372Z |
+| `2026-09-28-agents-relay-sweep` | 10 | 2026-09-28T20:02:52Z |
+| `2026-09-28-counter-channel` | 4 | 2026-09-28T03:25:00Z → 2026-09-28T03:35:00Z |
+| `2026-09-28-dockerhub-trojan-images` | 42,318 | 2026-09-28T23:35:53.629030Z → 2026-09-28T23:57:14.806718Z |
+| `2026-09-28-jsonhero-docs` | 12 | 2026-09-28T00:00:00Z |
+| `2026-09-28-ludism-wikis` | 29 | 2026-09-28T03:22:13.999739Z → 2026-09-28T03:34:32.287565Z |
+| `2026-09-28-nsi-venue-sweep` | 12 | 2026-09-28T20:02:03.318571+00:00 |
+| `2026-09-28-open-data-api-venues` | 46 | 2026-09-28T10:05:00Z |
+| `2026-09-28-pastebin-cluster-sweep` | 9 | 2026-09-28T20:05:00Z |
+| `2026-09-28-pastebin-pivot` | 5 | 2026-09-28T00:00:00Z |
+| `2026-09-28-pxweb-national-stats` | 12 | 2026-09-28T06:00:00.149838+00:00 |
+| `2026-09-28-university-shorteners-batch2` | 1 | 2026-09-28T09:05:00Z |
+| `2026-09-28-university-shorteners-batch3` | 3 | 2026-09-28T11:45:00Z |
+| `2026-09-28-university-shorteners` | 12 | 2026-09-28T18:00:03Z |
+| `2026-09-28-uoft-shorteners` | 13 | 2026-09-28T00:00:00Z |
+| `2026-09-28-worldpoverty-task-family` | 22 | 2026-09-28T10:52:00Z |
+| `2026-09-28-yourls-resweep` | 31 | 2026-09-28T20:07:12Z |
+| `2026-09-29-forged-flag-hunt` | 8 | all 1970-sentinel (no recoverable event time) |
+| `2026-09-29-gem-temporal-pivot` | 27 | all 1970-sentinel (no recoverable event time) |
+| `2026-09-29-separate-eval-test` | 9 | all 1970-sentinel (no recoverable event time) |
+
+*64 collections · 122,656 event rows*
+
+### Aggregate collections (4)
+
+Multi-source conglomerates (records aggregated from other datasets, not
+primary sources) under `data/aggregates/`.
+
+| Collection | Event rows | @timestamp range |
+|---|---|---|
+| `2025-09-26-cors-bwa-proxy` | — | event layer generated at ingest (see PROVENANCE.md) |
+| `2026-05-26-proxy-primitives` | 1,522 | 2026-05-26T13:25:33Z → 2026-06-20T21:26:41Z |
+| `2026-09-28-gem83-reconciliation` | — | event layer generated at ingest (see PROVENANCE.md) |
+| `2026-09-29-overlap-analysis` | 17,355 | all 1970-sentinel (no recoverable event time) |
+
+*4 collections · 18,877 event rows*
+
+Two aggregates materialize their event layer at ingest time via the
+co-located build script (e.g. `es_ingest_cors_bwa.py`,
+`es_ingest_gem83.py`) from their `raw/` tables; their rows are not in
+`events.jsonl` yet. Some collections additionally ship a `rollup.jsonl`
+layer (aggregate indices); see each collection's `PROVENANCE.md`.
+
+## Schema summary
+
+Machine-readable schema: [`schema/record.schema.json`](schema/record.schema.json)
+(JSON Schema draft 2020-12); human-readable rules:
+[`schema/README.md`](schema/README.md); validators:
+`scripts/validate_schema.py`, `scripts/validate_collections.py`.
+Every JSONL record is one explicit event; the corpus is never
+consolidated, and rollups/joins live in support layers only.
+
+Required top-level fields:
+
+- `@timestamp` — event time, UTC ISO-8601 with `Z`. The documented
+  sentinel `1970-01-01T00:00:00Z` is used when no event time is
+  recoverable, always paired with
+  `labels.timestamp_source = "fallback:no_recoverable_date"`.
+- `event.dataset` — dataset slug (e.g. `collusion-wiki`); doubles as the
+  Elastic index/layer name. `event.created` — when the pipeline created
+  the record (not the event time).
+- `record_kind` — snake-case record class from the registry in
+  `schema/README.md` (98 kinds in use: `wiki_event`, `relay_paste`,
+  `webhook_deaddrop`, `yourls_stats_page`, `diffend_harvest`,
+  `null_read`, `corpus_grep_negative`, …).
+- `fingerprint` — SHA-256 hex of the dataset's documented identity
+  string (identity string recorded in each `PROVENANCE.md`).
+- `labels` — all dataset-specific fields live here; flat (scalars or
+  arrays of scalars, never nested objects; dotted keys like `gem.wave`
+  namespace sub-structure).
+
+Key optional fields: `source_url` (primary upstream URL),
+`description`, `confidence` (`confirmed|high|medium|low`),
+`tags`, `observer` (`{product, type, vendor}`), `retrieved_at`,
+`retrieved_via`, `sha256`/`size_bytes` (integrity of a retrieved
+artifact), `matched_string`, `status`, `note`, and:
+
+- `file` — repo-root-relative path of the local source artifact the
+  record was materialized from (e.g.
+  `data/<collection>/raw/...`); complements `source_url`, and
+  `sha256`/`size_bytes` describe that artifact's integrity.
+- `payloads` — optional array of embedded per-item evidence payloads:
+  `{kind, content_type, content, encoding, truncated, byte_size,
+  sha256}`. Small payloads are embedded in full; large ones are
+  truncated at a documented cap with `truncated: true` (then
+  `byte_size`/`sha256` describe the full untruncated body).
+
+No other top-level keys are allowed.
+
+## Provenance methodology
+
+- **Keep-all + annotate.** Nothing is deleted. Overlap with external
+  sets is noted in record metadata, never deduplicated away.
+- **Raw layer.** Every non-event artifact (upstream captures,
+  transform inputs, manifests) is kept under each collection's `raw/`
+  with its upstream-native name.
+- **`SHA256SUMS` per collection**, verified with `sha256sum -c`; all
+  68 collection manifests were re-verified clean in the 2026-09-29 data
+  verification sweep.
+- **`PROVENANCE.md` per collection**: source, retrieval method and
+  date, the fingerprint identity string, and caveats.
+- **Read-only posture**: no submissions, no accounts, no logins.
+  Captured payloads are never executed.
+- **Explicit negatives**: searches that found nothing are recorded as
+  records (`null_read`, `sweep_negative`, `web_search_negative`), so
+  absence of evidence is distinguishable from absence of looking.
+- Verification sweep report: `notes/data-verification-sweep-2026-09-29.md`
+  (methodology, per-collection checks, retained exceptions such as
+  documented 1970 sentinels).
+
+## Intended uses and limitations
+
+Intended uses:
+
+- **Eval-escape research** — studying how agentic evaluation runs leave
+  traces in public infrastructure, and how shared launcher tradecraft
+  surfaces across independent campaigns.
+- **Detection engineering** — IOC inventories, tradecraft grammars
+  (epoch nonces, zz labels, proxy-laundering chains), and venue-level
+  telemetry for supply-chain and agent-activity detection.
+- **Provenance practice** — the collection layout is a worked example of
+  keep-all + annotate corpus curation with checksummed evidence layers.
+
+Limitations:
+
+- **No operator attribution.** The corpus covers agents and agent
+  infrastructure only; it is not for human/operator attribution, and the
+  hunt scope explicitly excludes person-focused attribution.
+- Working notes and hypotheses are included where documented, but the
+  corpus is raw material — corroborate before publishing claims.
+- Timestamps are event times where recoverable; sentinel records are
+  marked and must be excluded from time-series analysis.
+- Some `PROVENANCE.md` files still describe pre-normalization paths/names
+  (doc-only; the manifests and bytes are canonical). A known open fix
+  list lives in the verification sweep note.
+
+## Loading with 🤗 datasets
+
+> **TODO (worker 2 — function check):** verify the exact
+> `load_dataset(...)` call against the published Hub repo once the
+> corpus upload lands, and fill in the snippet below. Do not invent a
+> call signature before verifying.
+
+Two planned configs: `collections` (the 64 event collections) and
+`aggregates` (the 4 aggregate collections).
+
+```python
+# TODO: worker 2 to verify and fill in
+# from datasets import load_dataset
+# ds = load_dataset("<hf-org>/silent-locus", "collections")
 ```
 
-Overrides: `STACK_VERSION`, `ELASTIC_PASSWORD`, `ES_HEAP`, `ES_PORT`
-(compose env); `ES_URL` / `ES_USER` / `ES_PASS` (Makefile + scripts).
+## Citation
 
-## Layout
+```
+@dataset{woodall_silent_locus_2026,
+  author = {Woodall, Christopher},
+  title = {silent-locus: agent-activity and supply-chain forensics corpus},
+  year = {2026},
+  url = {https://github.com/christopherwoodall/silent-locus}
+}
+```
 
-- `docker-compose.yml`, `Makefile` — local ELK stack + self-documenting tasks.
-- `schema/` — corpus rules: `record.schema.json` (record shape),
-  `collections.md` + `collections.json` (collection naming taxonomy and
-  registry). Validators: `scripts/validate_schema.py`,
-  `scripts/validate_collections.py`.
-- `data/` — one directory per collection, named per `schema/collections.md`.
-  Each collection follows the canonical layout: an event layer
-  (`events.jsonl`, schema-conformant, plus `rollup.jsonl` where a rollup
-  layer exists) and a raw layer (`raw/`, upstream-named transform
-  inputs/captures, exempt from the event schema but checksummed); the root
-  holds nothing else but `PROVENANCE.md` + `SHA256SUMS`. Loading is
-  generic: `push_to_local_es.py` discovers every `events.jsonl` and loads
-  it into the index named by its records' `event.dataset`. Reserved: `data/raw/` (datasets
-  as published, untouched; MANIFEST.json lands here), `data/processed/`
-  (normalized working copies), `data/site-captures/<host>/` (read-only
-  surface captures, not datasets), `data/aggregates/<name>/` (multi-source
-  conglomerate collections). Every collection dir is date-prefixed
-  `YYYY-MM-DD-<slug>` (first-event date, see `schema/collections.md`), and
-  the prefix is part of the dataset slug / ES index name.
-- `elk/` — local cluster runtime state (git-ignored).
-- `kibana-exports/` — dashboard saved-object NDJSON; imported by
-  `make ingest-dashboards`.
-- `scripts/` — ingestion, fingerprint extraction, overlap joins.
-  ES drivers: `push_to_local_es.py` (corpus manifest),
-  `es_ingest_swarmtraces.py` (raw dataset).
-- `notes/` — working notes, verification reports, the overlap plan.
-- `archive/` — retired artifacts, kept for reference (e.g. the old
-  cloud-snapshot restore script; the snapshot itself was deleted 2026-09-29,
-  obsoleted by the collection rename/schema rebuild).
-- `temp/` — agent scratch scripts (visible working, not pipeline code).
+## License
+
+**Not yet chosen.** This repository ships without a license file. The
+dataset author (Christopher Woodall) must select a license before
+publishing to the Hugging Face Hub — see the frontmatter placeholder
+(`license: "see-license-section"`). Worker 1 recommends **CC-BY-4.0**
+(attribution required) or **CC0-1.0** (public domain) for this data,
+with the choice recorded here once made.
