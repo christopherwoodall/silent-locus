@@ -73,3 +73,17 @@ clean.
   pre-move path `data/jsonhero-docs/...`; left as-is (raw is immutable).
 - `SHA256SUMS` regenerated (sha256sum-style): `events.jsonl` + all `raw/` contents,
   verified with `sha256sum -c`.
+
+## Rollup 2026-09-29 (W8)
+
+Built `rollup.jsonl`: 5 rows x `doc_family_rollup` — the 12 doc artifacts
+cluster by (first top-level key, byte size): `regCF_county_2019:85889` (7
+docs), `regCF_county_2019:70089` (1), `copyright:10942` (2),
+`2019_005_code:1472` (1), `unkeyed:634` (1). Labels: family key/size,
+doc count, total bytes, member doc ids; `@timestamp` = dir-date fallback
+2026-09-28T00:00:00Z (no per-doc event times recoverable). Fingerprint
+identity string `2026-09-28-jsonhero-docs|doc-family|<family_key>`.
+Builder: `temp/build_rollup_w8.py` (repo root passed as argv[1]); counts and
+byte totals independently recomputed from events (12 docs). `scripts/validate_schema.py`:
+0 violations. SHA256SUMS regenerated (15 entries, incl. rollup.jsonl);
+`sha256sum -c` OK.
