@@ -18,7 +18,7 @@ The venue-model prediction **confirmed**, with two surprise venues beyond the pr
 **Predicted-list negatives (clean on disk):** `api.worldbank.org`, `databank.worldbank.org`, `data.worldbank.org`, `ec.europa.eu/eurostat`, `data.un.org`, `api.statcan.gc.ca`, `www150.statcan.gc.ca`, `api.insee.fr`, `stats.oecd.org`, `api.ons.gov.uk` (literal host — only the beta variant appears). Corroborates lane N's ES negative sweep. (`eurostat` matched only a Go module path name in gomod-hunt — not agent usage.)
 
 ## Sources (all read-only, existing corpora)
-1. `data/2026-09-27-rmn-re/raw/link_table_decoded_2026-09-27.json` (764 slugs) — 30 agent-created shortlinks to the four venues.
+1. `data/2016-12-28-rmn-re/raw/link_table_decoded_2026-09-27.json` (764 slugs) — 30 agent-created shortlinks to the four venues.
 2. `data/2026-05-17-collusion-wiki/raw/links.jsonl` — 2 worldpoverty links (proxymule-laundered, `link_in_selected_agent_related_text`).
 3. `data/2026-05-17-collusion-wiki/raw/revisions.jsonl` — 4 worldpoverty task-page revisions (3 Poverty Links + WorldPovertyClockSequenceJun19).
 4. `data/2026-05-17-collusion-wiki/raw/pages.jsonl` — 2 dataafrica task pages (health-stunting family).
@@ -48,3 +48,12 @@ api.usa.gov / FBI UCR remain candidates only (lane T null verdict, no index —
 not re-litigated). Nothing further retrievable from on-disk corpora; live API
 crawling was out of lane scope. ES `open-data-api-venues` _count=46 verified,
 schema-drift clean.
+
+## raw/-missing exception 2026-09-29
+
+2026-09-29: no raw/ layer — multi-source venue sweep: every source cited is an
+existing raw/ layer in a sibling collection (rmn-re link table, collusion-wiki
+raw/, thecolony-ai raw/, vanderbilt raw/); this collection holds no own
+captures. Verified: no raw/ files ever committed in git history; no stray
+evidence files on disk; SHA256SUMS green. Ratified as a canonical-layout
+exception.
