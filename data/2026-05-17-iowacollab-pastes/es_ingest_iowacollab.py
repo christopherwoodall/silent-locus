@@ -21,13 +21,14 @@ events): it reads each `raw/<id>.txt` body, hard-verifies
 sha256+byte-length against the staged metadata, and constructs the Elastic
 docs from body + metadata. Any mismatch aborts before any doc is emitted.
 
-Payload embedding: the schema (`schema/record.schema.json`) has no
-`event.payloads` field (`event` is closed to `created`/`dataset`), so the
-established paste-doc convention is followed instead — the full paste body
-is embedded verbatim in `description`, with `sha256`/`size_bytes` alongside
-and full metadata flattened in `labels`. All four bodies are <= 270 bytes;
-the script enforces a 64 KiB cap per body (larger bodies would abort the
-build rather than silently truncate).
+Payload embedding: paste bodies are embedded in the optional top-level
+`payloads` array (`schema/record.schema.json`, 2026-09-29), one
+`{kind: paste_body, content_type: text/plain, ...}` entry per doc with
+`byte_size`/`sha256` of the full body; `sha256`/`size_bytes` also sit
+alongside at top level and full metadata is flattened in `labels`. All four
+bodies are <= 270 bytes; the script enforces a 64 KiB cap per body (larger
+bodies would abort the build rather than silently truncate). Empty bodies
+get no payload entry.
 
 Schema conformance: every built doc validates against
 `schema/record.schema.json` (checked in-process via
@@ -209,13 +210,23 @@ def build_paste_doc(pid, staged, body, digest, nbytes):
         "observer": dict(OBSERVER),
         "retrieved_via": staged.get("retrieved_via", "wayback-machine"),
         "source_url": (lab.get("source_urls") or [""])[0],
-        "file": pid + ".txt",
-        "description": body,          # full payload embedded verbatim (<=270 B)
+        "file": "raw/" + pid + ".txt",
+        "description": f"IowaCollab relay paste {pid} ({title})",
         "sha256": digest,
         "size_bytes": nbytes,
         "tags": ["source:paste-linuxiarz", "cluster:iowacollab-relay"],
         "labels": {"annotated_by": "es_ingest_iowacollab"},
     }
+    if body:
+        doc["payloads"] = [{
+            "kind": "paste_body",
+            "content_type": "text/plain",
+            "content": body,
+            "encoding": "text",
+            "truncated": False,
+            "byte_size": nbytes,
+            "sha256": digest,
+        }]
     if used_sentinel:
         doc["labels"]["timestamp_source"] = "fallback:no_recoverable_date"
     if lab.get("wayback_view_snapshot") or lab.get("wayback_raw_snapshot"):

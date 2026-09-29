@@ -154,3 +154,12 @@ Verification 2026-09-29: `python3 es_ingest_iowacollab.py --out` dry-run →
 
 Usage: default/`--out DIR` = dry-run (no network); `--load` = real ES bulk
 load (network + creds; hosted writes currently frozen).
+
+## 2026-09-29 — payloads promoted into canonical events + script migrated
+Per the new optional top-level `payloads` schema field (schema commit
+37988db): the 3 non-empty paste bodies are now embedded in the canonical
+`events.jsonl` rows (kind=paste_body, sha256-verified against
+labels.body_sha256; the genuinely-empty d379207f body gets no entry).
+`file` pointers added (raw/<id>.txt, all resolve). The build script was
+migrated from description-embedding to top-level `payloads` to match.
+Fingerprints unchanged (identity strings untouched).
