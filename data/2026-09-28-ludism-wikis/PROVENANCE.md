@@ -109,3 +109,15 @@ Fingerprint identity string `ludism-probe-rollup:<target>`. Builder:
 recomputed (27 probes, 2 successes). `scripts/validate_schema.py`: 0
 violations. SHA256SUMS regenerated (40 entries, incl. rollup.jsonl);
 `sha256sum -c` OK.
+
+## 2026-09-28: ingest script co-located (hunt convention)
+- `es_ingest_ludism.py` moved from `scripts/` into this directory per
+  Christopher's single-collection convention; transforms raw proxy captures +
+  claim excerpts + pattern-sweep into shared-schema docs (real transform).
+- `REPO_ROOT` adjusted (repo root is now three levels up); also fixed a stale
+  claim-file path: excerpts live at `raw/<fname>` (per SHA256SUMS), the script
+  looked at the collection root and silently skipped both wiki_claims docs.
+- Offline verification: `build_docs()` yields 31 docs (2 wiki_claims +
+  29 proxy_fetch).
+- `scripts/local_es_manifest.json` via_script entry repointed here.
+- SHA256SUMS regenerated (script file added to coverage).
