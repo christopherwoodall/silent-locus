@@ -76,3 +76,23 @@ retrieval timestamps for every file in this directory.
 ## Raw layer 2026-09-29
 
 - `data/ludism-wikis/manifest.jsonl` -> `data/ludism-wikis/raw/manifest.jsonl` (crawl manifest consumed by scripts/es_ingest_ludism.py)
+
+## Schema normalization 2026-09-29 (worker W7)
+
+- Built `events.jsonl`: 29 records, one per proxy-fetch sidecar
+  `raw/<target>__<via>.txt.meta.json` (27 wiki-target fetches + 2 proxy controls);
+  each `.txt` body, where present, is paired into its record (top-level
+  `sha256` / `size_bytes`). Builder: `temp/build_events_w7.py`.
+- record_kind: `venue_probe` (existing registry kind; no new kinds introduced).
+- Fingerprint identity string: `ludism-probe:<target>|<via>` (sha256 hex).
+- `@timestamp`: sidecar `fetched_at` normalized to Z
+  (`labels.timestamp_source = "labels:probe.fetched_at"`).
+- `confidence`: `high` for jina fetches (proxy control-verified working),
+  `low` for allorigins fetches (its example.com control also failed, so those
+  results are inconclusive per the lane verdict above).
+- Proxy controls marked `labels.proxy_control = true`.
+- Supporting files (`manifest.jsonl`, `pattern-sweep.json`, `sweep-summary.json`,
+  `thecolony-claims-*.md`) are not event records; they stay in `raw/` and are
+  checksummed in `SHA256SUMS`.
+- `SHA256SUMS` regenerated (sha256sum-style): `events.jsonl` + all `raw/` contents,
+  verified with `sha256sum -c`.
