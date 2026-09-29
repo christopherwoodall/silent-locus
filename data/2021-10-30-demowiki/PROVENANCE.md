@@ -75,3 +75,9 @@ record schema (`scripts/validate_schema.py`: 16/16 clean).
 Fingerprint = sha256 hex of the documented identity string (verified against
 the 2023-11-14-hfspace-proxies reference implementation before writing).
 SHA256SUMS regenerated (events.jsonl + all raw contents); `sha256sum -c` OK.
+
+## Rollup review 2026-09-29 (W8)
+
+rollup: none — 9 RC revisions + 7 page snapshots are already atomic; the wiki's
+entire edit history is 9 edits, so a per-day/per-actor rollup would duplicate
+the event rows 1:1.
