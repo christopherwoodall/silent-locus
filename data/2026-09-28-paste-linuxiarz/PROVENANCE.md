@@ -36,3 +36,20 @@ Nothing dropped; failures/empties recorded in the manifest, not silently omitted
 ## Raw layer 2026-09-29
 
 - `data/paste-linuxiarz/manifest.jsonl` -> `data/paste-linuxiarz/raw/manifest.jsonl` (crawl manifest consumed by scripts/es_ingest_paste.py)
+
+## Schema normalization 2026-09-29 (worker W7)
+
+- Built `events.jsonl`: 131 records, one per paste `.txt` in `raw/`
+  (paste id = filename stem); `manifest.jsonl` folded into labels
+  (builder: `temp/build_events_w7.py`, repo root passed as argv[1]).
+- record_kind: `relay_paste` (existing registry kind; no new kinds introduced).
+- Fingerprint identity string: `linuxiarz-paste:<paste_id>` (sha256 hex).
+- `@timestamp`: epoch `source_date_literals[0]` -> ISO-8601 Z
+  (`labels.timestamp_source = "labels:paste.source_date_literal"`); all 131 present
+  and in range (2026-05-26 -> 2026-06-17). The standing caveat holds: these are
+  investigator-supplied epoch strings, unverified against the live site.
+- Body sha256 + byte size verified per file against `manifest.jsonl` at build time
+  (all 131 match); carried as top-level `sha256` / `size_bytes`; the investigator's
+  per-paste retrieval time as `retrieved_at`.
+- `SHA256SUMS` regenerated (sha256sum-style): `events.jsonl` + all `raw/` contents,
+  verified with `sha256sum -c`.
