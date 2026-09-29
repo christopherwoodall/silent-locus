@@ -64,3 +64,8 @@ record schema (`scripts/validate_schema.py`: 2/2 clean).
 Fingerprint = sha256 hex of the documented identity string (verified against
 the 2023-11-14-hfspace-proxies reference implementation before writing).
 SHA256SUMS regenerated (events.jsonl + all raw contents); `sha256sum -c` OK.
+
+## Rollup review 2026-09-29 (W8)
+
+rollup: none — 2 rows (repo metadata + one endpoint probe); nothing to
+aggregate.
