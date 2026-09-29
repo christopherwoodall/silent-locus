@@ -56,3 +56,24 @@ read-only HTTP GETs of public pages.
 
 Per the lane's verification bar, clean negatives are recorded in the
 progress log + note instead of an empty Elastic index.
+
+## Normalization 2026-09-29 (events.jsonl; no rollup — pure recon stream)
+
+- `events.jsonl`: 13 rows, all schema-conformant.
+  - 10 `yourls_stats_page` — 4 uoft.me `+` pages (all YOURLS login wall,
+    negative for passive stats) + 6 t.mdcdev.me `+` pages: 3 public-open
+    SEO-spam slugs with extracted long URL / created date / hit counts /
+    best day (evegelendiyarbakrescort772509, mattressstoresaroundmyarea909270,
+    squarespacefreeemail934785) and 3 slug-404s (bayanescortdiyarbakr401683,
+    hkigaprw, i2mrjnck).
+  - 2 `shortener_info_page` — front pages (uoft.me YOURLS 1.7.6,
+    t.mdcdev.me YOURLS 1.9.2).
+  - 1 `artifact_observation` — the crt.sh pull (126 certs for %.uoft.me,
+    Let's Encrypt).
+- Fingerprint identity strings: `yourls:<instance>:<slug>` (stats pages);
+  `shortener_info:<instance>` (front pages); `crtsh:uoft.me`.
+- `labels.timestamp_source`: `labels:captured.date` (=2026-09-28 fetch date,
+  from filenames).
+- No new record_kinds (`yourls_stats_page` registered;
+  `shortener_info_page` already in use by the sibling university-shorteners
+  datasets).
