@@ -10,13 +10,13 @@ Repo: christopherwoodall/silent-locus, dir data/2026-09-28-pastebin-pivot/.
 | Path | Size | Markers grepped |
 |---|---|---|
 | data/2026-05-27-paste-archive/bodies | 308K | all marker sets below |
-| data/2026-03-12-paste-archive-gap/bodies | 1.1M | all marker sets below |
+| data/2018-05-09-paste-archive-gap/bodies | 1.1M | all marker sets below |
 | data/2026-05-17-iowacollab-pastes | 48K | all marker sets below |
 | data/2026-05-26-paste-linuxiarz | 776K | all marker sets below |
 | data/2026-05-27-paste-archive/raw/sweep_bodies.json | — | all marker sets below |
 | data/2026-09-28-pastebin-cluster-sweep/events.jsonl | — | all marker sets below |
 | data/aggregates/2025-09-26-cors-bwa-proxy/raw/paste-archive-gap.jsonl | — | all marker sets below |
-| data/2026-03-12-paste-archive-gap/raw/investigator-repo/joshuadavid-anna-revisions-2026-09-28.jsonl | — | all marker sets below |
+| data/2018-05-09-paste-archive-gap/raw/investigator-repo/joshuadavid-anna-revisions-2026-09-28.jsonl | — | all marker sets below |
 | data/aggregates/2026-09-29-overlap-analysis/events.jsonl | — | all marker sets below |
 
 Marker sets:

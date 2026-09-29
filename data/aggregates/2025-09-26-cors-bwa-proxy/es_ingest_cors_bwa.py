@@ -129,13 +129,13 @@ def build_docs():
         }
     venue_hits = {"2026-05-17-collusion-wiki": 578, "urlquery-incidents": 113,
                   "urlquery-hunt": 36, "2026-05-26-proxy-primitives": 17,
-                  "2026-03-12-paste-archive-gap": 1, "2026-09-27-rmn-re-linktable": 1}
+                  "2018-05-09-paste-archive-gap": 1, "2026-06-19-rmn-re-linktable": 1}
     venue_ctx = {"2026-05-17-collusion-wiki": "link_in_selected_agent_related_text / wiki_link+wiki_record+wiki_revision docs referencing bwa as an agent tool",
                  "urlquery-incidents": "live submitted scan URLs behind the bwa proxy",
                  "urlquery-hunt": "graph edges labeled 'cors.bwa.workers.dev laundering'",
                  "2026-05-26-proxy-primitives": "matched_string hits (lane caught but never elevated it)",
-                 "2026-03-12-paste-archive-gap": "lane-M ladder doc (termina.digital DB actor pages)",
-                 "2026-09-27-rmn-re-linktable": "gem-era shortener decoded target"}
+                 "2018-05-09-paste-archive-gap": "lane-M ladder doc (termina.digital DB actor pages)",
+                 "2026-06-19-rmn-re-linktable": "gem-era shortener decoded target"}
     for v, n in venue_hits.items():
         docs[f"cors-bwa-proxy:venue:{v}"] = {
             "@timestamp": TS,

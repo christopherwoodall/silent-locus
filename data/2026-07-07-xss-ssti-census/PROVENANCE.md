@@ -23,7 +23,7 @@ markers (artifactory paths, `m47` agent IDs, `m47bmbox/`, `zz` grammar,
 5. **urlquery report data** (frozen hunt archive,
    `projects/urlquery-api-hunt/artifacts/dataset/`): `decoded_payloads.json`
    (22 items), `hunt7_staging_reports.json` (1,205 reports).
-6. **Paste corpora**: `data/2026-05-27-paste-archive/`, `data/2026-03-12-paste-archive-gap/`,
+6. **Paste corpora**: `data/2026-05-27-paste-archive/`, `data/2018-05-09-paste-archive-gap/`,
    `data/2026-05-26-paste-linuxiarz/`, `data/2026-09-28-pastebin-cluster-sweep/`,
    `data/2026-09-28-pastebin-pivot/`, `data/2026-05-17-iowacollab-pastes/`.
 7. **Gem IOC corpus**: `data/2025-03-04-rubygems-goimport-campaign/raw/gem-ioc-hits.jsonl`, `data/2025-03-04-rubygems-goimport-campaign/raw/gem-ioc-log.jsonl`,

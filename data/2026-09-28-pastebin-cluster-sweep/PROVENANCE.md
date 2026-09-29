@@ -1,7 +1,7 @@
 # PROVENANCE — pastebin-cluster-sweep (2026-09-28)
 
 Lane: sweep of the 8 pastebin venues referenced in the 51 new anna.fyi pastes
-(`data/2026-03-12-paste-archive-gap/`), per Christopher's "sick agents on this" directive.
+(`data/2018-05-09-paste-archive-gap/`), per Christopher's "sick agents on this" directive.
 
 ## Trigger
 Paste `b22dd745` ("List-of-subdomains") links `https://nicepaste.com/list-of-subdomains`;

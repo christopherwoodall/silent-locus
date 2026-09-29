@@ -5,7 +5,7 @@ Question: does the transfer-test task family (first seen in the 51 new anna.fyi 
 
 ## Seed corpus
 13 transfer-grammar pastes recovered by the anna.fyi retry lane (2026-09-28), held in
-`data/2026-03-12-paste-archive-gap/` (manifest.json, bodies/anna.fyi/). All pulled live via
+`data/2018-05-09-paste-archive-gap/` (manifest.json, bodies/anna.fyi/). All pulled live via
 `https://anna.fyi/api/paste/<pid>` or `/view/raw/<pid>` (read-only, 1.5s pacing).
 Body bytes/hashes in this dataset are copied from that manifest — no re-fetch.
 
@@ -37,7 +37,7 @@ Body bytes/hashes in this dataset are copied from that manifest — no re-fetch.
 2026-09-29: no raw/ layer — seed paste bytes are preserved in the sibling
 data/2018-05-09-paste-archive-gap/raw/bodies/anna.fyi/ layer (collection
 renamed post-normalization; this PROVENANCE still cites the old
-data/2026-03-12-paste-archive-gap/ path — flagged for the data-verification
+data/2018-05-09-paste-archive-gap/ path — flagged for the data-verification
 crew, not changed here); the lane's new observations were ephemeral live reads
 (API polls, web searches, HTTP HEAD, front-page GETs) recorded inline as
 probe/negative records, with no captures kept. Verified: no raw/ files ever

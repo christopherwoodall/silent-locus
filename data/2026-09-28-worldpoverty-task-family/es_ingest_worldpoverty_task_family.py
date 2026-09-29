@@ -12,7 +12,7 @@ hits.jsonl was folded into the staged events.jsonl and deleted. All PRIMARY
 sources survive on disk (and in git history), so this script rebuilds the
 22 docs from them rather than from the staged file:
 
-  data/2026-09-27-rmn-re/raw/link_table_decoded_2026-09-27.json
+  data/2016-12-28-rmn-re/raw/link_table_decoded_2026-09-27.json
       15 decoded rmn.re slugs (decoded_target, clicks, created, creator_ip16,
       chain_wrappers)
   data/2026-05-17-collusion-wiki/raw/shortener-logs.json
@@ -70,7 +70,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 REPO = os.path.dirname(os.path.dirname(HERE))
 DATA = os.path.join(REPO, "data")
 
-LINK_TABLE = os.path.join(DATA, "2026-09-27-rmn-re", "raw",
+LINK_TABLE = os.path.join(DATA, "2016-12-28-rmn-re", "raw",
                           "link_table_decoded_2026-09-27.json")
 YOURLS_LOG = os.path.join(DATA, "2026-05-17-collusion-wiki", "raw",
                           "shortener-logs.json")
@@ -84,7 +84,7 @@ TS = "2026-09-28T10:52:00Z"
 OBSERVER = {"product": "lane-u-worldpoverty-task-family", "vendor": "hunt",
             "type": "transform"}
 COUNTRIES = "AFG,GHA,NGA,IND,MEX"
-SRC_RMN = ("data/2026-09-27-rmn-re/raw/link_table_decoded_2026-09-27.json; "
+SRC_RMN = ("data/2016-12-28-rmn-re/raw/link_table_decoded_2026-09-27.json; "
            "data/2026-05-17-collusion-wiki/raw/shortener-logs.json")
 SRC_WIKI = "data/2026-05-17-collusion-wiki/raw/revisions.jsonl"
 

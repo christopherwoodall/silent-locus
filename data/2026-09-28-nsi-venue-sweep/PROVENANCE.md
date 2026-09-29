@@ -20,7 +20,7 @@ table 54.
 
 ## Sources (all inside this repo unless noted)
 - `data/2026-05-17-collusion-wiki/raw/{links,records,revisions}.jsonl` — wiki evidence
-- `data/2026-03-12-paste-archive-gap/raw/bodies/anna.fyi/*.txt` — the 8 "Statistical reference 1" pastes
+- `data/2018-05-09-paste-archive-gap/raw/bodies/anna.fyi/*.txt` — the 8 "Statistical reference 1" pastes
 - `data/2026-05-12-university-shorteners-events/events.jsonl` — shortener referrer rows
 - Live probes: datasets.cbs.nl, unctadstat-api.unctad.org, site-test.nsi.bg, www.nsi.bg (2026-09-28)
 - Web: janbrus/pxwebapi-skills PX-Web installation inventory (GitHub); atanasster/electionsbg NSI access notes (GitHub)

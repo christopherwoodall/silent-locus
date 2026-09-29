@@ -33,7 +33,7 @@ A local saved copy of the JFrog article lives at
 3. urlquery.io public search via `~/workspace/skills/urlquery/bin/uq.py`
    (verbatim ID, `webhook.site/steal`, generic `oast.online`,
    `http.url.addr` wildcards; raw JSONs in `raw/`).
-4. Paste corpora (`data/2026-05-27-paste-archive`, `data/2026-03-12-paste-archive-gap`,
+4. Paste corpora (`data/2026-05-27-paste-archive`, `data/2018-05-09-paste-archive-gap`,
    `data/2026-05-17-iowacollab-pastes`), `data/aggregates/2026-09-29-overlap-analysis/events.jsonl`,
    sibling `data/2026-07-07-xss-ssti-census/events.jsonl` (122 payloads).
 5. Public web search (verbatim quoted queries).

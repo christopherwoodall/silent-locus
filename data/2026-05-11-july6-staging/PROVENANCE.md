@@ -22,7 +22,7 @@ was preceded ~48h by a staging signature. Is there a July 5–6 staging signatur
 | 10 | ES index webhook-deaddrops, gem83-reconciliation, iowacollab-pastes | 2026-09-28 | 0 docs July 5–6; iowa dated doc = June 16 wave | n/a (remote) |
 | 11 | ES index ludism-wikis | 2026-09-28 | 31 docs, none July | n/a (remote) |
 | 12 | data/2026-09-28-university-shorteners/events.jsonl | 2026-09-28 | 7 summary docs, no per-day July breakdown | n/a |
-| 13 | data/2026-03-12-paste-archive-gap/*.jsonl | 2026-09-28 | no July 5–6 references | n/a |
+| 13 | data/2018-05-09-paste-archive-gap/*.jsonl | 2026-09-28 | no July 5–6 references | n/a |
 
 ## Corpus dates
 - Corpus window: 2026-03-07 → 2026-09-14. Swarm run dates in UTC.
