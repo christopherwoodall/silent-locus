@@ -200,3 +200,72 @@ Dry-run verification 2026-09-29 (`--build`, no Elastic writes):
 
 Not run against live Elastic (hosted write freeze in effect); the repaired
 script is ready for the next authorized `--load`.
+
+## es_ingest_gems.py repair 2026-09-29
+
+Repaired (not deleted) per the 2026-09-29 repair directive. The script was
+broken by the 2026-09-28 schema backfill; run as-is it would have written
+garbage docs (gem=None everywhere, non-schema top-level fields).
+
+What was broken (specific reads):
+- `load_docs()` read `r["gem"]`, `r["version"]`, `r["published_at"]`,
+  `r["download_url"]`, `r["diff_url"]`, `r["diffend_versions"]` at top level.
+  After the backfill these live at `labels["gem.name"]`,
+  `labels["gem.version"]`, `labels["published.at"]`, top-level `source_url`,
+  `labels["diff_url"]`, and the parallel arrays
+  `labels["diffend.versions.version"]` / `labels["diffend.versions.diff_ts"]`.
+  All reads remapped (the hits file `gem-ioc-hits.jsonl` was never backfilled
+  and keeps its flat format -- handled as such).
+- `enrich_common()` overwrote `doc["labels"]` with a fresh dict, wiping the
+  backfilled native labels (gem.name, file manifests, diffend version
+  arrays). Now merges into the existing labels dict.
+- Emitted non-schema top-level fields (`package`, `wave`, `published_at`,
+  `diffend_versions`) -- moved into `labels` (wave, gem.status,
+  gem.timestamp_source) or dropped (package duplicates labels gem.name).
+- Hit docs passed the raw IOC family name ("council-domain", ...) through as
+  `doc["fingerprint"]`, failing the 64-hex fingerprint rule. Now computed as
+  sha256("gem-ioc-hit:<gem>@<version>:<family>:<line_no>:<matched_string>")
+  (same identity as the W3 normalization); the family name is kept at
+  `labels["hit.ioc_family"]`. Record kinds aligned with the canonical
+  events.jsonl: `hit` -> `corpus_hit`, wayback rows -> `wayback_capture`.
+- Never emits None-valued optional fields (3 failed-harvest rows lack
+  diff_url/version; 4 wayback rows lack wayback_url; 12 lack description).
+
+Payloads (schema commit 37988db: OPTIONAL top-level `payloads`, NOT
+event.payloads): each doc carries one payload -- the byte-exact raw source
+record (kinds `gem_ioc_log_entry` / `gem_ioc_hit` / `wayback_metadata_record`,
+content_type `application/json`, encoding `text`, with `truncated`,
+`byte_size`, `sha256` of the full body). Truncation cap 64 KiB
+(`PAYLOAD_TRUNCATE_AT`); no current row exceeds ~11 KiB, so all 3,594
+payloads are full (`truncated: false`). Larger artifacts are NOT duplicated:
+the extracted gem trees at `data/processed/gems/<name>-<version>/` are
+skeletal Diffend reconstructions (1-byte placeholder gemspecs, tiny lib
+stubs) whose manifests already live in labels `files.path/size/sha256` --
+the tree path is kept as the file pointer (top-level `file` on extraction
+docs, `labels["extracted.to"]` everywhere). `.gem` binaries (3 control
+downloads) and June-18 Wayback HTML were never archived in this repo;
+`source_url` is the file pointer.
+
+Dry-run verification 2026-09-29 (`--emit`, no Elastic writes, no network):
+- 3,594 docs built: 3 download + 618 extraction + 618 diffend_harvest +
+  2,339 corpus_hit + 16 wayback_capture. (Raw log has 635 extraction /
+  624 harvest rows; 15 re-harvest keys collapse to last-wins on the
+  deterministic `_id`, as documented.)
+- `scripts/validate_schema.py`: 0 violations; strict Draft7 check against
+  `schema/record.schema.json`: 0 violations (3,594/3,594).
+- Non-degraded: 0 docs with gem.name=None; 3,594/3,594 real @timestamps
+  (no fallbacks); all fingerprints 64-hex; 3,587/3,587 applicable docs with
+  source_url (7 legitimately absent: failed harvests / wayback rows missing
+  URLs in the source); every payload's sha256 re-verified against its
+  content; 618/618 extraction docs carry the `file` pointer.
+- `python3 -m py_compile` clean.
+
+Merge decision: NOT merged with es_ingest_jfrog.py. The sibling worker
+already repaired and committed jfrog.py standalone (2584dee); both scripts
+now follow the same conventions (backfill-aware label reads, schema-valid
+docs, top-level payloads with the raw source line, `file` as artifact
+pointer) and build disjoint record flavors for the same index. Merging
+would churn a finished, committed repair for no functional gain.
+
+Not run against live Elastic (hosted write freeze in effect); the repaired
+script is ready for the next authorized load. SHA256SUMS regenerated.
