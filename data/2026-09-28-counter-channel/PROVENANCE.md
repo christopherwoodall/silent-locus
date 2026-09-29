@@ -50,3 +50,8 @@ showing the host exposes no list/info endpoints to expand from. ES
   (`labels:key.retrieved_at`); `snapshot_at_utc` for the probe
   (`labels:snapshot_at_utc`).
 - `SHA256SUMS` regenerated covering every file in the directory.
+
+## Rollup review 2026-09-29 (W8)
+
+rollup: none — 4 rows (3 counter_reading + 1 counter_probe) are the complete
+single-snapshot enumeration; no time series, no aggregate layer.
