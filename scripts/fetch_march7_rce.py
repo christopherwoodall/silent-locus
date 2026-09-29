@@ -2,7 +2,7 @@
 """LANE D — March-7 code-execution modality gems (read-only).
 
 Source of truth for gem names: colonist-one's post
-data/2025-02-04-thecolony-ai/raw/posts/dfac3a74-4685-43d8-9bd6-c76409f87ade.json
+data/2026-09-04-thecolony-ai/raw/posts/dfac3a74-4685-43d8-9bd6-c76409f87ade.json
 (2026-09-05). The task-brief names (projecttools624286 / atlasqadfe9fb1629 /
 tfdriftbqgzb8h) are the *owner accounts*; the actual gem names are:
 
@@ -18,6 +18,7 @@ a name mean the gem is ABSENT from Diffend (known-good May-12 gems return
 200). NEVER downloads or executes gems; Diffend-rendered diffs read as
 static text only. Resume-friendly: state.json + per-file checkpointing.
 """
+import glob
 import hashlib
 import json
 import os
@@ -27,7 +28,16 @@ import time
 from datetime import datetime, timezone
 
 BASE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-DIR = os.path.join(BASE, "data", "2026-02-01-march7-rce-modality")
+
+def resolve_dir(slug):
+    """Resolve data/<date>-<slug>/ dynamically so date-prefix renames
+    don't break the script. Latest date prefix wins."""
+    matches = sorted(glob.glob(os.path.join(BASE, "data", "*-" + slug)))
+    if not matches:
+        raise SystemExit(f"no data dir matching *-{slug}")
+    return matches[-1]
+
+DIR = resolve_dir("march7-rce-modality")
 RAW = os.path.join(DIR, "raw")
 UA = ("Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) "
       "Chrome/126.0 Safari/537.36")
