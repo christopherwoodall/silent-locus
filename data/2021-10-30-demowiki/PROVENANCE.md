@@ -81,3 +81,11 @@ SHA256SUMS regenerated (events.jsonl + all raw contents); `sha256sum -c` OK.
 rollup: none — 9 RC revisions + 7 page snapshots are already atomic; the wiki's
 entire edit history is 9 edits, so a per-day/per-actor rollup would duplicate
 the event rows 1:1.
+
+## Build-script relocation 2026-09-29 (ingest-script condensation)
+
+- Moved `scripts/es_ingest_demowiki.py` into this collection dir per Christopher's build-script convention (single-collection build scripts live in the event directory).
+- Path fixes in the moved script: `WIKI` is now the script's own dir (self-locating); `REPO_ROOT` resolves three levels up for the mapping path.
+- BUG FIX: `build()` read `{WIKI}/demowiki_crawl.json` but the crawl file lives at `raw/demowiki_crawl.json` (the docstring already said `raw/`) — the old path never existed, so `--load` was broken; fixed to the `raw/` path.
+- Verified offline (2026-09-29): `build()` assembles 23 docs from disk (7 wiki_page, 9 wiki_revision, 3 wiki_link, 4 wiki_bridge) with no network/ES access.
+- ES ingest driver: `push_to_local_es.py --all` runs the path in `scripts/local_es_manifest.json` `via_script` for index `2021-10-30-demowiki`; manifest entry updated to the new script location.
