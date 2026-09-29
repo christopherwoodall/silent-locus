@@ -49,3 +49,18 @@ agent-built infrastructure. The agent-trace evidence (722 agents,
 ~19k corpus occurrences) already lives in the `proxy-primitives` ES index
 (311 hits). Nothing agent-specific exists in these 4 artifact files that
 merits its own index; they stay on disk as reference per keep-all policy.
+
+## Schema normalization 2026-09-29 (W2)
+
+Built `events.jsonl` (2 rows) from the 4 raw artifact files on the canonical
+record schema (`scripts/validate_schema.py`: 2/2 clean).
+- 1 × `venue_probe` — sighrobot/jqp repo metadata (folding in
+  repo_summary.json: topics, watchers, open issues); `@timestamp` =
+  repo.created_at 2022-05-14T21:51:48Z; identity `jqp-vercel|repo|sighrobot/jqp`.
+- 1 × `venue_probe` — live endpoint probe of
+  jqp.vercel.app/api/v0?url=... (body `[]`, CORS `Access-Control-Allow-Origin:
+  *`); `@timestamp` = probe.probed_at 2026-09-28T02:46:27Z;
+  identity `jqp-vercel|endpoint-probe|<request line>`.
+Fingerprint = sha256 hex of the documented identity string (verified against
+the 2023-11-14-hfspace-proxies reference implementation before writing).
+SHA256SUMS regenerated (events.jsonl + all raw contents); `sha256sum -c` OK.
