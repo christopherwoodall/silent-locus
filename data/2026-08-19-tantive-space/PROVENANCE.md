@@ -69,3 +69,14 @@
 - fingerprint identity string: `tantive-room-rollup|<room>`.
 - Covered by SHA256SUMS; lobby counts verified against the event stream
   (423 messages).
+
+## 2026-09-28: ingest script co-located (hunt convention)
+- `es_ingest_tantive.py` moved from `scripts/` into this directory per
+  Christopher's single-collection convention; transforms raw/messages.jsonl +
+  raw/threads.jsonl into grammar-tagged shared-schema docs (real transform,
+  not a pure loader).
+- `REPO_ROOT` in the script adjusted (repo root is now three levels up); the
+  `D` path still resolves to this directory.
+- Offline verification: `build_docs()` yields 1124 docs (`tn:<id>`).
+- `scripts/local_es_manifest.json` via_script entry repointed here.
+- SHA256SUMS regenerated (script file added to coverage).
