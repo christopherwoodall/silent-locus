@@ -274,19 +274,51 @@ Limitations:
 
 ## Loading with 🤗 datasets
 
-> **TODO (worker 2 — function check):** verify the exact
-> `load_dataset(...)` call against the published Hub repo once the
-> corpus upload lands, and fill in the snippet below. Do not invent a
-> call signature before verifying.
-
-Two planned configs: `collections` (the 64 event collections) and
-`aggregates` (the 4 aggregate collections).
+Verified 2026-09-29 with `datasets` 5.0.1: the full corpus (141,804 rows,
+84 files) loads cleanly. The collections use 33 distinct top-level key sets,
+so schema inference needs an explicit union `features`; `@timestamp` stays
+a string (zone-offset ISO-8601 values fail pyarrow timestamp casting).
 
 ```python
-# TODO: worker 2 to verify and fill in
-# from datasets import load_dataset
-# ds = load_dataset("<hf-org>/silent-locus", "collections")
+import glob
+from datasets import load_dataset, Features, Value, Sequence
+from datasets.features import Json
+
+features = Features({
+    "@timestamp": Value("string"),   # ISO-8601 with zone offset; keep as string
+    "event": {"dataset": Value("string"), "created": Value("string")},
+    "record_kind": Value("string"),
+    "fingerprint": Value("string"),
+    "labels": Json(decode=True),
+    "observer": {"product": Value("string"), "type": Value("string"), "vendor": Value("string")},
+    "description": Value("string"),
+    "confidence": Value("string"),
+    "tags": Sequence(Value("string")),
+    "retrieved_via": Value("string"),
+    "retrieved_at": Value("string"),
+    "source_url": Value("string"),
+    "file": Value("string"),
+    "sha256": Value("string"),
+    "size_bytes": Value("int64"),
+    "status": Value("string"),
+    "matched_string": Value("string"),
+    "note": Value("string"),
+    "payloads": Sequence(Json(decode=True)),
+})
+files = sorted(f for f in glob.glob("data/**/*.jsonl", recursive=True)
+               if "raw" not in f.split("/"))
+ds = load_dataset("json", data_files=files, features=features)["train"]  # 141,804 rows
+# streaming (no local cache needed):
+# ds = load_dataset("json", data_files=files, features=features, streaming=True)["train"]
 ```
+
+Notes: use the recursive glob — `data/*/events.jsonl` misses the two
+`data/aggregates/*/events.jsonl` files and the `rollup.jsonl` sidecars
+(19,148 rows). Nested access works: `ds[0]["labels"]` → dict,
+`ds[0]["payloads"][0]` → `kind, content_type, content, encoding,
+truncated, byte_size, sha256`. Collections with `payloads`:
+`2026-05-17-iowacollab-pastes`, `2026-06-17-reverse-tunnels`,
+`2026-09-28-worldpoverty-task-family`.
 
 ## Citation
 
