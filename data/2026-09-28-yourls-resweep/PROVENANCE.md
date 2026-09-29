@@ -127,3 +127,6 @@ recorded `sha256`/`size_bytes` match the committed bytes exactly.
 
 `SHA256SUMS` regenerated after the rewrite (only the `events.jsonl`
 line changed; all 45 entries re-verified with `sha256sum -c`).
+
+## 2026-09-29 — popcat hash refresh
+19 popcat rows' top-level `sha256`/`size_bytes` described pre-commit capture bytes (259-byte header artifact from the nsi-venue-sweep fold-in). Refreshed to the committed on-disk bytes; observations unchanged (slugs, click counts, SOURCE URLs verified identical).
