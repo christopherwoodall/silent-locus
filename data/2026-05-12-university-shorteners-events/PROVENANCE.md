@@ -122,3 +122,45 @@ systematically cut off by the egress proxy on index.commoncrawl.org
 (IncompleteRead at ~16KB / RemoteDisconnected on every attempt, all header
 combos; curl succeeds reliably), so `fetch()` now shells to curl. Same
 signature, retry/backoff kept, output conventions unchanged.
+
+## Wayback stats-page slice 2026-09-29 (one-shot; polling loop killed)
+
+Christopher's decision 2026-09-29: kill the standing 15-min CDX polling loop
+(`hidden_files/shortener-cdx/shortener_cdx_retry.sh`, already dead — left
+dead), but run its queued work ONE final time now that the CDX backend
+recovered. One-shot script: `/tmp/wayback_oneshot_2026-09-29.py` (ephemeral;
+logic copied from `hidden_files/shortener-cdx/pull_and_explode.py` with
+paths corrected for the normalized tree).
+
+Method: CDX `url=<stats_url> output=json fl=timestamp,original,statuscode,digest
+filter=statuscode:200 collapse=digest` for all 12 stats URLs (5 goto.unm.edu,
+u.ethz.ch, 2 url.popcat.xyz, 3 go.uvm.edu, vanderbi.lt), 2s polite pacing,
+urllib primary with curl fallback, read-only. Raw HTML kept per capture
+(capture-first) at `data/2026-05-12-university-shorteners-events/raw/wayback/<slug>/`
+plus per-capture evidence JSONs (`<slug>_referrer_urls_daily_wayback_<ts>.json`),
+`manifest.json` + `SHA256SUMS` regenerated in `raw/wayback/`. Parsed with the
+same table-row extractor; exploded via `scripts/build_shortener_events.py`
+(`vanderbi.lt` monkeypatched locally as Vanderbilt University / university —
+the canonical script lacks that instance entry).
+
+Result: 12 targets, 19 captures seen, 17 downloaded (2 IRZTIxDlZ captures
+already held in `data/2026-09-28-university-shorteners/raw/wayback/` — not
+duplicated). 57 docs exploded from 17 evidence files — **24 new rows
+appended** (1,567 → 1,591), 32 skipped as duplicates on `labels.event_id`,
+1 within-batch dup skipped. New rows: 16 `yourls_stats_page`
+page-observations + 8 `yourls_referrer_url` rows (all 8 from the 2026-09-06
+u.ethz.ch/nB1nv capture; 26 of its 34 parsed rows already existed).
+
+Notable: `goto.unm.edu/discvr+` has deep Wayback history (2019-09-17 through
+2026-01-14, 9 captures) — all page-observations are new, none carried
+referrer rows the dataset lacked. `go.uvm.edu/-4s0q+` CDX query timed out
+twice (urllib + curl); a third attempt returned a genuine 0 captures.
+
+**July 5–6 2026 UNM rows: still not surfaced.** Wayback holds NO May–Jul 2026
+captures of any goto.unm.edu stats URL (urphy21: 0 captures ever; vbudg: 0;
+discvr/reso/7t6-o: nothing in the window). Combined with the 2026-09-29
+Common Crawl clean negative, both backends are exhausted for this window —
+recorded as a clean negative, not retried further.
+
+Note on the raw/-missing exception above: this collection now holds its own
+`raw/wayback/` slice; the exception stands for live-capture evidence only.
