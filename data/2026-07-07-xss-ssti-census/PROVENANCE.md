@@ -80,3 +80,12 @@ Transformed by `temp/backfill_w3.py`.
   `labels.timestamp_source = "fallback:no_recoverable_date"`.
 - `sha256` was already canonical top-level; kept. All other original fields
   moved to labels unchanged. event.dataset = `xss-ssti-census`.
+
+## raw/-missing exception 2026-09-29
+
+2026-09-29: no raw/ layer — cross-corpus census: censused payload text is inline
+in events.jsonl rows and source evidence is preserved in sibling raw/ layers
+(data/raw/redacted.jsonl.gz, rubygems-goimport-campaign raw/, paste corpora);
+this collection holds no own captures. Verified: no raw/ files ever committed
+in git history; no stray evidence files on disk; SHA256SUMS green. Ratified as
+a canonical-layout exception.
