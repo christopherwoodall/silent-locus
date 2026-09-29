@@ -74,6 +74,8 @@ Extracted 89 unique proxy-related URLs from the 24 DB actor pages
 - vg_cemetery_person_v0_77.json — decoded 1.2 MB cemetery dataset
 - manifest.json — titles, authors, epochs, SHA-256, statuses
 - proxy_ladder_crossref.json — 89 actor-page proxy URLs × rmn.re slugs
+  (materialized 2026-09-29 into events.jsonl as `proxy_ladder_entry` records
+  by `build_proxy_ladder_events.py`; fingerprint = sha256(actor_url))
 - PROVENANCE.md (this), progress.log
 
 ## Open

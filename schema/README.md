@@ -128,6 +128,7 @@ files, so they were missed by the event-file enumeration.
 - `pastebin_probe`
 - `pattern_sweep_rollup` — rollup of a corpus pattern sweep (pattern, hit counts, files) **(inferred)**
 - `payload_reconstruction`
+- `proxy_ladder_entry` — one proxy-ladder URL extracted from an actor-page capture, with rmn.re overlap flags **(inferred)**
 - `recovery_census` — census of archive-recovery attempts for dead documents (recovered vs not-archived) **(inferred)**
 - `related_readme` — cached README of a related/fork-adjacent repo **(inferred)**
 - `relay_paste`
