@@ -10,7 +10,7 @@ Usage:
   python3 es_ingest_jsonhero_archive.py --load     # bulk-load the 6 docs
   python3 es_ingest_jsonhero_archive.py --verify   # count + recovery breakdown
 """
-import sys, json, os, urllib.request
+import sys, json, os, glob, urllib.request
 from datetime import datetime, timezone
 import os
 try:
@@ -28,7 +28,18 @@ REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 HOSTS = ["agent-apocalypse-f1f7ba.es.us-east-1.aws.elastic.cloud"]
 CRED = "custom.elastic-cloud"
 BASE = REPO_ROOT
-D = BASE + "/data/2025-01-13-jsonhero-docs-archive"
+
+
+def _resolve_data_dir(slug):
+    """Resolve data/*-<slug>/ dynamically so date-prefix renames don't break this."""
+    matches = sorted(glob.glob(os.path.join(BASE, "data", "*-" + slug)))
+    if not matches:
+        raise SystemExit(f'no data dir matches "*-{slug}"')
+    return matches[0]
+
+
+D = _resolve_data_dir("jsonhero-docs-archive")
+RAW = os.path.join(D, "raw")
 INDEX = "2025-01-13-jsonhero-docs-archive"
 NOW = datetime.now(timezone.utc).isoformat()
 OBSERVER = {"product": "jsonhero-archive-ingest", "vendor": "swarmtraces-hunt",
@@ -54,7 +65,7 @@ def req(method, path, body=None, raw=None):
 
 
 def build_docs():
-    manifest = json.load(open(f"{D}/manifest.json"))
+    manifest = json.load(open(os.path.join(RAW, "manifest.json")))
     refs = {}
     with open(BASE + "/data/aggregates/2026-09-29-overlap-analysis/raw/jsonhero_doc_links.jsonl") as f:
         for line in f:
@@ -70,7 +81,7 @@ def build_docs():
         top_keys = []
         if recovered:
             try:
-                d = json.loads(open(f"{D}/{did}.json", encoding="utf-8").read())
+                d = json.loads(open(os.path.join(RAW, f"{did}.json"), encoding="utf-8").read())
                 top_keys = list(d.keys())[:12] if isinstance(d, dict) else ["<array>"]
             except Exception:
                 pass
