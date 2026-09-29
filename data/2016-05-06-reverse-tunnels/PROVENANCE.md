@@ -77,9 +77,9 @@ Generated at dataset freeze; verify with `sha256sum -c manifest.sha256`.
     `htmx_summary.json`); 2 `dns_probe` — the DNS resolution and
     authoritative checks (INCONCLUSIVE: sinkholed resolver).
   - `uq_report_summary.json` is a derived digest (covered by per-report
-    events); `raw/manifest.sha256` is lane bookkeeping whose listed paths
-    (`progress.log`, `htmx_search.py`, bare `PROVENANCE.md`) no longer exist
-    — left untouched, noted here.
+    events); `raw/manifest.sha256` is lane bookkeeping — corrected
+    2026-09-29 to drop its three nonexistent entries (`progress.log`,
+    `htmx_search.py`, bare `PROVENANCE.md`); all remaining entries verify.
 - `rollup.jsonl`: 6 rows, `urlquery_rollup` — per-query `total_hits` /
   `reports_retrieved` (genuine aggregate layer of the 6 keyword queries).
 - Fingerprint identity strings: `<time>|<label>|<page_id>|<tunnels>`
