@@ -101,3 +101,13 @@ the old date label was wrong; the first event in the stream is
 evidence dates to 2026-06-17/19/21. `event.dataset` updated in
 events.jsonl (107 rows) and rollup.jsonl (6 rows); fingerprints unchanged
 (identity strings carry no dataset name).
+
+## Stub merge 2026-09-29
+
+Merged the last file from the old undated stub `data/reverse-tunnels/`
+(untracked): `__pycache__/htmx_search.cpython-312.pyc` (compiled 2026-09-28
+23:29) → `raw/run-logs/htmx_search.cpython-312.pyc`. This is the compiled
+remnant of the lane's `htmx_search.py` (source no longer present; its
+manifest.sha256 entries were dropped as nonexistent during normalization).
+No unique data beyond the bytecode; kept for provenance of the lane's
+tooling. Stub directory removed.
