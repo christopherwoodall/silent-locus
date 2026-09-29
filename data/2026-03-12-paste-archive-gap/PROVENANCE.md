@@ -221,3 +221,24 @@ see `aux/joshuadavid-anna-revisions-2026-09-28.jsonl` (`verdict`, `verdict_ratio
 - @timestamp = manifest `created_utc` per paste (labels.timestamp_source=`manifest.created_utc`); decoded record uses manifest `generated_at` 2026-09-14T21:56:52Z; the deleted paste d266bdde has no recoverable date -> sentinel 1970-01-01T00:00:00Z with labels.timestamp_source=`fallback:no_recoverable_date` (deletion confirmed in the 2026-09-28 lane-1 probe, recorded in note).
 - `rollup.jsonl`: 2 rows, one per recovery batch (`lane-m`, `lane-1-retry`; record_kind `extraction`, event.dataset `2026-03-12-paste-archive-gap-rollup`): paste count, total bytes, first/last created, confirmed deletions. Fingerprint identity: `anna.fyi-rollup:<source>`. (The investigator-repo snapshot is a provenance artifact, excluded from the batch rollup.)
 - Regenerated `SHA256SUMS` (events.jsonl + rollup.jsonl + raw/**).
+
+## Ingest script co-location 2026-09-29
+
+- `scripts/es_ingest_paste_archive_gap.py` moved to `data/2026-03-12-paste-archive-gap/es_ingest_paste_archive_gap.py`
+  per the single-collection-build-script convention (this script only reads
+  this collection's `raw/` layer).
+- `REPO_ROOT` fixed (one extra `dirname`, matching the new depth); input
+  paths fixed to `raw/manifest.json`, `raw/bodies/anna.fyi/{id}.txt`,
+  `raw/proxy_ladder_crossref.json` (the layout-normalization commit moved
+  them under `raw/` and the script was never updated — it would have raised
+  FileNotFoundError before this fix). The deleted paste `d266bdde` has no
+  sha256/bytes keys in the manifest, so those now read via `.get()`.
+- Verified: `build_docs()` runs end-to-end (78 docs: 66 paste_text + 8
+  proxy_ladder_overlap + cemetery dataset + census_diff + cors-bwa
+  proxy_primitive + repull check).
+- Note (pre-existing, not introduced here): the committed `events.jsonl`
+  (68 rows, record_kind `pastebin_probe`, built by the W5 pipeline) differs
+  in shape from this script's lane-M docs; both the staged track and this
+  script's via_script track target index `2026-03-12-paste-archive-gap`.
+- `local_es_manifest.json` `via_script` entry for
+  `2026-03-12-paste-archive-gap` now points at the co-located path.
