@@ -124,3 +124,32 @@ Colony itself is a large live social network (45 colonies, thousands of
 posts); a full colony crawl would be a separate lane with its own scope, not
 an expansion of this dataset. ES `thecolony-ai` _count=27 verified,
 schema-drift clean.
+
+## Schema normalization 2026-09-29 (worker W3)
+
+- Transform: `temp/build_events_w3_thecolony.py` (repo root passed as argv[1]).
+- Grain: one record per raw file (55 records), except `sweep.json` which becomes
+  one record per pattern (24) and `manifest.json` which is the file inventory
+  (its sha256/byte_size/retrieved_at_utc folded into each record, not a record).
+  - 10 investigator posts -> `venue_finding` (findings published at the venue)
+  - 9 search captures -> `extraction`
+  - 6 cascade RubyGems oracle checks -> `tag_liveness`
+    (all resolve yanked/empty: 3x "could not be found", 2x empty geminfo, 1x `[]` owner)
+  - 3 wiki/onboarding pages + api_colonies.json + api_instructions.json + feed.rss -> `download`
+  - 24 sweep patterns -> `corpus_hit` (19, count>0) / `corpus_grep_negative` (5)
+- `@timestamp`: post `created_at` for posts (`labels.timestamp_source = "labels:post.created_at"`);
+  manifest `retrieved_at_utc` for captures/searches/cascades (`"manifest:retrieved_at_utc"`);
+  the documented lane date 2026-09-28 for sweep patterns (per-pattern timestamps
+  absent from raw).
+- Fingerprint identity strings:
+  - posts: `sha256("thecolony-post:<post_id>")`
+  - searches: `sha256("thecolony-search:<filename stem>")`
+  - cascades: `sha256("thecolony-cascade:<filename>")`
+  - captures: `sha256("thecolony-capture:<filename>")`
+  - sweeps: `sha256("thecolony-sweep:<pattern>")`
+  Reference method verified against data/2023-11-14-hfspace-proxies
+  (sha256("TheNacken/python-cors-proxy") -> `14c645d9…efbe94`).
+- No `rollup.jsonl`: this collection is a heterogeneous recon snapshot
+  (posts, searches, captures, oracle checks); no burst/window/per-actor layer is
+  derivable without inventing one. `manifest.json` already serves as inventory.
+- `event.dataset = "2025-02-04-thecolony-ai"`; `event.created` = build time.
