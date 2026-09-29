@@ -99,3 +99,13 @@ ES _id = `july7:<name>` makes bulk re-ingest idempotent.
   timestamps, and distinct mechanism notes. Same shared schema.
 - fingerprint identity string: `july7-wave-rollup|<wave>`.
 - Covered by SHA256SUMS; counts verified against the event stream.
+
+## 2026-09-28: ingest script co-located (hunt convention)
+- `es_ingest_july7.py` moved from `scripts/` into this directory per
+  Christopher's single-collection convention; transforms raw Diffend sweep
+  JSONL into shared-schema docs (real transform, not a pure loader).
+- `REPO_ROOT` in the script adjusted (repo root is now three levels up).
+  Offline verification: `load_docs()` builds 264 docs from
+  `raw/diffend_sweep_results_july7.jsonl`.
+- `scripts/local_es_manifest.json` via_script entry repointed here.
+- SHA256SUMS regenerated (script file added to coverage).
