@@ -39,3 +39,36 @@ Related repos whose READMEs were cached:
 The cached fix-commit diff (fix-commit-e4123d04.diff) necessarily contains the
 pre-fix hardcoded values, as published in the public repo history. They are
 redacted in all prose documentation (cited as file/line only).
+
+## Schema normalization 2026-09-29 (W2)
+
+Built `events.jsonl` (239 rows) from `raw/` on the canonical record schema
+(`scripts/validate_schema.py`: 239/239 clean). Grain is one record per
+retrieved item.
+- 1 × `repo_snapshot` (new kind) — repo-meta.json for
+  sunblaze-ucb/exploitgym; identity `exploitgym|repo|sunblaze-ucb/exploitgym`;
+  `@timestamp` = repo.pushed_at.
+- 1 × `repo_commit` (new kind) — fix commit e4123d04 (PR #11), merged from
+  commits-aug1-10.json + fix-commit-e4123d04.json + diff stats (17 files,
+  734 additions / 124 deletions); filenames listed, pre-fix secret values NOT
+  reproduced (cited as file/line only, per the redaction rule above);
+  identity `exploitgym|commit|<sha>`; `@timestamp` = commit author date.
+- 29 × `repo_issue` (new kind) — one per issue (issues-all.json is the full
+  set); identity `exploitgym|issue|<number>`; `@timestamp` = issue created_at.
+- 146 × `repo_fork` (new kind) — one per fork (forks-p1/p2.json);
+  identity `exploitgym|fork|<full_name>`; `@timestamp` = fork created_at.
+- 50 × `repo_search_hit` (new kind) — one per repo from
+  search-repos-exploitgym.json (total_count=131, 50 cached);
+  identity `github|repo-search|<full_name>`; `@timestamp` = repo created_at.
+- 5 × `gist_scan_page` (new kind) — p1/p3/p4: 100 gists each, 0 exploitgym
+  hits; p2/p5 emitted as `sweep_negative` (API rate limit, pages unscanned).
+- 1 × `sweep_negative` — stargazers 12/12 pages 401 unauthenticated (star
+  timeline unavailable); 1 × `sweep_negative` — /search/code 401
+  unauthenticated (DEFAULT_FLAG_SEED code search not possible).
+- 5 × `related_readme` (new kind) — related READMEs (sha256 + size carried on
+  the record); created dates from the retrieval notes; identity
+  `github|related-readme|<full_name>`.
+Fingerprint = sha256 hex of the documented identity string (verified against
+the 2023-11-14-hfspace-proxies reference implementation before writing).
+SHA256SUMS regenerated (events.jsonl + all raw contents, incl.
+related-readmes/); `sha256sum -c` OK.
