@@ -61,9 +61,9 @@ Agents and agent infrastructure only. No person-level attribution.
 ## Raw layer 2026-09-29
 
 Moved script-consumed transform inputs into raw layer (upstream names preserved, exempt from event schema):
-- `data/paste-archive/anna.fyi/titles.jsonl` -> `data/paste-archive/raw/anna.fyi/titles.jsonl` (consumed by scripts/es_ingest_paste_archive.py)
-- `data/paste-archive/infinitypaste.club/metadata.jsonl` -> `data/paste-archive/raw/infinitypaste.club/metadata.jsonl` (consumed by scripts/es_ingest_paste_archive.py)
-- `data/paste-archive/k4be.pl/metadata.jsonl` -> `data/paste-archive/raw/k4be.pl/metadata.jsonl` (consumed by scripts/es_ingest_paste_archive.py)
+- `data/paste-archive/anna.fyi/titles.jsonl` -> `data/paste-archive/raw/anna.fyi/titles.jsonl` (consumed by data/2026-05-27-paste-archive/es_ingest_paste_archive.py)
+- `data/paste-archive/infinitypaste.club/metadata.jsonl` -> `data/paste-archive/raw/infinitypaste.club/metadata.jsonl` (consumed by data/2026-05-27-paste-archive/es_ingest_paste_archive.py)
+- `data/paste-archive/k4be.pl/metadata.jsonl` -> `data/paste-archive/raw/k4be.pl/metadata.jsonl` (consumed by data/2026-05-27-paste-archive/es_ingest_paste_archive.py)
 
 ## Schema build 2026-09-29 (worker W5)
 
@@ -102,3 +102,16 @@ Moved script-consumed transform inputs into raw layer (upstream names preserved,
 - fingerprint identity string: `paste-venue-rollup|<host>`.
 - Covered by SHA256SUMS; verified against the event stream (k4be: 20
   pastes / 17 bodies).
+
+## Ingest script co-location 2026-09-29
+
+- `scripts/es_ingest_paste_archive.py` moved to `data/2026-05-27-paste-archive/es_ingest_paste_archive.py`
+  per the single-collection-build-script convention (this script only reads
+  this collection's `raw/` layer + captured bodies).
+- `REPO_ROOT` fixed (one extra `dirname`, matching the new depth);
+  infinitypaste body path fixed to `raw/infinitypaste.club/{id}.txt` (the
+  84edfb3 layout commit moved captures under `raw/` and the script was never
+  updated — it would have raised FileNotFoundError before this fix).
+- Verified: `build_docs()` rebuilds exactly the 76 committed `events.jsonl` rows.
+- `local_es_manifest.json` `via_script` entry for `2026-05-27-paste-archive`
+  now points at the co-located path.

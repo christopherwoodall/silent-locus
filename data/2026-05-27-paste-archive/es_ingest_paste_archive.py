@@ -25,7 +25,7 @@ except ImportError:  # local run: no vault on this machine, plain HTTP(S) instea
 import urllib.request
 
 ES = os.environ.get("SWARMTRACES_ES_URL", "https://agent-apocalypse-f1f7ba.es.us-east-1.aws.elastic.cloud:443")
-REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+REPO_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))  # script lives in data/<collection>/
 HOSTS = ["agent-apocalypse-f1f7ba.es.us-east-1.aws.elastic.cloud"]
 CRED = "custom.elastic-cloud"
 BASE = REPO_ROOT
@@ -118,7 +118,7 @@ def build_docs():
     # infinitypaste.club
     for line in open(f"{D}/raw/infinitypaste.club/metadata.jsonl"):
         m = json.loads(line)
-        body = open(f"{D}/infinitypaste.club/{m['id']}.txt").read()
+        body = open(f"{D}/raw/infinitypaste.club/{m['id']}.txt").read()
         docs[f"paste-archive:inf:{m['id']}"] = {
             "@timestamp": "2026-09-28T03:10:00Z",
             "event": {"dataset": INDEX, "created": NOW},
