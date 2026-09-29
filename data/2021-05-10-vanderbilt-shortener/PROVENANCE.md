@@ -77,3 +77,10 @@ Built `events.jsonl` (38 rows) from `raw/` on the canonical record schema
 Fingerprint = sha256 hex of the documented identity string (verified against
 the 2023-11-14-hfspace-proxies reference implementation before writing).
 SHA256SUMS regenerated (events.jsonl + all raw contents); `sha256sum -c` OK.
+
+## Rollup review 2026-09-29 (W8)
+
+rollup: none — 38 heterogeneous census artifacts (7 certs, 17 DNS probes all at
+a single 2026-09-28 retrieval date, 13 web mentions mostly undated/sentinel
+1970, 1 audit file) with no time-series, burst, or per-actor structure; a
+count summary would add nothing the closure note doesn't already state.
