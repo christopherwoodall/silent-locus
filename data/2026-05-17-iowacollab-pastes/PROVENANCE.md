@@ -155,6 +155,24 @@ Verification 2026-09-29: `python3 es_ingest_iowacollab.py --out` dry-run →
 Usage: default/`--out DIR` = dry-run (no network); `--load` = real ES bulk
 load (network + creds; hosted writes currently frozen).
 
+## 2026-09-29 — d379207f body recovered from Sept-4 Wayback captures
+
+Lane G retry (Wayback CDX back): CDX query for `paste.linuxiarz.pl/view/d379207f*`
+found 3 Sept-4 captures of the view page (20260904141525, 20260904161102,
+20260904161255) in addition to the June-10 capture (20260610064043, empty
+textarea). The Sept-4 snapshots carry a 913-byte body, byte-identical across
+all three captures (sha256
+1d118617bd67c287e69b813660b9b586debddafeb7570e8162b31918131eabe5): a list of
+max.gov SF133 Budget PDF attachments (Q2/Q3) through markdown.new (schemed /
+full-URL variants), direct portal.max.gov links, test.cors.workers.dev and
+allorigins.hexlet.app — exactly the wiki sect.12 description ("list of
+max.gov SF133 PDF attachments via markdown.new/test.cors.workers.dev/
+allorigins"). The June-10 capture rendered an empty textarea (capture
+artifact or pre-edit state; unresolved). The recovered body is now in
+`raw/d379207f.txt` and embedded in the staged event row (payloads), with
+`labels.body_snapshots` carrying the three Sept-4 capture URLs. Views at
+Sept-4 captures: 103 / 155 / 155 (June-10: 17; wiki: 212 live reads).
+
 ## 2026-09-29 — payloads promoted into canonical events + script migrated
 Per the new optional top-level `payloads` schema field (schema commit
 37988db): the 3 non-empty paste bodies are now embedded in the canonical

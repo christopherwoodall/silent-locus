@@ -199,3 +199,85 @@ Bodies on disk in the Sept-25 hunt repo's `artifacts/pastebin-lane/linuxiarz/<id
    list Stikked reply links; could enumerate relay siblings without guessing).
 2. The wiki author / @centaur's Sept-4 `/api/recent` listing going public.
 3. Re-check only on investigator-listing publication (unchanged closure rule).
+
+## RETRY RUN — 2026-09-29 ~15:55Z (Lane G, Wayback CDX back)
+
+Ran the queued angles from
+`hidden_files/shortener-cdx/iowacollab-cdx-queue.md`. Read-only throughout
+(CDX + Wayback GETs, ~1.5s pacing).
+
+### Angle 3: d379207f body — RECOVERED (the run's one positive)
+
+CDX for `paste.linuxiarz.pl/view/d379207f*` returned 7 captures: the known
+20260610064043 (empty textarea), three **Sept-4 view captures**
+(20260904141525 / 04161102 / 04161255), and two Sept-12/18 404s (dead since).
+The three Sept-4 snapshots carry a byte-identical 913-byte body (sha256
+`1d118617…1eabe5`): max.gov SF133 Budget PDF attachments (Q2/Q3) via
+markdown.new (schemed + full-URL), direct portal.max.gov, test.cors.workers.dev,
+allorigins.hexlet.app — exactly the wiki sect.12 description. Committed:
+`data/2026-05-17-iowacollab-pastes/raw/d379207f.txt` (verbatim body),
+updated event row (payloads + labels.body_snapshots + corroboration),
+regenerated SHA256SUMS, PROVENANCE.md recovery note. No duplicate rows.
+
+### Angle 2: reply-chain check on the 12 candidate snapshots — 1 edge, no relay IDs
+
+All 12 queued view snapshots fetched 200. Eleven candidates carry no inreply
+pointer. One genuine edge: **f800c8b1 (assistant-A, "IowaCollab") is a reply
+to e53f96e2 (researcher, "IowaCollab")** — both are the test-family pastes
+("hello-from-our-agent"), not relay-family. No candidate links any of the 4
+known cluster pastes or any unknown ID. Reply-chain does not enumerate the
+relay siblings.
+
+### Angle 1: re-crawl Sept-4 `paste.linuxiarz.pl/view/*` — 0 new relay-signature IDs
+
+Exact queued CDX query (filter=timestamp:20260904, statuscode:200,
+collapse=urlkey): 1270 rows → 299 unique paste IDs (rows also include
+`/view/<id>/diff` variants and `/view/captcha?…` noise). Baseline caveat:
+the queue's "333 known IDs from the 2026-09-28 03:xx crawl" list is not on
+disk, so the diff was taken against the union of paste IDs already present
+anywhere in the repo's lane-relevant collections (262 files scanned, incl.
+wiki manifest, hunt archive, collusion-wiki, lane note, shortener-cdx
+queue). 175 IDs were new to the repo; all 175 fetched (171 parsed, 4 HTTP
+failures: 115ae365, 1db21e74, 3a52415c, bbc0391d) and screened for the
+relay signature (title "IowaCollab" + agent handle + June-16 `ts=` in body):
+**zero hits** — not one of the 171 parsed carries the title "IowaCollab".
+
+Near-family worth noting (kept in lane note only, NOT dataset —
+they fail the strict relay signature):
+- 693689f6 / 7f6da85e / 875754a0 (agent-0014, "IowaCollabReply",
+  ts=1781641237 = 2026-06-16T20:20:37Z) — apparent reply postings to the
+  relay; 049f11f5's body explicitly asks for reports "under title
+  IowaCollabReply".
+- 4cee7c2e (agent-ours0532, "IowaPostQ5Question", ts=1781645368, June-16).
+- 9555f027 (agent-1147, "38b5coord") — same handle as 538faa12.
+- 1ff405c3 (agent-69420, "IowaQ5Urgent", created Sept-4) — documented
+  contamination.
+
+### Contamination-era reply edges to the known cluster (lane note only)
+
+Three of the 175 new IDs carry Stikked inreply pointers to known cluster
+pastes — all created 2026-09-04 (Stikked relative ages at capture), i.e.
+the documented human-contamination window, NOT genuine agent traffic:
+- c242d3f6 ("Buff Camel", "Re: RefQ3") → d379207f; body is a byte-identical
+  copy of d379207f's recovered SF133 body, posted ~1h before the 21:55
+  snapshot (Sept-4 copy of the Sept-4 wiki read).
+- cb7def97 ("Perceptual Zephyr", "Re: 38b5coord — AI agent message board")
+  → 538faa12; body is a Colony invitation from "Solar Pro 4 … Hermes Agent
+  by Nous Research" (~38 min before the 17:39 snapshot) — matches the
+  wiki's ~11 Colony-invitation-paste description.
+- edb27f8c ("AgentWatcher", "Re: 38b5coord") → 538faa12; body "Agent
+  Activity?" (~9 min before the 16:12 snapshot).
+Also: 43093dd9 / 5e2e9867 ('research', "ProxyBare" / "Re ProxyTest") are
+replies to a5cfb418 ("IowaCacheSuccess", wiki-derived June-16) — proxy
+family, out of relay-lane scope.
+
+### Outcome
+
+- New relay-family evidence committed: **1** (d379207f body recovery —
+  body capture + updated event row; 0 new rows).
+- Skipped as duplicates: **0** (d379207f row updated in place, no new row
+  minted).
+- Relay signature among 175 new Sept-4 IDs: **0 hits**.
+- Still missing: the 7 unenumerated relay IDs (unchanged; source never
+  enumerated them — the reply-chain angle that could have enumerated them
+  without guessing produced no unknown IDs).
