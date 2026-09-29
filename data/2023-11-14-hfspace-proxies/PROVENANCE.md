@@ -27,6 +27,38 @@ invisible; app behavior verified by code read only for `TheNacken/python-cors-pr
 (the rest are shape-matched, shims unverified). Live Spaces change over time —
 re-run the Hub queries to refresh.
 
+## Refresh 2026-09-29 (authorized)
+- Re-ran the Hub `?search=` sweep (12 keywords: the original 10 plus `cors-anywhere`
+  and `urltomarkdown`, both defensible proxy-shape terms). Read-only, ~2s pacing.
+  239 unique public Spaces returned; 224 not already held.
+- Tight name-shape filter (space name, not owner) for CORS-shim / jina-reader /
+  fetch-markdown / web-reader shapes: 25 shortlisted. Per-space detail + README +
+  repo tree fetched; app code read for 9 (Dockerfile/app.py/server.py) to confirm
+  fetch-proxy behavior rather than name-only matching.
+- **23 new Spaces added** (raw + schema rows; `@timestamp` = space.created;
+  `event.created` = 2026-09-29T16:15:04Z run):
+  - 5 soiz1/CORS-PROXY forks: `AndiGr`, `Jynx88`, `alx1880`, `markmcfc`,
+    `public-soiz1` (the 2026-09-27 row already anticipated these forks).
+  - 12 cors-anywhere clones: `bobwatcherx/corsanywhere{,2..6}`,
+    `darenx/corsanywhere{,2..6}` (node; the `2..6` variants are titled
+    "Poophdserver" — recorded in `shape`, not treated as evidence of anything).
+  - 2 url-to-markdown: `13ze/url-to-markdown-v2` (playwright+markdownify,
+    code-read), `13ze/url-to-markdown-v3` (sibling).
+  - 4 web readers: `jasonhan888/web-reader` (hectorqin/reader image),
+    `santhoshsharuk/web-article-reader-api` (FastAPI POST /convert/ {url}),
+    `G-W/web-article-reader` (gradio fetch+readability),
+    `sunnyzhifei/web-reader-ai` (FastAPI crawler) — all code-read.
+- **2 excluded with reasons:** `JannisJulian/tts-web-reader` (Kokoro TTS backend,
+  not a fetch proxy); `Zangtungtung/mediaflow-proxy` (HLS/DASH media-stream proxy,
+  not web-fetch laundering shape). ~200 other candidates excluded: `openai-reverse-proxy`
+  / `oai-proxy` family (API-key proxying, different tradecraft), `jina-embeddings*`
+  (embedding models), owner-username substring matches.
+- Corpus check: all 23 grepped against `data/2026-05-17-collusion-wiki` (live
+  `*.hf.space` hostname + space id) — **zero hits; all 23 labeled `pattern_match`**.
+  `in_corpus` remains only `TheNacken/python-cors-proxy`.
+- Dedupe: 15 held space.ids skipped; 0 duplicates among the 23.
+- Collection now 38 events / 38 raw rows. SHA256SUMS regenerated.
+
 ## Raw-layer restoration 2026-09-29
 - The raw source capture `spaces.jsonl` (15 pre-schema flat records, the input
   consumed by `temp/backfill_w2.py` line 251, `("data/hfspace-proxies/spaces.jsonl", t_hfspace)`)
