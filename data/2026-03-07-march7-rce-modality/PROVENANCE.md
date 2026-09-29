@@ -57,3 +57,15 @@ inventory version lists).
 - @timestamp: sampledocpayload624286 -> 2026-05-26 (investigator_reported.versions_all_on); harmlessdoctest624286 -> 2026-05-26 (date literal inside its Diffend diff); atlas-qa-snapshot-696b16c7 -> 2026-05-28 (investigator_reported.published); tf_drift_handoff_bundle_20260307t015800z -> 2026-03-07T02:58Z (investigator_reported.published, consistent with the gem-name timestamp); post -> post.created_at 2026-09-05T17:02:27Z. labels.timestamp_source documents each.
 - No rollup.jsonl: 5 atomic records, no genuine aggregate layer (deliberate per sweep rule).
 - Regenerated `SHA256SUMS` (events.jsonl + raw/**).
+
+## 2026-09-28: ingest script co-located (hunt convention)
+- `es_ingest_march7.py` moved from `scripts/` into this directory per
+  Christopher's single-collection convention; transforms raw/results.json +
+  raw/sweep.json into shared-schema docs (real transform, not a pure loader).
+- `REPO_ROOT` in the script adjusted (repo root is now three levels up); the
+  `data/*-march7-rce-modality` auto-discovery and index-from-dirname logic
+  resolve correctly at the new path.
+- Offline verification: `build_docs()` yields 38 docs (4 package + 12 version
+  + 22 sweep_hit).
+- `scripts/local_es_manifest.json` via_script entry repointed here.
+- SHA256SUMS regenerated (script file added to coverage).
