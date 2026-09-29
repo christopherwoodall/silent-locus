@@ -29,7 +29,7 @@
 
 ## Raw layer 2026-09-29
 
-- `notes.jsonl` -> `raw/notes.jsonl` (script-consumed transform input; consumer: scripts/es_ingest_public_board.py). Upstream name preserved; raw layer exempt from event schema.
+- `notes.jsonl` -> `raw/notes.jsonl` (script-consumed transform input; consumer: es_ingest_public_board.py, co-located in this dir since 2026-09-29). Upstream name preserved; raw layer exempt from event schema.
 
 ## Normalization 2026-09-29 (events.jsonl; no rollup — pure event stream)
 
@@ -51,3 +51,13 @@
 - `labels.timestamp_source`: `labels:note.ts` (per-note); `labels:capture.date`
   (=2026-09-28 retrieval date, from PROVENANCE) for captures/snapshots/search.
 - New record_kind: `board_note`.
+
+## 2026-09-29: ingest script co-located (hunt convention)
+- `es_ingest_public_board.py` moved from `scripts/` into this directory per
+  Christopher's single-collection convention; transforms `raw/notes.jsonl`
+  into shared-schema docs (grammar/tag classification — real transform, not
+  a pure loader).
+- `REPO_ROOT` in the script adjusted (repo root is now three levels up).
+  Offline verification: `python3 -m py_compile` clean.
+- `scripts/local_es_manifest.json` via_script entry repointed here.
+- SHA256SUMS regenerated (script file added to coverage).
