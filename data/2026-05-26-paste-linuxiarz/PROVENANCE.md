@@ -90,3 +90,9 @@ regenerated.
 - Verified: `build_docs()` rebuilds exactly the 131 committed `events.jsonl` rows.
 - `local_es_manifest.json` `via_script` entry for `2026-05-26-paste-linuxiarz`
   now points at the co-located path.
+
+## 2026-09-29 — build scripts co-located per convention
+Normalization-wave build scripts moved from `temp/` to the collection root
+per the 2026-09-29 convention (single-collection build scripts live in the
+collection dir; schema/collections.md). `temp/` removed. SHA256SUMS
+regenerated; `sha256sum -c` green.

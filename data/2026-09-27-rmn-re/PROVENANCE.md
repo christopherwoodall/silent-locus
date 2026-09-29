@@ -72,3 +72,9 @@ disambiguates from the sibling dir). Builder: `temp/build_rollup_w8.py`
 (repo root passed as argv[1]); monthly counts independently recomputed from
 events (sum = 764 links). `scripts/validate_schema.py`: 0 violations.
 SHA256SUMS regenerated (6 entries, incl. rollup.jsonl); `sha256sum -c` OK.
+
+## 2026-09-29 — build scripts co-located per convention
+Normalization-wave build scripts moved from `temp/` to the collection root
+per the 2026-09-29 convention (single-collection build scripts live in the
+collection dir; schema/collections.md). `temp/` removed. SHA256SUMS
+regenerated; `sha256sum -c` green.

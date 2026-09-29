@@ -9,7 +9,8 @@ JSONL not in the registry, records whose event.dataset matches neither the
 collection name nor its dataset_override, collections with records that no
 ingest path can load (auto-discovered events.jsonl/rollup.jsonl or a
 manifest via_script entry), non-event files/dirs at a collection root
-(layout: events.jsonl + PROVENANCE.md + SHA256SUMS + raw/ only).
+(layout: events.jsonl + PROVENANCE.md + SHA256SUMS + raw/ at the root, plus
+co-located single-collection build scripts per the 2026-09-29 convention).
 
 Warnings (exit unaffected): missing PROVENANCE.md/SHA256SUMS on
 canonical/support collections, records with no event.dataset yet (pending
@@ -35,6 +36,9 @@ SLUG_RE = re.compile(r"^\d{4}-\d{2}-\d{2}-[a-z0-9][a-z0-9-]*$")
 # canonical collection root layout (schema/collections.md)
 ROOT_FILES = {"events.jsonl", "rollup.jsonl", "PROVENANCE.md",
               "SHA256SUMS", "SHA256SUMS.txt"}
+# single-collection build scripts live at the collection root per the
+# 2026-09-29 convention (schema/collections.md); tolerated here
+ROOT_BUILD_SCRIPT_RE = re.compile(r"^(es_ingest|build)_.*\.py$")
 ROOT_DIRS = {"raw"}
 SAMPLE_LINES = 200
 MAX_FILES = 4
@@ -162,7 +166,7 @@ def main():
                     if os.path.isdir(ip):
                         if item not in ROOT_DIRS:
                             v(f"{entry}: non-raw dir at root: {item}/")
-                    elif item not in ROOT_FILES:
+                    elif item not in ROOT_FILES and not ROOT_BUILD_SCRIPT_RE.match(item):
                         v(f"{entry}: non-event file at root: {item}")
             # records land in the right directory (raw/ files are the
             # raw layer: exempt from event.dataset checks)
