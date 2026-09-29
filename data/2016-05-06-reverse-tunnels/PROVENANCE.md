@@ -57,3 +57,38 @@ lines → 29 unique rows. Everything else kept as separate records.
 ## File manifest (SHA-256, 2026-09-28T03:xx:xxZ)
 
 Generated at dataset freeze; verify with `sha256sum -c manifest.sha256`.
+
+## Normalization 2026-09-29 (events.jsonl + rollup.jsonl)
+
+- `events.jsonl`: 107 rows, all schema-conformant.
+  - 29 `corpus_hit` — one per row of `corpus_tunnel_records.json`
+    (deduped upstream on time/label/page/tunnels).
+  - 12 `tunnel_candidate` — one per hostname in `tunnel_hostnames.json`
+    (6 corpus-verified, 1 urlquery-scanned, 5 candidate-same-format). The
+    `excluded` note in that file (myxworm/petisse/inohm-sh/
+    serviceupdatevalidator/webmailadminhelpdesk subdomains) is preserved as
+    `labels.uq.candidate_excluded=true` on the matching urlquery report
+    events; it is not applied to the event stream itself.
+  - 54 `corpus_hit` — one per (query, report) across the 6 `uq_*.json`
+    keyword responses (6+6+6+7+29 reports); 1 `corpus_grep_negative` —
+    the zero-hit `70a66b041b7fe0b1` query; 2 `corpus_hit` — the
+    `uq_overview_*.json` single-report detail fetches.
+  - 7 `sweep_negative` — the HTMX read-path 204s (one per query in
+    `htmx_summary.json`); 2 `dns_probe` — the DNS resolution and
+    authoritative checks (INCONCLUSIVE: sinkholed resolver).
+  - `uq_report_summary.json` is a derived digest (covered by per-report
+    events); `raw/manifest.sha256` is lane bookkeeping whose listed paths
+    (`progress.log`, `htmx_search.py`, bare `PROVENANCE.md`) no longer exist
+    — left untouched, noted here.
+- `rollup.jsonl`: 6 rows, `urlquery_rollup` — per-query `total_hits` /
+  `reports_retrieved` (genuine aggregate layer of the 6 keyword queries).
+- Fingerprint identity strings: `<time>|<label>|<page_id>|<tunnels>`
+  (corpus rows); `<hostname>` (candidates); `urlquery:<query>:<report_id>`
+  and `urlquery:overview:<report_id>` (reports); `urlquery:<query>`
+  (zero-hit query); `htmx_read_path:<summary key>`; `dns:<filename>`;
+  `urlquery_rollup:<query>` (rollup).
+- `labels.timestamp_source`: `labels:record.time` (corpus rows);
+  `labels:tunnel.first_seen` (candidates); `labels:uq.date` (reports);
+  `labels:lane.date` (=2026-09-28) for query/htmx/rollup rows;
+  `labels:probe.at` (dns, from filename timestamp).
+- New record_kinds: `tunnel_candidate`, `dns_probe`, `urlquery_rollup`.
