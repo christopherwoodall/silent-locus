@@ -73,7 +73,7 @@ Snake-case, one per record class. Enumerated 2026-09-28 against all
 all registered. Six kinds were added by the 2026-09-29 final-assembly round
 (`proxied_target`, `proxy_family`, `proxy_ladder`, `proxy_ladder_entry`,
 `venue_summary`, `gem_reconciliation`) as their collections gained event
-layers, bringing the registry to **106 kinds**. Kinds newly added after the
+layers, bringing the registry to **115 kinds**. Kinds newly added after the
 2026-09-28 boundary backfill carry a one-line description **(inferred)** from
 actual usage; kinds from the previous registry are listed without change. Two 2026-09-29 additions
 (`live_recheck`, `paste_text`) are produced by the collections' ES ingest
@@ -100,6 +100,7 @@ files, so they were missed by the event-file enumeration.
 - `diffend_harvest`
 - `diffend_probe`
 - `diffend_wave_rollup` — per-wave rollup of a Diffend sweep (candidates, verified presence/absence) **(inferred)**
+- `disclosure_outreach` — disclosure outreach event: vendor notification of affected organizations with start date **(inferred)**
 - `dns_probe` — DNS resolution check for candidate tunnel hostnames **(inferred)**
 - `doc_family_rollup` — rollup of a recovered document family (doc count, byte totals) **(inferred)**
 - `download`
@@ -117,6 +118,7 @@ files, so they were missed by the event-file enumeration.
 - `gomod_proxy_match`
 - `graph_node`
 - `issue_summary_rollup` — issue/PR activity summary over a window (open/closed, PRs) **(inferred)**
+- `lab_repro` — vendor lab reproduction of an agent behavior, including quoted agent reasoning **(inferred)**
 - `link_growth_rollup` — per-month growth curve of a shortener link table **(inferred)**
 - `liveness_probe` — liveness probe of a relay surface (HTTP status, resolved IP) **(inferred)**
 - `log_message` — single message row from a commonlog-style venue scan **(inferred)**
@@ -139,6 +141,8 @@ files, so they were missed by the event-file enumeration.
 - `recovery_census` — census of archive-recovery attempts for dead documents (recovered vs not-archived) **(inferred)**
 - `related_readme` — cached README of a related/fork-adjacent repo **(inferred)**
 - `relay_paste`
+- `remediation_guidance` — vendor-published remediation/hardening guidance for an incident class **(inferred)**
+- `report_capture` — capture record for a published report/blog post with artifact hashes **(inferred)**
 - `repo_commit` — single GitHub commit record **(inferred)**
 - `repo_commit_rollup` — per-repo commit rollup over a window, incl. breach-window overlap **(inferred)**
 - `repo_fork` — single repo fork record **(inferred)**
@@ -150,6 +154,8 @@ files, so they were missed by the event-file enumeration.
 - `shortener_info_page` — front-page capture of a shortener instance (software/version) **(inferred)**
 - `shortener_link` — one shortener link with its resolved chain, grammars and markers **(inferred)**
 - `shortlink` — single shortlink row from a link table (target, chain, clicks) **(inferred)**
+- `scale_figures` — vendor-reported scale figures for an incident (counts, orgs, repos) with caveats **(inferred)**
+- `skill_propagation` — observation of an agent workaround spreading via shared skills/instructions **(inferred)**
 - `source_reference` — cited source body/URL reference behind a sweep claim **(inferred)**
 - `staging_signal`
 - `stats_api_target` — candidate stats-API endpoint recorded as a probe target **(inferred)**
@@ -158,13 +164,16 @@ files, so they were missed by the event-file enumeration.
 - `tag_liveness`
 - `tag_listing`
 - `target_probe_rollup` — per-target rollup of wiki probe attempts (proxies used, verdict) **(inferred)**
+- `technique` — named agent tradecraft/technique observed in an incident **(inferred)**
 - `timeline_anchor`
+- `tooling` — unvetted tool implicated in an incident (e.g. gitshot) **(inferred)**
 - `transfer_test_paste`
 - `tunnel_candidate` — candidate tunnel hostname (provider, embedded IP, evidence) **(inferred)**
 - `urlquery_rollup` — rollup of a urlquery lane search (query, total hits, reports retrieved) **(inferred)**
 - `venue_finding`
 - `venue_probe`
 - `venue_summary` — one corpus venue's cors.bwa.workers.dev footprint (hit count, context) **(inferred)**
+- `victim_observation` — victim class observed in a report, anonymized where the source names none **(inferred)**
 - `verdict` — swarm-marker verdict row for a venue sweep **(inferred)**
 - `wayback_capture`
 - `web_search_negative`
