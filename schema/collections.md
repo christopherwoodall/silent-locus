@@ -149,3 +149,22 @@ primary source) live under `data/aggregates/<name>/` with registry
    (support/aggregate collections are exempt from this warning).
 7. Aggregate collections live under `data/aggregates/<name>/` and their
    registry `path` field matches.
+
+## Moving/renaming files: keep `file` pointers live
+
+A top-level `file` pointer (`schema/record.schema.json`) is a promise that
+the row's source artifact exists on disk: it resolves either
+repo-root-relative (starts with `data/`, e.g.
+`data/2022-08-09-github-forensics/raw/...`) or collection-relative (e.g.
+`raw/...`). A rename/move that leaves pointers at the old location silently
+breaks provenance, so:
+
+1. **Any commit that moves or renames files MUST update the `file`
+   pointers in every affected `events.jsonl` / `rollup.jsonl`** to the new
+   location, and **regenerate `SHA256SUMS`** in the touched collections.
+2. Before committing, run `python3 scripts/validate_collections.py` from the
+   repo root. Its `file`-pointer pass (full scan of every
+   `events.jsonl`/`rollup.jsonl` under `data/`) resolves each pointer and
+   reports any that miss as violations, listing the collection, the row's
+   `event.id` (or fingerprint), and the bad value. A green run is required;
+   do not hand-fix pointers by rewriting history — update the JSONL rows.

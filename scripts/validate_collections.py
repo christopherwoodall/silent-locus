@@ -10,7 +10,9 @@ collection name nor its dataset_override, collections with records that no
 ingest path can load (auto-discovered events.jsonl/rollup.jsonl or a
 manifest via_script entry), non-event files/dirs at a collection root
 (layout: events.jsonl + PROVENANCE.md + SHA256SUMS + raw/ at the root, plus
-co-located single-collection build scripts per the 2026-09-29 convention).
+co-located single-collection build scripts per the 2026-09-29 convention),
+top-level `file` pointers that do not resolve to a real on-disk path (see
+resolve_file_pointer; the raw/ migration rule).
 
 Warnings (exit unaffected): missing PROVENANCE.md/SHA256SUMS on
 canonical/support collections, records with no event.dataset yet (pending
@@ -42,6 +44,8 @@ ROOT_BUILD_SCRIPT_RE = re.compile(r"^(es_ingest|build)_.*\.py$")
 ROOT_DIRS = {"raw"}
 SAMPLE_LINES = 200
 MAX_FILES = 4
+# event-layer files carrying top-level `file` pointers (pass 3)
+EVENT_FILES = ("events.jsonl", "rollup.jsonl")
 
 violations = []
 warnings = []
@@ -82,6 +86,73 @@ def cpath(c):
     """On-disk dir for a collection: data/<name>, or c['path'] when the
     collection lives elsewhere (e.g. data/aggregates/<name>)."""
     return os.path.join(REPO, c.get("path", os.path.join("data", c["name"])))
+
+
+def resolve_file_pointer(coll_dir, value):
+    """Resolve a top-level `file` pointer per schema/record.schema.json:
+    repo-root-relative when it starts with "data/", otherwise
+    collection-relative (relative to the dir holding the JSONL file).
+    Returns (target, None) when the target is a real file on disk, else
+    (None, reason)."""
+    if not isinstance(value, str) or not value.strip():
+        return None, "not a non-empty string"
+    fv = value.strip()
+    if os.path.isabs(fv):
+        return None, "absolute path (field is documented as relative)"
+    target = os.path.abspath(os.path.normpath(
+        os.path.join(REPO, fv) if fv.startswith("data/")
+        else os.path.join(coll_dir, fv)))
+    if os.path.commonpath((os.path.normpath(REPO), target)) != \
+            os.path.normpath(REPO):
+        return None, "escapes the repo root"
+    if not os.path.isfile(target):
+        return None, "no such file on disk"
+    return target, None
+
+
+def check_file_pointers():
+    """Every top-level `file` pointer in every events.jsonl/rollup.jsonl
+    under data/ resolves to a real on-disk path (full scan, not sampled).
+    A move/rename that leaves stale pointers fails here before it can
+    silently corrupt the corpus."""
+    checked = 0
+    for root in (DATA, os.path.join(DATA, "aggregates")):
+        if not os.path.isdir(root):
+            continue
+        for dirpath, _dirnames, filenames in os.walk(root):
+            for fn in EVENT_FILES:
+                fp = os.path.join(dirpath, fn)
+                if not os.path.isfile(fp):
+                    fp = fp + ".gz"
+                    if not os.path.isfile(fp):
+                        continue
+                coll = os.path.relpath(dirpath, DATA)
+                op = gzip.open if fp.endswith(".gz") else open
+                try:
+                    fh = op(fp, "rt", encoding="utf-8", errors="replace")
+                except Exception as e:
+                    w(f"{coll}: unreadable {os.path.basename(fp)}: {e}")
+                    continue
+                with fh:
+                    for lineno, line in enumerate(fh, 1):
+                        line = line.strip()
+                        if not line:
+                            continue
+                        try:
+                            rec = json.loads(line)
+                        except ValueError:
+                            continue
+                        if "file" not in rec:
+                            continue
+                        checked += 1
+                        _t, why = resolve_file_pointer(dirpath, rec["file"])
+                        if why:
+                            ev = rec.get("event") or {}
+                            rid = ev.get("id") or rec.get("fingerprint") or \
+                                f"<line {lineno}>"
+                            v(f"{coll}: row event.id={rid}: file pointer "
+                              f"{rec['file']!r} does not resolve ({why})")
+    return checked
 
 
 def discover_staged():
@@ -229,13 +300,17 @@ def main():
             if not os.path.exists(os.path.join(REPO, s)):
                 v(f"manifest via_script missing on disk: {s}")
 
+    # --- pass 3: top-level `file` pointers resolve --------------------------
+    n_fp = check_file_pointers()
+
     # --- report -------------------------------------------------------------
     for m in violations:
         print(f"VIOLATION  {m}")
     for m in warnings:
         print(f"warning    {m}")
     print(f"\n{len(violations)} violations, {len(warnings)} warnings "
-          f"({len(collections)} collections, {len(loose)} loose files registered)")
+          f"({len(collections)} collections, {len(loose)} loose files "
+          f"registered, {n_fp} file pointers checked)")
     sys.exit(1 if violations else 0)
 
 
