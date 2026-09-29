@@ -74,3 +74,11 @@ not campaign infra. Kept as its own dataset per the RubyGems provenance rule.
 - No rollup.jsonl: 7 per-file capture records with no natural aggregate
   layer (no bursts, windows, or groupings in the data). Per Christopher's
   worker rule, no rollup was built.
+
+## Build-script relocation 2026-09-29 (ingest-script condensation)
+
+- Moved `scripts/es_ingest_fieldnotes_gem.py` into this collection dir per Christopher's build-script convention (single-collection build scripts live in the event directory).
+- Path fixes in the moved script: `D` is now the script's own dir (self-locating); `REPO_ROOT` resolves three levels up for the mapping path.
+- BUG FIX: `build_docs()` read rubygems-gem.json, rubygems-versions.json, grammar-sweep.json, and diffend-page.html at the collection root, but all four live at `raw/` — the old paths never existed, so `--load` was broken; fixed to the `raw/` paths.
+- Verified offline (2026-09-29): `build_docs()` assembles 7 docs from disk (1 gem_metadata, 4 version, 1 diffend_page, 1 grammar_sweep) with no network/ES access.
+- ES ingest driver: `push_to_local_es.py --all` runs the path in `scripts/local_es_manifest.json` `via_script` for index `2026-09-05-fieldnotes-gem`; manifest entry updated to the new script location.
