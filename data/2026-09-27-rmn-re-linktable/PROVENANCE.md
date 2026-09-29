@@ -1,13 +1,18 @@
 # 2026-09-27-rmn-re-linktable — provenance
 
-RMN RE link-table index collection. Docs are built by
-`scripts/es_ingest_rmnre.py` from raw sources in
+RMN RE link-table index collection. Docs were built by
+`es_ingest_rmnre.py` (now co-located in this dir) from raw sources in
 `data/2026-09-27-rmn-re/raw/` (link table capture + decoded JSON) and
 `data/aggregates/2025-09-26-cors-bwa-proxy/raw/`.
 
 - 2026-09-29: materialized as a physical collection dir
   (`events.jsonl` via the builder's `--dump` mode) under the canonical
   layout; previously a virtual registry entry with no directory.
+- **Builder location:** the historical build script `es_ingest_rmnre.py`
+  (moved here from `scripts/` 2026-09-29 per the single-collection
+  convention) reads `data/2026-09-27-rmn-re/raw/link_table_decoded_2026-09-27.json`;
+  note the 1-row `events.jsonl` below was materialized from the aggregates
+  JSONL, not from a fresh run of this builder.
 
 ## Materialization 2026-09-29 (worker W1)
 
@@ -30,3 +35,13 @@ physical dump on disk:
 - **No rollup.jsonl:** a single row has no genuine aggregate layer, so no
   rollup was built (documented here instead).
 - **SHA256SUMS** regenerated in this dir covering all files.
+
+## 2026-09-29: ingest script co-located (hunt convention)
+- `es_ingest_rmnre.py` moved from `scripts/` into this directory per
+  Christopher's single-collection convention; transforms
+  `data/2026-09-27-rmn-re/raw/link_table_decoded_2026-09-27.json` into
+  shared-schema docs (real transform, not a pure loader).
+- `REPO_ROOT` in the script adjusted (repo root is now three levels up).
+  Offline verification: `python3 -m py_compile` clean.
+- `scripts/local_es_manifest.json` via_script entry repointed here.
+- SHA256SUMS regenerated (script file + updated PROVENANCE added to coverage).
