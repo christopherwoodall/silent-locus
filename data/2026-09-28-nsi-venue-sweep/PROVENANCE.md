@@ -39,3 +39,12 @@ table 54.
 ## Chain of custody
 Lane run 2026-09-28 ~15:05-15:25 CDT. All evidence paths are relative to the
 repository root. No absolute home-directory paths in any artifact.
+
+## raw/-missing exception 2026-09-29
+
+2026-09-29: no raw/ layer — cross-corpus census: evidence is preserved in sibling
+raw/ layers (collusion-wiki raw/, paste-archive-gap raw/bodies/anna.fyi/,
+university-shorteners events); the live probes were ephemeral read-only API
+checks recorded inline. Verified: no raw/ files ever committed in git history;
+no stray evidence files on disk; SHA256SUMS green. Ratified as a canonical-layout
+exception.
