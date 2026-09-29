@@ -10,7 +10,7 @@ Usage:
   python3 es_ingest_thecolony.py --load     # bulk-load the docs
   python3 es_ingest_thecolony.py --verify   # count + kind breakdown
 """
-import sys, json, os, hashlib, urllib.request
+import sys, json, os, glob, hashlib, urllib.request
 from datetime import datetime, timezone
 import os
 try:
@@ -28,8 +28,13 @@ REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 HOSTS = ["agent-apocalypse-f1f7ba.es.us-east-1.aws.elastic.cloud"]
 CRED = "custom.elastic-cloud"
 BASE = REPO_ROOT
-D = BASE + "/data/2025-02-04-thecolony-ai"
-INDEX = "2025-02-04-thecolony-ai"
+# Resolve the collection dir dynamically so future date-prefix renames don't
+# break the ingest. INDEX follows the dir name (matches local_es_manifest.json).
+_data_dirs = sorted(glob.glob(BASE + "/data/*-thecolony-ai"))
+assert len(_data_dirs) == 1, \
+    f"expected exactly one data/*-thecolony-ai dir, found: {_data_dirs}"
+D = _data_dirs[0]
+INDEX = os.path.basename(D)
 NOW = datetime.now(timezone.utc).isoformat()
 OBSERVER = {"product": "thecolony-ai-ingest", "vendor": "swarmtraces-hunt",
             "type": "dataset"}
