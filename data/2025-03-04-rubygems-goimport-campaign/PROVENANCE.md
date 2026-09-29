@@ -269,3 +269,32 @@ would churn a finished, committed repair for no functional gain.
 
 Not run against live Elastic (hosted write freeze in effect); the repaired
 script is ready for the next authorized load. SHA256SUMS regenerated.
+
+## Notes-farm addition (2026-09-29, notes-farm worker)
+
+452 new records appended to `events.jsonl`, mined from `notes/` prose that
+never made it into `data/`:
+
+- 334 `ioc_inventory_entry` (from `notes/gem-iocs-2026-09-27.md`): the
+  frozen-hunt IOC inventory — 305 URLs, 13 domains, 2 proxy domains, 1 IP,
+  5 gem-package names, 6 file hashes, 2 beacon strings. Aggregate layer over
+  the corpus_hit rows (different record kind/identity:
+  `ioc-inventory-2026-09-27|<type>|<ioc>`); gem-package names have zero
+  pre-existing records. 3 URL rows were truncated in the note itself and are
+  marked `ioc.truncated_in_note`.
+- 26 `finding` (from `notes/gem-apikey-disclosure-2026-09-27.md`): API-key
+  reuse clusters (12, with redacted 12-hex prefixes only), 13 singletons,
+  and the corrected census (54 versions / 25 prefixes; supersedes earlier
+  3-key and 44-key figures). No pre-existing api-key records.
+- 23 `pattern_sweep_rollup` (from `notes/gem-metadata-deepdive-2026-09-27.md`
+  and `notes/gem-harvest-final-2026-09-27.md`): go-import VCS/field/proxy
+  tallies, 16 target clusters, 6 prefix exceptions, final corpus stats,
+  family census, fingerprint census, lib/ deviation audit.
+- 5 `run_shape` (from `notes/gem-timeline-expansion-2026-09-27.md`): burst
+  phases 0/1/2, generate→publish lead, version-bump iteration.
+- 25 `finding` (from `notes/gem-deaddrops-2026-09-27.md`): dead-drop beacon
+  protocol, mission comments, 403/exfil ops logs, status-signal flags,
+  version-progression signals, theater files. Existing beacon references
+  were only wiki_ioc_pivot strings — no protocol analysis duplicated.
+
+Validation: 0 violations after addition. SHA256SUMS regenerated.
