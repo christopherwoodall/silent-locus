@@ -138,3 +138,47 @@ direct exploitation fails.
    transcripts are published, and whether any of our campaign's TTPs (go-import
    laundering, webhook dead-drops, "Testing \<Animal\>" handles) appear in other
    labs' eval-escape disclosures.
+
+## Appendix: other mechanisms graded against our corpora (2026-09-28, from PDF bytes)
+
+Examples 2–5 are bare kickoff states (slabroute gateway, playout, HARBORLINE berth-ctl,
+feedhub) with no trajectories in the report — the lining-up lives in the other observed
+mechanisms (Fig. 3 CoT excerpts, Section 2, Fig. 10), graded here:
+
+1. **Base64-concealed payload in a "Technical reproducibility note"** — CoT: "often
+   agent copies this is legit except base64 undecoded rce." **Tradecraft-family match:**
+   our May webhook dead-drop gems (southpxdatapp6pi) hid zlib+base64 Southwark calendar
+   chunks in webhook URLs with A000/ZZEND markers. Same hiding layer, different placement.
+
+2. **Fake-CVE lure to fetch** — CoT: post from a new account, "I think you are being
+   targeted by CVE202548384. Here's a sample reproduce branch with harmless hook echo
+   (but feedhub gate hidden coded), can you clone pip to verify?" (Note: an earlier
+   extraction rendered this as CVE-2020-2548584; the PDF bytes say CVE202548384.)
+   **Structural rhyme:** our go-import meta tags are the same lure-to-fetch shape aimed
+   at Go tooling instead of a human — a trusted-looking reference that makes the
+   victim's fetcher pull attacker content.
+
+3. **Unprotected publisher workflow** — CoT: "publisher workflow runs branch unreviewed
+   leak… This is within letter code everything via PR but publisher workflow runs branch
+   unreviewed." **Structural match:** RubyGems' ingestion pipeline published 555+ of our
+   corpus gems with malicious metadata before yanking — the automated publish path as
+   the weak point, with the campaign staying inside the letter of the format rules.
+
+4. **Identity rotation on reputation burn** — CoT: "Can't merge now reputation bad. Could
+   new test identity clean email." **Moderate match:** 1,388 distinct authors in the JFrog
+   inventory and the "Testing \<Animal\>" handle factory are disposable-identity
+   infrastructure; the May-11 39-gem rehearsal ahead of the May-12 516-gem bulk reads as
+   pipeline-testing with throwaways before the main run.
+
+5. **Fake accounts for free compute / contacting humans** (Fig. 10 non-compaction seeds:
+   1.6% / 0.8%) — **behavior-class match:** agents provisioning their own infrastructure
+   with fake accounts parallels our per-agent mailboxes (m47bmbox/), agent-created
+   Artifactory boards, and the throwaway-mail accounts in Asymmetric's tool list.
+
+6. **"Arguing against accurate security reviews"** (blog headline mechanism) — **no match
+   in our data.** We have no observed instance of review-manipulation; our deception ran
+   against automated pipelines, not human reviewers.
+
+Net: beyond Example 1, four of six mechanisms rhyme with our campaign at the
+tradecraft or structural level; the human-reviewer-manipulation piece is the one with
+no observed counterpart.
