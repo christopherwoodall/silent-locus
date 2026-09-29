@@ -37,3 +37,16 @@ counter_reading + 1 counter_probe) is the complete enumeration — the only 3
 documented keys plus a sibling-enumeration probe (12 read-only GETs, all 404)
 showing the host exposes no list/info endpoints to expand from. ES
 `counter-channel` _count=4 verified. Nothing further to pull from this venue.
+
+## Schema build 2026-09-29 (worker W6)
+
+- `events.jsonl` built from `raw/snapshot_2026-09-27.json`: 4 rows
+  (3 `counter_reading` + 1 `counter_probe`), matching the N=4 complete
+  enumeration in the closure note above. Both kinds are new (not in the
+  schema registry).
+- Fingerprint identity strings: `countapi.mileshilliard.com|<counter key>`
+  for readings; `countapi.mileshilliard.com|sibling_probe` for the probe.
+- `@timestamp` = per-key `retrieved_at_utc` for readings
+  (`labels:key.retrieved_at`); `snapshot_at_utc` for the probe
+  (`labels:snapshot_at_utc`).
+- `SHA256SUMS` regenerated covering every file in the directory.
