@@ -80,4 +80,4 @@ All fetches were read-only HTTPS GETs against my.diffend.io (stock browser UA,
 ~1.5s pace, no auth, no submissions, no invented IDs).
 
 Build script relocated per repo convention (single-collection build scripts
-live in the event dir): scripts/diffend_temporal_sweep_resume.py → ./
+live in the event dir): scripts/diffend_temporal_sweep_resume.py → ./ (renamed to build_diffend_temporal_sweep.py 2026-09-29 to match the `^(es_ingest|build)_.*\.py` root-layout convention)

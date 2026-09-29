@@ -19,8 +19,8 @@ Two input forms are computed per task ID, because the harness passes a
 
 Read-only. Local computation only. No submissions, no eval endpoints.
 
-Usage: python3 compute_flags.py
-Writes: iocs.jsonl (task_id, input_form, flag_digest, flag, construction_version)
+Usage: python3 build_compute_flags.py
+Writes: raw/iocs.jsonl (task_id, input_form, flag_digest, flag, construction_version)
 """
 
 import hashlib
@@ -30,7 +30,7 @@ import re
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
-CACHE_FILE = HERE / "cache" / "token.py.pre-fix"
+CACHE_FILE = HERE / "raw" / "cache" / "token.py.pre-fix"  # post-2026-09-29 normalization: raw material lives under raw/
 
 CONSTRUCTION = "hmac-sha256(seed_utf8, task_id_utf8).hexdigest()[:32] in flag{}"
 CONSTRUCTION_VERSION = "exploitgym-token.py@06708e1 (pre-2026-08-05-fix)"
@@ -79,7 +79,7 @@ def main() -> None:
                     "construction_version": CONSTRUCTION_VERSION,
                 }
             )
-    out = HERE / "iocs.jsonl"
+    out = HERE / "raw" / "iocs.jsonl"  # lane output lives under raw/ (not an event file)
     with out.open("w") as f:
         for r in rows:
             f.write(json.dumps(r) + "\n")
