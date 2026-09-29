@@ -3,7 +3,7 @@
 ## Scope
 
 Batch 3 (workstream B, 2026-09-28) sweeps NEW venues only — batches 1 and 2
-(`data/university-shorteners/`, `data/university-shorteners-batch2/`) are
+(`data/2026-09-28-university-shorteners/`, `data/2026-09-28-university-shorteners-batch2/`) are
 untouched. Source of candidates: (1) `go.uvm.edu` (University of Vermont
 YOURLS) surfaced via a public URL-shortener blocklist (hagezi/dns-blocklists
 issues) plus search-engine-indexed `~` preview pages; (2) three more blocklist

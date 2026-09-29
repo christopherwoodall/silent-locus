@@ -35,7 +35,7 @@ records are university vs community instances.
   uoft.me/go-unm/u-ethz slugs checked this way are documented as
   constructed-per-convention in the notes report.
 
-## Evidence files (all under data/university-shorteners/)
+## Evidence files (all under data/2026-09-28-university-shorteners/raw/)
 
 | File | SHA-256 | Source |
 |---|---|---|
@@ -153,7 +153,7 @@ ES `university-shorteners` _count=15 verified, schema-drift clean.
 
 ## Workstream B session 2 (2026-09-28): ephemeral capture + ETH detail extraction
 
-New evidence files (all under data/university-shorteners/; checksummed in SHA256SUMS):
+New evidence files (all under data/2026-09-28-university-shorteners/raw/; checksummed in SHA256SUMS):
 - `u-ethz-ch/nB1nv_stats_raw_2026-09-28.html` — raw bytes of the public stats page (37,086 B).
 - `u-ethz-ch/nB1nv_referrer_urls_daily_2026-09-28.json` — parsed: 28 per-URL referrer rows / 6 hosts,
   31 all-time + 30 last-30d daily points; best day 63 hits on 2026-06-18; created 2020-08-24; 273 hits all-time.
@@ -161,7 +161,7 @@ New evidence files (all under data/university-shorteners/; checksummed in SHA256
   `www.sec.gov/files/county.json?NEW81131268=1` (NEW + 8-digit nonce grammar); example.com/test<decimal> canaries.
 - `goto-unm-edu/{7t6-o,discvr,reso,urphy21}_stats_raw_2026-09-28.html` — re-pulled raw bytes of the 4 UNM
   public stats pages (ephemeral last-30d window); structure re-validated against the C3 parses.
-- `data/university-shorteners-batch3/go-uvm-edu/{-4s0q,tgmtq,xc26}_stats_raw_2026-09-28.html` — control-venue
+- `data/2026-09-28-university-shorteners-batch3/raw/go-uvm-edu/{-4s0q,tgmtq,xc26}_stats_raw_2026-09-28.html` — control-venue
   raw snapshots (batch3 SHA256SUMS extended to 15 files).
 
 Raw HTML snapshots are checksummed but NOT indexed as ES docs; the parsed JSONs are the indexed evidence.
@@ -207,13 +207,13 @@ retried via archived copies of the four stats pages (`7t6-o`, `discvr`, `reso`, 
   signature-less → 302 to `/` (no signature-less read path); no dated archive URL pattern on-instance.
 
 No archived stats page has been recovered yet via any angle; no new rows staged. If the CC or
-Wayback workers fire, captures land in `data/university-shorteners/wayback-cc/` /
-`data/university-shorteners/wayback/` and per-row events append to
-`data/university-shorteners-events/university-shorteners-events.jsonl`.
+Wayback workers fire, captures land in `data/2026-09-28-university-shorteners/raw/wayback-cc/` /
+`data/2026-09-28-university-shorteners/raw/wayback/` and per-row events append to
+`data/2026-05-12-university-shorteners-events/events.jsonl`.
 
 ## Schema backfill 2026-09-29
 
-`university-shorteners.jsonl` (12 records) brought to full conformance via
+`events.jsonl` (12 records; formerly `university-shorteners.jsonl`) brought to full conformance via
 `temp/backfill_w4.py`. Existing `@timestamp`, `event` (dataset
 `university-shorteners`), `record_kind`, and all canonical fields kept
 verbatim — additive only.

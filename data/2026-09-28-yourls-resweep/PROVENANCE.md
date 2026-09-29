@@ -1,4 +1,4 @@
-# PROVENANCE — yourls-resweep-2026-09-28 dataset
+# PROVENANCE — 2026-09-28-yourls-resweep dataset
 
 ## Scope
 
@@ -62,10 +62,10 @@ tied to the Statistics Netherlands CBS 83779NED OData task family.
 
 ## Contents
 
-- `evidence/` — 43 raw captures (UNM×5, ETH×1, UVM×3, popcat×19,
+- `raw/evidence/` — 43 raw captures (UNM×5, ETH×1, UVM×3, popcat×19,
   t.mdcdev.me×6 incl. frontpage/robots/sitemap, uoft×1, plus fetch/diff/
   build scripts), each with SOURCE/RETRIEVED/HTTP_STATUS header.
-- `yourls-resweep-2026-09-28.jsonl` — 31 explicit-event docs
+- `events.jsonl` — 31 explicit-event docs
   (`yourls_stats_page` observations; shared-schema top-level fields,
   dataset-specific info under `labels`, deterministic `event_id`).
   No referrer-row docs: zero new referrer rows observed anywhere.
@@ -91,7 +91,7 @@ ingested anywhere.
 
 ## Schema backfill 2026-09-29
 
-`yourls-resweep-2026-09-28.jsonl` was already schema-shaped;
+`events.jsonl` was already schema-shaped;
 `temp/backfill_w3.py` only added the missing fingerprint and normalized
 empty nested dicts in labels.
 

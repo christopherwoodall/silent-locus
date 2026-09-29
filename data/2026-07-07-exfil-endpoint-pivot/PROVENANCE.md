@@ -23,7 +23,7 @@ therefore extracted from the public JFrog GemStuffer report
   probes whose endpoints are only in a JFrog screenshot).
 
 A local saved copy of the JFrog article lives at
-`data/separate-eval-test/sources/jfrog-gemstuffer-post.html`.
+`data/2026-09-29-separate-eval-test/raw/sources/jfrog-gemstuffer-post.html`.
 
 ## Search venues (all read-only; no HTTP to exfil endpoints)
 
@@ -33,9 +33,9 @@ A local saved copy of the JFrog article lives at
 3. urlquery.io public search via `~/workspace/skills/urlquery/bin/uq.py`
    (verbatim ID, `webhook.site/steal`, generic `oast.online`,
    `http.url.addr` wildcards; raw JSONs in `raw/`).
-4. Paste corpora (`data/paste-archive`, `data/paste-archive-gap`,
-   `data/iowacollab-pastes`), `data/overlap-matches.jsonl`,
-   sibling `data/xss-ssti-census/payloads.jsonl` (122 payloads).
+4. Paste corpora (`data/2026-05-27-paste-archive`, `data/2026-03-12-paste-archive-gap`,
+   `data/2026-05-17-iowacollab-pastes`), `data/aggregates/2026-09-29-overlap-analysis/events.jsonl`,
+   sibling `data/2026-07-07-xss-ssti-census/events.jsonl` (122 payloads).
 5. Public web search (verbatim quoted queries).
 6. sourcegraph public code search (reachable 2026-09-28; archived+fork
    scopes). grep.app returned HTTP 429 — still unusable.

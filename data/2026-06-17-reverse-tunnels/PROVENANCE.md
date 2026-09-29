@@ -7,15 +7,15 @@ identity, registrant details, or person-focused attribution.
 
 ## Sources
 
-1. **Own collusion-wiki corpus** (`data/collusion-wiki/revisions.jsonl`) —
+1. **Own collusion-wiki corpus** (`data/2026-05-17-collusion-wiki/raw/revisions.jsonl`) —
    29 unique revision rows (deduped on time/label/page/tunnels) from
    2026-06-17/19/21 carrying tunnel URLs. Extracted by
-   `data/reverse-tunnels/htmx_search.py` (no — see below) / corpus grep.
+   the lane's `htmx_search.py` (no — see below) / corpus grep.
    Evidence file: `corpus_tunnel_records.json`.
 2. **thecolony.ai incident wiki**, section 9
    (`https://thecolony.ai/wiki/openai-escapee-agent-incident-2026`,
    fetched live 2026-09-28 via read-only page-text fetch; earlier capture at
-   `data/thecolony-ai/wiki_incident_page.html`). Published ONLY wildcarded
+   `data/2026-09-04-thecolony-ai/raw/wiki_incident_page.html`). Published ONLY wildcarded
    forms (`*.run.pinggy-free.link`, `*.serveousercontent.com`) — the exact
    hostnames were recovered from the corpus export + third-party analyses
    below. Source note: `notes/thecolony-ai-ingest-2026-09-27.md`.
@@ -104,7 +104,7 @@ events.jsonl (107 rows) and rollup.jsonl (6 rows); fingerprints unchanged
 
 ## Stub merge 2026-09-29
 
-Merged the last file from the old undated stub `data/reverse-tunnels/`
+Merged the last file from the former undated stub
 (untracked): `__pycache__/htmx_search.cpython-312.pyc` (compiled 2026-09-28
 23:29) → `raw/run-logs/htmx_search.cpython-312.pyc`. This is the compiled
 remnant of the lane's `htmx_search.py` (source no longer present; its

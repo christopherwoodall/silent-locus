@@ -1,7 +1,7 @@
 # PROVENANCE — agent-surfaces lane (Lane H, 2026-09-28)
 
 Lane report: notes/agent-surfaces-2026-09-27.md. Raw captures in
-data/agent-surfaces/<slug>/ (homepage, llms.txt, agent docs), each with
+data/2026-09-28-agent-surfaces/<slug>/ (homepage, llms.txt, agent docs), each with
 pages.json, per-dir PROVENANCE.md, progress.log. Capture script:
 scripts/capture_agent_surfaces.py; ES ingest: scripts/es_ingest_agent_surfaces.py.
 

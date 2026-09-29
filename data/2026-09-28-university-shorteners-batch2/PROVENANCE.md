@@ -3,7 +3,7 @@
 ## Scope
 
 Batch 2 (lane Q, 2026-09-28) sweeps NEW venues only — batch 1's
-data/university-shorteners/ is untouched. Source of candidates: (1) a new
+data/2026-09-28-university-shorteners/ is untouched. Source of candidates: (1) a new
 goto.unm.edu slug (`vbudg+`) surfaced via search-engine index of UNM's public
 stats pages; (2) new university YOURLS candidates from web search
 (`goto.ucr.edu`, `lnk.mcla.edu`); (3) referrer-surfaced community shorteners

@@ -10,11 +10,11 @@ hosted-Elastic writes paused — staged on disk for the local-push script).
 
 ## Sources (untouched)
 
-- data/university-shorteners/goto-unm-edu/{7t6-o,discvr,reso,urphy21}_referrer_urls_daily_2026-09-28.json
-- data/university-shorteners/u-ethz-ch/nB1nv_referrer_urls_daily_2026-09-28.json
-- data/university-shorteners-batch2/goto-unm-edu/vbudg_stats_2026-09-28.txt (control)
-- data/university-shorteners-batch3/go-uvm-edu/{-4s0q,tgmtq,xc26}_stats_2026-09-28.txt (UVM controls)
-- data/university-shorteners/url-popcat-xyz/{5vtSk2RG2f,IRZTIxDlZ}_info_2026-09-28.txt
+- data/2026-09-28-university-shorteners/raw/goto-unm-edu/{7t6-o,discvr,reso,urphy21}_referrer_urls_daily_2026-09-28.json
+- data/2026-09-28-university-shorteners/raw/u-ethz-ch/nB1nv_referrer_urls_daily_2026-09-28.json
+- data/2026-09-28-university-shorteners-batch2/raw/goto-unm-edu/vbudg_stats_2026-09-28.txt (control)
+- data/2026-09-28-university-shorteners-batch3/raw/go-uvm-edu/{-4s0q,tgmtq,xc26}_stats_2026-09-28.txt (UVM controls)
+- data/2026-09-28-university-shorteners/raw/url-popcat-xyz/{5vtSk2RG2f,IRZTIxDlZ}_info_2026-09-28.txt
 
 ## Supersedes
 

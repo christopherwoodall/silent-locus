@@ -8,7 +8,7 @@ Retrieved 2026-09-28 ~23:35–23:56 UTC (18:35–18:56 CDT); deep-pagination res
 |---|---|---|
 | Docker Hub web API v2 (anonymous) | org repo lists; per-repo tag metadata (names, `tag_last_pushed`, `last_updated`, `tag_status`, digest, arch) for the newest 1000 tags per repo | `https://hub.docker.com/v2/repositories/{org}/?page_size=100`, `https://hub.docker.com/v2/repositories/{org}/{repo}/tags?page_size=100&page={1..10}`, `…/tags/{tag}` |
 | Docker registry API (anonymous pull-scope token from `auth.docker.io`) | COMPLETE tag-name lists for every repo (both orgs) | `https://registry-1.docker.io/v2/{org}/{repo}/tags/list?n=1000` |
-| Local corpus | reference set of agent-uploaded trojan tag names | `data/overlap-matches.jsonl`, `data/matches-f5f6.jsonl` (Artifactory `dockerhub-public[/-cache]/…` path references) |
+| Local corpus | reference set of agent-uploaded trojan tag names | `data/aggregates/2026-09-29-overlap-analysis/events.jsonl` (merged home of both standalone files; Artifactory `dockerhub-public[/-cache]/…` path references) |
 
 ## Method
 
@@ -36,7 +36,7 @@ Retrieved 2026-09-28 ~23:35–23:56 UTC (18:35–18:56 CDT); deep-pagination res
 
 ## Corpus reference set (trojan tag names from our own data)
 
-Extracted from Artifactory `dockerhub-public[/-cache]/` path references in `data/overlap-matches.jsonl` / `data/matches-f5f6.jsonl`:
+Extracted from Artifactory `dockerhub-public[/-cache]/` path references in `data/aggregates/2026-09-29-overlap-analysis/events.jsonl` (merged home of both standalone files):
 `cybergym/arvo:zzgptimg21784227813`, `cybergym/arvo:jan29pcldummy1700`, `cybergym/arvo:x114sinkbrowsedef`, `cybergym/arvo:27871-vul.exp.none-nogit`, `cybergym/oss-fuzz:42537601-vul.exp.none-nogit`.
 
 ## Schema backfill 2026-09-29
@@ -74,7 +74,7 @@ dropped; dataset-specific fields moved under `labels`.
   corpus-trojan-tag-liveness and final-gone-trojan-tags).
 - Script is idempotent: records already carrying `event.dataset` +
   `fingerprint` pass through untouched. Post-run:
-  `python3 scripts/validate_schema.py data/dockerhub-trojan-images` →
+  `python3 scripts/validate_schema.py data/2026-09-28-dockerhub-trojan-images` →
   42,318 records, 0 violations.
 
 ## Concatenation to canonical layout (2026-09-29)
@@ -85,7 +85,7 @@ Rule used: files were processed in sorted-filename order; before writing, each r
 
 ## Stub merge — run logs recovered (2026-09-28)
 
-Two run logs from the pre-layout stub `data/dockerhub-trojan-images/` were not
+Two run logs from the pre-layout stub were not
 present in this dataset and are merged here (copied, hashes verified identical):
 
 - `raw/hub10_stdout.log` (1,180 bytes) — stdout of `fetch_hub10.py` (Hub pages
@@ -93,5 +93,4 @@ present in this dataset and are merged here (copied, hashes verified identical):
 - `raw/registry_stdout.log` (1,387 bytes) — stdout of `registry_tags.py`
   (registry `tags/list` enumeration, 2026-09-28 ~23:56 UTC)
 
-SHA256SUMS regenerated to include both files. Stub dir
-`data/dockerhub-trojan-images/` removed after merge.
+SHA256SUMS regenerated to include both files. The stub dir was removed after merge.
