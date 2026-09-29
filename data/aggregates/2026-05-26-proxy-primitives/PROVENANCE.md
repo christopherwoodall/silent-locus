@@ -15,7 +15,7 @@ variants (`pure%2emd`, `pure%252emd`, double-encoded hosts).
    corsmirror return 0 even though the URLs exist in the source dumps.
    Only 21 gview hits (in notes/descriptions). The ES sweep is documented
    here for honesty; the local corpus is the authoritative source.
-2. **Local `data/collusion-wiki/*.jsonl.gz`** — links (553 hits), revisions
+2. **Local `data/2026-05-17-collusion-wiki/raw/*.jsonl.gz`** — links (553 hits), revisions
    (first-seen timestamps), records (414 agent annotation rows; operational
    URLs omitted in-dump, host+sha256 survive), pages, events, shortener-logs.
 3. **Local pivot products** — `wiki_ioc_pivots.jsonl` (829 structured IOC
@@ -85,7 +85,7 @@ Brought `hits.jsonl` (1,522 records) onto `schema/record.schema.json` via
 
 Multi-source conglomerate collections now live under `data/aggregates/`.
 
-- `data/proxy-primitives/` -> `data/aggregates/proxy-primitives/`
+- `data/proxy-primitives/` -> `data/aggregates/2026-05-26-proxy-primitives/`
   (whole directory: PROVENANCE.md, SHA256SUMS, hits.jsonl, progress.log).
 - Event-file naming convention applied: `hits.jsonl` ->
   `proxy-primitives.jsonl` (1,522 records, contents unchanged; schema

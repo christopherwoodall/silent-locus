@@ -1,6 +1,6 @@
 # PROVENANCE — cors-bwa-proxy lane
 
-**Dataset:** `data/cors-bwa-proxy/`
+**Dataset:** `data/aggregates/2025-09-26-cors-bwa-proxy/`
 **Lane:** cors-bwa cross-corpus proxy primitive (night watch, 2026-09-28)
 **ES index:** `cors-bwa-proxy` (154 docs; canonical shared schema
 `notes/gems-es-mapping.json`, `event.dataset.keyword` multi-field at creation,
@@ -10,7 +10,7 @@ zero extra top-level fields)
 All source records were pulled read-only from the project's Elastic Cloud
 deployment via `scripts/cors_bwa_collect.py` (query_string
 `*cors.bwa.workers.dev*`, plus `*.workers.dev*` family sweep). Raw pulls are
-kept in `data/cors-bwa-proxy/raw/` (8 files, see `raw/pull_totals.json`):
+kept in `data/aggregates/2025-09-26-cors-bwa-proxy/raw/` (8 files, see `raw/pull_totals.json`):
 
 | source index | query | docs |
 |---|---|---|
@@ -77,13 +77,13 @@ repo root rebuilds the `cors-bwa-proxy` index from these files.
 
 ## Raw layer 2026-09-29
 The entire collection moved from `data/cors-bwa-proxy/` to
-`data/aggregates/cors-bwa-proxy/` because it is a multi-source aggregate
+`data/aggregates/2025-09-26-cors-bwa-proxy/` because it is a multi-source aggregate
 (conglomerate of raw pulls from several indexes/collections). Its two
 root-level script-consumed transform inputs then moved into the existing
 `raw/` subdir, keeping their names:
 
-- `data/cors-bwa-proxy/bwa_targets.jsonl` -> `data/aggregates/cors-bwa-proxy/raw/bwa_targets.jsonl`
-- `data/cors-bwa-proxy/ladder_edges.jsonl` -> `data/aggregates/cors-bwa-proxy/raw/ladder_edges.jsonl`
+- `data/cors-bwa-proxy/bwa_targets.jsonl` -> `data/aggregates/2025-09-26-cors-bwa-proxy/raw/bwa_targets.jsonl`
+- `data/cors-bwa-proxy/ladder_edges.jsonl` -> `data/aggregates/2025-09-26-cors-bwa-proxy/raw/ladder_edges.jsonl`
 
 Rationale: `bwa_targets.jsonl` and `ladder_edges.jsonl` are produced/consumed
 by `scripts/cors_bwa_analyze.py`, `scripts/cors_bwa_ladders.py`, and

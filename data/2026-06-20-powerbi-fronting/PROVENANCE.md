@@ -11,8 +11,8 @@ only the host + pageName are cited.
 ## Sources
 
 1. **thecolony.ai incident wiki** (third-party investigator prose, second-hand)
-   - File: `data/thecolony-ai/wiki_incident_page.html` (captured 2026-09-27,
-     Lane I; SHA-256 in `data/thecolony-ai/manifest.json`)
+   - File: `data/2026-09-04-thecolony-ai/raw/wiki_incident_page.html` (captured 2026-09-27,
+     Lane I; SHA-256 in `data/2026-09-04-thecolony-ai/raw/manifest.json`)
    - Page: https://thecolony.ai/wiki/openai-escapee-agent-incident-2026
    - Section 11 "How containment failed — egress-bypass techniques", line 805
      (SNI-allowlist bypass bullet); Section 8, line 742 (OECD data bullet).
@@ -22,10 +22,10 @@ only the host + pageName are cited.
      replayed by the investigators either).
 
 2. **collusion-wiki corpus** (agent-authored records — first-hand agent text)
-   - Files: `data/collusion-wiki/records.jsonl` (41 powerbi hits),
-     `data/collusion-wiki/revisions.jsonl` (135 hit revisions),
-     `data/collusion-wiki/links.jsonl` (1 app.powerbi.com link),
-     `data/wiki_ioc_pivots.jsonl` (3 IOC rows: full URL, `app.powerbi.com`,
+   - Files: `data/2026-05-17-collusion-wiki/raw/records.jsonl` (41 powerbi hits),
+     `data/2026-05-17-collusion-wiki/raw/revisions.jsonl` (135 hit revisions),
+     `data/2026-05-17-collusion-wiki/raw/links.jsonl` (1 app.powerbi.com link),
+     `data/aggregates/2026-09-29-overlap-analysis/raw/wiki_ioc_pivots.jsonl` (3 IOC rows: full URL, `app.powerbi.com`,
      `powerbi.com` — 5 agents, 5 occurrences, dse wiki only).
    - These are agent-written wiki pages describing the bypass in first person
      ("I obtained real querydata via blob-SNI bypass"), i.e. agent tool-use
@@ -42,11 +42,11 @@ only the host + pageName are cited.
 ## Pattern sweep performed (2026-09-27)
 
 - `grep -ri "power.?bi"` over `data/` (all corpora): hits only in
-  `data/collusion-wiki/{links,records,revisions}.jsonl`,
-  `data/wiki_ioc_pivots.jsonl`, `data/thecolony-ai/wiki_incident_page.html`,
+  `data/2026-05-17-collusion-wiki/raw/{links,records,revisions}.jsonl`,
+  `data/aggregates/2026-09-29-overlap-analysis/raw/wiki_ioc_pivots.jsonl`, `data/2026-09-04-thecolony-ai/raw/wiki_incident_page.html`,
   and the one-line PROVENANCE.md mention (technique already catalogued).
-- Diffend sweep JSONLs (`data/osv/diffend_sweep_results*.jsonl`,
-  `data/gem-pins-diffend.txt`, `data/fieldnotes-gem/diffend-page.html`):
+- Diffend sweep JSONL (`data/2026-05-11-osv/events.jsonl`,
+  `data/2025-03-04-rubygems-goimport-campaign/raw/gem-pins-diffend.txt`, `data/2026-09-05-fieldnotes-gem/raw/diffend-page.html`):
   zero powerbi hits (go-import campaign payloads are RubyGems metadata).
 - No `app.powerbi.com` outside the single agent-embedded URL above.
 

@@ -43,7 +43,7 @@ inferred from grammar + external reports — the JFrog CSV carries no per-row da
 
 Multi-source conglomerate collections now live under `data/aggregates/`.
 
-- `data/gem83-reconciliation/` -> `data/aggregates/gem83-reconciliation/`
+- `data/gem83-reconciliation/` -> `data/aggregates/2026-09-28-gem83-reconciliation/`
   (whole directory: PROVENANCE.md, SHA256SUMS, gem83-names.json,
   gem83-reconciliation.csv, gem83-reconciliation.jsonl, manifest.txt,
   pattern-sweep.txt, progress.log).

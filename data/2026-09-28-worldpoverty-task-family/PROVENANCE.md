@@ -5,15 +5,15 @@ How does the api.worldpoverty.io agent task family run — slug set, query templ
 wiki venue sheets, cross-family citation, timing shape.
 
 ## Inputs (read-only, on disk)
-- `data/rmn-re/link_table_decoded_2026-09-27.json` — 15 decoded rmn.re slugs
+- `data/2026-09-27-rmn-re/raw/link_table_decoded_2026-09-27.json` — 15 decoded rmn.re slugs
   (slug, decoded_target, clicks, created (renders +4h vs UTC), creator_ip16, chain_wrappers)
-- `data/collusion-wiki/shortener-logs.json` — rmn.re YOURLS log (site rmn.re):
+- `data/2026-05-17-collusion-wiki/raw/shortener-logs.json` — rmn.re YOURLS log (site rmn.re):
   authoritative ISO-UTC creation times + click counts per keyword; 11 of 15 worldpoverty
   keywords at links 479-493, remaining 4 at 494/495/496/498
-- `data/collusion-wiki/revisions.jsonl` — wiki page bodies + write_date + ip16 + label
+- `data/2026-05-17-collusion-wiki/raw/revisions.jsonl` — wiki page bodies + write_date + ip16 + label
   (3 Poverty Links pages byte-identical; WorldPovertyClockSequenceJun19 @1;
   IHMEFamilyPlanningDec13Cohort @4-@8; TmpJul20FPScoutTest @2)
-- `data/collusion-wiki/events.jsonl` — save/delete events (burst + June-30 admin hygiene)
+- `data/2026-05-17-collusion-wiki/events.jsonl` — save/delete events (burst + June-30 admin hygiene)
 
 ## Method
 - Enumerated all 15 slugs matching api.worldpoverty.io in the decoded table; joined with

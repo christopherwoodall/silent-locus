@@ -1,7 +1,7 @@
 # PROVENANCE — Lane S: open-data-API task-venue sweep
 
 **Lane:** S (2026-09-28 night watch) — "Test the venue-model prediction: do agent corpora reference open-data / national-stats API hosts?"
-**Dataset dir:** `data/open-data-api-venues/` (project-relative)
+**Dataset dir:** `data/2026-09-28-open-data-api-venues/` (project-relative)
 **Collector:** hunt night-watch subagent (read-only research; corpora on disk only; no API crawling, no submissions)
 
 ## Verdict
@@ -18,15 +18,15 @@ The venue-model prediction **confirmed**, with two surprise venues beyond the pr
 **Predicted-list negatives (clean on disk):** `api.worldbank.org`, `databank.worldbank.org`, `data.worldbank.org`, `ec.europa.eu/eurostat`, `data.un.org`, `api.statcan.gc.ca`, `www150.statcan.gc.ca`, `api.insee.fr`, `stats.oecd.org`, `api.ons.gov.uk` (literal host — only the beta variant appears). Corroborates lane N's ES negative sweep. (`eurostat` matched only a Go module path name in gomod-hunt — not agent usage.)
 
 ## Sources (all read-only, existing corpora)
-1. `data/rmn-re/link_table_decoded_2026-09-27.json` (764 slugs) — 30 agent-created shortlinks to the four venues.
-2. `data/collusion-wiki/links.jsonl` — 2 worldpoverty links (proxymule-laundered, `link_in_selected_agent_related_text`).
-3. `data/collusion-wiki/revisions.jsonl` — 4 worldpoverty task-page revisions (3 Poverty Links + WorldPovertyClockSequenceJun19).
-4. `data/collusion-wiki/pages.jsonl` — 2 dataafrica task pages (health-stunting family).
-5. `data/collusion-wiki/records.jsonl` — 6 dataafrica retrieval-task records.
-6. `data/collusion-wiki/shortener-logs.json` — 65 venue-URL strings across the four hosts.
-7. `data/thecolony-ai/search/jina.json` — agent-board reference (Vera DIADE: worldpoverty/dataafrica).
-8. `data/vanderbilt-shortener/web_mentions.json` — stats-leak referrer note.
-9. Paste corpora (`paste-archive`, `paste-linuxiarz`, `iowacollab-pastes`) and shortener stats files (`university-shorteners`, `university-shorteners-batch2`): clean, no venue hits.
+1. `data/2026-09-27-rmn-re/raw/link_table_decoded_2026-09-27.json` (764 slugs) — 30 agent-created shortlinks to the four venues.
+2. `data/2026-05-17-collusion-wiki/raw/links.jsonl` — 2 worldpoverty links (proxymule-laundered, `link_in_selected_agent_related_text`).
+3. `data/2026-05-17-collusion-wiki/raw/revisions.jsonl` — 4 worldpoverty task-page revisions (3 Poverty Links + WorldPovertyClockSequenceJun19).
+4. `data/2026-05-17-collusion-wiki/raw/pages.jsonl` — 2 dataafrica task pages (health-stunting family).
+5. `data/2026-05-17-collusion-wiki/raw/records.jsonl` — 6 dataafrica retrieval-task records.
+6. `data/2026-05-17-collusion-wiki/raw/shortener-logs.json` — 65 venue-URL strings across the four hosts.
+7. `data/2026-09-04-thecolony-ai/raw/search/jina.json` — agent-board reference (Vera DIADE: worldpoverty/dataafrica).
+8. `data/2021-05-10-vanderbilt-shortener/raw/web_mentions.json` — stats-leak referrer note.
+9. Paste corpora (`2026-05-27-paste-archive`, `2026-05-26-paste-linuxiarz`, `2026-05-17-iowacollab-pastes`) and shortener stats files (`2026-09-28-university-shorteners`, `2026-09-28-university-shorteners-batch2`): clean, no venue hits.
 
 ## Schema
 Canonical shared schema: `notes/gems-es-mapping.json` (`record_kind: api_venue_target`; detail in `labels` (flattened) + `tags`; `event.dataset.keyword` multi-field declared at index creation). Zero top-level fields beyond the mapping.

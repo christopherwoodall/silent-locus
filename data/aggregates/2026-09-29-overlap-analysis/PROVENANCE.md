@@ -25,7 +25,7 @@ now schema events).
 
 Multi-source conglomerate collections now live under `data/aggregates/`.
 
-- `data/overlap-analysis/` -> `data/aggregates/overlap-analysis/`
+- `data/overlap-analysis/` -> `data/aggregates/2026-09-29-overlap-analysis/`
   (whole directory: PROVENANCE.md, SHA256SUMS, all JSONL/JSON files).
 
 ## Raw layer 2026-09-29
