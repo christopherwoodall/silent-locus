@@ -11,7 +11,7 @@ at creation.
 
 Usage: python3 es_ingest_march7.py [--create|--load|--verify] (default: all)
 """
-import json, os, sys, urllib.request
+import glob, json, os, sys, urllib.request
 from datetime import datetime, timezone
 
 import os
@@ -30,8 +30,12 @@ REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 HOSTS = ["agent-apocalypse-f1f7ba.es.us-east-1.aws.elastic.cloud"]
 CRED = "custom.elastic-cloud"
 BASE = REPO_ROOT
-DIR = BASE + "/data/2026-02-01-march7-rce-modality"
-INDEX = "2026-02-01-march7-rce-modality"
+_SLUG = "march7-rce-modality"
+_candidates = sorted(glob.glob(BASE + "/data/*-" + _SLUG))
+if len(_candidates) != 1:
+    raise SystemExit("expected exactly one data/*-%s dir, found: %s" % (_SLUG, _candidates))
+DIR = _candidates[0]                      # tracks dir renames automatically
+INDEX = os.path.basename(DIR)             # index follows the collection name
 NOW = datetime.now(timezone.utc).isoformat()
 OBSERVER = {"product": "march7-rce-ingest", "vendor": "nightingale-collective",
             "type": "dataset"}
@@ -71,8 +75,8 @@ def base_doc(record_kind, tag_extra=()):
 
 
 def build_docs():
-    results = json.load(open(DIR + "/results.json"))
-    sweep = json.load(open(DIR + "/sweep.json"))
+    results = json.load(open(DIR + "/raw/results.json"))
+    sweep = json.load(open(DIR + "/raw/sweep.json"))
     docs = {}
 
     for name, pkg in results["gems"].items():
