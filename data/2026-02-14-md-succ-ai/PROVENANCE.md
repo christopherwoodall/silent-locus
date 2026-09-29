@@ -57,3 +57,18 @@ stay on disk as reference per keep-all policy.
 - @timestamp: repo -> 2026-02-14T00:00:00Z (first commit date, the layer's first event); labels.timestamp_source=`provenance:first_commit_date`. openapi.json -> 2026-09-28T00:00:00Z (fetch date); labels.timestamp_source=`provenance:fetch_date`. Note: raw/repo carries no .git dir (files only), so commit dates come from this PROVENANCE.md, not from git.
 - No rollup.jsonl: 2 artifact records, pure event stream (deliberate per sweep rule).
 - Regenerated `SHA256SUMS` (events.jsonl + raw/**).
+
+## Stub merge — deploy tooling recovered (2026-09-28)
+
+Two repo files from the untracked stub `data/md-succ-ai/repo/` were absent from
+the 2026-09-28 clone above (byte-compare confirmed: no matching names or
+hashes among the clone's 79 files) and are merged here preserving paths:
+
+- `raw/repo/Makefile` — deploy/build targets (`deploy`, `build-web`,
+  `deploy-api`, `deploy-web`) for md.succ.ai (SSH deploy host redacted here;
+  see file)
+- `raw/repo/scripts/browser-server.mjs` — Camoufox browser sidecar entry
+  point (Playwright WebSocket, auto-restart, HTTP health endpoint)
+
+SHA256SUMS regenerated to include both files. Untracked stub dir
+`data/md-succ-ai/` removed from disk after merge.
