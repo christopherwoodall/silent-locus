@@ -25,3 +25,23 @@ Separate dataset: recon artifacts for jsonhero.io usage by the wiki agent swarms
 ## Keep-all + annotate
 
 No records dropped. `usage_patterns.json` is a lossy rollup; the underlying URLs remain in the collusion-wiki dumps.
+
+## Schema normalization 2026-09-29 (W2)
+
+Built `events.jsonl` (19 rows) from `raw/repo_metadata.json` and
+`raw/usage_patterns.json` on the canonical record schema
+(`scripts/validate_schema.py`: 19/19 clean).
+- 1 × `venue_probe` — triggerdotdev/jsonhero-web repo metadata;
+  `@timestamp` = repo.created_at 2022-03-01T09:33:29Z;
+  identity `jsonhero|repo|triggerdotdev/jsonhero-web`.
+- 17 × `corpus_hit` — one per shared jsonhero.io doc ID with its URL
+  occurrence count; no per-ID dates in the rollup, so `@timestamp` uses the
+  dir-date prefix 2022-03-01T00:00:00Z with
+  `labels.timestamp_source="dir_date_prefix"` (actual usage dates live in the
+  collusion-wiki corpus); identity `jsonhero|corpus-doc-id|<doc_id>`.
+- 1 × `artifact_observation` — usage rollup (2,398 corpus URL occurrences /
+  17 doc IDs / top ?path= params / view suffixes); identity
+  `jsonhero|usage-rollup`.
+Fingerprint = sha256 hex of the documented identity string (verified against
+the 2023-11-14-hfspace-proxies reference implementation before writing).
+SHA256SUMS regenerated (events.jsonl + all raw contents); `sha256sum -c` OK.
