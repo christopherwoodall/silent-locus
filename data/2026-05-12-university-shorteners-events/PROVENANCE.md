@@ -81,3 +81,44 @@ events were parsed offline from existing captures held in sibling raw/ layers
 this collection holds no own captures. Verified: no raw/ files ever committed
 in git history; no stray evidence files on disk; SHA256SUMS green. Ratified as
 a canonical-layout exception.
+
+## Common Crawl stats-page capture 2026-09-29
+
+Lane-12 shortener-cc sweep (`hidden_files/lane12/shortener_cc_sweep.py`,
+queued 2026-09-28 by the July-5-6 UNM retry lane): exact-URL CC index queries
+over the crawls intersecting 2026-06-01..2026-08-15 (CC-MAIN-2026-25, -30,
+-34) for the 5 goto.unm.edu `+` stats pages, http/https variants — 30 queries
+total, polite 2s pacing, read-only.
+
+Result: 29/30 queries returned zero captures. The single hit was
+`http://goto.unm.edu/discvr+` in CC-MAIN-2026-34, capture 2026-08-17T05:11:48Z
+— 65,448 bytes of genuine YOURLS stats HTML ("Statistics for
+https://goto.unm.edu/discvr"), parsed to 68 referrer-URL rows across 24 hosts.
+No mid-July 2026 capture of any target exists in Common Crawl
+(CC-MAIN-2026-30, the July 10–23 crawl, returned zero for all 10 URLs), so the
+July 5–6 per-referrer rows remain unrecoverable from this backend — recorded
+as a clean negative, not retried.
+
+Merge: 69 exploded docs (68 `yourls_referrer_url` + 1 `yourls_stats_page`
+page-observation for the 2026-08-17 capture), deduped on `labels.event_id`
+against the 1,522 existing rows — 45 new, 24 skipped as duplicates. The 44
+new referrer rows are URLs present in the August referrer table but washed
+out of the 2026-09-28 all-time table (api.census.gov API-key queries,
+allorigins-laundered sec.gov fetch, 2dd.pl, heyzine, TESTREF/TESTRR canaries).
+
+Evidence staged at
+`data/2026-09-28-university-shorteners/raw/wayback-cc/discvr/`
+(`CC-MAIN-2026-34_20260817051148.html` raw WARC payload +
+`discvr_referrer_urls_daily_cc_CC-MAIN-2026-34_20260817051148.json` evidence
+JSON, SHA256SUMS + manifest.json regenerated after relocation). The script's
+docstring staging path (`data/university-shorteners/wayback-cc/`) was
+relocated to the normalized raw/ layer (sibling of `raw/wayback/`); its
+events-JSONL append step targets the pre-normalization collection path and
+was superseded by this merge — no parallel collection created, no
+duplicates committed.
+
+Worker note: the sweep could not run unmodified — Python's `http.client` is
+systematically cut off by the egress proxy on index.commoncrawl.org
+(IncompleteRead at ~16KB / RemoteDisconnected on every attempt, all header
+combos; curl succeeds reliably), so `fetch()` now shells to curl. Same
+signature, retry/backoff kept, output conventions unchanged.
