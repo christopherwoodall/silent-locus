@@ -104,3 +104,26 @@ empty nested dicts in labels.
 - `labels.changed_referrer_host_counts_vs_morning`: empty objects `{}` (all
   31 rows — zero changed referrer counts) normalized to `null` to satisfy
   the flat-labels rule (no data lost; the empty object carried no entries).
+
+## Stale `file` pointer rewrite 2026-09-29
+
+All 31 rows in `events.jsonl` carried a top-level `file` pointer at the
+removed stub path `data/yourls-resweep-2026-09-28/evidence/<name>.html`
+(missing the `raw/` segment after the 2026-09-28 directory-layout
+normalization). Each was rewritten to the true repo-relative location
+`data/2026-09-28-yourls-resweep/raw/evidence/<name>.html`, resolved by
+basename within this collection and verified as the right capture
+(unique basename match + the capture's `SOURCE:` header URL matches the
+row's stats URL). **Fixed: 31. Dropped: 0** — no pointer was
+unresolvable, so no `file` field was removed.
+
+Caveat (pre-existing, NOT introduced by this rewrite; no other field was
+touched): the 19 popcat rows' recorded top-level `sha256`/`size_bytes`
+describe pre-commit capture bytes (exactly 259 bytes longer — a
+header-format artifact of the nsi-venue-sweep fold-in) that were never
+committed; the on-disk captures' bodies match the recorded content
+(click counts, slugs, SOURCE URLs). The 12 UNM/ETH/UVM/t.mdcdev.me rows'
+recorded `sha256`/`size_bytes` match the committed bytes exactly.
+
+`SHA256SUMS` regenerated after the rewrite (only the `events.jsonl`
+line changed; all 45 entries re-verified with `sha256sum -c`).
