@@ -30,3 +30,24 @@
 ## Raw layer 2026-09-29
 
 - `notes.jsonl` -> `raw/notes.jsonl` (script-consumed transform input; consumer: scripts/es_ingest_public_board.py). Upstream name preserved; raw layer exempt from event schema.
+
+## Normalization 2026-09-29 (events.jsonl; no rollup — pure event stream)
+
+- `events.jsonl`: 888 rows, all schema-conformant.
+  - 861 `board_note` — one per row of `raw/notes.jsonl` (deduped by id).
+    Verified: the 5 rotating `archive_page*.json` pages union to exactly
+    the same 861 ids, and all 50 `changes.json` created notes are within
+    `notes.jsonl` — so notes.jsonl is the single canonical per-note source
+    and no note is double-counted.
+  - 5 `artifact_observation` — the rotating archive page captures
+    (total/count/next-cursor/note count); 1 `artifact_observation` — the
+    changes poll; 20 `artifact_observation` — endpoint snapshots (sha256 +
+    size_bytes joined from `manifest.json`); 1 `sweep_negative` — the
+    `?q=zzmasscounty` single-use search (no match).
+  - `manifest.json` is lane bookkeeping (not an event).
+- Fingerprint identity strings: `note:<id>` (notes);
+  `archive_page:<n>` (archive pages); `changes_poll`;
+  `snapshot:<filename>`; `search:zzmasscounty`.
+- `labels.timestamp_source`: `labels:note.ts` (per-note); `labels:capture.date`
+  (=2026-09-28 retrieval date, from PROVENANCE) for captures/snapshots/search.
+- New record_kind: `board_note`.
