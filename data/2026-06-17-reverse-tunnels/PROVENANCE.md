@@ -10,7 +10,9 @@ identity, registrant details, or person-focused attribution.
 1. **Own collusion-wiki corpus** (`data/2026-05-17-collusion-wiki/raw/revisions.jsonl`) —
    29 unique revision rows (deduped on time/label/page/tunnels) from
    2026-06-17/19/21 carrying tunnel URLs. Extracted by
-   the lane's `htmx_search.py` (no — see below) / corpus grep.
+   the lane's `htmx_search.py` (source survives at
+   `scripts/reverse_tunnels_htmx_search.py`; see Stub merge 2026-09-29 note)
+   / corpus grep.
    Evidence file: `corpus_tunnel_records.json`.
 2. **thecolony.ai incident wiki**, section 9
    (`https://thecolony.ai/wiki/openai-escapee-agent-incident-2026`,
@@ -111,6 +113,13 @@ remnant of the lane's `htmx_search.py` (source no longer present; its
 manifest.sha256 entries were dropped as nonexistent during normalization).
 No unique data beyond the bytecode; kept for provenance of the lane's
 tooling. Stub directory removed.
+
+**Correction 2026-09-29:** the `.pyc` was removed as redundant. The source
+DOES survive — it was renamed during normalization and lives at
+`scripts/reverse_tunnels_htmx_search.py` (tracked; same docstring and query
+set as the bytecode: verified from the `.pyc`'s embedded constants before
+deletion). Its SHA256SUMS line was dropped and its checksum no longer
+checked. Kept nothing of the bytecode.
 
 ## Build-script repair 2026-09-29 (es_ingest_reverse_tunnels.py)
 
