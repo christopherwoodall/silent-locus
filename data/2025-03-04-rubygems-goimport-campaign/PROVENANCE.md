@@ -90,3 +90,39 @@ pipeline inputs.
   2026-05-12 (2,456, main wave, 567 gems), 2026-09-09 (25). `event.dataset`
   suffixed `-rollup`.
 - `event.dataset = "2025-03-04-rubygems-goimport-campaign"`; `event.created` = build time.
+
+## Ingest-script consolidation 2026-09-29
+
+Per the single-collection convention, the collection's ES ingest scripts moved
+from `scripts/` into this directory (names kept):
+`es_ingest_gems.py` (transforms raw gem-ioc-log.jsonl / gem-ioc-hits.jsonl /
+gem-june18-wayback.jsonl into the diffend-harvest / extraction / hit / wayback
+doc flavors) and `es_ingest_jfrog.py` (transforms the raw JFrog CSV +
+same-collection wave lookup into the jfrog_inventory flavor). `REPO_ROOT` in
+both now resolves from the new location (was `dirname(dirname(__file__))` from
+`scripts/`). Verified post-move: `load_docs()` builds 2,358 docs.
+`via_script` entry in `scripts/local_es_manifest.json` updated to the new paths.
+
+## Ingest-script health note 2026-09-29 (es_ingest_gems.py + es_ingest_jfrog.py)
+
+Both scripts moved here per the single-collection convention, but both are
+currently BROKEN against the backfilled `raw/gem-ioc-log.jsonl` (schema
+backfill 2026-09-28 moved the original harvest-log fields under `labels.*`
+with dotted keys, e.g. `labels["gem.name"]`, `labels["diffend.versions.diff_ts"]`;
+the scripts still read top-level `gem`/`version`/`diffend_versions`):
+
+- `es_ingest_gems.load_docs()`: log flavors (download/extraction/
+  diffend_harvest) read `gem=None`, so ~1,800 log records collapse into 3
+  garbage docs (`log:download:None:None` etc., `package=None`). The hit
+  (2,339 docs) and wayback (16 docs) flavors still build correctly because
+  `gem-ioc-hits.jsonl` / `gem-june18-wayback.jsonl` were NOT backfilled.
+- `es_ingest_jfrog.load_docs()`: `corpus_wave_lookup()` finds 0 gems (was 562
+  verified overlaps on 2026-09-27), so all 3,025 `jfrog_inventory` docs get
+  the fallback timestamp and `in_diffend_corpus=false`.
+
+The collection's staged `events.jsonl` + `rollup.jsonl` are auto-discovered by
+`push_to_local_es.py discover_staged()` and remain the source of truth.
+Flagged as delete-or-repair candidates: deleting (per the timeline_anchors
+precedent) or repairing the label-key reads is the parent's call. Until then,
+the `via_script` manifest entries are landmines — the driver would bulk-load
+the garbage docs into the live index.
