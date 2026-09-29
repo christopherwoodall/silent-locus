@@ -49,3 +49,35 @@ the move; no other stub content existed.
 
 ## 2026-09-29 — resume checkpoint (interrupted)
 Diffend temporal sweep resumed via `scripts/diffend_temporal_sweep_resume.py`: 1,548/3,000 items probed (events 27 → 1,575 rows, `record_kind=diffend_probe`), progress logged in `raw/run-logs/diffend_temporal_sweep_resume.stdout.log` (last: 1500/3000 at 10:54:54Z). Worker interrupted by a runtime restart drain before committing; no data loss — events and log intact. Resume from item ~1,573 using the same script; it checkpoints in the log.
+
+## 2026-09-29 — Diffend temporal sweep COMPLETE (3,025/3,025 names)
+
+Final leg ran 10:58Z–12:03Z via `scripts/diffend_temporal_sweep_resume.py` (re-run
+from the 9a6bc06 checkpoint; checkpoint = events.jsonl itself, dedupe by
+gem.name). 1,452 items probed, 0 fetch failures (`DONE oow_hits=2 fetch_fail=0`).
+Progress in raw/run-logs/diffend_temporal_sweep_resume.stdout.log; five batch
+commits (10729d6, 5dc81fc, a13d2c3, 608f9e4, c243a36).
+
+Final tally (ground truth from events.jsonl):
+
+- 3,027 rows, 3,025 distinct gem names (`record_kind=diffend_probe`); the 2
+  extra rows are historical duplicates that predate this leg (names present in
+  both phase-1 and the first resume leg) — left untouched.
+- In Diffend with version dates captured (HTTP 200): 2,251
+- Not in Diffend (302 → gems index): 756
+- Fetch negatives, recorded honestly, no refetch: 16 "Remote end closed
+  connection without response" (2026-09-28 burst run), 2 curl "000" connect
+  failures (slnstep8275, slnstep8300), 2 phase-1 targeted-check probe-failed rows.
+- Out-of-window version dates (outside 2026-05-05–2026-07-07): 3 gems —
+  lambethcalcqzewgt, test_gem_kangaroo, wanproxyq.
+
+Caveat: `labels.out_of_window` / `labels.versions` are JSON-encoded strings on
+resume-leg rows but native lists on the 27 phase-1 rows (backfill_w3.py).
+validate_schema.py passes (it does not enforce the flat-labels rule on these);
+parse defensively with a str-or-list check.
+
+All fetches were read-only HTTPS GETs against my.diffend.io (stock browser UA,
+~1.5s pace, no auth, no submissions, no invented IDs).
+
+Build script relocated per repo convention (single-collection build scripts
+live in the event dir): scripts/diffend_temporal_sweep_resume.py → ./
