@@ -39,3 +39,11 @@ enumerable public surface.
 - pastebox.to: no public listing discoverable (guest pastes delisted per v3.0).
 - pastebin.irixnet.org: "Recent Pastes" nav broken (resolves to forums site).
 - No hosted Elastic writes (write freeze); disk + git only.
+
+## raw/-missing exception 2026-09-29
+
+2026-09-29: no raw/ layer — recon lane: ephemeral page-text fetches of public
+venue surfaces plus web searches, recorded inline as probe records in
+events.jsonl; zero swarm-marker hits, so no captures exist to preserve.
+Verified: no raw/ files ever committed in git history; no stray evidence files
+on disk; SHA256SUMS green. Ratified as a canonical-layout exception.
