@@ -75,3 +75,18 @@ network is the recorded next step, not a blocker.
   notes/dir-triage-W3.md) aggregating the 6 events — 1 recovered, 5 not archived,
   Wayback-only scope. `event.dataset` suffixed `-rollup`.
 - `event.dataset = "2026-09-12-jsonhero-docs-archive"`; `event.created` = build time.
+
+## 2026-09-28: ingest script co-located (hunt convention)
+- `es_ingest_jsonhero_archive.py` moved from `scripts/` into this directory
+  per Christopher's single-collection convention; transforms
+  raw/manifest.json + raw/<doc_id>.json Wayback captures into shared-schema
+  docs (real transform, not a pure loader).
+- Cross-collection note: build_docs() also enriches with wiki-reference rows
+  from `data/aggregates/2026-09-29-overlap-analysis/raw/jsonhero_doc_links.jsonl`
+  (overlap-analysis lane, not this collection); that path is BASE-relative
+  and still resolves after the move.
+- `REPO_ROOT` in the script adjusted (repo root is now three levels up).
+- Offline verification: `build_docs()` yields 6 docs (record_kind
+  jsonhero_doc_archive).
+- `scripts/local_es_manifest.json` via_script entry repointed here.
+- SHA256SUMS regenerated (script file added to coverage).
