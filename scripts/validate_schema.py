@@ -25,7 +25,7 @@ REPO = __file__.rsplit("/scripts/", 1)[0]
 REQUIRED = ["@timestamp", "event", "record_kind", "fingerprint", "labels"]
 OPTIONAL = ["source_url", "description", "confidence", "tags", "observer",
             "retrieved_at", "retrieved_via", "sha256", "size_bytes",
-            "note", "status", "matched_string", "file"]
+            "note", "status", "matched_string", "file", "payloads"]
 ALLOWED = set(REQUIRED) | set(OPTIONAL)
 FP_RE = re.compile(r"^[0-9a-f]{64}$")
 KIND_RE = re.compile(r"^[a-z0-9_]+$")
@@ -95,6 +95,30 @@ def check(rec, ctx):
         errs.append("bad sha256")
     if "size_bytes" in rec and not isinstance(rec["size_bytes"], int):
         errs.append("size_bytes not int")
+    if "payloads" in rec:
+        pls = rec["payloads"]
+        if not isinstance(pls, list):
+            errs.append("payloads not an array")
+        else:
+            for pi, p in enumerate(pls):
+                if not isinstance(p, dict):
+                    errs.append(f"payloads[{pi}] not an object")
+                    continue
+                for rk in ("kind", "content_type", "content"):
+                    if not isinstance(p.get(rk), str) or not p[rk]:
+                        errs.append(f"payloads[{pi}] missing/bad {rk}")
+                if "encoding" in p and p["encoding"] not in ("text", "base64"):
+                    errs.append(f"payloads[{pi}] bad encoding")
+                if "truncated" in p and not isinstance(p["truncated"], bool):
+                    errs.append(f"payloads[{pi}] truncated not bool")
+                if "byte_size" in p and not isinstance(p["byte_size"], int):
+                    errs.append(f"payloads[{pi}] byte_size not int")
+                if "sha256" in p and not FP_RE.match(str(p["sha256"] or "")):
+                    errs.append(f"payloads[{pi}] bad sha256")
+                for k in p:
+                    if k not in ("kind", "content_type", "content", "encoding",
+                                 "truncated", "byte_size", "sha256"):
+                        errs.append(f"payloads[{pi}] unexpected key: {k}")
     return errs
 
 

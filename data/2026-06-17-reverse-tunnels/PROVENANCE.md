@@ -111,3 +111,63 @@ remnant of the lane's `htmx_search.py` (source no longer present; its
 manifest.sha256 entries were dropped as nonexistent during normalization).
 No unique data beyond the bytecode; kept for provenance of the lane's
 tooling. Stub directory removed.
+
+## Build-script repair 2026-09-29 (es_ingest_reverse_tunnels.py)
+
+**What was broken.** The lane-C script `scripts/es_ingest_reverse_tunnels.py`
+still pointed at the pre-rename dir `data/2016-05-06-reverse-tunnels`
+(`PDIR = BASE + "/data/2016-05-06-reverse-tunnels"`, `INDEX =
+"2016-05-06-reverse-tunnels"` — the old date label was wrong; min
+@timestamp is 2026-06-17T07:52:49Z). Its `scripts/local_es_manifest.json`
+`via_script` entry carried the same stale index name and script path. The
+script also built the pre-normalization legacy doc set
+(`tunnel_hostname`/`tunnel_evidence`/`uq_report` record kinds with a
+live-Elastic write path) instead of the collection's canonical
+events.jsonl/rollup.jsonl, so running it would have written degraded,
+schema-divergent docs.
+
+**What the repair does.** Rewrote it as a pure build script (no network, no
+Elastic writes — loading is generic via `scripts/push_to_local_es.py`
+auto-discovery), co-located at
+`data/2026-06-17-reverse-tunnels/es_ingest_reverse_tunnels.py`
+(single-collection convention; listed here and covered by SHA256SUMS). The
+collection dir resolves dynamically via the `*-reverse-tunnels` slug glob
+(relative to the script's own location, falling back to the repo's
+`data/`), so the next rename does not break the build. It rebuilds the
+canonical stream from `raw/` in normalization order: 29 `corpus_hit` from
+`corpus_tunnel_records.json`, 12 `tunnel_candidate` from
+`tunnel_hostnames.json`, 54 per-report `corpus_hit` + 1
+`corpus_grep_negative` from the six `uq_*.json` keyword responses, 2
+`corpus_hit` overviews from `uq_overview_*.json`, 7 `sweep_negative` from
+`htmx_summary.json`, 2 `dns_probe` from the `dns_*.txt` scan logs, plus 6
+`urlquery_rollup` rows — fingerprint identity strings byte-identical to the
+normalization (verified: fingerprint sets equal on both files, zero
+core-field mismatches).
+
+**Payload embedding.** Per-item material goes into the top-level
+`payloads` array (schema/record.schema.json, commit 37988db) as
+{kind, content_type, content, encoding, truncated, byte_size, sha256},
+with a top-level `file` pointer to the full raw artifact. NOTE: NOT
+`event.payloads` — `event` has `additionalProperties: false` in the schema;
+`payloads` is a sibling of `event`. Caps: payload `content` truncated at
+4000 chars (`truncated: true`; `byte_size`/`sha256` describe the full
+untruncated body; the full artifact stays in `raw/`). Embedded kinds:
+`tunnel-record` (29, full), `tunnel-candidate` (12, full),
+`urlquery-report` (54, capped — bodies run 3–21 KB), `urlquery-query-response`
+(1, full), `urlquery-report-overview` (2, capped), `dns-scan-log` (2, full —
+706/245 bytes). The 7 `sweep_negative` records carry no payload (the HTMX
+204 bodies are empty) but keep the `file` pointer to `htmx_summary.json`.
+Every record (107 + 6) carries a `file` pointer; all resolve.
+
+**Description truncation rule (recovered from the normalization).**
+`urlquery hit for '<query>': <fqdn>` and `urlquery single-report
+overview: <fqdn>` — the FQDN, not the full submitted URL — capped at 96
+chars. Reproduced exactly in the build.
+
+**Verification.** `python3 -m py_compile` clean; dry-run
+`--out-dir /tmp/rt-build` → 107 events + 6 rollup; `python3
+scripts/validate_schema.py` (extended 2026-09-29 to accept/verify the
+`payloads` items) → 0 violations on 113 records. The canonical
+`events.jsonl`/`rollup.jsonl` were NOT overwritten in this repair — the
+build output was validated to disk in /tmp only; promotion is a separate
+decision.

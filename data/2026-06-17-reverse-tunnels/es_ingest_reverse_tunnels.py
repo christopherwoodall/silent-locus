@@ -1,200 +1,368 @@
 #!/usr/bin/env python3
-"""LANE C: ingest the reverse-tunnel dataset into its own `reverse-tunnels` Elastic index.
+"""Build the reverse-tunnels collection's canonical event stream from raw/.
 
-Conforms to the canonical shared schema (notes/gems-es-mapping.json):
-tunnel concepts map onto existing fields; tunnel-specific detail lives in
-`labels` (flattened) + `tags`. Zero new top-level fields.
-event.dataset.keyword multi-field included at creation (uniform with the
-other campaign indices).
+Reads the lane-C raw captures (2026-09-28) and (re)builds the
+schema-conformant `events.jsonl` (107 rows) + `rollup.jsonl` (6 rows) for
+collection `2026-06-17-reverse-tunnels`, faithfully reproducing the
+2026-09-29 normalization (fingerprint identity strings unchanged).
 
-Record kinds:
-  tunnel_hostname  - one per exact tunnel hostname (corpus-verified,
-                     urlquery-scanned, candidate-same-format)
-  tunnel_evidence  - one per collusion-wiki revision row carrying a tunnel URL
-  uq_report        - one per urlquery scan report touching a tunnel string
+Repair 2026-09-29:
+  - Repointed from the pre-rename dir `data/2016-05-06-reverse-tunnels`
+    (the old date label was wrong; min @timestamp is 2026-06-17T07:52:49Z).
+    Collection dir is resolved dynamically via the `*-reverse-tunnels` slug
+    glob, so the next rename does not break the build.
+  - Co-located with the collection (single-collection build-script
+    convention, schema/collections.md); listed in the collection's
+    PROVENANCE.md and covered by its SHA256SUMS.
+  - Reads are against the post-backfill layout (raw inputs consumed
+    directly; dataset-specific fields land under `labels.*`, flat dotted
+    keys per the ECS labels rule).
+  - Per-item payload material is embedded in the top-level `payloads`
+    array (schema/record.schema.json, commit 37988db): each item is
+    {kind, content_type, content, encoding, truncated, byte_size, sha256}
+    with content capped at PAYLOAD_TEXT_CAP chars (byte_size/sha256
+    describe the full untruncated body), plus a top-level `file` pointer
+    to the full raw artifact. See the PROVENANCE.md repair note.
 
-Usage: python3 es_ingest_reverse_tunnels.py
+Pure build: no network, no Elastic writes. Loading is generic via
+`scripts/push_to_local_es.py` auto-discovery of events.jsonl/rollup.jsonl.
+
+Usage:
+  python3 es_ingest_reverse_tunnels.py                  # dry-run: build in memory, print counts
+  python3 es_ingest_reverse_tunnels.py --out-dir /tmp/x # write events.jsonl/rollup.jsonl to DIR
+  python3 es_ingest_reverse_tunnels.py --build-events   # overwrite the collection's own files
 """
-import json, sys, urllib.request
+import argparse
+import glob
+import hashlib
+import json
+import os
+import re
+import sys
 from datetime import datetime, timezone
 
-import os
-try:
-    sys.path.insert(0, "/opt/hatch/skills/skill-creator/bin")
-    from dynamic_credentials import add_surrogate_to_request, read_json_response
-except ImportError:  # local run: no vault on this machine, plain HTTP(S) instead
-    def add_surrogate_to_request(request, *args, **kwargs):
-        return None
-    def read_json_response(response):
-        import json as _json
-        return _json.load(response)
-
-ES = os.environ.get("SWARMTRACES_ES_URL", "https://agent-apocalypse-f1f7ba.es.us-east-1.aws.elastic.cloud:443")
-REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-HOSTS = ["agent-apocalypse-f1f7ba.es.us-east-1.aws.elastic.cloud"]
-CRED = "custom.elastic-cloud"
-BASE = REPO_ROOT
-PDIR = BASE + "/data/2016-05-06-reverse-tunnels"
-INDEX = "2016-05-06-reverse-tunnels"
-NOW = datetime.now(timezone.utc).isoformat()
-OBSERVER = {"product": "reverse-tunnels-ingest", "vendor": "nightingale-collective",
-            "type": "dataset"}
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+REPO_ROOT = os.path.dirname(os.path.dirname(SCRIPT_DIR))
 
 
-def req(method, path, body=None, raw=None):
-    url = ES + path
-    data = raw.encode() if raw is not None else (
-        json.dumps(body).encode() if body is not None else None)
-    r = urllib.request.Request(url, data=data, method=method)
-    r.add_header("Content-Type", "application/json")
-    if ES.startswith(("http://localhost", "http://127.0.0.1", "http://[::1]")):
-        _es_user = os.environ.get("ES_USER")
-        if _es_user:
-            import base64 as _b64
-            r.add_header("Authorization", "Basic " + _b64.b64encode(
-                f"{_es_user}:{os.environ.get('ES_PASS', '')}".encode()).decode())
-    else:
-        add_surrogate_to_request(r, CRED, allowed_hosts=HOSTS)
-    with urllib.request.urlopen(r, timeout=180) as resp:
-        return read_json_response(resp)
+def resolve_collection_dir():
+    """Dynamic slug-glob resolution: survive the next rename."""
+    base = os.path.basename(SCRIPT_DIR)
+    if base.endswith("-reverse-tunnels") and os.path.isdir(SCRIPT_DIR):
+        return SCRIPT_DIR
+    cands = sorted(glob.glob(os.path.join(REPO_ROOT, "data", "*-reverse-tunnels")))
+    if not cands:
+        sys.exit("no data/*-reverse-tunnels collection dir found under " + REPO_ROOT)
+    return cands[-1]
 
 
-def flat(d):
-    out = {}
-    for k, v in d.items():
-        if v is None:
-            continue
-        elif isinstance(v, (list, tuple)):
-            out[k] = ", ".join(str(x) for x in v[:20])
-        else:
-            out[k] = str(v)
-    return out
+DIR = resolve_collection_dir()
+RAW = os.path.join(DIR, "raw")
+SLUG = os.path.basename(DIR)
+INDEX = SLUG
+ROLLUP_INDEX = SLUG + "-rollup"
+LANE_DATE = "2026-09-28"
+LANE_TS = LANE_DATE + "T00:00:00Z"
+OBSERVER = {"product": "muse", "type": "research-agent", "vendor": "meta"}
+RETRIEVED_VIA = "urlquery public API (read-only GET)"
+
+PAYLOAD_TEXT_CAP = 4000  # chars; full bytes stay in raw/, reachable via `file`
+EXCLUDED_NAMES = ("myxworm", "petisse", "inohm-sh",
+                  "serviceupdatevalidator", "webmailadminhelpdesk")
 
 
-def base_doc(kind, ts=None):
-    doc = {
-        "record_kind": kind,
-        "event": {"dataset": INDEX, "created": NOW},
+def fp(identity):
+    return hashlib.sha256(identity.encode("utf-8")).hexdigest()
+
+
+def base_doc(record_kind, ts, dataset=INDEX):
+    return {
+        "@timestamp": ts,
+        "event": {"dataset": dataset,
+                  "created": datetime.now(timezone.utc).isoformat()},
+        "record_kind": record_kind,
         "observer": dict(OBSERVER),
-        "tags": ["source:reverse-tunnels-lane-c"],
     }
-    if ts:
-        doc["@timestamp"] = ts
-        doc["published_at"] = ts
-    return doc
 
 
-def build_docs():
-    docs = {}
+def rel(path):
+    """Repo-root-relative file pointer for the `file` field."""
+    return os.path.relpath(path, REPO_ROOT)
 
-    hosts = json.load(open(PDIR + "/tunnel_hostnames.json"))["hostnames"]
+
+def payload_item(kind, content_type, text):
+    """One top-level `payloads` item per the schema: {kind, content_type,
+    content, encoding, truncated, byte_size, sha256}.
+
+    `text` is the per-item material (scan log, tunnel record, report JSON).
+    Content is capped at PAYLOAD_TEXT_CAP chars; `truncated` marks the cut
+    and `byte_size`/`sha256` describe the full untruncated body. The full
+    artifact is reachable via the record's top-level `file` pointer.
+    """
+    raw = text if isinstance(text, bytes) else text.encode("utf-8")
+    truncated = len(raw) > PAYLOAD_TEXT_CAP
+    head = raw[:PAYLOAD_TEXT_CAP].decode("utf-8", "replace")
+    return {
+        "kind": kind,
+        "content_type": content_type,
+        "content": head,
+        "encoding": "text",
+        "truncated": truncated,
+        "byte_size": len(raw),
+        "sha256": hashlib.sha256(raw).hexdigest(),
+    }
+
+
+def get(d, *path, default=None):
+    for k in path:
+        if not isinstance(d, dict):
+            return default
+        d = d.get(k)
+        if d is None:
+            return default
+    return d
+
+
+def report_labels(query_or_fetch, r):
+    """Shared urlquery-report label block (keyword hits + overviews)."""
+    lab = {}
+    if query_or_fetch[0] == "query":
+        lab["uq.query"] = query_or_fetch[1]
+    else:
+        lab["uq.fetch"] = query_or_fetch[1]
+    lab["uq.report_id"] = r["report_id"]
+    lab["uq.date"] = r["date"]
+    lab["uq.submitted_url"] = get(r, "url", "addr")
+    lab["uq.fqdn"] = get(r, "url", "fqdn")
+    lab["uq.target_ip"] = get(r, "ip", "addr")
+    asn = get(r, "ip", "asn")
+    if asn is not None:
+        lab["uq.target_asn"] = asn
+    as_org = get(r, "ip", "as")
+    if as_org is not None:
+        lab["uq.target_as_org"] = as_org
+    cc = get(r, "ip", "country_code")
+    if cc is not None:
+        lab["uq.target_country"] = cc
+    lab["uq.tags"] = r.get("tags") or []
+    if query_or_fetch[0] == "query":
+        # canonical normalization carries candidate_excluded on keyword
+        # reports only (absent on the single-report overview fetches)
+        fqdn = lab["uq.fqdn"] or ""
+        lab["uq.candidate_excluded"] = any(n in fqdn for n in EXCLUDED_NAMES)
+    lab["timestamp_source"] = "labels:uq.date"
+    return lab
+
+
+def build_events():
+    events = []
+
+    # 1. corpus rows -> corpus_hit (29)
+    corpus_path = os.path.join(RAW, "corpus_tunnel_records.json")
+    corpus = json.load(open(corpus_path))
+    for e in corpus:
+        doc = base_doc("corpus_hit", e["time"])
+        doc["fingerprint"] = fp("%s|%s|%s|%s" % (
+            e["time"], e["label"], e["page_id"], ",".join(e["tunnels"])))
+        doc["labels"] = {
+            "tunnel.label": e["label"],
+            "tunnel.page_id": e["page_id"],
+            "tunnel.urls": e["tunnels"],
+            "record.time": e["time"],
+            "timestamp_source": "labels:record.time",
+        }
+        doc["payloads"] = [payload_item(
+            "tunnel-record", "application/json", json.dumps(e, indent=1))]
+        doc["file"] = rel(corpus_path)
+        doc["description"] = ("corpus revision carrying tunnel URL(s): " +
+                              ", ".join(e["tunnels"]))
+        events.append(doc)
+
+    # 2. hostname candidates -> tunnel_candidate (12)
+    hosts_path = os.path.join(RAW, "tunnel_hostnames.json")
+    hosts = json.load(open(hosts_path))["hostnames"]
     for h in hosts:
-        doc = base_doc("tunnel_hostname", h["first_seen_utc"])
-        doc["source_url"] = "https://" + h["hostname"]
-        doc["matched_string"] = h["hostname"]
-        doc["description"] = (
-            "Reverse-tunnel hostname (%s). %s. %s" %
-            (h["provider"], h["classification"], h["evidence"]))
-        doc["confidence"] = h["classification"]
-        doc["tags"] += ["provider:" + h["provider"], "class:" + h["classification"]]
-        doc["labels"] = flat({
-            "hostname": h["hostname"],
-            "provider": h["provider"],
-            "classification": h["classification"],
-            "first_seen_utc": h["first_seen_utc"],
-            "embedded_client_ip": h["embedded_ip"],
-            "agent_label": h["label"],
-            "wiki_pages": h["pages"],
-            "ingested_by": "es_ingest_reverse_tunnels",
-        })
-        docs["tunnel:" + h["hostname"]] = doc
+        doc = base_doc("tunnel_candidate", h["first_seen_utc"])
+        doc["fingerprint"] = fp(h["hostname"])
+        doc["labels"] = {
+            "tunnel.hostname": h["hostname"],
+            "tunnel.provider": h["provider"],
+            "tunnel.embedded_ip": h["embedded_ip"],
+            "tunnel.classification": h["classification"],
+            "tunnel.label": h["label"],
+            "tunnel.pages": h["pages"],
+            "tunnel.evidence": h["evidence"],
+            "tunnel.first_seen": h["first_seen_utc"],
+            "timestamp_source": "labels:tunnel.first_seen",
+        }
+        doc["payloads"] = [payload_item(
+            "tunnel-candidate", "application/json", json.dumps(h, indent=1))]
+        doc["file"] = rel(hosts_path)
+        doc["description"] = ("tunnel hostname candidate (%s): %s" %
+                              (h["classification"], h["hostname"]))
+        events.append(doc)
 
-    evid = json.load(open(PDIR + "/corpus_tunnel_records.json"))
-    for e in evid:
-        doc = base_doc("tunnel_evidence", e["time"])
-        doc["source_url"] = "https://collusion.wiki/explorer"
-        doc["description"] = (
-            "collusion-wiki revision %s on %s (%s) carries tunnel URL(s): %s" %
-            (e["label"], e["page_id"], e["time"], ", ".join(e["tunnels"])))
-        doc["matched_string"] = ", ".join(e["tunnels"])
-        doc["tags"] += ["source:collusion-wiki-export", "wiki:" + e["page_id"].split("/")[0]]
-        doc["labels"] = flat({
-            "agent_label": e["label"],
-            "page_id": e["page_id"],
-            "revision_time": e["time"],
-            "tunnels": e["tunnels"],
-            "ingested_by": "es_ingest_reverse_tunnels",
-        })
-        docs["tunnel-evidence:%s:%s:%s" % (e["time"], e["label"], e["page_id"])] = doc
+    # 3. urlquery keyword responses -> per-report corpus_hit / zero-hit negative
+    uq_files = sorted(
+        f for f in glob.glob(os.path.join(RAW, "uq_*.json"))
+        if "overview" not in f and "summary" not in f)
+    for qf in uq_files:
+        q = json.load(open(qf))
+        query, reps = q["query"], q.get("reports") or []
+        if not reps:
+            doc = base_doc("corpus_grep_negative", LANE_TS)
+            doc["fingerprint"] = fp("urlquery:" + query)
+            doc["labels"] = {
+                "uq.query": query,
+                "uq.total_hits": q.get("total_hits", 0),
+                "lane.date": LANE_DATE,
+                "timestamp_source": "labels:lane.date",
+            }
+            doc["payloads"] = [payload_item(
+                "urlquery-query-response", "application/json",
+                json.dumps(q, indent=1))]
+            doc["file"] = rel(qf)
+            doc["matched_string"] = query
+            doc["description"] = "urlquery keyword '%s': 0 hits" % query
+            events.append(doc)
+            continue
+        for r in reps:
+            doc = base_doc("corpus_hit", r["date"])
+            doc["fingerprint"] = fp("urlquery:%s:%s" % (query, r["report_id"]))
+            doc["labels"] = report_labels(("query", query), r)
+            doc["payloads"] = [payload_item(
+                "urlquery-report", "application/json",
+                json.dumps(r, indent=1))]
+            doc["file"] = rel(qf)
+            doc["source_url"] = "https://urlquery.net/report/" + r["report_id"]
+            doc["retrieved_via"] = RETRIEVED_VIA
+            doc["description"] = ("urlquery hit for '%s': %s" %
+                                  (query, doc["labels"]["uq.fqdn"]))[:96]
+            events.append(doc)
 
-    uq = json.load(open(PDIR + "/uq_report_summary.json"))
-    for query, block in uq.items():
-        for r in block["reports"]:
-            rid = r["report_id"]
-            doc = base_doc("uq_report", r["date"])
-            doc["source_url"] = "https://urlquery.net/report/" + rid
-            doc["description"] = (
-                "urlquery scan report matching '%s': submitted %s (scan %s)" %
-                (query, r["submitted_url"], r["date"]))
-            doc["matched_string"] = r["submitted_url"]
-            doc["tags"] += ["source:urlquery", "query:" + query]
-            doc["labels"] = flat({
-                "report_id": rid,
-                "scan_date": r["date"],
-                "submitted_url": r["submitted_url"],
-                "urlquery_query": query,
-                "ingested_by": "es_ingest_reverse_tunnels",
-            })
-            docs["uq-report:%s:%s" % (query, rid)] = doc
+    # 4. single-report overview fetches -> corpus_hit (2)
+    for ovf in sorted(glob.glob(os.path.join(RAW, "uq_overview_*.json"))):
+        r = json.load(open(ovf))
+        doc = base_doc("corpus_hit", r["date"])
+        doc["fingerprint"] = fp("urlquery:overview:" + r["report_id"])
+        doc["labels"] = report_labels(("fetch", "report_overview"), r)
+        doc["payloads"] = [payload_item(
+            "urlquery-report-overview", "application/json",
+            json.dumps(r, indent=1))]
+        doc["file"] = rel(ovf)
+        doc["source_url"] = "https://urlquery.net/report/" + r["report_id"]
+        doc["retrieved_via"] = RETRIEVED_VIA
+        doc["description"] = ("urlquery single-report overview: " +
+                              doc["labels"]["uq.fqdn"])[:96]
+        events.append(doc)
 
-    return docs
+    # 5. HTMX 204s -> sweep_negative (7); bodies are 0-byte 204s, nothing to embed
+    htmx_path = os.path.join(RAW, "htmx_summary.json")
+    htmx = json.load(open(htmx_path))
+    for key, blk in htmx.items():
+        doc = base_doc("sweep_negative", LANE_TS)
+        doc["fingerprint"] = fp("htmx_read_path:" + key)
+        doc["labels"] = {
+            "htmx.query": blk["query"],
+            "htmx.http_status": blk["http_status"],
+            "htmx.html_bytes": blk["html_bytes"],
+            "lane.date": LANE_DATE,
+            "timestamp_source": "labels:lane.date",
+        }
+        doc["file"] = rel(htmx_path)
+        doc["description"] = ("urlquery HTMX read path for '%s': HTTP %d "
+                              "(endpoint non-functional)" %
+                              (blk["query"], blk["http_status"]))
+        events.append(doc)
+
+    # 6. DNS scan logs -> dns_probe (2); full text embedded (small files)
+    for fn in sorted(os.listdir(RAW)):
+        if not (fn.startswith("dns_") and fn.endswith(".txt")):
+            continue
+        path = os.path.join(RAW, fn)
+        text = open(path).read()
+        m = re.search(r"(\d{8}T\d{6})Z", fn)
+        at = ("%s-%s-%sT%s:%s:%sZ" % (m.group(1)[:4], m.group(1)[4:6],
+                                      m.group(1)[6:8], m.group(1)[9:11],
+                                      m.group(1)[11:13], m.group(1)[13:15]))
+        kind = "authoritative" if "auth" in fn else "resolution"
+        hosts_list = [ln[3:].strip() for ln in text.splitlines()
+                      if ln.startswith("== ")]
+        doc = base_doc("dns_probe", at)
+        doc["fingerprint"] = fp("dns:" + fn)
+        doc["labels"] = {
+            "probe.at": at,
+            "probe.kind": kind,
+            "probe.hosts": hosts_list,
+            "probe.result": ("inconclusive: VM resolver sinkholes every query; "
+                             "direct UDP/53 silent"),
+            "timestamp_source": "labels:probe.at",
+        }
+        doc["payloads"] = [payload_item(
+            "dns-scan-log", "text/plain", text)]
+        doc["file"] = rel(path)
+        doc["description"] = ("DNS %s check (%d names/zones); "
+                              "no tunnel connections made" %
+                              (kind, len(hosts_list)))
+        events.append(doc)
+
+    return events
 
 
-def ensure_index():
-    try:
-        req("GET", "/%s" % INDEX)
-        print("index exists:", INDEX)
-        return
-    except Exception:
-        pass
-    mapping = json.load(open(BASE + "/notes/gems-es-mapping.json"))["mappings"]
-    # uniform event.dataset.keyword multi-field (matches other campaign indices)
-    mapping["properties"]["event"]["properties"]["dataset"]["fields"] = {
-        "keyword": {"type": "keyword", "ignore_above": 256}}
-    req("PUT", "/%s" % INDEX, {"mappings": mapping})
-    print("created index with shared mapping:", INDEX)
+def build_rollup():
+    rows = []
+    uq_files = sorted(
+        f for f in glob.glob(os.path.join(RAW, "uq_*.json"))
+        if "overview" not in f and "summary" not in f)
+    for qf in uq_files:
+        q = json.load(open(qf))
+        query, reps = q["query"], q.get("reports") or []
+        doc = base_doc("urlquery_rollup", LANE_TS, dataset=ROLLUP_INDEX)
+        doc["fingerprint"] = fp("urlquery_rollup:" + query)
+        doc["labels"] = {
+            "uq.query": query,
+            "uq.total_hits": q.get("total_hits", 0),
+            "uq.reports_retrieved": len(reps),
+            "lane.date": LANE_DATE,
+            "timestamp_source": "labels:lane.date",
+        }
+        doc["file"] = rel(qf)
+        doc["description"] = ("urlquery rollup '%s': %d total hits, "
+                              "%d reports retrieved" %
+                              (query, q.get("total_hits", 0), len(reps)))
+        rows.append(doc)
+    return rows
 
 
-def bulk_load(docs):
-    items = list(docs.items())
-    ok = fail = 0
-    for i in range(0, len(items), 400):
-        chunk = items[i:i + 400]
-        nd = "".join(
-            json.dumps({"index": {"_index": INDEX, "_id": _id}}) + "\n" +
-            json.dumps(doc) + "\n" for _id, doc in chunk)
-        res = req("POST", "/_bulk", raw=nd)
-        for it in res.get("items", []):
-            st = it.get("index", {}).get("status", 0)
-            if st in (200, 201):
-                ok += 1
-            else:
-                fail += 1
-                print("BULK FAIL:", json.dumps(it)[:250])
-    return ok, fail
+def write_jsonl(path, docs):
+    with open(path, "w") as fh:
+        for d in docs:
+            fh.write(json.dumps(d, ensure_ascii=False) + "\n")
 
 
-def verify():
-    req("POST", "/%s/_refresh" % INDEX)
-    r = req("POST", "/%s/_count" % INDEX,
-            {"query": {"term": {"event.dataset": INDEX}}})
-    return r.get("count", 0)
+def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--out-dir", default=None,
+                    help="write events.jsonl/rollup.jsonl to DIR (dry-run to disk)")
+    ap.add_argument("--build-events", action="store_true",
+                    help="overwrite the collection's own events.jsonl/rollup.jsonl")
+    args = ap.parse_args()
+
+    events = build_events()
+    rollup = build_rollup()
+    print("collection dir:", DIR)
+    print("events built:", len(events), "| rollup built:", len(rollup))
+
+    out = args.out_dir
+    if args.build_events:
+        out = DIR
+    if out:
+        os.makedirs(out, exist_ok=True)
+        write_jsonl(os.path.join(out, "events.jsonl"), events)
+        write_jsonl(os.path.join(out, "rollup.jsonl"), rollup)
+        print("wrote:", os.path.join(out, "events.jsonl"),
+              os.path.join(out, "rollup.jsonl"))
 
 
 if __name__ == "__main__":
-    ensure_index()
-    docs = build_docs()
-    print("docs built:", len(docs))
-    ok, fail = bulk_load(docs)
-    print("bulk ok:", ok, "fail:", fail)
-    print("verified count in index:", verify())
+    main()
