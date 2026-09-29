@@ -72,3 +72,34 @@ multi-field. Ingest script: `scripts/es_ingest_powerbi.py`.
 ## Raw layer 2026-09-29
 
 - `hits.jsonl` -> `raw/hits.jsonl` (upstream capture; no script consumers at time of move). Upstream name preserved; raw layer exempt from event schema.
+
+## Schema build 2026-09-29 (worker W5)
+
+- events.jsonl: **180 records** — 179 hits from `raw/hits.jsonl`
+  (record_kind `corpus_hit`, sub-kinds in `labels.powerbi.hit_kind`:
+  135 agent_wiki_revision, 41 agent_wiki_record, 2 investigator_wiki_passage,
+  1 agent_wiki_link) + 1 `artifact_observation` for
+  `raw/technique-verbatim.md` (the two verbatim passages).
+- fingerprint identity string:
+  `powerbi-hit|<hit_kind>|<source_file>|<record_id|rev_id|line|page_key>`;
+  verbatim artifact: `powerbi-verbatim|technique-verbatim.md`.
+- `@timestamp`: the hit's `timestamp` field parsed to ISO where present
+  (`labels.timestamp_source = "labels:powerbi.hit_timestamp"`); the two
+  investigator passages carry prose timestamps, so they use the dir date
+  2026-06-20T00:00:00Z with `timestamp_source =
+  "dir_prefix:investigator_passage_covers_2026-06-20_21"`. Raw timestamp
+  prose kept in `labels.powerbi.hit_timestamp_raw`; `url_context` truncated
+  to 400 chars in labels (full text remains in raw/hits.jsonl).
+- SHA256SUMS regenerated: covers events.jsonl + the 2 raw files. The
+  previous SHA256SUMS listed `raw/progress.log`, which does not exist —
+  stale entry dropped.
+- Verified: all 180 records validate; fingerprint recomputed by hand for
+  the verbatim artifact and two sample hits; timestamps spot-checked.
+
+## Rollup decision 2026-09-29 (worker W5)
+
+- No rollup.jsonl: the collection is a pure event stream (179 grep hits +
+  1 verbatim artifact). The only natural groupings (per hit_kind counts,
+  per wiki page) are mechanical group-bys with no burst/window/actor
+  structure in the data — inventing a rollup would add nothing. Per
+  Christopher's worker rule, no rollup was built.
