@@ -45,3 +45,32 @@ Naturally small: metadata-only micro-dataset for a single RubyGems package
 by the package's own version list. ES `fieldnotes-gem` _count=7 verified.
 No campaign grammar in any capture; gem is the legit public-board.com client,
 not campaign infra. Kept as its own dataset per the RubyGems provenance rule.
+
+## Schema build 2026-09-29 (worker W5)
+
+- events.jsonl: **7 records** (record_kind `venue_finding`), one per raw
+  capture file (diffend-page.html, compact-index-info.txt,
+  rubygems-versions.json, rubygems-gem.json, grammar-sweep.json,
+  checksums.txt, manifest.json). Complete public registry surface of the
+  single `fieldnotes` gem — no more records to make.
+- fingerprint identity string: `fieldnotes-gem|file|<filename>`.
+- `@timestamp`: 2026-09-05T00:00:00Z (dir date prefix; gem v0.1.0 released
+  2026-09-05) for all rows, `timestamp_source = "dir_prefix"`;
+  `retrieved_at` 2026-09-28T03:25:00Z (capture window 03:22–03:25 UTC).
+  Per-file registry facts live in `labels.gem.*` / `labels.file.*` /
+  `labels.diffend.*` / `labels.sweep.*`; per-file sha256+size at top level.
+  Key facts: 4 versions (0.1.0 Sep 05; 0.1.1–0.1.3 burst-published Sep 20
+  within ~4h); `yanked: false`; 2772 downloads; authors `field-notes`
+  (org/team string, scope-compliant); zero campaign-grammar hits in
+  grammar-sweep.json.
+- SHA256SUMS regenerated: covers events.jsonl + all 7 raw files. The
+  previous SHA256SUMS listed `raw/progress.log`, which does not exist —
+  stale entry dropped.
+- Verified: all 7 records validate; fingerprint + file sha256 recomputed by
+  hand for rubygems-gem.json (matches the checksums.txt entry).
+
+## Rollup decision 2026-09-29 (worker W5)
+
+- No rollup.jsonl: 7 per-file capture records with no natural aggregate
+  layer (no bursts, windows, or groupings in the data). Per Christopher's
+  worker rule, no rollup was built.
