@@ -48,3 +48,11 @@ observable: no message surface is reachable to scan.
   64-hex and failed the schema; preserved losslessly as
   `labels.legacy_fingerprint`. New fingerprint = `sha256(<original slug>)`,
   e.g. `sha256("probe-dns-001")`. Identity string = the original slug.
+
+## raw/-missing exception 2026-09-29
+
+2026-09-29: no raw/ layer — liveness-recon lane: ephemeral probe responses (DNS
+query, curl GETs, /skill.md fetch) are recorded inline as verdict/probe records
+in events.jsonl; the target was unreachable, so no captures exist to preserve.
+Verified: no raw/ files ever committed in git history; no stray evidence files
+on disk; SHA256SUMS green. Ratified as a canonical-layout exception.
