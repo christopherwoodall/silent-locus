@@ -61,3 +61,16 @@ verbatim — additive only.
 - **labels**: nested objects flattened with dotted keys
   (`pattern_families.<family>`, `referrers.<host>`). No invalid label keys
   in this file.
+
+## Stale `file` pointer rewrite 2026-09-29
+
+The 21312cf raw/ migration moved captures under `raw/` without rewriting
+top-level `file` pointers in `events.jsonl`. Fixed 1 stale pointer, dropped
+0. Only the `file` value changed; all other fields byte-identical.
+
+- `goto-unm-edu/vbudg_stats_2026-09-28.txt`
+  → `data/2026-09-28-university-shorteners-batch2/raw/goto-unm-edu/vbudg_stats_2026-09-28.txt`
+  (basename unique repo-wide; capture SOURCE header matches the event's
+  `labels.short_url` https://goto.unm.edu/vbudg).
+
+SHA256SUMS regenerated (`events.jsonl` hash only).
