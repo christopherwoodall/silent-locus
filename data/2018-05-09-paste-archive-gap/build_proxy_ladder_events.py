@@ -33,7 +33,7 @@ def main():
         in_rmn = bool(e.get("in_rmn_re", False))
         rec = {
             "@timestamp": "1970-01-01T00:00:00Z",
-            "event": {"dataset": "2026-03-12-paste-archive-gap", "created": CREATED},
+            "event": {"dataset": "2018-05-09-paste-archive-gap", "created": CREATED},
             "record_kind": "proxy_ladder_entry",
             "fingerprint": fp(url),
             "labels": {
@@ -44,7 +44,7 @@ def main():
                 "timestamp_source": "fallback:no_recoverable_date",
             },
             "source_url": url,
-            "file": "data/2026-03-12-paste-archive-gap/raw/proxy_ladder_crossref.json",
+            "file": "data/2018-05-09-paste-archive-gap/raw/proxy_ladder_crossref.json",
             "status": "rmn_re_overlap" if in_rmn else "actor_page_only",
             "confidence": "high",
             "tags": ["proxy-ladder"] + (["rmn-re-overlap"] if in_rmn else []),

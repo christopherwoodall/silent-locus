@@ -21,7 +21,7 @@ D = "data/aggregates/2025-09-26-cors-bwa-proxy"
 os.makedirs(f"{D}/raw", exist_ok=True)
 
 INDICES = ["2026-05-17-collusion-wiki", "urlquery-incidents", "urlquery-hunt",
-           "2026-05-26-proxy-primitives", "2026-03-12-paste-archive-gap", "2026-09-27-rmn-re-linktable"]
+           "2026-05-26-proxy-primitives", "2018-05-09-paste-archive-gap", "2026-06-19-rmn-re-linktable"]
 
 
 def req(method, path, body=None):

@@ -29,8 +29,8 @@ REPO_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__fi
 HOSTS = ["agent-apocalypse-f1f7ba.es.us-east-1.aws.elastic.cloud"]
 CRED = "custom.elastic-cloud"
 BASE = REPO_ROOT
-D = BASE + "/data/2026-03-12-paste-archive-gap"
-INDEX = "2026-03-12-paste-archive-gap"
+D = BASE + "/data/2018-05-09-paste-archive-gap"
+INDEX = "2018-05-09-paste-archive-gap"
 NOW = datetime.now(timezone.utc).isoformat()
 OBSERVER = {"product": "paste-archive-gap-ingest", "vendor": "swarmtraces-hunt",
             "type": "dataset"}

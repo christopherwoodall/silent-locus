@@ -36,7 +36,7 @@ def find_strings(obj, needle, out, path=""):
 
 # ---- shape inspection: where does the bwa string live per index? ----
 for name in ["2026-05-17-collusion-wiki", "urlquery-hunt", "2026-05-26-proxy-primitives",
-             "2026-03-12-paste-archive-gap", "2026-09-27-rmn-re-linktable"]:
+             "2018-05-09-paste-archive-gap", "2026-06-19-rmn-re-linktable"]:
     docs = load(name)
     path_counts = Counter()
     for d in docs[:20]:

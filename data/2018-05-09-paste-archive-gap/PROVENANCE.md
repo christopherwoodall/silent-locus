@@ -127,7 +127,7 @@ _count=27 verified, schema-drift clean.
 `hidden_files/shortener-cdx/` — that loop's parser, pathspecs and commit
 semantics are the 12-URL shortener-stats slice; extending it would break scope.
 Instead documented exactly what to add in
-`data/2026-03-12-paste-archive-gap/raw/wayback-anna-fyi-coverage.md`: the three CDX queries
+`data/2018-05-09-paste-archive-gap/raw/wayback-anna-fyi-coverage.md`: the three CDX queries
 (`anna.fyi/view/*` prefix with collapse=urlkey, `anna.fyi/api/recent`,
 `anna.fyi/lists*`), output dir, DONE marker, disk-only scope guard. Wayback
 CDX still 503 at run time — nothing ran.
@@ -153,7 +153,7 @@ listing as investigator-internal paths
 conclusion stands; no IDs recovered this angle.
 
 **(e) Common Crawl URL-index coverage:** queued as
-`data/2026-03-12-paste-archive-gap/raw/common-crawl-anna-fyi-query.md` for the lane12
+`data/2018-05-09-paste-archive-gap/raw/common-crawl-anna-fyi-query.md` for the lane12
 supervisor — exact `index.commoncrawl.org` prefix queries
 (`anna.fyi/view/*` with collapse=urlkey, plus `anna.fyi/api/recent`),
 crawl selection via collinfo.json (windows intersecting 2026-03-01..2026-09-28),
@@ -214,19 +214,19 @@ see `aux/joshuadavid-anna-revisions-2026-09-28.jsonl` (`verdict`, `verdict_ratio
 
 ## Raw layer 2026-09-29
 
-- `data/paste-archive-gap/investigator-repo/joshuadavid-anna-revisions-2026-09-28.jsonl` -> `data/2026-03-12-paste-archive-gap/raw/investigator-repo/joshuadavid-anna-revisions-2026-09-28.jsonl` (upstream investigator-repo capture; no script consumers, moved because it is a raw capture, not a final standalone output)
+- `data/paste-archive-gap/investigator-repo/joshuadavid-anna-revisions-2026-09-28.jsonl` -> `data/2018-05-09-paste-archive-gap/raw/investigator-repo/joshuadavid-anna-revisions-2026-09-28.jsonl` (upstream investigator-repo capture; no script consumers, moved because it is a raw capture, not a final standalone output)
 
 ## Schema backfill 2026-09-29 (normalization sweep, worker W4)
 
 - Built `events.jsonl`: 68 records — 67 `pastebin_probe` (one per raw/manifest.json entry: 15 lane-M + 51 lane-1 + b3746a9f_decoded) and 1 `artifact_observation` (raw/investigator-repo snapshot).
 - Fingerprint identity string: `anna.fyi:<paste_id>` (`anna.fyi:b3746a9f:decoded` for the decoded cemetery JSON); `anna.fyi:investigator-repo:joshuadavid-anna-revisions-2026-09-28` for the snapshot.
 - @timestamp = manifest `created_utc` per paste (labels.timestamp_source=`manifest.created_utc`); decoded record uses manifest `generated_at` 2026-09-14T21:56:52Z; the deleted paste d266bdde has no recoverable date -> sentinel 1970-01-01T00:00:00Z with labels.timestamp_source=`fallback:no_recoverable_date` (deletion confirmed in the 2026-09-28 lane-1 probe, recorded in note).
-- `rollup.jsonl`: 2 rows, one per recovery batch (`lane-m`, `lane-1-retry`; record_kind `extraction`, event.dataset `2026-03-12-paste-archive-gap-rollup`): paste count, total bytes, first/last created, confirmed deletions. Fingerprint identity: `anna.fyi-rollup:<source>`. (The investigator-repo snapshot is a provenance artifact, excluded from the batch rollup.)
+- `rollup.jsonl`: 2 rows, one per recovery batch (`lane-m`, `lane-1-retry`; record_kind `extraction`, event.dataset `2018-05-09-paste-archive-gap-rollup`): paste count, total bytes, first/last created, confirmed deletions. Fingerprint identity: `anna.fyi-rollup:<source>`. (The investigator-repo snapshot is a provenance artifact, excluded from the batch rollup.)
 - Regenerated `SHA256SUMS` (events.jsonl + rollup.jsonl + raw/**).
 
 ## Ingest script co-location 2026-09-29
 
-- `scripts/es_ingest_paste_archive_gap.py` moved to `data/2026-03-12-paste-archive-gap/es_ingest_paste_archive_gap.py`
+- `scripts/es_ingest_paste_archive_gap.py` moved to `data/2018-05-09-paste-archive-gap/es_ingest_paste_archive_gap.py`
   per the single-collection-build-script convention (this script only reads
   this collection's `raw/` layer).
 - `REPO_ROOT` fixed (one extra `dirname`, matching the new depth); input
@@ -241,6 +241,6 @@ see `aux/joshuadavid-anna-revisions-2026-09-28.jsonl` (`verdict`, `verdict_ratio
 - Note (pre-existing, not introduced here): the committed `events.jsonl`
   (68 rows, record_kind `pastebin_probe`, built by the W5 pipeline) differs
   in shape from this script's lane-M docs; both the staged track and this
-  script's via_script track target index `2026-03-12-paste-archive-gap`.
+  script's via_script track target index `2018-05-09-paste-archive-gap`.
 - `local_es_manifest.json` `via_script` entry for
-  `2026-03-12-paste-archive-gap` now points at the co-located path.
+  `2018-05-09-paste-archive-gap` now points at the co-located path.

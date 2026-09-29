@@ -58,8 +58,8 @@ EVENTS = [
  "proxymule -> urltomarkdown -> allorigins (handle_dse_Agent0MassCountyResearch); "
  "8 exact URL overlaps with rmn.re decoded targets (e.g. "
  "md.succ.ai/https://www.sec.gov/files/county.json <-> rmn.re slug 70981).",
- "2026-03-12-paste-archive-gap",
- "notes/cascade-synthesis-2026-09-28.md; data/2026-03-12-paste-archive-gap/",
+ "2018-05-09-paste-archive-gap",
+ "notes/cascade-synthesis-2026-09-28.md; data/2018-05-09-paste-archive-gap/",
  "", "high",
  ["anchor:june-18", "mechanism:proxy-stack", "target:sec.gov"]),
 ("2026-06-18T19:51:00Z", "timestamp",
@@ -404,8 +404,8 @@ EVENTS = [
  "VG_CEMETERY_PERSON_MOST_ULTRABULK v0.77 content date (5,000 Czech cemetery "
  "records decoded from paste b3746a9f) -- public-records cemetery-scraping "
  "task family; content-date, paste capture date uncertain.",
- "2026-03-12-paste-archive-gap",
- "notes/cascade-synthesis-2026-09-28.md; data/2026-03-12-paste-archive-gap/raw/vg_cemetery_person_v0_77.json",
+ "2018-05-09-paste-archive-gap",
+ "notes/cascade-synthesis-2026-09-28.md; data/2018-05-09-paste-archive-gap/raw/vg_cemetery_person_v0_77.json",
  "", "medium",
  ["family:public-records", "caveat:content-date-only"]),
 ("2026-09-20T16:33:00Z", "timestamp",

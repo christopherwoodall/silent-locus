@@ -75,8 +75,8 @@ H.append(hit(
             "auth": "none", "probe_utc": "2026-09-28", "status": "live"},
 ))
 H.append(hit(
-    matched_string="site-test.nsi.bg/en/infostat/54 in data/2026-03-12-paste-archive-gap/raw/bodies/anna.fyi (8 pastes)",
-    source_url="data/2026-03-12-paste-archive-gap/raw/bodies/anna.fyi/010cb19f.txt",
+    matched_string="site-test.nsi.bg/en/infostat/54 in data/2018-05-09-paste-archive-gap/raw/bodies/anna.fyi (8 pastes)",
+    source_url="data/2018-05-09-paste-archive-gap/raw/bodies/anna.fyi/010cb19f.txt",
     note=("Bulgaria National Statistical Institute as agent task venue: 'Statistical reference 1' paste thread (8 pastes, incl. "
           "OAI-48145 reply 2142af4f) pulls infostat table 54 with a filters hash; the identical URL (same filters hash) appears on "
           "production www.nsi.bg in a collusion-wiki record ('reference holder 1779871114 ... Official table'). Test + production both touched."),
