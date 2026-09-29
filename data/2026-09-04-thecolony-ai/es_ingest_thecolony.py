@@ -24,7 +24,7 @@ except ImportError:  # local run: no vault on this machine, plain HTTP(S) instea
         return _json.load(response)
 
 ES = os.environ.get("SWARMTRACES_ES_URL", "https://agent-apocalypse-f1f7ba.es.us-east-1.aws.elastic.cloud:443")
-REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+REPO_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))  # script now lives in data/<collection>/
 HOSTS = ["agent-apocalypse-f1f7ba.es.us-east-1.aws.elastic.cloud"]
 CRED = "custom.elastic-cloud"
 BASE = REPO_ROOT
@@ -146,7 +146,7 @@ def build_docs():
          ["kind:wiki", "topic:swarm-catalogue"]),
     ]
     for fname, url, desc, tags in pages:
-        p = f"{D}/{fname}"
+        p = f"{D}/raw/{fname}"
         docs[f"thecolony:{fname}"] = {
             "@timestamp": ts,
             "event": {"dataset": INDEX, "created": NOW},
@@ -162,7 +162,7 @@ def build_docs():
             },
         }
     for pid, summary in POSTS:
-        p = json.load(open(f"{D}/posts/{pid}.json"))
+        p = json.load(open(f"{D}/raw/posts/{pid}.json"))
         au = (p.get("author") or {}).get("username", "?")
         docs[f"thecolony:post:{pid}"] = {
             "@timestamp": ts,
@@ -180,11 +180,11 @@ def build_docs():
                 "created_at": str(p.get("created_at", "")),
                 "post_type": str(p.get("post_type", "")),
                 "title": (p.get("title") or "")[:200],
-                "sha256": sha256_file(f"{D}/posts/{pid}.json"),
+                "sha256": sha256_file(f"{D}/raw/posts/{pid}.json"),
             },
         }
-    for f in sorted(os.listdir(f"{D}/search")):
-        d = json.load(open(f"{D}/search/{f}"))
+    for f in sorted(os.listdir(f"{D}/raw/search")):
+        d = json.load(open(f"{D}/raw/search/{f}"))
         q = f[:-5].replace("_", " ")
         aus = sorted(set((i.get("author") or {}).get("username", "?")
                          for i in d.get("items", [])))[:10]
@@ -201,7 +201,7 @@ def build_docs():
                 "query": q,
                 "total": str(d.get("total", 0)),
                 "top_authors": ",".join(aus),
-                "sha256": sha256_file(f"{D}/search/{f}"),
+                "sha256": sha256_file(f"{D}/raw/search/{f}"),
             },
         }
     casc = [

@@ -153,3 +153,17 @@ schema-drift clean.
   (posts, searches, captures, oracle checks); no burst/window/per-actor layer is
   derivable without inventing one. `manifest.json` already serves as inventory.
 - `event.dataset = "2026-09-04-thecolony-ai"`; `event.created` = build time.
+
+## 2026-09-28: ingest script co-located (hunt convention)
+- `es_ingest_thecolony.py` moved from `scripts/` into this directory per
+  Christopher's single-collection convention; transforms the captured pages,
+  investigator posts, and search result sets into shared-schema docs (real
+  transform, not a pure loader).
+- Path repairs during the move (the script's load path was stale: it read
+  pages/posts/search from the collection root, but the capture layout keeps
+  everything under `raw/`): `REPO_ROOT` is now three levels up; sources
+  read from `raw/<page>.html`, `raw/posts/<id>.json`, `raw/search/*.json`.
+- Offline verification: `build_docs()` yields 27 docs (3 pages + 10 posts +
+  9 searches + 5 cascade notes).
+- `scripts/local_es_manifest.json` via_script entry repointed here.
+- SHA256SUMS regenerated (script file added to coverage).
