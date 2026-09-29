@@ -55,3 +55,23 @@ dead docs exist in the jsonhero-docs lane. ES `jsonhero-docs-archive`
 _count=6 verified. The 5 "not archived" verdicts are Wayback-only
 (archive.today unreachable from this network); a re-check from an unfiltered
 network is the recorded next step, not a blocker.
+
+## Schema normalization 2026-09-29 (worker W3)
+
+- Transform: `temp/build_events_w3_jsonhero_archive.py` (repo root passed as argv[1]).
+- Grain: one record per doc (6, `record_kind: artifact_observation`), mirroring the
+  sibling dataset `2026-09-28-jsonhero-docs` (same kind, same `labels.doc.*` shape).
+- `@timestamp`: the Wayback capture time for the recovered doc
+  (`2026-09-12T07:50:05Z`, `labels.timestamp_source = "labels:capture.datetime"`);
+  the documented lane date 2026-09-28 for the 5 CDX-negative verdicts
+  (`labels.timestamp_source = "lane:2026-09-28 …"`, per-record verdict timestamps
+  absent from raw; negatives carry `confidence: medium` — Wayback-only verdicts).
+- Fingerprint identity string: `sha256("jsonhero-doc:<doc_id>")` — the same
+  convention as the sibling dataset (verified: recomputing for doc `2EvFizxRzKLN`
+  reproduces its fingerprint `57ce19c5…340bb95` exactly). Reference method
+  verified against data/2023-11-14-hfspace-proxies
+  (sha256("TheNacken/python-cors-proxy") -> `14c645d9…efbe94`).
+- Rollup: `rollup.jsonl` with one `recovery_census` row (NEW kind, listed in
+  notes/dir-triage-W3.md) aggregating the 6 events — 1 recovered, 5 not archived,
+  Wayback-only scope. `event.dataset` suffixed `-rollup`.
+- `event.dataset = "2025-01-13-jsonhero-docs-archive"`; `event.created` = build time.
