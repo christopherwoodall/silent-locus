@@ -2,7 +2,7 @@
 # un-heist resume_render.sh — resumable, crash-safe renderer (vertical only).
 # Lock-guarded, skips existing frames, atomic writes, recount-from-disk progress.
 set -u
-PROJ="/home/hatch/workspace/silent-locus/animation/un-heist-that-wasnt"
+PROJ="$(cd "$(dirname "$0")/.." && pwd)"
 BUILD="$PROJ/build"; WORK="$PROJ/work"
 LOCK="$WORK/render.lock"; PROGRESS="$WORK/render_progress.json"; LOG="$WORK/render.log"
 

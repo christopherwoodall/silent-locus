@@ -61,9 +61,9 @@ def main():
         "-t", str(GAP), "-ac", "2", "-c:a", "pcm_s16le", str(sil))
     with open(lst, "w") as f:
         for i, c in enumerate(chunks):
-            f.write(f"file '{c}'\n")
+            f.write(f"file '{c.name}'\n")  # relative to work/ (no absolute paths)
             if i < len(chunks) - 1:
-                f.write(f"file '{sil}'\n")
+                f.write(f"file '{sil.name}'\n")
     out = WORK / "narration_clean.wav"
     run("ffmpeg", "-v", "error", "-y", "-f", "concat", "-safe", "0",
         "-i", str(lst), "-c:a", "pcm_s16le", str(out))

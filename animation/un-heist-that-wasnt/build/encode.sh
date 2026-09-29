@@ -1,7 +1,7 @@
 #!/bin/bash
 # un-heist encode.sh — idempotent encode of the vertical cut.
 set -u
-PROJ="/home/hatch/workspace/silent-locus/animation/un-heist-that-wasnt"
+PROJ="$(cd "$(dirname "$0")/.." && pwd)"
 WORK="$PROJ/work"; AUD="$WORK/final_audio_un.m4a"
 OUT="$PROJ/un-heist-v1-vertical.mp4"
 

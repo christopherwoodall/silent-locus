@@ -2,15 +2,16 @@
 """un-heist verify.py — idempotent verification of the finished mp4."""
 import json, os, subprocess, sys
 
-PROJ = "/home/hatch/workspace/silent-locus/animation/un-heist-that-wasnt"
+PROJ = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 PATH_MP4 = f"{PROJ}/un-heist-v1-vertical.mp4"
+REL_MP4 = "animation/un-heist-that-wasnt/un-heist-v1-vertical.mp4"
 
 def probe(*args):
     r = subprocess.run(["ffprobe", "-v", "error", *args, PATH_MP4],
                        capture_output=True, text=True)
     return r.stdout.strip()
 
-info = {"path": PATH_MP4, "exists": os.path.exists(PATH_MP4)}
+info = {"path": REL_MP4, "exists": os.path.exists(PATH_MP4)}
 ok = info["exists"]
 if ok:
     info["size_mb"] = round(os.path.getsize(PATH_MP4) / 1e6, 1)
