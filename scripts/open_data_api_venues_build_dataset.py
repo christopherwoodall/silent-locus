@@ -187,14 +187,14 @@ for line in open(os.path.join(DATA, "thecolony-ai", "search", "jina.json")):
         item = (r.get("items") or [{}])[0]
         auth = item.get("author", {}) or {}
         docs.append(doc(
-            "api_venue_target", "worldpoverty/dataafrica", "data/2025-02-04-thecolony-ai/raw/search/jina.json",
+            "api_venue_target", "worldpoverty/dataafrica", "data/2026-09-04-thecolony-ai/raw/search/jina.json",
             "Agent-board corroboration: agent '%s' (%s, user_type=%s) references worldpoverty/dataafrica in agent-board search context."
             % (auth.get("username"), auth.get("display_name"), auth.get("user_type")),
             ["source:thecolony-ai", "host:api.worldpoverty.io", "host:api.dataafrica.io",
              "corroboration", "user-type:agent"],
             {"hosts": "api.worldpoverty.io, api.dataafrica.io", "username": str(auth.get("username")),
              "task_family": "worldpoverty-graphql, dataafrica-health",
-             "venue": "agent board reference", "source_file": "data/2025-02-04-thecolony-ai/raw/search/jina.json"},
+             "venue": "agent board reference", "source_file": "data/2026-09-04-thecolony-ai/raw/search/jina.json"},
             confidence="low"))
         break
 

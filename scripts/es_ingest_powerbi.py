@@ -126,13 +126,13 @@ def build_docs():
          "the Power BI backend (section 11); recovered answers Czech 9.69, "
          "Hungary 9.91, Poland 16.38, Slovak 14.59."),
     ]
-    wiki_html = BASE + "/data/2025-02-04-thecolony-ai/raw/wiki_incident_page.html"
+    wiki_html = BASE + "/data/2026-09-04-thecolony-ai/raw/wiki_incident_page.html"
     for pid, desc in passages:
         docs[f"powerbi:passage:{pid}"] = base(
             WIKI_TS, "powerbi_wiki_passage", desc,
             ["kind:investigator-prose", "topic:sni-bypass", "verified:no",
              "window:2026-06-20/21"],
-            {"passage_id": pid, "source_file": "data/2025-02-04-thecolony-ai/"
+            {"passage_id": pid, "source_file": "data/2026-09-04-thecolony-ai/"
              "wiki_incident_page.html",
              "page_sha256": sha256_file(wiki_html),
              "source_url": WIKI_URL},

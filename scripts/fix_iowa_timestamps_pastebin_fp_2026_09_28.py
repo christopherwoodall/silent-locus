@@ -3,7 +3,7 @@
 
 1. iowacollab-pastes: set @timestamp from source-verified paste creation
    times. Sources:
-   - 34cb12da / d379207f / 538faa12: data/2025-02-04-thecolony-ai/raw/wiki_incident_page.html
+   - 34cb12da / d379207f / 538faa12: data/2026-09-04-thecolony-ai/raw/wiki_incident_page.html
      sect.12 ("<id> -- created <ISO>" per paste; verified verbatim).
    - df40f1f1: paste body literal ts=1781641251 -> 2026-06-16T20:20:51Z
      (tool-verified; body on disk at data/2026-05-17-iowacollab-pastes/raw/df40f1f1.txt).
