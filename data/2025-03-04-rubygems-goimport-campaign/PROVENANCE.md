@@ -126,3 +126,77 @@ Flagged as delete-or-repair candidates: deleting (per the timeline_anchors
 precedent) or repairing the label-key reads is the parent's call. Until then,
 the `via_script` manifest entries are landmines — the driver would bulk-load
 the garbage docs into the live index.
+
+## Repair 2026-09-29 (es_ingest_jfrog.py) -- REPAIRED, verified by dry-run
+
+The 2026-09-29 health note above is superseded for `es_ingest_jfrog.py` only
+(`es_ingest_gems.py` remains broken -- sibling worker's lane).
+
+What was broken (specific lines/fields, pre-repair script):
+- `corpus_wave_lookup()` read `r.get("record_kind")` (fine), then
+  `r.get("gem")` and `r.get("diffend_versions", [])` -- both gone in the
+  2026-09-28 backfill. Gem name now lives at `labels["gem.name"]`, publish
+  time at `labels["published.at"]` (ISO), with the original Diffend strings
+  kept in `labels["diffend.versions.diff_ts"]`. Result: lookup found 0 gems
+  (was 562 verified overlaps on 2026-09-27), so all 3,025 `jfrog_inventory`
+  docs would have gotten the all-fallback timestamp
+  `2026-09-27T00:00:00.000Z` with `in_diffend_corpus=false`, overwriting the
+  good docs in the index.
+- Doc shape pre-dated the schema: dataset-specific fields sat at top level
+  (`gem`, `package`, `versions`, `version_count`, `xray_id`,
+  `in_diffend_corpus`, `wave`, `csv_source_url`), which
+  `schema/record.schema.json` forbids (additionalProperties:false;
+  dataset-specific fields belong in `labels`).
+
+What the repair does:
+- `corpus_wave_lookup()` now reads the backfilled dotted keys
+  (`labels["gem.name"]`, `labels["published.at"]`), with fallback to
+  `labels["diffend.versions.diff_ts"]` (old "May 12, 2026 03:32" format) and
+  then the log row's `@timestamp`; keeps the EARLIEST publish time per gem
+  (the old script kept the first row seen, not the earliest).
+- Dataset-specific fields moved into `labels.*` dotted keys
+  (`gem.name`, `gem.versions`, `gem.version_count`, `gem.xray_id`,
+  `gem.in_diffend_corpus`, `gem.wave`, `gem.timestamp_source`,
+  `gem.status`); top level carries only schema-allowed fields
+  (`@timestamp`, `event`, `record_kind`, `fingerprint`, `labels`,
+  `payloads`, `source_url`, `file`, `retrieved_at`, `description`,
+  `status`, `tags`, `observer`, `note`).
+- Timestamp policy: overlap rows get the real Diffend publish time
+  (`labels["gem.timestamp_source"]` records the exact read path); rows with
+  no recoverable date use the CSV acquisition date `2026-09-27T00:00:00Z`
+  with an explicit `dataset:csv_retrieval_date` source -- never "now".
+- Fingerprint identity string (new; deterministic): `jfrog_inventory|<gem>`
+  (sha256 hex). ES `_id` unchanged (`jfrog:<gem>`), so loads stay idempotent.
+- Added `--build [PATH]`: builds docs to disk JSONL with zero network calls
+  and validates every doc against `schema/record.schema.json` (required
+  fields, closed top-level/event shapes, labels flatness + key pattern,
+  payload item shape, fingerprint and `@timestamp` formats). `--verify`
+  updated to the new labels paths. Default (no-flag) behavior unchanged:
+  `update_mapping()` + `bulk_load()` + `verify()`.
+
+Payload-embedding choice (per the 2026-09-29 repair directive):
+- Payloads go in the schema's top-level `payloads` array (added to
+  `schema/record.schema.json` in commit 37988db, documented in
+  `schema/README.md`) -- NOT in `event.payloads` (does not exist; `event`
+  has additionalProperties:false) and NOT in `description`.
+- Two entries per row: `inventory_row` (`text/csv`, the raw CSV line,
+  embedded fully -- rows are small) and `wave_attribution` (`text/plain`,
+  the derived package/versions/Xray-ID/wave/date/overlap attribution).
+  Both carry `encoding: "text"`, `truncated: false`, `byte_size`, and
+  `sha256` of the full body, per the schema's payload convention.
+
+Dry-run verification 2026-09-29 (`--build`, no Elastic writes):
+- 3,025/3,025 docs built -- matches the 3,025 baseline exactly.
+- Overlap: 562 docs with real Diffend publish times (560 via
+  `labels["published.at"]`, 2 via the `diffend.versions.diff_ts` fallback);
+  0 overlap docs on the fallback timestamp. Wave labels: 562 `may-12`.
+- 2,463 jfrog-only docs with the honest CSV-acquisition timestamp.
+- Schema validation: 3,025/3,025 ok. `python3 -m py_compile` clean.
+- Reconciliation vs the JFrog report prose (3,022 packages / 3,315
+  name-version pairs): the saved CSV snapshot holds 3,025 rows / 3,323
+  pairs (+3 packages, +8 pairs) -- the build is faithful to the source
+  artifact (`raw/gemstuffer-jfrog-2026-09-27.csv`, saved 2026-09-27), which
+  is slightly larger than the prose counts.
+
+Not run against live Elastic (hosted write freeze in effect); the repaired
+script is ready for the next authorized `--load`.
