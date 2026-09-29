@@ -23,3 +23,9 @@ notes/agent-surfaces-2026-09-27.md, not orphaned.
 - Surface base from each `raw/<surface>/PROVENANCE.md` `base_url:` line.
 - `rollup.jsonl`: 11 rows, one per surface (record_kind `venue_finding`, event.dataset `2026-09-28-agent-surfaces-rollup`): pages_ok/pages_total, first/last probe, content types. Fingerprint identity: `agent-surfaces-rollup|<surface_slug>`.
 - Regenerated `SHA256SUMS` (events.jsonl + rollup.jsonl + raw/**).
+
+## Build-script relocation 2026-09-29 (ingest-script condensation)
+
+- Moved `scripts/es_ingest_agent_surfaces.py` into this collection dir per Christopher's build-script convention (single-collection build scripts live in `data/YYYY-MM-DD-<slug>/`).
+- Path fixes in the moved script: `REPO_ROOT` now resolves three levels up from the collection dir; `resolve_data_dir()` returns this file's own parent (the glob over `data/*-agent-surfaces` was dropped).
+- ES ingest driver: `push_to_local_es.py --all` runs the path in `scripts/local_es_manifest.json` `via_script` for index `2026-09-28-agent-surfaces`; manifest entry updated to the new script location.
