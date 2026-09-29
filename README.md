@@ -21,8 +21,8 @@ configs:
 
 `silent-locus` is a machine-readable forensics corpus documenting
 **agent-activity traces and software supply-chain attacks observed in
-public systems** between 2016 and 2026. The 64 event collections
-(122,656 event rows) cover:
+public systems** between 2016 and 2026. The 69 event collections
+(123,272 event rows) cover:
 
 - **RubyGems supply-chain campaigns** — the May 2026 `go-import`
   meta-tag injection campaign (555+ gems hijacking Go tooling through
@@ -88,7 +88,7 @@ whose event time is not recoverable carry the documented sentinel
 `labels.timestamp_source = "fallback:no_recoverable_date"` and are
 excluded from the range; collections with only sentinels are marked.
 
-### Event collections (64)
+### Event collections (69)
 
 | Collection | Event rows | @timestamp range |
 |---|---|---|
@@ -99,7 +99,7 @@ excluded from the range; collections with only sentinels are marked.
 | `2022-05-14-jqp-vercel` | 2 | 2022-05-14T21:51:48Z → 2026-09-28T02:46:27Z |
 | `2022-08-09-github-forensics` | 239 | 2022-08-09T23:36:24Z → 2026-09-29T00:05:00Z |
 | `2023-11-14-hfspace-proxies` | 15 | 2023-11-14T00:00:00Z → 2026-06-07T00:00:00Z |
-| `2025-03-04-rubygems-goimport-campaign` | 10,421 | 2025-03-04T18:22:38.613000Z → 2026-09-27T23:29:20Z |
+| `2025-03-04-rubygems-goimport-campaign` | 10,873 | 2025-03-04T18:22:38.613000Z → 2026-09-27T23:29:20Z |
 | `2025-05-15-hf-tampering-check` | 21 | 2025-05-15T00:14:14.000Z → 2026-09-28T00:00:00Z |
 | `2025-12-04-urlquery-marker-sweep` | 9 | 2025-12-04T00:11:47Z → 2026-09-25T02:17:12Z |
 | `2026-02-01-agent-convo-venues` | 15 | 2026-02-01T15:45:47Z → 2026-09-28T20:00:00Z |
@@ -107,12 +107,12 @@ excluded from the range; collections with only sentinels are marked.
 | `2026-03-07-march7-rce-modality` | 5 | 2026-03-07T02:58:00Z → 2026-09-05T17:02:27.720176Z |
 | `2026-03-07-timeline-anchors` | 48 | 2026-03-07T02:58:00Z → 2026-09-20T16:33:00Z |
 | `2026-03-11-dse-wiki-verification` | 21 | 2026-03-11T12:05:59Z → 2026-09-27T00:00:00Z |
-| `2026-03-12-paste-archive-gap` | 68 | 2018-05-09T04:11:19Z → 2026-09-28T00:00:00Z |
+| `2026-03-12-paste-archive-gap` | 157 | 2018-05-09T04:11:19Z → 2026-09-28T00:00:00Z |
 | `2026-05-05-gomod-hunt` | 35,014 | 2026-05-05T10:23:51.592957Z → 2026-06-30T23:50:01.098797Z |
 | `2026-05-11-july6-staging` | 11 | 2026-05-11T04:30:28Z → 2026-07-06T17:41:36Z |
-| `2026-05-11-osv` | 1,956 | 2026-05-11T19:40:00Z → 2026-05-12T07:47:00Z |
+| `2026-05-11-osv` | 1,965 | 2026-05-11T19:40:00Z → 2026-09-27T00:00:00Z |
 | `2026-05-12-university-shorteners-events` | 1,522 | 2026-05-12T03:04:38Z → 2026-09-28T18:05Z |
-| `2026-05-12-webhook-deaddrops` | 8 | 2026-05-12T01:57:00Z → 2026-09-28T03:45:00Z |
+| `2026-05-12-webhook-deaddrops` | 17 | 2026-05-12T01:57:00Z → 2026-09-28T03:45:00Z |
 | `2026-05-17-collusion-wiki` | 19,913 | 2026-05-17T05:46:45Z → 2026-07-14T13:56:54Z |
 | `2026-05-17-iowacollab-pastes` | 4 | 2026-05-17T12:47:48Z → 2026-06-16T20:20:51Z |
 | `2026-05-26-paste-linuxiarz` | 131 | 2026-05-26T15:16:26Z → 2026-06-17T03:46:08Z |
@@ -134,13 +134,18 @@ excluded from the range; collections with only sentinels are marked.
 | `2026-09-05-fieldnotes-gem` | 7 | 2026-09-05T00:00:00Z |
 | `2026-09-05-termina-digital` | 223 | 2026-09-05T23:38:56Z → 2026-09-28T00:00:00Z |
 | `2026-09-12-jsonhero-docs-archive` | 6 | 2026-09-12T07:50:05Z → 2026-09-28T00:00:00Z |
+| `2026-09-27-gem-negative-lanes` | 20 | 2026-09-27T00:00:00Z → 2026-09-28T00:00:00Z |
+| `2026-09-27-gem-public-intel` | 11 | 2026-09-27T00:00:00Z |
 | `2026-09-27-rmn-re-linktable` | 1 | 2026-06-19T00:11:00Z |
 | `2026-09-27-rmn-re` | 764 | 2016-12-28T17:39:00Z → 2026-09-25T12:28:00Z |
+| `2026-09-27-swarmtraces-verification` | 5 | 2026-09-27T00:00:00Z |
+| `2026-09-28-ace-research-ct` | 12 | 2026-09-28T00:00:00Z |
 | `2026-09-28-agent-surfaces` | 87 | 2026-09-28T03:22:38.550322Z → 2026-09-28T03:43:13.695372Z |
 | `2026-09-28-agents-relay-sweep` | 10 | 2026-09-28T20:02:52Z |
 | `2026-09-28-counter-channel` | 4 | 2026-09-28T03:25:00Z → 2026-09-28T03:35:00Z |
 | `2026-09-28-dockerhub-trojan-images` | 42,318 | 2026-09-28T23:35:53.629030Z → 2026-09-28T23:57:14.806718Z |
 | `2026-09-28-jsonhero-docs` | 12 | 2026-09-28T00:00:00Z |
+| `2026-09-28-librariesio-pattern-battery` | 9 | 2026-09-28T00:00:00Z |
 | `2026-09-28-ludism-wikis` | 29 | 2026-09-28T03:22:13.999739Z → 2026-09-28T03:34:32.287565Z |
 | `2026-09-28-nsi-venue-sweep` | 12 | 2026-09-28T20:02:03.318571+00:00 |
 | `2026-09-28-open-data-api-venues` | 46 | 2026-09-28T10:05:00Z |
@@ -157,27 +162,27 @@ excluded from the range; collections with only sentinels are marked.
 | `2026-09-29-gem-temporal-pivot` | 27 | all 1970-sentinel (no recoverable event time) |
 | `2026-09-29-separate-eval-test` | 9 | all 1970-sentinel (no recoverable event time) |
 
-*64 collections · 122,656 event rows*
+*69 collections · 123,272 event rows*
 
 ### Aggregate collections (4)
 
-Multi-source conglomerates (records aggregated from other datasets, not
-primary sources) under `data/aggregates/`.
-
 | Collection | Event rows | @timestamp range |
 |---|---|---|
-| `2025-09-26-cors-bwa-proxy` | — | event layer generated at ingest (see PROVENANCE.md) |
+| `2025-09-26-cors-bwa-proxy` | 154 | 2026-05-27T02:51:29.000Z → 2026-09-28T05:30:00Z |
 | `2026-05-26-proxy-primitives` | 1,522 | 2026-05-26T13:25:33Z → 2026-06-20T21:26:41Z |
-| `2026-09-28-gem83-reconciliation` | — | event layer generated at ingest (see PROVENANCE.md) |
+| `2026-09-28-gem83-reconciliation` | 83 | 2026-06-18T00:00:00Z |
 | `2026-09-29-overlap-analysis` | 17,355 | all 1970-sentinel (no recoverable event time) |
 
-*4 collections · 18,877 event rows*
+*4 collections · 19,114 event rows*
 
-Two aggregates materialize their event layer at ingest time via the
-co-located build script (e.g. `es_ingest_cors_bwa.py`,
-`es_ingest_gem83.py`) from their `raw/` tables; their rows are not in
-`events.jsonl` yet. Some collections additionally ship a `rollup.jsonl`
-layer (aggregate indices); see each collection's `PROVENANCE.md`.
+
+All four aggregates ship `events.jsonl`. The two multi-source conglomerates
+(`2025-09-26-cors-bwa-proxy`, `2026-09-28-gem83-reconciliation`) materialize
+theirs via co-located build scripts (`build_events.py`, which reuses each
+collection's `es_ingest_*.py` build transform) from their `raw/` tables; see
+each collection's `PROVENANCE.md` for the fingerprint identity strings.
+Some collections additionally ship a `rollup.jsonl` layer (aggregate
+indices); see each collection's `PROVENANCE.md`.
 
 ## Schema summary
 

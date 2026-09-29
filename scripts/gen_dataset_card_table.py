@@ -75,8 +75,8 @@ def table(dirs, heading):
 def main():
     dated = sorted(glob.glob("data/2[0-9][0-9][0-9]-*/"))
     aggs = sorted(glob.glob("data/aggregates/2[0-9][0-9][0-9]-*/"))
-    table(dated, "### Event collections (64)")
-    table(aggs, "### Aggregate collections (4)")
+    table(dated, f"### Event collections ({len(dated)})")
+    table(aggs, f"### Aggregate collections ({len(aggs)})")
 
 
 if __name__ == "__main__":
