@@ -224,6 +224,36 @@ see `aux/joshuadavid-anna-revisions-2026-09-28.jsonl` (`verdict`, `verdict_ratio
 - `rollup.jsonl`: 2 rows, one per recovery batch (`lane-m`, `lane-1-retry`; record_kind `extraction`, event.dataset `2018-05-09-paste-archive-gap-rollup`): paste count, total bytes, first/last created, confirmed deletions. Fingerprint identity: `anna.fyi-rollup:<source>`. (The investigator-repo snapshot is a provenance artifact, excluded from the batch rollup.)
 - Regenerated `SHA256SUMS` (events.jsonl + rollup.jsonl + raw/**).
 
+## Force Lane 1 (2026-09-29) — queued Wayback + Common Crawl angles executed
+
+Executed the two queued coverage docs
+(`raw/wayback-anna-fyi-coverage.md`, `raw/common-crawl-anna-fyi-query.md`)
+after both backends recovered. All read-only; polite pacing; cache-busting
+nonce per standing liveness rule.
+
+- **Wayback CDX** (liveness probe 200): 3 exact queries —
+  `anna.fyi/view/*` prefix, `anna.fyi/api/recent`, `anna.fyi/lists*` prefix
+  — all returned HTTP 200 with `[]`. Zero paste-page, api/recent, or list
+  captures: Wayback holds homepage captures only, confirming the 2026-09-28
+  finding.
+- **Common Crawl**: collinfo.json back; 7 crawls intersecting
+  2026-03-01..2026-09-28 (CC-MAIN-2026-12/17/21/25/30/34/39, windows
+  2026-03-05..2026-09-17). Per-crawl CDX API was flaky during the sweep
+  (intermittent 504 gateway timeouts / connection resets), but every query
+  that answered — including all 5 retried — returned HTTP 404 (genuine
+  "no captures"): 14/14 queries, 0 `anna.fyi/view/<pid>` rows, 0
+  `api/recent` rows.
+- **ID harvest**: 0 new IDs from either backend. Dedupe set: 67 held IDs
+  (66 body files + 1 decoded-cemetery manifest entry; unified across body
+  filenames, manifest, events.jsonl).
+- **Live re-probe**: `/api/recent` 200, same 15 pids as 2026-09-28, all
+  already held (0 new); `/api/paste/<pid>` verified live (200 on
+  `959d0d7e`). No remaining IDs to try the live endpoint against.
+- **Result**: 0 new bodies, 0 new event rows (standing dedupe rule:
+  nothing new discovered, nothing recorded). The ~30-ID gap is now purely
+  the investigators' unpublished 136-ID listing — no passive surface
+  (Wayback, Common Crawl, live recents) holds IDs outside the 67 held.
+
 ## Ingest script co-location 2026-09-29
 
 - `scripts/es_ingest_paste_archive_gap.py` moved to `data/2018-05-09-paste-archive-gap/es_ingest_paste_archive_gap.py`
