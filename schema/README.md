@@ -69,10 +69,13 @@ documented cap with `truncated: true`). No other top-level keys are allowed.
 ## record_kind registry
 
 Snake-case, one per record class. Enumerated 2026-09-28 against all
-141,804 records in the 84 event files under `data/`: **98 kinds in use**,
+141,804 records in the 84 event files under `data/`: **100 kinds in use**,
 all registered. Kinds newly added after the 2026-09-28 boundary backfill
 carry a one-line description **(inferred)** from actual usage; kinds from
-the previous registry are listed without change.
+the previous registry are listed without change. Two 2026-09-29 additions
+(`live_recheck`, `paste_text`) are produced by the collections' ES ingest
+scripts as published index docs and are absent from the staged event
+files, so they were missed by the event-file enumeration.
 
 - `access_gap` — venue or resource that could not be probed, with reason and resolution status **(inferred)**
 - `admin_cleanup_burst`
@@ -113,12 +116,14 @@ the previous registry are listed without change.
 - `link_growth_rollup` — per-month growth curve of a shortener link table **(inferred)**
 - `liveness_probe` — liveness probe of a relay surface (HTTP status, resolved IP) **(inferred)**
 - `log_message` — single message row from a commonlog-style venue scan **(inferred)**
+- `live_recheck` — later live re-verification of a paste collection's recoverability state, with a deterministic identity fingerprint **(inferred)**
 - `marker_ambiguous`
 - `null_read` — explicit negative: no agent activity found in a window/surface **(inferred)**
 - `overlap_match` — single match between the hunt corpus and the SwarmTraces corpus **(inferred)**
 - `paste_day_burst` — per-day burst summary of relay pastes (count, title tops, live-check status) **(inferred)**
 - `paste_link` — link between a paste and its wiki-side surface **(inferred)**
 - `paste_venue_rollup` — per-venue rollup of a paste archive (pastes, recovery, tradecraft battery) **(inferred)**
+- `paste_text` — full text body of one recovered paste (sha256, size_bytes, source_url), an ES-side ingest doc **(inferred)**
 - `pastebin_pivot_hit`
 - `pastebin_probe`
 - `pattern_sweep_rollup` — rollup of a corpus pattern sweep (pattern, hit counts, files) **(inferred)**
