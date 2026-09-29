@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """LANE H — ingest the 11 agent-surface capture records into `agent-surfaces`.
 
-One doc per surface, built from data/2026-01-25-agent-surfaces/<slug>/{pages.json,
-PROVENANCE.md}. Conforms to the canonical shared schema
+One doc per surface, built from data/*-agent-surfaces/<slug>/{pages.json,
+PROVENANCE.md} (dir resolved dynamically so date-prefix renames don't break
+it). Conforms to the canonical shared schema
 (notes/gems-es-mapping.json): triage detail lives in `labels` (flattened) +
 `tags`. Zero new top-level fields. event.dataset.keyword multi-field included
 at creation.
@@ -28,8 +29,20 @@ REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 HOSTS = ["agent-apocalypse-f1f7ba.es.us-east-1.aws.elastic.cloud"]
 CRED = "custom.elastic-cloud"
 BASE = REPO_ROOT
-PDIR = BASE + "/data/2026-01-25-agent-surfaces"
-INDEX = "2026-01-25-agent-surfaces"
+def resolve_data_dir():
+    """Resolve data/*-agent-surfaces dynamically so date-prefix renames don't
+    break the ingest path. Prefers the latest match if several exist."""
+    hits = sorted(glob.glob(BASE + "/data/*-agent-surfaces"))
+    if not hits:
+        raise SystemExit("no data/*-agent-surfaces dir found under " + BASE)
+    if len(hits) > 1:
+        print("warning: multiple *-agent-surfaces dirs, using latest: %s"
+              % hits[-1], file=sys.stderr)
+    return hits[-1]
+
+
+PDIR = resolve_data_dir()
+INDEX = os.path.basename(PDIR)
 NOW = datetime.now(timezone.utc).isoformat()
 OBSERVER = {"product": "capture-agent-surfaces", "vendor": "nightingale-collective",
             "type": "dataset"}
