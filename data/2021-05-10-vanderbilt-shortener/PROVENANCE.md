@@ -56,3 +56,24 @@ fi-le.net audit, 13 web mentions. N=24 docs is the complete retrievable public
 surface; the shortener itself is login-walled and passive-only by lane rule, so
 no per-slug stats are pullable. ES `vanderbilt-shortener` _count=24 verified,
 schema-drift clean (all fields within the canonical mapping).
+
+## Schema normalization 2026-09-29 (W2)
+
+Built `events.jsonl` (38 rows) from `raw/` on the canonical record schema
+(`scripts/validate_schema.py`: 38/38 clean).
+- 7 × `venue_finding` — one per deduped crt.sh cert; `@timestamp` =
+  cert.not_before; identity `vanderbi.lt|crtsh-cert|<serial_number>`.
+- 14 × `venue_probe` — one per (DoH provider, record type) from
+  dns_summary.json (google_doh / cloudflare_doh × A/AAAA/MX/TXT/CAA/NS/SOA);
+  `@timestamp` = 2026-09-28 retrieval date, `labels.timestamp_source="retrieved_at"`.
+- 1 × `venue_probe` — wildcard probe (xqz9probe.vanderbi.lt → NXDOMAIN).
+- 2 × `venue_probe` — apex-IP AWS range membership (one per IP).
+- 13 × `venue_finding` — web mentions; 12 with no recoverable date use the
+  sentinel 1970-01-01T00:00:00Z with
+  `labels.timestamp_source="fallback:no_recoverable_date"`.
+- 1 × `venue_finding` — fi-le.net researcher audit artifact
+  (file-vanderbilt.txt, sha256 carried on the record); identity
+  `vanderbi.lt|file-audit|fi-le.net/vanderbilt`.
+Fingerprint = sha256 hex of the documented identity string (verified against
+the 2023-11-14-hfspace-proxies reference implementation before writing).
+SHA256SUMS regenerated (events.jsonl + all raw contents); `sha256sum -c` OK.
