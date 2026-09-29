@@ -8,7 +8,7 @@ identity strings. No dir BLOCKED. Nothing pushed (per instructions).
 
 | dir | events | rollup | notes |
 |---|---|---|---|
-| 2022-12-30-dse-wiki-verification | 21 | — | 6 downloads + 15 indicator sweeps (4 hit / 11 negative) |
+| 2026-03-11-dse-wiki-verification | 21 | — | 6 downloads + 15 indicator sweeps (4 hit / 11 negative) |
 | 2025-01-13-jsonhero-docs-archive | 6 | 1 | 1 recovered + 5 CDX negatives; rollup = recovery census |
 | 2025-02-04-thecolony-ai | 55 | — | 10 posts, 9 searches, 6 cascades, 6 downloads, 24 sweep patterns |
 | 2025-03-04-rubygems-goimport-campaign | 10,421 | 5 | nodes 2830, ioc-log 1262, hits 2339 (2 dup lines dropped), iocs 334, wayback 16, pins 615, jfrog 3025; rollup = per-day graph aggregates |
@@ -43,7 +43,7 @@ All event kinds used are existing registry kinds: `download`,
    still says "pending-relocation … will relocate to the sibling repo
    `../rubygems-goimport-campaign/`". If the move is still planned, the new
    `events.jsonl`/`rollup.jsonl` move with it; if cancelled, the note should go.
-4. **Dir-date question** — `data/2022-12-30-dse-wiki-verification/`: no event in the
+4. **Dir-date question** — `data/2026-03-11-dse-wiki-verification/`: no event in the
    collection is dated 2022-12-30 (earliest record event is 2026-03-11; the lane ran
    2026-09-27). Per `schema/collections.md` the date prefix = first event, so the
    prefix looks inherited from elsewhere. Flagging, not renaming (out of scope).
@@ -53,7 +53,7 @@ All event kinds used are existing registry kinds: `download`,
    noting the drift.
 6. **Stale dir path in lane note** — `notes/gem-hunt-dse-wiki-verification-2026-09-27.md`
    references `data/dse-wiki-verification-2026-09-27/`; the dir is now
-   `data/2022-12-30-dse-wiki-verification/`. Cosmetic.
+   `data/2026-03-11-dse-wiki-verification/`. Cosmetic.
 
 ## Verification performed per dir
 

@@ -51,7 +51,7 @@ Read-only. Full writeup: `notes/gem-hunt-dse-wiki-verification-2026-09-27.md`.
   Method verified against the reference: recomputing
   sha256("TheNacken/python-cors-proxy") reproduces
   data/2023-11-14-hfspace-proxies' fingerprint `14c645d9…efbe94` exactly.
-- `event.dataset = "2022-12-30-dse-wiki-verification"`;
+- `event.dataset = "2026-03-11-dse-wiki-verification"`;
   `event.created` = build time (UTC).
 - No `rollup.jsonl`: this collection is a pure event stream (report
   verifications + sweep queries); no burst/window/per-actor layer is derivable

@@ -41,7 +41,7 @@ fingerprints recompute-verified against the documented identity strings.
 - **2022-05-14-jqp-vercel** — 2 events, no rollup.
 - **2022-08-09-github-forensics** — 239 events, 67-row rollup (66 fork-day bursts —
   peak 47 forks 2026-07-22→25 — + 1 issue summary).
-- **2022-12-30-dse-wiki-verification** — 21 events, no rollup. **PROVENANCE.md was
+- **2026-03-11-dse-wiki-verification** — 21 events, no rollup. **PROVENANCE.md was
   missing; created.**
 - **2025-01-13-jsonhero-docs-archive** — 6 events, 1-row recovery census rollup.
 - **2025-02-04-thecolony-ai** — 55 events, no rollup.
@@ -111,7 +111,7 @@ fingerprints recompute-verified against the documented identity strings.
 - W3: `hf-tampering-check/raw/MANIFEST.sha256` stale (lists missing `progress.log`);
   jsonhero `raw/manifest.json` has stale pre-rename path `data/jsonhero-docs-archive/`;
   gems PROVENANCE still says "pending-relocation" to a sibling repo — needs a
-  decision; `2022-12-30-dse-wiki-verification` date prefix matches no event in the
+  decision; `2026-03-11-dse-wiki-verification` date prefix matches no event in the
   dir (earliest 2026-03-11) — flagging, not renaming.
 - W7 (aggregates/processed/site-captures/raw survey): (1) two aggregate dirs lack
   events.jsonl — layering vs dated-dataset convention; (2) `data/raw/` corpus-root
