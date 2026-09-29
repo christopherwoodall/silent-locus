@@ -72,3 +72,21 @@ Fingerprint = sha256 hex of the documented identity string (verified against
 the 2023-11-14-hfspace-proxies reference implementation before writing).
 SHA256SUMS regenerated (events.jsonl + all raw contents, incl.
 related-readmes/); `sha256sum -c` OK.
+
+## Rollup 2026-09-29 (W8)
+
+Built `rollup.jsonl`: 67 rows, schema-validated (`scripts/validate_schema.py`:
+0 violations).
+- 66 x `fork_day_rollup` — per-day fork bursts from the 146 `repo_fork`
+  events (2026-06 -> 2026-09; peak: 2026-07-22->25, 47 forks in 4 days).
+  Labels: `day`, `forks.new`, `forks.cumulative`, `fork.first/last`,
+  `fork.owners`; `@timestamp` = first fork of the day
+  (`timestamp_source="labels:rollup.day"`); identity
+  `2022-08-09-github-forensics|fork-day|<day>`.
+- 1 x `issue_summary_rollup` — the 29 `repo_issue` rows collapsed: 18 open /
+  11 closed, 13 PRs; `@timestamp` = max `issue.created_at`; identity
+  `2022-08-09-github-forensics|issue-summary`.
+Builder: `temp/build_rollup_w8.py` (repo root passed as argv[1]); per-day
+counts independently recomputed from events (sum = 146 forks, final
+cumulative = 146). Fingerprints = sha256 of the documented identity strings.
+SHA256SUMS regenerated (38 entries, incl. rollup.jsonl); `sha256sum -c` OK.
