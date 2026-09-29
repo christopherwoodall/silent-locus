@@ -72,3 +72,12 @@ rewrite — no ambiguities, no unverifiable pointers:
 
 Only the top-level `file` value changed; every other field byte-identical
 (line-level round-trip checked). SHA256SUMS regenerated.
+
+## raw/-missing exception 2026-09-29
+
+2026-09-29: no raw/ layer — derived explicit-events re-explosion: all 1,522
+events were parsed offline from existing captures held in sibling raw/ layers
+(data/2026-09-28-university-shorteners/raw/, -batch2/raw/, -batch3/raw/);
+this collection holds no own captures. Verified: no raw/ files ever committed
+in git history; no stray evidence files on disk; SHA256SUMS green. Ratified as
+a canonical-layout exception.
