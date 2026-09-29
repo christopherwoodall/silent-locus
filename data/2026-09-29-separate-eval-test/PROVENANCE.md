@@ -27,7 +27,7 @@ SSTI probes) than off-task exploration by the escaped ExploitGym agents.
 | 12 | XBOW HackerOne #1 reporting (candidate commercial agent) | https://github.com/r00t-kim/terminator/blob/HEAD/research/llm_bug_bounty_sota_2024_2026.md ; https://www.spartechsoftware.com/cybersecurity-news/xbow-achieves-a-groundbreaking-milestone-as-the-first-ai-system-to-surpass-human-hackers-in-the-hackerone-competition/ | 2026-09-28 (search-result text) | n/a — cited inline |
 
 ## Repo-local evidence reused (already in this repo, not re-cached)
-- `data/gemstuffer-jfrog-2026-09-27.csv` — 22 xss/ssti-named rows enumerated
+- `data/2025-03-04-rubygems-goimport-campaign/raw/gemstuffer-jfrog-2026-09-27.csv` — 22 xss/ssti-named rows enumerated
   via grep (2026-09-28). Version-timestamp decoding done with `date -u -d @<ts>`.
 - `notes/gem-jfrog-report-2026-09-27.md`, `notes/analyst-note-exploitgym-2026-09-28.md`,
   `notes/exploitgym-leads-synthesis-2026-09-28.md` — context.
@@ -59,7 +59,7 @@ Transformed by `temp/backfill_w3.py`.
 
 ## Merge 2026-09-29
 
-Moved the worker-4 run log from the undated stub `data/separate-eval-test/`
+Moved the worker-4 run log from the former undated stub
 into `raw/run-logs/progress.log`; stub dir removed. Log covers
 2026-09-28T19:27Z–20:20Z and was read and verified before the move: same lane
 ("separate-eval test (worker 4)"), same research question, step entries

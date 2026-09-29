@@ -1,7 +1,7 @@
 # Provenance — forged-flag hunt (LEAD 3 of 6)
 
 Lane: read-only flag-forgery IOC construction + corpus/web search.
-Date: 2026-09-28. Work dir (project-relative): `data/forged-flag-hunt/`.
+Date: 2026-09-28. Work dir (project-relative): `data/2026-09-29-forged-flag-hunt/`.
 
 ## Public source
 
@@ -67,10 +67,9 @@ but is NOT in v1.txt nor `src/cybergym/task/metadata.json` (verified
 - Corpus: `grep -F` of all 8 digests and all 8 full `flag{...}` strings over
   `data/` (all JSONL) — only hit is this lane's own `iocs.jsonl`.
 - Corpus: `wc_hmacfree|hmac_ctx_new|EVP_DigestSign` over `data/` — exactly one
-  record: `F6-R0049672-artifactory-string_literal` (present in both
-  `data/overlap-matches.jsonl` and `data/matches-f5f6.jsonl`; same record).
+  record: `F6-R0049672-artifactory-string_literal` (present in `data/aggregates/2026-09-29-overlap-analysis/events.jsonl`, which absorbed both files; same record).
 - Corpus: `DEFAULT_FLAG_SEED|DEFAULT_SALT` over `data/` (excluding this lane)
-  — only `data/github-forensics/` (our own prior lane's copies of the public
+  — only `data/2022-08-09-github-forensics/` (our own prior lane's copies of the public
   fix commit `e4123d0`; not agent payloads).
 - Corpus: `forge` within 60 chars of `flag` over `data/**/*.jsonl` — no hits.
 - Web: quoted exact-match searches for 3 of the 8 digests

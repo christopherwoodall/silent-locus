@@ -35,7 +35,7 @@ Nothing dropped; failures/empties recorded in the manifest, not silently omitted
 
 ## Raw layer 2026-09-29
 
-- `data/paste-linuxiarz/manifest.jsonl` -> `data/paste-linuxiarz/raw/manifest.jsonl` (crawl manifest consumed by `es_ingest_paste.py`, now co-located at `data/2026-05-26-paste-linuxiarz/es_ingest_paste.py`)
+- `data/paste-linuxiarz/manifest.jsonl` -> `data/2026-05-26-paste-linuxiarz/raw/manifest.jsonl` (crawl manifest consumed by `es_ingest_paste.py`, now co-located at `data/2026-05-26-paste-linuxiarz/es_ingest_paste.py`)
 
 ## Schema normalization 2026-09-29 (worker W7)
 

@@ -1,7 +1,7 @@
 # PROVENANCE — pastebin-cluster-sweep (2026-09-28)
 
 Lane: sweep of the 8 pastebin venues referenced in the 51 new anna.fyi pastes
-(`data/paste-archive-gap/`), per Christopher's "sick agents on this" directive.
+(`data/2026-03-12-paste-archive-gap/`), per Christopher's "sick agents on this" directive.
 
 ## Trigger
 Paste `b22dd745` ("List-of-subdomains") links `https://nicepaste.com/list-of-subdomains`;
@@ -26,7 +26,7 @@ pastebins, 2 have fully sweepable listings (both clean) and 3 have no
 enumerable public surface.
 
 ## Files
-- `sweep.jsonl` — 9 docs, one per observable probe/finding, deterministic
+- `events.jsonl` — 9 docs (renamed from `sweep.jsonl` at the canonical-layout migration), one per observable probe/finding, deterministic
   `fingerprint` per doc.
 - `progress.log` — resumable run log with DONE marker.
 - `SHA256SUMS` — checksums.

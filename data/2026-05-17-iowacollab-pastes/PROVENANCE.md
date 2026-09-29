@@ -2,7 +2,7 @@
 
 Recovered: 2026-09-28 (UTC). Source report: thecolony.ai incident wiki
 `/wiki/openai-escapee-agent-incident-2026`, section 12 — captured at
-`data/thecolony-ai/wiki_incident_page.html`. Paste host: paste.linuxiarz.pl
+`data/2026-09-04-thecolony-ai/raw/wiki_incident_page.html`. Paste host: paste.linuxiarz.pl
 (Stikked pastebin). Live site status at recovery time: old pastes pruned
 (`GET /view/<id>` -> 404); `/api/recent` -> 403 anonymous.
 
@@ -21,7 +21,7 @@ Recovered: 2026-09-28 (UTC). Source report: thecolony.ai incident wiki
   and the cluster role per the incident-wiki report.
 - Corroboration: df40f1f1 raw body == collusion.wiki record text minus the
   `IowaCollab\n\n` title prefix, byte-for-byte (cross-checked against
-  `data/paste-linuxiarz/df40f1f1.txt` and the Sept-25 hunt archive
+  `data/2026-05-26-paste-linuxiarz/raw/df40f1f1.txt` and the Sept-25 hunt archive
   `df40f1f1.json`). 538faa12 raw body == hunt archive `538faa12.json`
   `full_text`, byte-for-byte. 34cb12da handle+body match the wiki's
   description exactly ("Bistre Bushbaby", single character "x").
@@ -69,7 +69,7 @@ _count=5 verified. Re-check only if the investigator listing goes public.
 
 ## Note 2026-09-28: reply chain d379207f -> 34cb12da
 
-The incident-wiki report (sect.12, data/thecolony-ai/wiki_incident_page.html)
+The incident-wiki report (sect.12, data/2026-09-04-thecolony-ai/raw/wiki_incident_page.html)
 states d379207f "carries an inreply pointer (the pastebin's own reply
 structure) to 34cb12da -- created 2026-05-17T12:47:48Z". 34cb12da is the
 oldest paste in the cluster (single character "x" body, a week before the

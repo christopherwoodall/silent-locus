@@ -1,23 +1,23 @@
-# PROVENANCE — data/pastebin-pivot/ (LEAD 2 of 6, Pastebin pivot)
+# PROVENANCE — data/2026-09-28-pastebin-pivot/ (LEAD 2 of 6, Pastebin pivot)
 
 Lane: Pastebin pivot, read-only hunt for July-2026 ExploitGym incident artifacts on paste venues.
 Operator: subagent worker, 2026-09-28 ~18:35–18:50 CDT (America/Chicago).
-Repo: christopherwoodall/silent-locus, dir data/pastebin-pivot/.
+Repo: christopherwoodall/silent-locus, dir data/2026-09-28-pastebin-pivot/.
 
 ## Sources consulted
 
 ### Local corpus (all read-only grep; case-insensitive)
 | Path | Size | Markers grepped |
 |---|---|---|
-| data/paste-archive/bodies | 308K | all marker sets below |
-| data/paste-archive-gap/bodies | 1.1M | all marker sets below |
-| data/iowacollab-pastes | 48K | all marker sets below |
-| data/paste-linuxiarz | 776K | all marker sets below |
-| data/paste-archive/sweep_bodies.json | — | all marker sets below |
-| data/pastebin-cluster-sweep/sweep.jsonl | — | all marker sets below |
-| data/cors-bwa-proxy/raw/paste-archive-gap.jsonl | — | all marker sets below |
-| data/paste-archive-gap/investigator-repo/joshuadavid-anna-revisions-2026-09-28.jsonl | — | all marker sets below |
-| data/wiki_paste_links.jsonl | — | all marker sets below |
+| data/2026-05-27-paste-archive/bodies | 308K | all marker sets below |
+| data/2026-03-12-paste-archive-gap/bodies | 1.1M | all marker sets below |
+| data/2026-05-17-iowacollab-pastes | 48K | all marker sets below |
+| data/2026-05-26-paste-linuxiarz | 776K | all marker sets below |
+| data/2026-05-27-paste-archive/raw/sweep_bodies.json | — | all marker sets below |
+| data/2026-09-28-pastebin-cluster-sweep/events.jsonl | — | all marker sets below |
+| data/aggregates/2025-09-26-cors-bwa-proxy/raw/paste-archive-gap.jsonl | — | all marker sets below |
+| data/2026-03-12-paste-archive-gap/raw/investigator-repo/joshuadavid-anna-revisions-2026-09-28.jsonl | — | all marker sets below |
+| data/aggregates/2026-09-29-overlap-analysis/events.jsonl | — | all marker sets below |
 
 Marker sets:
 - Set A (incident markers): `exploitgym`, `catflag`, `restart_server`, `submit-vul`, `DEFAULT_FLAG_SEED`, `DEFAULT_SALT`
@@ -40,7 +40,7 @@ Queries run 2026-09-28 ~18:36–18:44 CDT:
 - `r.jina.ai exploitgym OR catflag` → no paste hits
 - `huggingface anatomy frontier lab model intrusion pastebin C2 payloads paste venues named` → HF timeline + defender write-ups
 
-### Cached evidence excerpts (data/pastebin-pivot/evidence/)
+### Cached evidence excerpts (data/2026-09-28-pastebin-pivot/raw/evidence/)
 - swarmtraces-org-paste-excerpts.md — retrieved 2026-09-28 ~18:40 CDT from https://swarmtraces.org/
 - thehackernews-2026-07-paste-excerpts.md — retrieved 2026-09-28 ~18:42 CDT from https://thehackernews.com/2026/07/openai-agent-used-exposed-credentials.html
 - daylight-ai-pastebin-loader-excerpt.md — retrieved 2026-09-28 ~18:44 CDT from https://daylight.ai/blog/a-defenders-guide-to-the-hugging-face-intrusion

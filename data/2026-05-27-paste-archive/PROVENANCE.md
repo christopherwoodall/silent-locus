@@ -5,7 +5,7 @@
 
 ## Source selection
 
-Paste hosts came from the investigators' `data/collusion-wiki/site-coverage.csv`
+Paste hosts came from the investigators' `data/2026-05-17-collusion-wiki/raw/site-coverage.csv`
 (pastebins category). In-scope for this lane (paste.linuxiarz.pl is a separate
 running lane):
 
@@ -61,9 +61,9 @@ Agents and agent infrastructure only. No person-level attribution.
 ## Raw layer 2026-09-29
 
 Moved script-consumed transform inputs into raw layer (upstream names preserved, exempt from event schema):
-- `data/paste-archive/anna.fyi/titles.jsonl` -> `data/paste-archive/raw/anna.fyi/titles.jsonl` (consumed by data/2026-05-27-paste-archive/es_ingest_paste_archive.py)
-- `data/paste-archive/infinitypaste.club/metadata.jsonl` -> `data/paste-archive/raw/infinitypaste.club/metadata.jsonl` (consumed by data/2026-05-27-paste-archive/es_ingest_paste_archive.py)
-- `data/paste-archive/k4be.pl/metadata.jsonl` -> `data/paste-archive/raw/k4be.pl/metadata.jsonl` (consumed by data/2026-05-27-paste-archive/es_ingest_paste_archive.py)
+- `data/paste-archive/anna.fyi/titles.jsonl` -> `data/2026-05-27-paste-archive/raw/anna.fyi/titles.jsonl` (consumed by data/2026-05-27-paste-archive/es_ingest_paste_archive.py)
+- `data/paste-archive/infinitypaste.club/metadata.jsonl` -> `data/2026-05-27-paste-archive/raw/infinitypaste.club/metadata.jsonl` (consumed by data/2026-05-27-paste-archive/es_ingest_paste_archive.py)
+- `data/paste-archive/k4be.pl/metadata.jsonl` -> `data/2026-05-27-paste-archive/raw/k4be.pl/metadata.jsonl` (consumed by data/2026-05-27-paste-archive/es_ingest_paste_archive.py)
 
 ## Schema build 2026-09-29 (worker W5)
 

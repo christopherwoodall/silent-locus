@@ -13,7 +13,7 @@ June-18 SEC county bridge per-handle with full proxy ladders.
   2 untitled NSI bodies, 2 "NSI table reference 2009-2015", ReplyLink0/1/2,
   "Official data link".
 
-**The 136-ID listing is NOT in data/termina-digital/.** The DB's venue page
+**The 136-ID listing is NOT in data/2026-09-05-termina-digital/.** The DB's venue page
 cites it as an investigator-held, unpublished artifact:
 "sources: primary anna.fyi full listing (136 pastes) and 104 raw bodies
 ai-safety-lab (live pull) 2026-05-27 — saved copy held
@@ -125,7 +125,7 @@ _count=27 verified, schema-drift clean.
 `hidden_files/shortener-cdx/` — that loop's parser, pathspecs and commit
 semantics are the 12-URL shortener-stats slice; extending it would break scope.
 Instead documented exactly what to add in
-`data/paste-archive-gap/wayback-anna-fyi-coverage.md`: the three CDX queries
+`data/2026-03-12-paste-archive-gap/raw/wayback-anna-fyi-coverage.md`: the three CDX queries
 (`anna.fyi/view/*` prefix with collapse=urlkey, `anna.fyi/api/recent`,
 `anna.fyi/lists*`), output dir, DONE marker, disk-only scope guard. Wayback
 CDX still 503 at run time — nothing ran.
@@ -141,7 +141,7 @@ series is not search-indexed. A quoted `"anna.fyi/view/"` query surfaced a
 spam guestbook linking `d266bdde` (cool_chat_rooms_names) — currently 404 on
 `/view` and `/view/raw`, `{"message":"Not found"}` on `/api/paste`: deleted.
 
-**(d) Re-mining data/termina-digital/ (99 Wayback captures + aux):**
+**(d) Re-mining data/2026-09-05-termina-digital/ (99 Wayback captures + aux):**
 grep across the whole dir (incl. `graph.json`, `rss_live_2026-09-27.xml`,
 `sweep.json`, swarm_live_*): anna.fyi appears only as bare mentions
 (31×), `anna.fyi/lists` (4×) and `anna.fyi/api/recent` (2×) — **zero**
@@ -151,7 +151,7 @@ listing as investigator-internal paths
 conclusion stands; no IDs recovered this angle.
 
 **(e) Common Crawl URL-index coverage:** queued as
-`data/paste-archive-gap/common-crawl-anna-fyi-query.md` for the lane12
+`data/2026-03-12-paste-archive-gap/raw/common-crawl-anna-fyi-query.md` for the lane12
 supervisor — exact `index.commoncrawl.org` prefix queries
 (`anna.fyi/view/*` with collapse=urlkey, plus `anna.fyi/api/recent`),
 crawl selection via collinfo.json (windows intersecting 2026-03-01..2026-09-28),
@@ -212,7 +212,7 @@ see `aux/joshuadavid-anna-revisions-2026-09-28.jsonl` (`verdict`, `verdict_ratio
 
 ## Raw layer 2026-09-29
 
-- `data/paste-archive-gap/investigator-repo/joshuadavid-anna-revisions-2026-09-28.jsonl` -> `data/paste-archive-gap/raw/investigator-repo/joshuadavid-anna-revisions-2026-09-28.jsonl` (upstream investigator-repo capture; no script consumers, moved because it is a raw capture, not a final standalone output)
+- `data/paste-archive-gap/investigator-repo/joshuadavid-anna-revisions-2026-09-28.jsonl` -> `data/2026-03-12-paste-archive-gap/raw/investigator-repo/joshuadavid-anna-revisions-2026-09-28.jsonl` (upstream investigator-repo capture; no script consumers, moved because it is a raw capture, not a final standalone output)
 
 ## Schema backfill 2026-09-29 (normalization sweep, worker W4)
 
