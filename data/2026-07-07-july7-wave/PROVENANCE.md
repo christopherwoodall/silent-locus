@@ -61,3 +61,41 @@ ES _id = `july7:<name>` makes bulk re-ingest idempotent.
 ## Raw layer 2026-09-29
 
 - `diffend_sweep_results_july7.jsonl` -> `raw/diffend_sweep_results_july7.jsonl` and `diffend_sweep_resweep_july7.jsonl` -> `raw/diffend_sweep_resweep_july7.jsonl` (script-consumed sweep outputs; consumers: scripts/sweep_july7.py, es_upsert_july7_resweep.py, es_ingest_july7.py, diffend_sweep_resweep_july7.py). Upstream names preserved; raw layer exempt from event schema.
+
+## Schema build 2026-09-29 (worker W5)
+
+- events.jsonl: **264 records** (record_kind `diffend_probe`), one per row of
+  the final sweep file `raw/diffend_sweep_results_july7.jsonl`.
+- Dedupe decision: the intermediate resweep file
+  `raw/diffend_sweep_resweep_july7.jsonl` (167 rows) was verified to be
+  fully merged into the final 264-row file — every resweep name is present,
+  and zero rows differ in outcome (`in_diffend`/`diffend_wave`/
+  `first_publish` all identical). The resweep file is kept in raw/ as the
+  audit trail but emitted NO separate events. Rows carrying
+  `labels.diffend.resweep_pass = true` mark the reswept names.
+- fingerprint identity string: `july7|<name>` (gem name is the natural key;
+  ES `_id = july7:<name>` already idempotent).
+- `@timestamp`: Diffend publish timestamp (`first_publish`, e.g.
+  "July 07, 2026 18:43") normalized to ISO-8601 Z, with the raw string kept
+  in `labels.diffend.first_publish_raw`; rows with no publish date (246 of
+  264, verified-absent) use 2026-07-07T00:00:00Z with `timestamp_source =
+  "dir_prefix:no_diffend_publish_date"`. The `versions` column's nested
+  `{version, ts}` objects were flattened to `diffend.version_strings[]` +
+  `diffend.version_timestamps[]` (flat-labels rule).
+- Outcome split in this build: 18 in_diffend, 246 verified-absent,
+  matching the lane summary.
+- SHA256SUMS regenerated: covers events.jsonl + the 2 raw sweep files. The
+  previous SHA256SUMS listed `raw/progress.log` and `raw/sweep-stdout.log`,
+  which are not in raw/ — stale entries dropped.
+- Verified: all 264 records validate; fingerprint recomputed by hand for two
+  sample rows; `xss-test-gem` wave value cross-checked against the raw row.
+
+## Rollup layer 2026-09-29 (worker W5)
+
+- rollup.jsonl: **3 records** (record_kind `diffend_wave_rollup`,
+  `event.dataset = 2026-07-07-july7-wave-rollup`) — one per wave bucket
+  (`2026-july-07`: 16, `2026-may-27`: 2, `absent_from_diffend`: 246) with
+  candidate/in_diffend/verified-absent/reswept counts, first/last publish
+  timestamps, and distinct mechanism notes. Same shared schema.
+- fingerprint identity string: `july7-wave-rollup|<wave>`.
+- Covered by SHA256SUMS; counts verified against the event stream.
