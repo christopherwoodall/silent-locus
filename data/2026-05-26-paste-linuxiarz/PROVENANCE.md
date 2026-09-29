@@ -35,7 +35,7 @@ Nothing dropped; failures/empties recorded in the manifest, not silently omitted
 
 ## Raw layer 2026-09-29
 
-- `data/paste-linuxiarz/manifest.jsonl` -> `data/paste-linuxiarz/raw/manifest.jsonl` (crawl manifest consumed by scripts/es_ingest_paste.py)
+- `data/paste-linuxiarz/manifest.jsonl` -> `data/paste-linuxiarz/raw/manifest.jsonl` (crawl manifest consumed by `es_ingest_paste.py`, now co-located at `data/2026-05-26-paste-linuxiarz/es_ingest_paste.py`)
 
 ## Schema normalization 2026-09-29 (worker W7)
 
@@ -77,3 +77,16 @@ lane/build date, not an event date. Per schema/collections.md (prefix = first
 event), the correct prefix is 2026-05-26. `event.dataset` updated in
 events.jsonl / rollup.jsonl (`...-rollup` suffix preserved); SHA256SUMS
 regenerated.
+
+## Ingest script co-location 2026-09-29
+
+- `scripts/es_ingest_paste.py` moved to `data/2026-05-26-paste-linuxiarz/es_ingest_paste.py`
+  per the single-collection-build-script convention (this script only reads
+  this collection's `raw/` + per-paste `.txt` captures).
+- `REPO_ROOT` fixed (one extra `dirname`, matching the new depth); body path
+  fixed to `raw/{pid}.txt` (the 84edfb3 layout commit moved bodies under
+  `raw/` and the script was never updated — it would have raised
+  FileNotFoundError before this fix).
+- Verified: `build_docs()` rebuilds exactly the 131 committed `events.jsonl` rows.
+- `local_es_manifest.json` `via_script` entry for `2026-05-26-paste-linuxiarz`
+  now points at the co-located path.
