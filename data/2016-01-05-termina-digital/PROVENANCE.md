@@ -56,3 +56,34 @@ docs, covering all 115 CDX rows (3 permanent wayback failures recorded in the
 provenance, not retried). The live /db/ is dark and the public tarball is a
 placeholder, so nothing further is retrievable. ES `termina-digital`
 _count=107 verified, schema-drift clean.
+
+## Normalization 2026-09-29 (events.jsonl + rollup.jsonl)
+
+- `events.jsonl`: 223 rows, all schema-conformant.
+  - 104 `wayback_capture` — one per `wayback_manifest.json` entry: 99 OK +
+    5 failed (incl. the 43-byte HTTP-503 placeholder body for
+    `pub/datasets/agent-pastes-2026-09-08.tar.gz`). Per-file capture times
+    are NOT in the manifest; they were joined from
+    `raw/wayback_cdx_swarm_2026-09-27.json` via lowercased SURT urlkey
+    (`digital,termina,swarm)/` + lowercased relpath); all 99 OK files joined.
+  - 105 `corpus_hit` — one per (pattern, file) pair in `sweep.json`
+    `pattern_files`; 5 `corpus_grep_negative` — the zero-hit patterns
+    (tryzz, go_import, chunk_markers, gmail, tty_bitty), which appear in
+    `pattern_totals` but not `pattern_files`.
+  - 7 `artifact_observation` — rss feed (9 `<item>` observed on disk;
+    PROVENANCE text above says 10), live homepage shell, 2 archived blog
+    pages, the WASM bundle, 2 CDX dumps; 2 `surface_negative` — live
+    /db/ 404 and /db/llms.txt 503 probes.
+  - `wayback_manifest.json` is lane bookkeeping (not an event); its `file`
+    values still carry the stale `data/termina-digital/wayback/` prefix from
+    before the dated-dir move.
+- `rollup.jsonl`: 21 rows, `pattern_sweep_rollup` — per-pattern totals from
+  `sweep.json` `pattern_totals` (genuine aggregate layer of the battery).
+- Fingerprint identity strings: `wayback/<relpath under raw/wayback/>`
+  (captures); `failed:<url>` (failed captures with no body);
+  `sweep:<pattern>:<file>` / `sweep:<pattern>` (sweep hits/negatives);
+  source filename (lane artifacts); `sweep_rollup:<pattern>` (rollup).
+- `labels.timestamp_source`: `labels:capture.ts` (CDX-joined capture time);
+  `labels:sweep.date` (=2026-09-28 lane date) for sweep rows;
+  `labels:retrieved.date` / `labels:archive.date` for lane artifacts.
+- New record_kind: `pattern_sweep_rollup`.
