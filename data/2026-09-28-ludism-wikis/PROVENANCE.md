@@ -121,3 +121,9 @@ violations. SHA256SUMS regenerated (40 entries, incl. rollup.jsonl);
   29 proxy_fetch).
 - `scripts/local_es_manifest.json` via_script entry repointed here.
 - SHA256SUMS regenerated (script file added to coverage).
+
+## 2026-09-29 — build scripts co-located per convention
+Normalization-wave build scripts moved from `temp/` to the collection root
+per the 2026-09-29 convention (single-collection build scripts live in the
+collection dir; schema/collections.md). `temp/` removed. SHA256SUMS
+regenerated; `sha256sum -c` green.

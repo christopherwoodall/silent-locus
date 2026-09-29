@@ -181,6 +181,8 @@ def main():
             real = {d for d in ds_all if d != "<none>"}
             if real:
                 allowed = {entry}
+                # rollup.jsonl rows legitimately carry <collection>-rollup
+                allowed.add(entry + "-rollup")
                 ov = c.get("dataset_override")
                 if isinstance(ov, str):
                     allowed.add(ov)
