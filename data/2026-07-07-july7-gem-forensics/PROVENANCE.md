@@ -99,3 +99,14 @@ event.dataset = `july7-gem-forensics` for both files.
 ## Canonical layout migration (2026-09-29)
 
 Concatenated 2 event shards (july7-gem-forensics-campaign-specimens-jfrog.jsonl, july7-gem-forensics-payload-reconstructions.jsonl) into `events.jsonl` in sorted-filename order (57 records; count verified against inputs). Each record gained `labels.file_origin` = original shard basename; no other fields changed. Source shards removed after verification.
+
+## Run-log merge (2026-09-29)
+
+Merged `progress.log` from the pre-normalization stub `data/july7-gem-forensics/`
+into the dataset root (matching the inventory table above). The stub held only
+this file (untracked). The log covers the 2026-09-29T00:28–00:34Z fetch run: 18
+Diffend gem pages, 50/50 captures OK — the exact inputs that produced `raw/`
+(50 HTML captures). Stub dir removed after verification. SHA256SUMS regenerated
+for the whole dir; note the pre-existing entries for `raw/` were stale relative
+to disk (drift from the earlier layout-normalization commits), so the regenerated
+manifest also corrects those.
