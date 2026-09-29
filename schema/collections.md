@@ -85,8 +85,14 @@ data/YYYY-MM-DD-<slug>/
   `evidence/`. Raw files keep upstream/source-native names, are exempt
   from `record.schema.json` (`validate_schema.py` skips them), and are
   covered by `SHA256SUMS` + listed in `PROVENANCE.md`.
-- **Nothing else at the root.** Collection-local helper scripts live in
-  the repo-level `scripts/` directory, not in `data/`.
+- **Build scripts co-locate with their collection.** A script that builds docs for a
+  single collection lives in that collection's directory
+  (`data/YYYY-MM-DD-<slug>/es_ingest_<slug>.py`), is listed in the collection's
+  `PROVENANCE.md`, and is covered by its `SHA256SUMS`. Scripts that parse
+  multiple collections (cross-collection joins, aggregates) stay in the
+  repo-level `scripts/` directory. Pure loaders (scripts that only ship the
+  collection's own `events.jsonl`/`rollup.jsonl`) are deleted — loading is
+  generic via `scripts/push_to_local_es.py` auto-discovery.
 
 Loading is generic: `scripts/push_to_local_es.py` discovers
 `events.jsonl`/`rollup.jsonl` under `data/` and loads each into the index
