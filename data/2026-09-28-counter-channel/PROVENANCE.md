@@ -55,3 +55,11 @@ showing the host exposes no list/info endpoints to expand from. ES
 
 rollup: none — 4 rows (3 counter_reading + 1 counter_probe) are the complete
 single-snapshot enumeration; no time series, no aggregate layer.
+
+## Build-script relocation 2026-09-29 (ingest-script condensation)
+
+- Moved `scripts/es_ingest_counter.py` into this collection dir per Christopher's build-script convention (single-collection build scripts live in the event directory).
+- Path fixes in the moved script: `D` is now the script's own dir (self-locating); `REPO_ROOT` resolves three levels up for the mapping path.
+- BUG FIX: `build_docs()` read `{D}/snapshot_2026-09-27.json` but the snapshot lives at `raw/snapshot_2026-09-27.json` — the old path never existed, so `--load` was broken; fixed to the `raw/` path.
+- Verified offline (2026-09-29): `build_docs()` assembles 4 docs from disk (3 counter_reading, 1 counter_probe) with no network/ES access.
+- ES ingest driver: `push_to_local_es.py --all` runs the path in `scripts/local_es_manifest.json` `via_script` for index `2026-09-28-counter-channel`; manifest entry updated to the new script location.
