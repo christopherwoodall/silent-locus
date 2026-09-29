@@ -53,3 +53,17 @@ Nothing dropped; failures/empties recorded in the manifest, not silently omitted
   per-paste retrieval time as `retrieved_at`.
 - `SHA256SUMS` regenerated (sha256sum-style): `events.jsonl` + all `raw/` contents,
   verified with `sha256sum -c`.
+
+## Rollup 2026-09-29 (W8)
+
+Built `rollup.jsonl`: 3 rows x `paste_day_burst` — per-day paste bursts over
+2026-05-26 -> 2026-06-17: 11 / 119 / 1 (the 2026-06-16 wave is the
+agent-comms burst, 119 pastes in 42 seconds, top title `IowaCollabReply` x55;
+live-check mix recorded per day). `@timestamp` = first paste of the day,
+`labels.timestamp_source="labels:paste.source_date_literal"` (the standing
+caveat holds: investigator-supplied epoch strings, unverified against the
+live site). Fingerprint identity string `linuxiarz-paste-day:<day>`.
+Builder: `temp/build_rollup_w8.py` (repo root passed as argv[1]); per-day
+counts independently recomputed (sum = 131). `scripts/validate_schema.py`:
+0 violations. SHA256SUMS regenerated (135 entries, incl. rollup.jsonl);
+`sha256sum -c` OK.
