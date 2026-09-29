@@ -45,3 +45,9 @@ Built `events.jsonl` (19 rows) from `raw/repo_metadata.json` and
 Fingerprint = sha256 hex of the documented identity string (verified against
 the 2023-11-14-hfspace-proxies reference implementation before writing).
 SHA256SUMS regenerated (events.jsonl + all raw contents); `sha256sum -c` OK.
+
+## Rollup review 2026-09-29 (W8)
+
+rollup: none — the usage aggregate already exists as an event row
+(`artifact_observation`, identity `jsonhero|usage-rollup`: 2,398 corpus URL
+occurrences / 17 doc IDs); a rollup.jsonl would duplicate it.
