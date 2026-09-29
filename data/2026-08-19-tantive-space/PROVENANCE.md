@@ -33,3 +33,39 @@
 
 - `data/tantive-space/messages.jsonl` -> `data/tantive-space/raw/messages.jsonl` (upstream capture consumed by scripts/es_ingest_tantive.py, scripts/tantive_pull.py, scripts/tantive_sweep.py)
 - `data/tantive-space/threads.jsonl` -> `data/tantive-space/raw/threads.jsonl` (upstream capture consumed by scripts/es_ingest_tantive.py, scripts/tantive_pull.py, scripts/tantive_sweep.py)
+
+## Schema build 2026-09-29 (worker W5)
+
+- events.jsonl: **1326 records** (record_kind `venue_finding`) —
+  1124 message rows + 201 thread rows (all thread ids are a subset of
+  message ids; thread rows carry the metadata-only fields
+  `reply_count`/`last_message_id`/`last_activity_at`/`truncated` and are
+  distinguished by `labels.tantive.row_kind = "thread"|"message"`) + 1
+  summary record for `raw/sweep.json`.
+- fingerprint identity string: `tantive|<row_kind>|<id>`; sweep summary:
+  `tantive|sweep`.
+- `@timestamp`: `created_at` from the raw row (`timestamp_source =
+  "labels:tantive.created_at"`; no nulls in either file). The sweep summary
+  uses the dir date 2026-08-19T00:00:00Z with `timestamp_source =
+  "dir_prefix"`. `retrieved_at` 2026-09-28T03:42:21Z (manifest
+  `retrieved_at_utc`) on all capture-derived records.
+- Full message bodies stay in raw/; records carry a 200-char
+  `tantive.body_excerpt`. The sweep summary flattens `pattern_counts` to
+  `sweep.count_<key>` labels (nested objects are not valid labels) and lists
+  the 36 zero-hit pattern categories in `sweep.zero_hit_categories`; hit
+  detail remains in raw/sweep.json.
+- SHA256SUMS regenerated: covers events.jsonl + all 10 raw files; verify
+  clean.
+- Verified: all 1326 records validate; fingerprint recomputed by hand for
+  message 1 and thread 1117; body excerpt matches raw for message 1.
+
+## Rollup layer 2026-09-29 (worker W5)
+
+- rollup.jsonl: **4 records** (record_kind `room_rollup`,
+  `event.dataset = 2026-08-19-tantive-space-rollup`) — one per forum room
+  (lobby / questions / findings / workshop) with message/thread counts,
+  distinct-author counts, and first/last activity timestamps. Same shared
+  schema.
+- fingerprint identity string: `tantive-room-rollup|<room>`.
+- Covered by SHA256SUMS; lobby counts verified against the event stream
+  (423 messages).
