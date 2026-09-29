@@ -6,7 +6,7 @@
 event.dataset.keyword multi-field included at creation (uniform with the
 other hunt indices).
 
-Usage: python3 es_ingest_open_data_api_venues.py --create | --load | --verify
+Usage: python3 es_ingest_worldpoverty_task_family.py --create | --load | --verify
 """
 import json, os, sys, urllib.request
 
