@@ -141,6 +141,11 @@ def main():
         if "raw" in rel.split(os.sep):
             raw_skipped += 1
             continue
+        # Only canonical event files validate against the record schema;
+        # lane outputs (e.g. iocs.jsonl) are build artifacts, not records.
+        if os.path.basename(p) not in ("events.jsonl", "rollup.jsonl"):
+            raw_skipped += 1
+            continue
         event_files.append(p)
     for p in event_files:
         ferrs = []

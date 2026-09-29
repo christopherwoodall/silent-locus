@@ -46,3 +46,6 @@ stdout, left behind by the canonical-layout migration). Contents verified: two
 progress-marker lines from the 2026-09-28 Diffend 3,025-name sweep
 (`total 3025, done 0, todo 3025`; `0/3025 ... oow_hits=0`). Stub dir removed after
 the move; no other stub content existed.
+
+## 2026-09-29 — resume checkpoint (interrupted)
+Diffend temporal sweep resumed via `scripts/diffend_temporal_sweep_resume.py`: 1,548/3,000 items probed (events 27 → 1,575 rows, `record_kind=diffend_probe`), progress logged in `raw/run-logs/diffend_temporal_sweep_resume.stdout.log` (last: 1500/3000 at 10:54:54Z). Worker interrupted by a runtime restart drain before committing; no data loss — events and log intact. Resume from item ~1,573 using the same script; it checkpoints in the log.
