@@ -84,3 +84,24 @@ rollup: none — 38 heterogeneous census artifacts (7 certs, 17 DNS probes all a
 a single 2026-09-28 retrieval date, 13 web mentions mostly undated/sentinel
 1970, 1 audit file) with no time-series, burst, or per-actor structure; a
 count summary would add nothing the closure note doesn't already state.
+
+## Ingest script relocated 2026-09-29 (single-collection convention)
+
+`es_ingest_vanderbilt.py` moved from `scripts/es_ingest_vanderbilt.py` into
+this collection dir (its single-collection home). It reads only this
+collection's `raw/` captures (crtsh_certs_dedup.json, dns_summary.json,
+file-vanderbilt.txt, web_mentions.json) and builds ES docs via `base_doc()`;
+repo-root paths are resolved from the script's own location, so it runs
+unchanged from the repo root:
+`python3 data/2021-05-10-vanderbilt-shortener/es_ingest_vanderbilt.py`.
+`scripts/local_es_manifest.json` via_script entry updated to the new path.
+
+CAUTION — superseded output format: the staged `events.jsonl` (38 docs) is the
+newer venue-census generation (W8, 2026-09-29: `record_kind` venue_finding /
+venue_probe, `cert.*` / `venue.*` labels, sha256-of-identity fingerprints).
+This Lane-B script builds the PREVIOUS generation (`record_kind`
+ct_cert / dns_record / ip_membership / web_article / web_mention,
+`labels.annotated_by="es_ingest_vanderbilt"`, `tags` source:vanderbilt-shortener).
+Re-running it via the via_script track would load old-format docs into index
+`2021-05-10-vanderbilt-shortener` alongside the staged venue-census docs.
+SHA256SUMS regenerated to include the script.

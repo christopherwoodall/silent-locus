@@ -8,7 +8,8 @@ recon concepts map onto existing fields; recon detail lives in `labels`
 event.dataset.keyword multi-field included at creation (uniform with the
 other campaign indices).
 
-Usage: python3 es_ingest_vanderbilt.py
+Usage: python3 data/2021-05-10-vanderbilt-shortener/es_ingest_vanderbilt.py
+       (from the repo root; the driver runs it via scripts/local_es_manifest.json)
 """
 import json, hashlib, sys, urllib.request
 from datetime import datetime, timezone
@@ -25,11 +26,15 @@ except ImportError:  # local run: no vault on this machine, plain HTTP(S) instea
         return _json.load(response)
 
 ES = os.environ.get("SWARMTRACES_ES_URL", "https://agent-apocalypse-f1f7ba.es.us-east-1.aws.elastic.cloud:443")
-REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+# single-collection home (repo convention): the script lives inside its own
+# collection dir, so the collection dir is __file__'s parent and the repo
+# root is two levels above that.
+_CDIR = os.path.dirname(os.path.abspath(__file__))
+REPO_ROOT = os.path.dirname(os.path.dirname(_CDIR))
 HOSTS = ["agent-apocalypse-f1f7ba.es.us-east-1.aws.elastic.cloud"]
 CRED = "custom.elastic-cloud"
 BASE = REPO_ROOT
-PDIR = BASE + "/data/2021-05-10-vanderbilt-shortener"
+PDIR = _CDIR
 INDEX = "2021-05-10-vanderbilt-shortener"
 NOW = datetime.now(timezone.utc).isoformat()
 OBSERVER = {"product": "vanderbilt-laneb-ingest", "vendor": "nightingale-collective",
