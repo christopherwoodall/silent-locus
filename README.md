@@ -135,8 +135,8 @@ excluded from the range; collections with only sentinels are marked.
 | `2026-09-12-jsonhero-docs-archive` | 6 | 2026-09-12T07:50:05Z → 2026-09-28T00:00:00Z |
 | `2026-09-27-gem-negative-lanes` | 20 | 2026-09-27T00:00:00Z → 2026-09-28T00:00:00Z |
 | `2026-09-27-gem-public-intel` | 11 | 2026-09-27T00:00:00Z |
-| `2026-09-27-rmn-re-linktable` | 1 | 2026-06-19T00:11:00Z |
-| `2026-09-27-rmn-re` | 764 | 2016-12-28T17:39:00Z → 2026-09-25T12:28:00Z |
+| `2026-06-19-rmn-re-linktable` | 1 | 2026-06-19T00:11:00Z |
+| `2016-12-28-rmn-re` | 764 | 2016-12-28T17:39:00Z → 2026-09-25T12:28:00Z |
 | `2026-09-27-swarmtraces-verification` | 5 | 2026-09-27T00:00:00Z |
 | `2026-09-28-ace-research-ct` | 12 | 2026-09-28T00:00:00Z |
 | `2026-09-28-agent-surfaces` | 87 | 2026-09-28T03:22:38.550322Z → 2026-09-28T03:43:13.695372Z |
