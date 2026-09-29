@@ -9,7 +9,7 @@ batch2 -> "2026-09-28-university-shorteners-batch2",
 batch3 -> "2026-09-28-university-shorteners-batch3") and in `labels.shortener.*`.
 
 Sources (untouched on disk):
-  data/2026-09-28-university-shorteners/events.jsonl                (11 docs)
+  data/2026-09-28-university-shorteners/events.jsonl                (12 docs)
   data/2026-09-28-university-shorteners-batch2/events.jsonl   (1 doc)
   data/2026-09-28-university-shorteners-batch3/events.jsonl   (3 docs)
 
