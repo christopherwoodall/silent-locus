@@ -51,3 +51,24 @@ conformance via `temp/backfill_w4.py`. Existing `@timestamp`, `event`
   verified present and unique on all 1,522 rows.
 - **labels**: `best_day` nested object flattened to `best_day.<field>`
   dotted keys (3 records). No other nesting; no invalid label keys.
+
+## File-pointer rewrite 2026-09-29
+
+All 1,522 rows carried a stale top-level `file` pointer under the
+pre-migration `data/university-shorteners[-batchN]/...` tree (sources were
+moved into `raw/` by the 21312cf migration without rewriting pointers).
+Rewritten 1,522 / dropped 0.
+
+Each pointer was relocated by basename search across the repo and verified
+byte-for-byte against the row's own `sha256` + `size_bytes` before the
+rewrite — no ambiguities, no unverifiable pointers:
+
+- `data/2026-09-28-university-shorteners/raw/goto-unm-edu/{7t6-o,discvr,reso,urphy21}_referrer_urls_daily_2026-09-28.json` — 1,407 rows
+- `data/2026-09-28-university-shorteners/raw/u-ethz-ch/nB1nv_referrer_urls_daily_2026-09-28.json` — 90 rows
+- `data/2026-09-28-university-shorteners/raw/url-popcat-xyz/{5vtSk2RG2f,IRZTIxDlZ}_info_2026-09-28.txt` — 2 rows
+- `data/2026-09-28-university-shorteners/raw/wayback/IRZTIxDlZ/IRZTIxDlZ_referrer_urls_daily_wayback_{20260512030438,20260908215028}.json` — 2 rows
+- `data/2026-09-28-university-shorteners-batch2/raw/goto-unm-edu/vbudg_stats_2026-09-28.txt` — 5 rows
+- `data/2026-09-28-university-shorteners-batch3/raw/go-uvm-edu/{-4s0q,tgmtq,xc26}_stats_2026-09-28.txt` — 16 rows
+
+Only the top-level `file` value changed; every other field byte-identical
+(line-level round-trip checked). SHA256SUMS regenerated.
