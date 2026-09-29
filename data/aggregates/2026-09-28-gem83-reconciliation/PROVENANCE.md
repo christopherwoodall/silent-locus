@@ -59,3 +59,15 @@ Multi-source conglomerate collections now live under `data/aggregates/`.
   `pattern-sweep.txt` remain at the collection root (non-JSONL outputs).
 - SHA256SUMS not regenerated (orchestrator handles checksums/manifest
   references centrally).
+
+## Ingest-script consolidation 2026-09-29
+
+Per the single-collection convention, the collection's ES ingest script moved
+from `scripts/es_ingest_gem83.py` to
+`data/aggregates/2026-09-28-gem83-reconciliation/es_ingest_gem83.py` (name kept).
+Two stale paths fixed during the move: `REPO_ROOT` now climbs three levels
+from the new location (was two, pointed at `data/`), and `build_docs()` reads
+`raw/gem83-reconciliation.jsonl` (was `raw/raw/gem83-reconciliation.jsonl`,
+which no longer exists after the 2026-09-29 raw-layer move). Verified: builds
+83 reconciliation docs, `event.dataset` = `2026-09-28-gem83-reconciliation`.
+`via_script` entry in `scripts/local_es_manifest.json` updated to the new path.
