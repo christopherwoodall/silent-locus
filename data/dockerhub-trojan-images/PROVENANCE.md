@@ -1,6 +1,6 @@
 # Provenance — Docker Hub trojan-image enumeration (Lead 1 of 6)
 
-Retrieved 2026-09-28 ~23:35–23:59 UTC (18:35–18:59 CDT). Read-only.
+Retrieved 2026-09-28 ~23:35–23:56 UTC (18:35–18:56 CDT); deep-pagination resume attempt 2026-09-28 23:58–2026-09-29 00:07 UTC. Read-only.
 
 ## Sources (all public, no accounts, no logins)
 
@@ -28,7 +28,8 @@ Retrieved 2026-09-28 ~23:35–23:59 UTC (18:35–18:59 CDT). Read-only.
 
 ## Scripts
 
-- `fetch_tags.py` — superseded; aborted on the anonymous pagination 403 (kept for the audit trail).
+- `fetch_tags.py` — deep-pagination path (pages 11+); resume of `cybergym/oss-fuzz` pages 11–13 attempted 2026-09-28 23:58 → 2026-09-29 00:07 UTC: HTTP 403 on all 8 tries (5s→120s backoff) at `page_size=100&page=11`, then `RuntimeError: failed after 8 tries`. This CONFIRMS the anonymous-pagination wall is standing policy, not a transient block — the task's own probe that returned HTTP 200 was on offset 13 (`page_size=1&page=13`), i.e. below the 1000-offset cap, so it never tested the wall. No login created, no evasion attempted; stopped per instructions. Script kept for the audit trail.
+- ES ingest: QUEUED — `ELASTIC_WRITE_PAUSE` in effect; dataset lives disk+git only. Post-pause, ingest `final-*.jsonl` + `corpus-trojan-tag-liveness.jsonl` under the shared schema (notes/gems-es-mapping.json, `event.dataset.keyword` multi-field at index creation).
 - `registry_tags.py` — registry `tags/list` enumeration (resumable, skips cached files).
 - `fetch_hub10.py` — Hub pages 1–10 metadata (resumable, skips cached files).
 - `fetch_stdout.log`, `registry_stdout.log`, `hub10_stdout.log`, `progress.log` — run logs.
