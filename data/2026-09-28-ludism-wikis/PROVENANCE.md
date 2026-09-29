@@ -96,3 +96,16 @@ retrieval timestamps for every file in this directory.
   checksummed in `SHA256SUMS`.
 - `SHA256SUMS` regenerated (sha256sum-style): `events.jsonl` + all `raw/` contents,
   verified with `sha256sum -c`.
+
+## Rollup 2026-09-29 (W8)
+
+Built `rollup.jsonl`: 9 rows x `target_probe_rollup` — per-target verdicts
+aggregating the (target, proxy) probe matrix: 2/9 targets reachable
+(apchem_rc, apchem_root — both via jina only), 7 unreachable on all proxies.
+The 2 `proxy_control (example.com)` probes are controls, excluded from the
+rollup. `@timestamp` = earliest `probe.fetched_at` per target.
+Fingerprint identity string `ludism-probe-rollup:<target>`. Builder:
+`temp/build_rollup_w8.py` (repo root passed as argv[1]); totals independently
+recomputed (27 probes, 2 successes). `scripts/validate_schema.py`: 0
+violations. SHA256SUMS regenerated (40 entries, incl. rollup.jsonl);
+`sha256sum -c` OK.
