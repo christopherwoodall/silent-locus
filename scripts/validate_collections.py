@@ -90,24 +90,27 @@ def cpath(c):
 
 def resolve_file_pointer(coll_dir, value):
     """Resolve a top-level `file` pointer per schema/record.schema.json:
-    repo-root-relative when it starts with "data/", otherwise
-    collection-relative (relative to the dir holding the JSONL file).
-    Returns (target, None) when the target is a real file on disk, else
-    (None, reason)."""
+    the schema documents both repo-root-relative and collection-relative
+    forms. Values starting with "data/" are repo-root-relative; anything
+    else is tried collection-relative first, then repo-root-relative
+    (e.g. "notes/x.md" may point at repo-root notes/, "raw/..." at the
+    collection's own raw/). Returns (target, None) when the target is a
+    real file on disk, else (None, reason)."""
     if not isinstance(value, str) or not value.strip():
         return None, "not a non-empty string"
     fv = value.strip()
     if os.path.isabs(fv):
         return None, "absolute path (field is documented as relative)"
-    target = os.path.abspath(os.path.normpath(
-        os.path.join(REPO, fv) if fv.startswith("data/")
-        else os.path.join(coll_dir, fv)))
-    if os.path.commonpath((os.path.normpath(REPO), target)) != \
-            os.path.normpath(REPO):
-        return None, "escapes the repo root"
-    if not os.path.isfile(target):
-        return None, "no such file on disk"
-    return target, None
+    cands = ([os.path.join(REPO, fv)] if fv.startswith("data/")
+             else [os.path.join(coll_dir, fv), os.path.join(REPO, fv)])
+    for cand in cands:
+        target = os.path.abspath(os.path.normpath(cand))
+        if os.path.commonpath((os.path.normpath(REPO), target)) != \
+                os.path.normpath(REPO):
+            continue
+        if os.path.isfile(target):
+            return target, None
+    return None, "no such file on disk"
 
 
 def check_file_pointers():
