@@ -22,8 +22,13 @@ Follow-up lane on the lane12 Wayback sweep's single HIT (agent-hunt-durable-watc
   (sha256 `c3d654b76bd20637ac3f475310b13ed4f23abd4fe5ae2b021fa6dbc7fd30d98a`)
 - `SHA256SUMS` — manifest
 - `fetch_meta.json` — fetch attempt log (statuses, headers, timestamps)
-- `hits.jsonl` — archived-vs-Diffend payload comparison row
-- `progress.log` — lane timeline with DONE marker
+- `raw/hits.jsonl` — archived-vs-Diffend payload comparison row
+  (restored 2026-09-29 from commit `84edfb3^:data/wayback-gem-capture/hits.jsonl`,
+  byte-identical; the `saved_file` field inside still carries the pre-move path
+  `data/wayback-gem-capture/wb_...` — the artifact now lives in `raw/`)
+- `raw/run-logs/progress.log` — lane timeline with DONE marker
+  (restored 2026-09-29 from `84edfb3^:data/wayback-gem-capture/progress.log`,
+  byte-identical; genuine run log, not junk)
 
 ## Finding
 The Aug-10 capture shows the **yanked state**: h1 is bare `zztargettest18587`
