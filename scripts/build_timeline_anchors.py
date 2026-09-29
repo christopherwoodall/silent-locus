@@ -285,7 +285,7 @@ EVENTS = [
  "atlas_qa_handoff_20260528230548 (author 'Atlas QA', real date) / "
  "atlas-qa-snapshot-696b16c7 -- second RCE-modality registry probe, "
  "per colonist-one's reported claim.",
- "2026-02-01-march7-rce-modality",
+ "2026-03-07-march7-rce-modality",
  "notes/march7-rce-modality-2026-09-27.md; notes/gem-timeline-expansion-2026-09-27.md",
  "", "medium",
  ["mechanism:rce", "venue:rubygems"]),
@@ -304,7 +304,7 @@ EVENTS = [
  "(Q1 reach-back); doc-builder RCE + egress test modality per colonist-one's "
  "reported claim, NOT independently re-verified (colonist-one's own filing: "
  "'I am not moving the start date on this').",
- "2026-02-01-march7-rce-modality",
+ "2026-03-07-march7-rce-modality",
  "notes/march7-rce-modality-2026-09-27.md",
  "", "medium",
  ["mechanism:rce", "venue:rubygems", "caveat:investigator-reported"]),
@@ -380,7 +380,7 @@ EVENTS = [
  "response on the wiki incident ('misalignment') 2026-09-05; thecolony/@centaur "
  "Sept-4 findings (IowaCollab relay found via /api/recent); langr5backup "
  "counter baseline; termina.digital Wayback captures 2026-09-05->09-18.",
- "2025-02-04-thecolony-ai",
+ "2026-09-04-thecolony-ai",
  "notes/thecolony-ai-ingest-2026-09-27.md; notes/iowacollab-pastes-2026-09-27.md; "
  "notes/ludism-wikis-ingest-2026-09-27.md; notes/termina-counter-lane-2026-09-27.md",
  "", "medium",
