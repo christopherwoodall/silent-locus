@@ -1,6 +1,6 @@
 # Dir triage — worker W4 (2026-09-29)
 
-Dirs: `2026-01-25-agent-surfaces`, `2026-02-01-march7-rce-modality`,
+Dirs: `2026-09-28-agent-surfaces`, `2026-03-07-march7-rce-modality`,
 `2026-02-14-md-succ-ai`, `2026-03-12-paste-archive-gap`,
 `2026-09-03-collusion-manifest`.
 Builder: `temp/build_w4.py` (repo root as argv; no network, read-only on raw/).
@@ -21,10 +21,10 @@ Builder: `temp/build_w4.py` (repo root as argv; no network, read-only on raw/).
 
 ## Rollup decisions
 
-- `2026-01-25-agent-surfaces`: rollup YES — 11 per-surface `venue_finding` rows
+- `2026-09-28-agent-surfaces`: rollup YES — 11 per-surface `venue_finding` rows
   (pages_ok/total, first/last probe, content types), identity
   `agent-surfaces-rollup|<slug>`, dataset `…-rollup`.
-- `2026-02-01-march7-rce-modality`: rollup NO — 5 atomic records
+- `2026-03-07-march7-rce-modality`: rollup NO — 5 atomic records
   (4 `campaign_specimen` + 1 `artifact_observation`), no genuine aggregate layer.
 - `2026-02-14-md-succ-ai`: rollup NO — 2 `artifact_observation` records, pure
   event stream.
@@ -51,12 +51,12 @@ decide. NOT deleted/moved per guard.
 None. Everything in the 5 dirs is referenced and checksummed. Non-actionable
 observations (kept as-is, raw is read-only history):
 
-- `2026-01-25-agent-surfaces/raw/_capture_summary.json` is stale/partial: it
+- `2026-09-28-agent-surfaces/raw/_capture_summary.json` is stale/partial: it
   lists only nervesocket + bitily although 11 surfaces were captured. The
   per-surface `pages.json` files are authoritative and drive events.jsonl.
-- `2026-02-01-march7-rce-modality/raw/manifest.json` keys use the pre-rename
+- `2026-03-07-march7-rce-modality/raw/manifest.json` keys use the pre-rename
   path prefix `./data/march7-rce-modality/raw/…` (dir is now
-  `2026-02-01-march7-rce-modality`). Keys only; harmless.
+  `2026-03-07-march7-rce-modality`). Keys only; harmless.
 - `2026-03-12-paste-archive-gap/PROVENANCE.md` cites pre-rename paths
   (`data/paste-archive-gap/…`, `data/agent-surfaces/…`). Doc-only.
 
