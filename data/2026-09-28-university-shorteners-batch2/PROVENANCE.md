@@ -74,3 +74,7 @@ top-level `file` pointers in `events.jsonl`. Fixed 1 stale pointer, dropped
   `labels.short_url` https://goto.unm.edu/vbudg).
 
 SHA256SUMS regenerated (`events.jsonl` hash only).
+
+## Builder relocation (2026-09-30)
+
+Historical builder `scripts/university_shorteners_batch2_build_dataset.py` was moved via staging into `data/2026-09-28-university-shorteners-batch2/build_dataset.py`. This is a preservation move, not a rebuild: existing events/rollups and raw captures were not regenerated or modified. The relocated script is historical and may overwrite collection outputs, provenance, checksums, or raw evidence if executed; do not run it against this collection. Only its offline path resolution was adjusted where applicable. The canonical shortener-events builder alone explicitly rejects the canonical events file and existing output paths. Older script paths elsewhere in this document refer to their historical locations.

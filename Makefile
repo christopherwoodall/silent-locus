@@ -8,6 +8,7 @@ ES_USER    ?= elastic
 ES_PASS    ?= changeme
 PY         ?= python3
 COMPOSE    ?= docker compose
+DASHBOARD_FILE ?= $(lastword $(sort $(wildcard kibana-exports/all-dashboards-*.ndjson)))
 
 # Ingest scripts (push_to_local_es.py and the patched es_ingest_*.py)
 # read these from the environment.
@@ -16,8 +17,8 @@ export ES_URL ES_USER ES_PASS
 .DEFAULT_GOAL := help
 
 .PHONY: help doctor up down restart ps logs logs-es logs-kibana wait status kibana \
-        ingest ingest-corpus ingest-swarmtraces ingest-dashboards \
-        dry-run validate validate-collections verify-checksums clean reset
+        ingest ingest-corpus ingest-swarmtraces verify-ingest ingest-dashboards \
+        dry-run validate validate-collections verify-checksums test clean reset
 
 ##@ Stack
 
@@ -65,28 +66,35 @@ wait: ## Wait until Elasticsearch answers and cluster health is not red
 status: ## List indices with doc counts
 	@curl -s -u "$(ES_USER):$(ES_PASS)" "$(ES_URL)/_cat/indices?v&s=index"
 
-kibana: ## Print URLs and credentials
-	@echo "Elasticsearch: $(ES_URL)  ($(ES_USER) / $(ES_PASS))"
-	@echo "Kibana:        $(KIBANA_URL)  ($(ES_USER) / $(ES_PASS))"
+kibana: ## Print local URLs and login name
+	@echo "Elasticsearch: $(ES_URL)  (login: $(ES_USER))"
+	@echo "Kibana:        $(KIBANA_URL)  (login: $(ES_USER); password: ES_PASS)"
 
 ##@ Ingest
 
-ingest: wait ## Full load: corpus -> swarmtraces -> dashboards
+ingest: ## Start stack, load both datasets, and verify every index (dashboards optional)
+	$(MAKE) up
+	$(MAKE) wait
 	$(MAKE) ingest-corpus
 	$(MAKE) ingest-swarmtraces
-	$(MAKE) ingest-dashboards
+	$(MAKE) verify-ingest
 
-ingest-corpus: wait ## Load the corpus: auto-discovered events.jsonl + via_script builders (local_es_manifest.json)
+ingest-corpus: wait ## Load all registered events.jsonl and rollup.jsonl files
 	$(PY) scripts/push_to_local_es.py --all
 
 ingest-swarmtraces: wait ## Load data/raw/redacted.jsonl.gz (189,579 records) into the swarmtraces index
+	$(PY) scripts/es_ingest_swarmtraces.py --check-source
 	$(PY) scripts/es_ingest_swarmtraces.py --create
 	$(PY) scripts/es_ingest_swarmtraces.py --load
 	$(PY) scripts/es_ingest_swarmtraces.py --verify
 
-ingest-dashboards: ## Import the latest kibana-exports/all-dashboards-*.ndjson into Kibana
-	@f=$$(ls -t kibana-exports/all-dashboards-*.ndjson 2>/dev/null | head -1); \
-	[ -n "$$f" ] || { echo "no dashboard export found in kibana-exports/"; exit 1; }; \
+verify-ingest: wait ## Compare all local index counts with distinct staged document IDs
+	$(PY) scripts/push_to_local_es.py --all --verify
+	$(PY) scripts/es_ingest_swarmtraces.py --verify
+
+ingest-dashboards: ## Optionally import DASHBOARD_FILE (latest export by name) into Kibana
+	@f="$(DASHBOARD_FILE)"; \
+	[ -f "$$f" ] || { echo "dashboard export not found: $$f"; exit 1; }; \
 	echo "waiting for Kibana at $(KIBANA_URL) ..."; \
 	for i in $$(seq 1 90); do \
 	  code=$$(curl -s -o /dev/null -w '%{http_code}' -u "$(ES_USER):$(ES_PASS)" "$(KIBANA_URL)/api/status" 2>/dev/null); \
@@ -94,10 +102,12 @@ ingest-dashboards: ## Import the latest kibana-exports/all-dashboards-*.ndjson i
 	done; \
 	[ "$$code" = "200" ] || { echo "Kibana not ready (last HTTP $$code)"; exit 1; }; \
 	echo "importing $$f"; \
-	curl -s -u "$(ES_USER):$(ES_PASS)" -X POST \
+	response=$$(curl --fail-with-body -sS -u "$(ES_USER):$(ES_PASS)" -X POST \
 	  "$(KIBANA_URL)/api/saved_objects/_import?overwrite=true" \
-	  -H "kbn-xsrf: true" --form "file=@$$f" | tee /dev/stderr | grep -q '"success":true' \
-	  && echo "dashboards imported" || { echo "dashboard import FAILED"; exit 1; }
+	  -H "kbn-xsrf: true" --form "file=@$$f") \
+	  || { echo "dashboard import HTTP request FAILED (check export compatibility with local Kibana)"; exit 1; }; \
+	printf '%s' "$$response" | $(PY) -c \
+	  'import json, sys; r = json.load(sys.stdin); print("dashboards imported:", r.get("successCount", "?")) if r.get("success") is True else print("dashboard import FAILED"); sys.exit(0 if r.get("success") is True else 1)'
 
 dry-run: ## Preview everything (corpus plan, dataset counts); writes nothing
 	$(PY) scripts/push_to_local_es.py --dry-run
@@ -114,6 +124,9 @@ validate-collections: ## Collection naming/registration/right-directory checks o
 
 verify-checksums: ## Audit all collection manifests; fail on missing or changed bytes
 	$(PY) -B scripts/verify_checksums.py
+
+test: ## Run offline regression tests without contacting Elasticsearch
+	$(PY) -B -m unittest discover -s tests -p 'test_*.py'
 
 ##@ Maintenance
 

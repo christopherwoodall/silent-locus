@@ -82,3 +82,7 @@ not campaign infra. Kept as its own dataset per the RubyGems provenance rule.
 - BUG FIX: `build_docs()` read rubygems-gem.json, rubygems-versions.json, grammar-sweep.json, and diffend-page.html at the collection root, but all four live at `raw/` — the old paths never existed, so `--load` was broken; fixed to the `raw/` paths.
 - Verified offline (2026-09-29): `build_docs()` assembles 7 docs from disk (1 gem_metadata, 4 version, 1 diffend_page, 1 grammar_sweep) with no network/ES access.
 - ES ingest driver: `push_to_local_es.py --all` runs the path in `scripts/local_es_manifest.json` `via_script` for index `2026-09-05-fieldnotes-gem`; manifest entry updated to the new script location.
+
+## Historical loader relocation (2026-09-30)
+
+Preserved `es_ingest_fieldnotes_gem.py` at `raw/scripts/legacy/es_ingest_fieldnotes_gem.py` as a historical, optional Elasticsearch loader; it is not an active collection event builder. Its local path resolution now targets the same collection and repository inputs from the archived location. No source evidence, `events.jsonl`, or `rollup.jsonl` was changed; no network or ES actions were run. The SHA256SUMS entry records the relocated script bytes.

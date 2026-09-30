@@ -146,3 +146,7 @@ deliberately not duplicated here (see the 2026-09-29 repair note above; the
 single wiki_revision body lives in the upstream collusion-wiki corpus).
 Verified: no raw/ files ever committed in git history; no stray evidence files
 on disk; SHA256SUMS green. Ratified as a canonical-layout exception.
+
+## Historical loader relocation (2026-09-30)
+
+Preserved `es_ingest_proxy_primitives.py` at `raw/scripts/legacy/es_ingest_proxy_primitives.py` as a historical, optional Elasticsearch loader; it is not an active collection event builder. Its local path resolution now targets the same collection and repository inputs from the archived location. No source evidence, `events.jsonl`, or `rollup.jsonl` was changed; no network or ES actions were run. The SHA256SUMS entry records the relocated script bytes.
