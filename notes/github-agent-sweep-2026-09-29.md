@@ -1,8 +1,9 @@
-# GitHub agent-upload sweep — 2026-09-29
+# Analyst note: GitHub agent-upload sweep — 2026-09-29
 
 Prototype sweep (BigSexyWarlock69's idea): search agent-associated GitHub accounts and
-screenshot-upload patterns via the API, metadata only — no image downloads.
-Raw JSON in /tmp/gh-sweep (ephemeral). Token used transiently, never stored.
+screenshot-upload patterns via the API, metadata only — no image downloads, no paste
+contents fetched. Raw JSON in /tmp/gh-sweep (ephemeral). Token used transiently,
+never stored.
 
 ## Method
 
@@ -14,6 +15,12 @@ Raw JSON in /tmp/gh-sweep (ephemeral). Token used transiently, never stored.
   `adrw-bot/penny-pr-screenshots`; user searches for moltbot, devin, swe-agent,
   autogpt, babyagi, openhands, gpt-engineer, aider, crewai, smol (in:login);
   repo listings of top 3 accounts each; asset-word flagging.
+- Wave 3: user searches for claude, copilot, chatgpt, gemini, grok, cursor
+  (in:login); repo listings of top 3 accounts each; asset-word flagging
+  (+ "proof").
+- Wave 4: code search for leak-adjacent skill markers — `surge.sh filename:CNAME`,
+  `0x0.st`, `ix.io`, `paste.rs`, `termbin.com`. Match fragments only; no paste
+  bodies fetched, no surge sites visited (deliberate bound — see assessment).
 
 ## Confirmed: the `_gitshot` tag marker is real and live
 
@@ -62,11 +69,53 @@ Raw JSON in /tmp/gh-sweep (ephemeral). Token used transiently, never stored.
   suggests automation rather than hand uploads. Deeper look (commit authors,
   tag dates, image subjects) would confirm — left as a lead, not a claim.
 
+## Wave 3: top-model usernames — clean negative
+
+- 14,589 `claude*`, 8,841 `copilot*`, 4,698 `chatgpt*`, 7,831 `gemini*`,
+  2,364 `grok*`, 3,380 `cursor*` logins. Mostly official orgs and fan accounts.
+- 3 asset-ish repos flagged — all benign (two CopilotKit demo repos, one 2015
+  Android demo). Nothing leak-shaped.
+
+## Wave 4: leak-adjacent skill markers — capability census, not leaks
+
+- `surge.sh filename:CNAME`: 2,476 repos. Top hits are legit portfolios/demos
+  (mattdesl etc.). Agent-published internal dashboards are indistinguishable
+  from portfolios on metadata alone.
+- `0x0.st`: 8,224 hits — mostly dotfiles with `pb` paste scripts, service
+  lists, portfolios. `ix.io`: 106,752 — same shape, larger. `paste.rs` /
+  `termbin.com`: mostly code implementing uploads.
+- Read: the exfil *capability* is ubiquitous (any agent with shell access has a
+  public-pastebin one-liner in PATH), but confirming actual leaks needs
+  content inspection, which was kept out of bounds.
+
+## Analyst assessment
+
+1. **Two lanes, two hit rates.** Artifact-pattern search (`_gitshot` tags,
+   per-PR screenshot repos) produces confirmed PixelLeak-shaped finds.
+   Username search (agent-named accounts, top-model names) produces clean
+   negatives. This asymmetry is itself evidence for the report's 93% figure:
+   the leaks hide in personal accounts under human credentials, not under
+   agent names.
+2. **The `_gitshot` tag is a live detection marker.** Three repos confirmed,
+   one with an active September 2026 screenshot-publishing taxonomy. A
+   corpus-wide `_gitshot`-tag census (enumerate candidate repos, check tags
+   via API) is the highest-value follow-up and stays within metadata-only
+   bounds.
+3. **Skill propagation is observable.** `.agents/skills/gitshot/SKILL.md` in
+   third-party repos and gitshot bundled in skill packs — the shared-skill
+   vector from the Glow report exists in the wild.
+4. **Lead, not claim:** `lobstermane` / `trackermane-*` tags suggest an
+   automated workflow filing proof screenshots per PR. Commit-author and
+   tag-date analysis would confirm; deferred.
+5. **Deliberate bound:** paste bodies were not fetched and surge sites were
+   not visited. Leak *confirmation* at content level means handling other
+   people's potentially-sensitive data (customer records, secrets) — that
+   step needs explicit authorization, not a prototype's momentum.
+
 ## Limits of this prototype
 
 - Search API only; code search covers the default branch with indexing delay.
-- Tag check was per-repo (3 repos) — a corpus-wide `_gitshot`-tag census would
-  need enumerating candidate repos first.
+- Tag check was per-repo (3 repos) — a corpus-wide census needs candidate
+  enumeration first.
 - Personal-account leaks (the actual 93%) are not reachable by username
-  search; artifact-pattern search (`_gitshot` tags, image-only repos) is the
-  productive lane.
+  search; artifact-pattern search is the productive lane.
