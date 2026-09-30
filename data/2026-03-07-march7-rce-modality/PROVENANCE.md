@@ -69,3 +69,13 @@ inventory version lists).
   + 22 sweep_hit).
 - `scripts/local_es_manifest.json` via_script entry repointed here.
 - SHA256SUMS regenerated (script file added to coverage).
+
+## Orphan run-log reconciliation (preservation-first)
+
+The following original logs were relocated byte-for-byte from `data/2026-02-01-march7-rce-modality/` into this collection. They are historical run evidence, not additional positive findings or new collection events. Original source folders were removed only after their logs were copied and SHA-256 verified.
+
+- `data/2026-02-01-march7-rce-modality/raw/progress.log` -> `raw/run-logs/2026-02-01-march7-rce-modality-progress.log`; SHA-256 `4dd79d9d1b25b94814c7d5f2682d7f53e93cfef45ed35bee356a5b4fcaa13357`.
+
+### Historical checksum conflicts (unresolved)
+
+Bytewise verification of `SHA256SUMS` currently reports 25 mismatched historical entries in this collection; 25 match their recorded hashes only after CRLF-to-LF conversion. This is consistent with a line-ending change, but original evidence and recorded historical hashes were not rewritten. The newly recovered log entries were independently verified byte-for-byte against their source SHA-256 and match the new manifest lines. To enumerate all mismatches locally, run `sha256sum -c SHA256SUMS` from this collection directory. 

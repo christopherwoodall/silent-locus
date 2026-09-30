@@ -274,3 +274,13 @@ nonce per standing liveness rule.
   script's via_script track target index `2018-05-09-paste-archive-gap`.
 - `local_es_manifest.json` `via_script` entry for
   `2018-05-09-paste-archive-gap` now points at the co-located path.
+
+## Orphan run-log reconciliation (preservation-first)
+
+The following original logs were relocated byte-for-byte from `data/2026-03-12-paste-archive-gap/` into this collection. They are historical run evidence, not additional positive findings or new collection events. Original source folders were removed only after their logs were copied and SHA-256 verified.
+
+- `data/2026-03-12-paste-archive-gap/raw/progress.log` -> `raw/run-logs/2026-03-12-paste-archive-gap-progress.log`; SHA-256 `66568a4e58c5445954239b7dd7e7564f87ea197fe14863c0c886a275593f84e2`.
+
+### Historical checksum conflicts (unresolved)
+
+Bytewise verification of `SHA256SUMS` currently reports 34 mismatched historical entries in this collection; 33 match their recorded hashes only after CRLF-to-LF conversion. This is consistent with a line-ending change, but original evidence and recorded historical hashes were not rewritten. The newly recovered log entries were independently verified byte-for-byte against their source SHA-256 and match the new manifest lines. To enumerate all mismatches locally, run `sha256sum -c SHA256SUMS` from this collection directory. The remaining mismatch is `PROVENANCE.md` (provenance appended during this repair), whose historical hash necessarily predates this note.

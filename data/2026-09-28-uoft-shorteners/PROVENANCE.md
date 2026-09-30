@@ -77,3 +77,13 @@ progress log + note instead of an empty Elastic index.
 - No new record_kinds (`yourls_stats_page` registered;
   `shortener_info_page` already in use by the sibling university-shorteners
   datasets).
+
+## Orphan run-log reconciliation (preservation-first)
+
+The following original logs were relocated byte-for-byte from `data/2018-10-01-uoft-shorteners/` into this collection. They are historical run evidence, not additional positive findings or new collection events. Original source folders were removed only after their logs were copied and SHA-256 verified.
+
+- `data/2018-10-01-uoft-shorteners/raw/progress.log` -> `raw/run-logs/2018-10-01-uoft-shorteners-progress.log`; SHA-256 `a5d2e998bf2185665411fc3e33a818fc631f7ae8e0bb239605d6c56f2bba7e59`.
+
+### Historical checksum conflicts (unresolved)
+
+Bytewise verification of `SHA256SUMS` currently reports 10 mismatched historical entries in this collection; 10 match their recorded hashes only after CRLF-to-LF conversion. This is consistent with a line-ending change, but original evidence and recorded historical hashes were not rewritten. The newly recovered log entries were independently verified byte-for-byte against their source SHA-256 and match the new manifest lines. To enumerate all mismatches locally, run `sha256sum -c SHA256SUMS` from this collection directory. 

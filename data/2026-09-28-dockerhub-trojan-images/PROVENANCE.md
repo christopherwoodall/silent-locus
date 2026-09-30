@@ -94,3 +94,22 @@ present in this dataset and are merged here (copied, hashes verified identical):
   (registry `tags/list` enumeration, 2026-09-28 ~23:56 UTC)
 
 SHA256SUMS regenerated to include both files. The stub dir was removed after merge.
+
+## Local run-log integrity recovery
+
+The two log paths above were subsequently absent on disk despite their entries
+remaining in `SHA256SUMS`. They were restored **without network access** by
+selecting the complete lines containing ` HUB10 ` (18 lines) and ` REGISTRY `
+(20 lines) from the surviving `raw/progress.log`, preserving each line's
+timestamp and tag and joining with LF, including a final LF. Before writing,
+the reconstructed bytes were compared with the pre-existing manifest entries:
+
+| Restored file | Bytes | SHA-256 |
+|---|---:|---|
+| `raw/hub10_stdout.log` | 1,180 | `78b561c54b65b1cfe183aca9fd846e7c87ca593aeef633a982ae29c81f4a0f16` |
+| `raw/registry_stdout.log` | 1,387 | `d4856474ee75eff5e93434e7098770eb51797a43f92bf841411f646cbdbd6e51` |
+
+Both exactly match the existing `SHA256SUMS` (and its duplicate
+`SHA256SUMS.txt`); neither manifest was regenerated or altered during this
+recovery. This reconstructs the recorded bytes from the local progress log,
+not an independent reacquisition of the original stdout streams.

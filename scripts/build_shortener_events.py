@@ -15,9 +15,12 @@ one JSON doc per event:
                           observation of the row docs, not a cross-page
                           rollup)
 
-Output is staged ON DISK ONLY (hosted-Elastic writes are paused):
-  data/2026-05-12-university-shorteners-events/events.jsonl
-  + PROVENANCE.md + SHA256SUMS (re-verified after write)
+Offline partial reconstruction only (1,520 rows from the September 28 raw
+captures; the canonical 1,591-row events.jsonl also includes 71 Common Crawl
+and Wayback rows). It MUST NOT be regenerated from these original captures.
+Use --output with a new, distinct path; existing
+files (including the canonical file) are never overwritten. This tool does not
+update PROVENANCE.md or SHA256SUMS.
 
 The JSONL is directly loadable by the local-push script: one JSON doc
 per line, shared-schema top-level fields only
@@ -26,8 +29,9 @@ per line, shared-schema top-level fields only
 
 Read-only: parses existing evidence files; no live fetching.
 """
+import argparse
 import json, os, re, hashlib
-from datetime import datetime, timezone
+from datetime import datetime
 
 BASE = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
 OUTDIR = os.path.join(BASE, "data", "2026-05-12-university-shorteners-events")
@@ -41,9 +45,6 @@ INSTANCES = {
 }
 
 OBSERVER = {"product": "muse", "type": "research-agent", "vendor": "meta"}
-NOW = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
-
-
 def sha12(s):
     return hashlib.sha256(s.encode("utf-8")).hexdigest()[:12]
 
@@ -83,11 +84,15 @@ def base_doc(instance, slug, source_url, retrieved_at, evidence_file, record_kin
         "granularity": "event",
     }
     labels.update(extra_labels)
+    if isinstance(labels.get("best_day"), dict):
+        best_day = labels.pop("best_day")
+        labels.update({"best_day." + key: value for key, value in best_day.items()})
     return {
         "@timestamp": retrieved_at,
         "description": description,
         "event": {"created": retrieved_at, "dataset": "2026-05-12-university-shorteners"},
         "file": os.path.relpath(evidence_file, BASE),
+        "fingerprint": hashlib.sha256(event_id.encode("utf-8")).hexdigest(),
         "labels": labels,
         "matched_string": matched_string,
         "note": note,
@@ -303,25 +308,35 @@ def explode_popcat_txt(path, code):
         {"record": "page_observation", "long_url": target, "clicks": clicks}, tags)]
 
 
-def main():
-    os.makedirs(OUTDIR, exist_ok=True)
+def main(argv=None):
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--output", required=True,
+                        help="New offline JSONL path; must not exist or be the canonical file")
+    args = parser.parse_args(argv)
+    output = os.path.abspath(args.output)
+    if os.path.realpath(output) == os.path.realpath(OUT):
+        parser.error("refusing canonical events.jsonl: partial reconstruction would lose later captures")
+    if os.path.lexists(output):
+        parser.error("output already exists; refusing to overwrite")
+    if not os.path.isdir(os.path.dirname(output)):
+        parser.error("output parent directory does not exist")
     docs = []
     # 5 rich JSON captures
-    for f in sorted(os.listdir(os.path.join(BASE, "data", "2026-09-28-university-shorteners", "goto-unm-edu"))):
+    for f in sorted(os.listdir(os.path.join(BASE, "data", "2026-09-28-university-shorteners", "raw", "goto-unm-edu"))):
         if f.endswith("_referrer_urls_daily_2026-09-28.json"):
-            docs += explode_referrer_json(os.path.join(BASE, "data", "2026-09-28-university-shorteners", "goto-unm-edu", f))
-    docs += explode_referrer_json(os.path.join(BASE, "data", "2026-09-28-university-shorteners", "u-ethz-ch",
+            docs += explode_referrer_json(os.path.join(BASE, "data", "2026-09-28-university-shorteners", "raw", "goto-unm-edu", f))
+    docs += explode_referrer_json(os.path.join(BASE, "data", "2026-09-28-university-shorteners", "raw", "u-ethz-ch",
                                                "nB1nv_referrer_urls_daily_2026-09-28.json"))
     # vbudg control
-    docs += explode_vbudg_txt(os.path.join(BASE, "data", "2026-09-28-university-shorteners-batch2", "goto-unm-edu",
+    docs += explode_vbudg_txt(os.path.join(BASE, "data", "2026-09-28-university-shorteners-batch2", "raw", "goto-unm-edu",
                                           "vbudg_stats_2026-09-28.txt"))
     # UVM controls
     for slug in ("-4s0q", "tgmtq", "xc26"):
-        docs += explode_uvm_txt(os.path.join(BASE, "data", "2026-09-28-university-shorteners-batch3", "go-uvm-edu",
+        docs += explode_uvm_txt(os.path.join(BASE, "data", "2026-09-28-university-shorteners-batch3", "raw", "go-uvm-edu",
                                              "%s_stats_2026-09-28.txt" % slug), slug)
     # popcat
     for code in ("5vtSk2RG2f", "IRZTIxDlZ"):
-        docs += explode_popcat_txt(os.path.join(BASE, "data", "2026-09-28-university-shorteners", "url-popcat-xyz",
+        docs += explode_popcat_txt(os.path.join(BASE, "data", "2026-09-28-university-shorteners", "raw", "url-popcat-xyz",
                                                 "%s_info_2026-09-28.txt" % code), code)
 
     # dedupe on event_id (keep first)
@@ -339,63 +354,16 @@ def main():
         bad |= (set(d.keys()) - allowed)
     assert not bad, "unexpected top-level fields: %s" % bad
 
-    with open(OUT, "w") as f:
+    with open(output, "x", encoding="utf-8") as f:
         for d in uniq:
             f.write(json.dumps(d, ensure_ascii=False) + "\n")
 
     # counts by record_kind
     from collections import Counter
     kinds = Counter(d["record_kind"] for d in uniq)
-    print("wrote %d docs to %s" % (len(uniq), os.path.relpath(OUT, BASE)))
+    print("wrote %d partial-reconstruction docs to %s" % (len(uniq), output))
     for k, n in sorted(kinds.items()):
         print("  %-22s %d" % (k, n))
-
-    # PROVENANCE + SHA256SUMS
-    prov = """# university-shorteners-events — PROVENANCE
-
-Explicit-events re-explosion of the university-shorteners family
-(Christopher's explicit-events rule: no consolidation in primary indexes;
-every observable event is its own doc).
-
-Built: %s (UTC), generator scripts/build_shortener_events.py (read-only,
-offline re-parse of existing evidence captures; no live fetching;
-hosted-Elastic writes paused — staged on disk for the local-push script).
-
-## Sources (untouched)
-
-- data/2026-09-28-university-shorteners/raw/goto-unm-edu/{7t6-o,discvr,reso,urphy21}_referrer_urls_daily_2026-09-28.json
-- data/2026-09-28-university-shorteners/raw/u-ethz-ch/nB1nv_referrer_urls_daily_2026-09-28.json
-- data/2026-09-28-university-shorteners-batch2/raw/goto-unm-edu/vbudg_stats_2026-09-28.txt (control)
-- data/2026-09-28-university-shorteners-batch3/raw/go-uvm-edu/{-4s0q,tgmtq,xc26}_stats_2026-09-28.txt (UVM controls)
-- data/2026-09-28-university-shorteners/raw/url-popcat-xyz/{5vtSk2RG2f,IRZTIxDlZ}_info_2026-09-28.txt
-
-## Supersedes
-
-The 16 consolidated docs currently in the `university-shorteners` hosted
-index (record_kind yourls_stats_page / yourls_stats_detail /
-shortener_info_page, one doc per stats page) are earmarked for the support
-index `university-shorteners-rollup`. The per-event docs in
-events.jsonl are their replacement in the primary
-index. labels.event_id is deterministic for idempotent loads.
-
-## Caveats
-
-- YOURLS all-time daily series is decimated (~6-week sampling, includes
-  zero-hit days); last-30-days series is full resolution.
-- Per-day tables for 2026-07-05/06 are structurally unpullable from the
-  YOURLS public UI (no per-day drill-down) — recorded, not retried.
-- UVM referrers are owner-only (NetID login); only traffic + location rows
-  exist for go.uvm.edu.
-- retrieved_at for txt-parsed sources is normalized from the capture-time
-  note in the file header (CDT = UTC-5); the raw string is not retained.
-""" % NOW
-    open(os.path.join(OUTDIR, "PROVENANCE.md"), "w").write(prov)
-    sums = []
-    for fn in ("events.jsonl", "PROVENANCE.md"):
-        p = os.path.join(OUTDIR, fn)
-        sums.append("%s  %s" % (file_sha256(p), fn))
-    open(os.path.join(OUTDIR, "SHA256SUMS"), "w").write("\n".join(sums) + "\n")
-    print("PROVENANCE.md + SHA256SUMS written; manifest re-verified.")
 
 
 if __name__ == "__main__":
