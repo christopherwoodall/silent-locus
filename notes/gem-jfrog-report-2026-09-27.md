@@ -13,7 +13,7 @@ for corpus reconciliation.
 - **Full upload windows** (closes our May 5–10 gap):
   - May 5: 5 · May 8: 48 · May 9: 7 · May 10: 6 · May 11: 295 · May 12: 2,359
   - May 26: 2 · May 27: 2 · June 18: 83 · **July 7: 215 packages / 333 releases (new wave, not in our corpus)**
-- **1,388 distinct authors**; July wave used `Testing <Animal>` author format; `John Doe` also appears.
+- **1,388 distinct authors**; July used a `Testing <Animal>` handle format, but fake authorship is not proven for the full set. `John Doe` also appears.
 - Cross-corpus note (JFrog): June agents accessed 49 of the same files as the DseWiki wiki agents.
 
 ## What it adds beyond our corpus
