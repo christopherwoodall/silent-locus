@@ -3,17 +3,17 @@
 
 Reconstructs the 83-gem June-18 segment:
   81 gems by June-family grammar match against the JFrog inventory
-      (data/gemstuffer-jfrog-2026-09-27.csv), plus
+      (data/2025-03-04-rubygems-goimport-campaign/raw/gemstuffer-jfrog-2026-09-27.csv), plus
   2 random-suffix names cited in the thecolony.ai incident wiki
       (ultimate4834, method2088) — grammar-invisible.
 
 Cross-references each name against:
   - JFrog inventory (versions, Xray ID)
-  - Diffend corpus metadata (data/osv/diffend_sweep_results*.jsonl)
-  - Wayback June metadata (data/gem-june18-wayback.jsonl)
-  - collusion.wiki gem bridge (data/wiki_gem_bridge.json)
+  - Diffend corpus metadata (data/2026-05-11-osv/diffend_sweep_results*.jsonl)
+  - Wayback June metadata (data/2025-03-04-rubygems-goimport-campaign/raw/gem-june18-wayback.jsonl)
+  - collusion.wiki gem bridge (data/aggregates/2026-09-29-overlap-analysis/raw/wiki_gem_bridge.json)
 
-Outputs into data/gem83-reconciliation/:
+Outputs into data/aggregates/2026-09-28-gem83-reconciliation/:
   gem83-names.json, gem83-reconciliation.csv/.jsonl, pattern-sweep.txt,
   PROVENANCE.md
 """
@@ -64,7 +64,7 @@ assert len(june) == 83, f"expected 83, got {len(june)}"
 
 # --- Diffend corpus ---------------------------------------------------------
 diffend_names = set()
-for fn in ['diffend_sweep_results.jsonl', 'diffend_sweep_results_retry.jsonl']:
+for fn in ['osv-diffend-sweep-results.jsonl', 'osv-diffend-sweep-results-retry.jsonl']:
     try:
         with open(DATA + "/osv/" + fn) as f:
             for line in f:
@@ -120,7 +120,7 @@ for n in june:
 with open(OUT + "/gem83-names.json", "w") as f:
     json.dump([{'gem': n, 'source': source[n]} for n in june], f, indent=1)
 
-with open(OUT + "/gem83-reconciliation.jsonl", "w") as f:
+with open(OUT + "/raw/raw/gem83-reconciliation.jsonl", "w") as f:
     for r in rows:
         f.write(json.dumps(r) + "\n")
 

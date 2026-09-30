@@ -3,7 +3,7 @@
 
 For each hit: primitive, source record, laundered target (what URL the
 primitive wraps), and first-seen = earliest revision write_date containing
-that exact URL. Merges into data/proxy-primitives/hits.jsonl with the
+that exact URL. Merges into data/aggregates/2026-05-26-proxy-primitives/events.jsonl with the
 earlier sweep's hits; collapses exact duplicates.
 """
 import gzip, json, re, hashlib, os, urllib.parse
@@ -69,7 +69,7 @@ def main():
     # pass 1: URL -> earliest write_date from revisions
     first_seen = {}
     rev_count = 0
-    with open_maybe_gz(DATA + "/collusion-wiki/revisions.jsonl.gz") as f:
+    with open_maybe_gz(DATA + "/collusion-wiki/raw/revisions.jsonl.gz") as f:
         for line in f:
             line = line.strip()
             if not line or not PRIM_RX.search(line):
@@ -104,7 +104,7 @@ def main():
         hits.append(h)
 
     # links.jsonl.gz + records.jsonl.gz
-    for fname in ("collusion-wiki/links.jsonl.gz", "collusion-wiki/records.jsonl.gz"):
+    for fname in ("collusion-wiki/raw/links.jsonl.gz", "collusion-wiki/raw/records.jsonl.gz"):
         n = 0
         with open_maybe_gz(DATA + "/" + fname) as f:
             for line in f:
@@ -180,7 +180,7 @@ def main():
     # records.jsonl.gz: agent record *text* annotating primitive use
     # (operational URL omitted in-dump; host + sha256 survive)
     n = 0
-    with open_maybe_gz(DATA + "/collusion-wiki/records.jsonl.gz") as f:
+    with open_maybe_gz(DATA + "/collusion-wiki/raw/records.jsonl.gz") as f:
         for line in f:
             line = line.strip()
             if not line or not PRIM_RX.search(line):
@@ -197,7 +197,7 @@ def main():
                             r"[A-Za-z0-9_.%/:?=&*+;,\[\]-]*", txt)
             frag = tok.group(0) if tok else m.group(0)
             sha = re.search(r"sha256=([0-9a-f]{8,64})", txt)
-            add(classify(frag), "local:collusion-wiki/records.jsonl.gz", frag, {
+            add(classify(frag), "local:collusion-wiki/raw/records.jsonl.gz", frag, {
                 "record_kind": "wiki_record_annotation",
                 "record_id": r.get("id"),
                 "selection_basis": r.get("selection_basis"),

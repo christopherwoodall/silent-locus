@@ -14,7 +14,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import es_ingest_july7 as base
 
 SWEEP = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-                     "data", "july7-wave", "diffend_sweep_results_july7.jsonl")
+                     "data", "2026-07-07-july7-wave", "raw/diffend_sweep_results_july7.jsonl")
 
 
 def main():

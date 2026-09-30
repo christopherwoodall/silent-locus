@@ -1,0 +1,73 @@
+# PROVENANCE — md.succ.ai separate dataset
+
+Separate dataset staged per hunt directive: artifacts for the md.succ.ai
+recon lane, kept OUT of the collusion-wiki corpus.
+
+## Source
+
+- Public Git repository: https://github.com/vinaes/md-succ-ai
+- Cloned 2026-09-28 (UTC) via `git clone --depth 1`, then `git fetch --unshallow`
+  for full history. Local copy: `repo/`
+- Live API spec: https://md.succ.ai/openapi.json (fetched 2026-09-28, saved as
+  `openapi.json`)
+
+## Retrieval record
+
+| item | date (UTC) | sha256 |
+|---|---|---|
+| repo HEAD commit | 2026-09-28 | `ea3ec780741b9f777d1e5575b2dd9d1b2fc80b82` |
+| openapi.json | 2026-09-28 | see `openapi.json.sha256` |
+
+## Provenance notes
+
+- Repository first commit: 2026-02-14 ("feat: md.succ.ai — HTML to clean
+  Markdown API"). HEAD commit: 2026-02-25 (MCP server, TLS fingerprint
+  impersonation, browser resource blocking).
+- License in repo: FSL-1.1-Apache-2.0 (Functional Source License,
+  source-available; converts to Apache 2.0 over time).
+- The repo is presented as part of the "succ" ecosystem (succ.ai), an
+  agentic coding framework whose web-fetch backend is md.succ.ai.
+- Operator identity is OUT OF SCOPE for this hunt; no person-focused
+  attribution was pursued. This dataset covers infrastructure facts only.
+
+## Relation to other datasets
+
+- Referenced by 483 wiki agents in the collusion-wiki corpus
+  (see `../wiki_ioc_pivots.jsonl`).
+- Referenced in third-party analyses:
+  - https://github.com/swarm-ai-research/wiki-agent-swarm-incident/blob/HEAD/analysis/sub-swarms.md
+  - https://github.com/swarm-ai-research/wiki-agent-swarm-incident/blob/HEAD/analysis/reddit-local-forensics-crosscheck.md
+  - https://github.com/hamzah2304/messageboardauditbench (blind_verbatim report
+    react_z-ai_glm-5.3_r3_20260907T095543Z.md)
+
+## Index decision 2026-09-28 (workstream D)
+
+Deliberately unindexed as a standalone ES index. This dataset holds
+public-project recon artifacts (git clone of vinaes/md-succ-ai +
+openapi.json) for a public markdown-API utility adopted by the swarm.
+The agent-trace evidence (proxy-ladder usage, `?dummyagent=` nonces)
+already lives in the `proxy-primitives` ES index (311 hits). Nothing
+agent-specific exists in these artifacts that merits its own index; they
+stay on disk as reference per keep-all policy.
+
+## Schema backfill 2026-09-29 (normalization sweep, worker W4)
+
+- Built `events.jsonl`: 2 records, both `artifact_observation`: the repo clone (raw/repo) and raw/openapi.json.
+- Fingerprint identity strings: `md-succ-ai:repo` and `md-succ-ai:openapi.json`.
+- @timestamp: repo -> 2026-02-14T00:00:00Z (first commit date, the layer's first event); labels.timestamp_source=`provenance:first_commit_date`. openapi.json -> 2026-09-28T00:00:00Z (fetch date); labels.timestamp_source=`provenance:fetch_date`. Note: raw/repo carries no .git dir (files only), so commit dates come from this PROVENANCE.md, not from git.
+- No rollup.jsonl: 2 artifact records, pure event stream (deliberate per sweep rule).
+- Regenerated `SHA256SUMS` (events.jsonl + raw/**).
+
+## Stub merge — deploy tooling recovered (2026-09-28)
+
+Two repo files from the untracked former stub `repo/` were absent from
+the 2026-09-28 clone above (byte-compare confirmed: no matching names or
+hashes among the clone's 79 files) and are merged here preserving paths:
+
+- `raw/repo/Makefile` — deploy/build targets (`deploy`, `build-web`,
+  `deploy-api`, `deploy-web`) for md.succ.ai (SSH deploy host redacted here;
+  see file)
+- `raw/repo/scripts/browser-server.mjs` — Camoufox browser sidecar entry
+  point (Playwright WebSocket, auto-restart, HTTP health endpoint)
+
+SHA256SUMS regenerated to include both files. The untracked stub dir was removed from disk after merge.

@@ -7,10 +7,12 @@ never executes payload content.
 import csv, gzip, json, re, base64, os
 from urllib.parse import unquote
 
-HUNT = "/home/hatch/workspace/muse-home/projects/urlquery-api-hunt"
+HUNT = os.environ.get("HUNT_DIR",
+    os.path.join(os.path.expanduser("~"), "workspace", "muse-home",
+                 "projects", "urlquery-api-hunt"))
 ST = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DS = ST + "/data/raw/redacted.jsonl.gz"
-OUT = ST + "/data/matches-f1f2.jsonl"
+OUT = ST + "/data/aggregates/2026-09-29-overlap-analysis/events.jsonl"
 
 HTTPBUN_IOCS = [
     "api.browserless.io",

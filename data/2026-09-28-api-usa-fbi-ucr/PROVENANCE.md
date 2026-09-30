@@ -1,0 +1,7 @@
+# PROVENANCE — api.usa.gov / FBI UCR bounded negative sweep
+
+Source: original `data/2026-09-28-api-usa-fbi-ucr/raw/progress.log`, retained in place byte-for-byte (CRLF); SHA-256 `f27dcc3cafd5c7ad0d46fba111c28bd4cb243f7c9d3eb12e34206722796f5f17`. Related historical analysis: `notes/api-usa-fbi-ucr-2026-09-28.md`. No network requests, fresh searches, or ES writes were performed for this reconciliation.
+
+The run log records the 2026-09-28T10:54:21Z sweep: 37 local files, 80,434 collusion-wiki documents, 12 pattern variants plus sanity patterns. The observed result was **zero genuine hits** for api.usa.gov / FBI UCR / crime-data-explorer. The vanderbi.lt origin note was the hypothesis source, and two Google Drive viewerng IDs containing `UCr` were false positives. The later 18:12Z triage reiterates a bounded negative and says no ES index was created. These are the log's historical claims, not independently repeated checks; no positive use is inferred.
+
+`events.jsonl` contains one `artifact_observation` describing that negative run log, not a hypothetical FBI data artifact. `@timestamp` is the first sweep completion timestamp from the log; `event.created` is the UTC materialization time. `labels.timestamp_source` records that choice. Fingerprint identity string: `api-usa-fbi-ucr:null-verdict:raw/progress.log` (SHA-256 UTF-8). `sha256` and `size_bytes` describe the unaltered raw log; `SHA256SUMS` covers the event file and original log. No rollup exists: there is one source observation and no aggregate layer.

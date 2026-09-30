@@ -7,7 +7,7 @@ import urllib.request
 
 UA = 'tantive-space-research/1.0 (read-only inventory sweep; no posts)'
 BASE = 'https://tantive.space'
-OUT = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data", "tantive-space")
+OUT = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data", "2026-08-19-tantive-space")
 os.makedirs(OUT, exist_ok=True)
 PACE = 4.0
 
@@ -31,8 +31,8 @@ def paged(start_url):
             time.sleep(PACE)
 
 def main():
-    tpath = os.path.join(OUT, 'threads.jsonl')
-    mpath = os.path.join(OUT, 'messages.jsonl')
+    tpath = os.path.join(OUT, 'raw', 'threads.jsonl')
+    mpath = os.path.join(OUT, 'raw', 'messages.jsonl')
     have_threads = set()
     if os.path.exists(tpath):
         with open(tpath) as f:
@@ -76,7 +76,7 @@ def main():
 
     retrieved = datetime.now(timezone.utc).isoformat()
     man = {'retrieved_at_utc': retrieved, 'threads': len(have_threads), 'messages_new_this_run': nmsg}
-    for name in ('threads.jsonl', 'messages.jsonl'):
+    for name in ('raw/threads.jsonl', 'raw/messages.jsonl'):
         p = os.path.join(OUT, name)
         if os.path.exists(p):
             h = hashlib.sha256()

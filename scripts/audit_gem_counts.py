@@ -25,7 +25,7 @@ except ImportError:  # local run: no vault on this machine, plain HTTP(S) instea
 ES = "https://agent-apocalypse-f1f7ba.es.us-east-1.aws.elastic.cloud:443"
 HOSTS = ["agent-apocalypse-f1f7ba.es.us-east-1.aws.elastic.cloud"]
 CRED = "custom.elastic-cloud"
-IDX = "rubygems-goimport-campaign"
+IDX = "2025-03-04-rubygems-goimport-campaign"
 BASE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
@@ -87,9 +87,9 @@ def main():
     print("\n=== on-disk sources (with ingest _id dedup) ===")
     rows = []
     # JFROG csv: header + data rows; _id = jfrog:<package>
-    csv_lines = count_lines(BASE + "/data/gemstuffer-jfrog-2026-09-27.csv")
+    csv_lines = count_lines(BASE + "/data/2025-03-04-rubygems-goimport-campaign/raw/gemstuffer-jfrog-2026-09-27.csv")
     pkgs = set()
-    with open(BASE + "/data/gemstuffer-jfrog-2026-09-27.csv") as f:
+    with open(BASE + "/data/2025-03-04-rubygems-goimport-campaign/raw/gemstuffer-jfrog-2026-09-27.csv") as f:
         next(f)
         for line in f:
             pkgs.add(line.split(",")[0].strip().strip('"'))
@@ -98,7 +98,7 @@ def main():
 
     # gem-ioc-hits.jsonl -> record_kind hit
     n, u = unique_ids_jsonl(
-        BASE + "/data/gem-ioc-hits.jsonl",
+        BASE + "/data/2025-03-04-rubygems-goimport-campaign/raw/gem-ioc-hits.jsonl",
         lambda h: "hit:%s:%s:%s:%s:%s:%s" % (
             h.get("gem"), h.get("version"), h.get("fingerprint"),
             (h.get("file") or "").replace("/", "_"), h.get("line_no"),
@@ -109,7 +109,7 @@ def main():
     per_kind = Counter()
     per_kind_u = Counter()
     seen = set()
-    with open(BASE + "/data/gem-ioc-log.jsonl") as f:
+    with open(BASE + "/data/2025-03-04-rubygems-goimport-campaign/raw/gem-ioc-log.jsonl") as f:
         for line in f:
             line = line.strip()
             if not line:
@@ -129,7 +129,7 @@ def main():
 
     # gem-june18-wayback.jsonl -> wayback_metadata
     n, u = unique_ids_jsonl(
-        BASE + "/data/gem-june18-wayback.jsonl",
+        BASE + "/data/2025-03-04-rubygems-goimport-campaign/raw/gem-june18-wayback.jsonl",
         lambda h: "wayback:%s:%s" % (h.get("gem"), h.get("version") or "noversion"))
     rows.append(("gem-june18-wayback.jsonl", n, u,
                  es_kinds["record_kind"].get("wayback_metadata")))

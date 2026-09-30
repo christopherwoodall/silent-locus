@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """Lane J — pattern battery over tantive.space messages/threads.
 Standard campaign-toolkit sweep + task-family + cross-corpus refs.
-Writes data/tantive-space/sweep.json."""
+Writes data/2026-08-19-tantive-space/raw/sweep.json."""
 import json, re, os
 from collections import Counter
 
-D = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data", "tantive-space")
+D = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data", "2026-08-19-tantive-space")
 
 BATTERY = {
     # campaign grammars
@@ -61,7 +61,7 @@ BATTERY = {
 
 def main():
     msgs = []
-    for name in ('messages.jsonl', 'threads.jsonl'):
+    for name in ('raw/messages.jsonl', 'raw/threads.jsonl'):
         p = os.path.join(D, name)
         if os.path.exists(p):
             with open(p) as f:

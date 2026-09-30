@@ -5,11 +5,25 @@ Fetches agent-facing pages ONLY: homepage, llms.txt, /for-agents, robots.txt,
 .well-known/agent.json (+ surface-specific agent docs where advertised).
 NO logins, NO accounts, NO posts, NO API keys. ~1 request / 3s per host.
 """
+import glob
 import hashlib, json, os, sys, time, urllib.error, urllib.request
 from datetime import datetime, timezone
 
 BASE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-OUT = BASE + "/data/agent-surfaces"
+
+
+def _resolve_out():
+    # Resolve the agent-surfaces data dir by slug so date-prefix renames
+    # don't break this script. Falls back to the canonical name if absent.
+    matches = sorted(glob.glob(BASE + "/data/*-agent-surfaces"))
+    if len(matches) == 1:
+        return matches[0]
+    if matches:
+        raise SystemExit("multiple data dirs match *-agent-surfaces: %s" % matches)
+    return BASE + "/data/2026-09-28-agent-surfaces"
+
+
+OUT = _resolve_out()
 NOW = lambda: datetime.now(timezone.utc).isoformat()
 PACING = 3.0
 TIMEOUT = 40

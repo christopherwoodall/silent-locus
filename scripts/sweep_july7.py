@@ -33,8 +33,8 @@ PACE = 3.0
 MAX_RETRIES = 2  # first pass: fail fast on hostile connections; --retry-failed later
 
 PROJ = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-OUTDIR = os.path.join(PROJ, "data/july7-wave")
-OUT = os.path.join(OUTDIR, "diffend_sweep_results_july7.jsonl")
+OUTDIR = os.path.join(PROJ, "data/2026-07-07-july7-wave")
+OUT = os.path.join(OUTDIR, "raw", "diffend_sweep_results_july7.jsonl")
 LOG = os.path.join(OUTDIR, "progress.log")
 
 MECH_PATTERNS = [
@@ -172,7 +172,7 @@ EXTRA_CANDIDATES = ["attacker-xss-admin-1"]
 
 def load_candidates():
     cands = []
-    csv_path = os.path.join(PROJ, "data/gemstuffer-jfrog-2026-09-27.csv")
+    csv_path = os.path.join(PROJ, "data/2025-03-04-rubygems-goimport-campaign/raw/gemstuffer-jfrog-2026-09-27.csv")
     with open(csv_path, newline="") as f:
         for row in csv.DictReader(f):
             name = row["Package"].strip()

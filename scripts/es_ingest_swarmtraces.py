@@ -2,7 +2,7 @@
 """Ingest the SwarmTraces redacted dataset into a local `swarmtraces` index.
 
 Source: data/raw/redacted.jsonl.gz (189,579 records, sha256-pinned in
-data/raw/MANIFEST.json and data/swarmtraces_provenance.json).
+data/raw/MANIFEST.json and data/raw/swarmtraces_provenance.json).
 Native record schema: id, cite, kind (payload|response|recovered_text),
 parent_id, time_utc (null dataset-wide), tags, text.
 
@@ -25,7 +25,7 @@ from datetime import datetime, timezone
 
 BASE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SRC = os.path.join(BASE, "data", "raw", "redacted.jsonl.gz")
-PROV = os.path.join(BASE, "data", "swarmtraces_provenance.json")
+PROV = os.path.join(BASE, "data", "raw", "swarmtraces_provenance.json")
 MAPPING = os.path.join(BASE, "notes", "gems-es-mapping.json")
 INDEX = "swarmtraces"
 EXPECTED = 189579  # data/raw/MANIFEST.json: 91037 payload + 23008 response + 75534 recovered_text

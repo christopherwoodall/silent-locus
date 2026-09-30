@@ -2,6 +2,11 @@
 """Corpus validator: every JSONL record under data/ must match
 schema/record.schema.json. Stdlib only.
 
+Raw layer: files under any `raw/` path segment (e.g. data/<collection>/raw/)
+are pre-event source material — script-consumed transform inputs and raw
+captures that keep upstream-native names for provenance. They are exempt
+from the event-record schema and reported as skipped, not checked.
+
 Usage:
     python3 scripts/validate_schema.py [path ...]   # files or dirs (default: data/)
 Exit 0 when all records validate, 1 otherwise. Prints per-file error counts
@@ -20,7 +25,7 @@ REPO = __file__.rsplit("/scripts/", 1)[0]
 REQUIRED = ["@timestamp", "event", "record_kind", "fingerprint", "labels"]
 OPTIONAL = ["source_url", "description", "confidence", "tags", "observer",
             "retrieved_at", "retrieved_via", "sha256", "size_bytes",
-            "note", "status", "matched_string", "file"]
+            "note", "status", "matched_string", "file", "payloads"]
 ALLOWED = set(REQUIRED) | set(OPTIONAL)
 FP_RE = re.compile(r"^[0-9a-f]{64}$")
 KIND_RE = re.compile(r"^[a-z0-9_]+$")
@@ -90,6 +95,30 @@ def check(rec, ctx):
         errs.append("bad sha256")
     if "size_bytes" in rec and not isinstance(rec["size_bytes"], int):
         errs.append("size_bytes not int")
+    if "payloads" in rec:
+        pls = rec["payloads"]
+        if not isinstance(pls, list):
+            errs.append("payloads not an array")
+        else:
+            for pi, p in enumerate(pls):
+                if not isinstance(p, dict):
+                    errs.append(f"payloads[{pi}] not an object")
+                    continue
+                for rk in ("kind", "content_type", "content"):
+                    if not isinstance(p.get(rk), str) or not p[rk]:
+                        errs.append(f"payloads[{pi}] missing/bad {rk}")
+                if "encoding" in p and p["encoding"] not in ("text", "base64"):
+                    errs.append(f"payloads[{pi}] bad encoding")
+                if "truncated" in p and not isinstance(p["truncated"], bool):
+                    errs.append(f"payloads[{pi}] truncated not bool")
+                if "byte_size" in p and not isinstance(p["byte_size"], int):
+                    errs.append(f"payloads[{pi}] byte_size not int")
+                if "sha256" in p and not FP_RE.match(str(p["sha256"] or "")):
+                    errs.append(f"payloads[{pi}] bad sha256")
+                for k in p:
+                    if k not in ("kind", "content_type", "content", "encoding",
+                                 "truncated", "byte_size", "sha256"):
+                        errs.append(f"payloads[{pi}] unexpected key: {k}")
     return errs
 
 
@@ -105,7 +134,20 @@ def main():
     total_errs = 0
     bad_files = 0
     checked = 0
+    raw_skipped = 0
+    event_files = []
     for p in sorted(files):
+        rel = os.path.relpath(p, REPO)
+        if "raw" in rel.split(os.sep):
+            raw_skipped += 1
+            continue
+        # Only canonical event files validate against the record schema;
+        # lane outputs (e.g. iocs.jsonl) are build artifacts, not records.
+        if os.path.basename(p) not in ("events.jsonl", "rollup.jsonl"):
+            raw_skipped += 1
+            continue
+        event_files.append(p)
+    for p in event_files:
         ferrs = []
         with open(p) as f:
             for i, line in enumerate(f, 1):
@@ -129,7 +171,8 @@ def main():
             print(f"FAIL {rel} ({len(ferrs)} shown)")
             for e in ferrs[:6]:
                 print(f"    {e}")
-    print(f"checked {checked} records in {len(files)} files; "
+    print(f"checked {checked} records in {len(event_files)} event files "
+          f"({raw_skipped} raw-layer files skipped); "
           f"{bad_files} files with violations")
     sys.exit(1 if total_errs else 0)
 

@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 """Targeted temporal check: version dates on July-7 family + distinctive May names.
-Appends one JSON line per name to data/gem-temporal-pivot/diffend_targeted_check.jsonl.
+Appends one JSON line per name to data/2026-09-29-gem-temporal-pivot/gem-temporal-pivot-diffend-targeted-check.jsonl.
 Skips names already present. Read-only, ~3s spacing + retry.
 """
 import sys, time, json, os
 sys.path.insert(0, os.path.expanduser("~/workspace/silent-locus/scripts"))
 from diffend_temporal_sweep import gem_versions
 
-OUT = os.path.expanduser("~/workspace/silent-locus/data/gem-temporal-pivot/diffend_targeted_check.jsonl")
+OUT = os.path.expanduser("~/workspace/silent-locus/data/2026-09-29-gem-temporal-pivot/gem-temporal-pivot-diffend-targeted-check.jsonl")
 NAMES = ["attacker-xss-admin-1", "xssname-1783397821", "test-apex-gem", "test-ssti-0",
          "test-ssti-1", "test-ssti-4", "zz-oai-test12", "zzfadgivar00", "zzdelay2119",
          "southwarkssrfhack", "tryf3zz", "xss-test-gem", "southpxdatapp6pi"]

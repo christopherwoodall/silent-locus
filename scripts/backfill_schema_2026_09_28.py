@@ -32,7 +32,13 @@ CANONICAL_TOP = {
     "@timestamp", "event", "record_kind", "fingerprint", "labels",
     "observer", "retrieved_at", "retrieved_via", "source_url",
     "matched_string", "description", "note", "tags", "confidence",
-    "sha256", "size_bytes", "file", "status", "observed_at",
+    "sha256", "size_bytes", "file", "status",
+    # NOTE: observed_at is NOT a canonical top-level field. The schema
+    # contract (schema/record.schema.json: "Dataset-specific fields live
+    # here [labels], never at top level") puts it under labels, which is
+    # where every existing record carries it (labels.observed_at).
+    # Keeping it here would let order()/validate() bless a top-level
+    # observed_at that scripts/validate_schema.py (correctly) rejects.
 }
 
 
@@ -71,7 +77,9 @@ def order(rec: dict) -> dict:
     first = ["@timestamp", "event", "record_kind", "fingerprint", "labels",
              "observer", "retrieved_at", "retrieved_via", "source_url",
              "matched_string", "description", "note", "tags", "confidence",
-             "sha256", "size_bytes", "file", "status", "observed_at"]
+             "sha256", "size_bytes", "file", "status"]
+    # (no "observed_at": schema contract keeps it under labels; see
+    # CANONICAL_TOP note)
     out = {k: rec[k] for k in first if k in rec}
     out.update({k: v for k, v in rec.items() if k not in out})
     return out
@@ -141,7 +149,7 @@ def t_transfer_test(rec: dict) -> dict:
                       "file_drops", "observed_utc", "checked_utc",
                       "http_status", "probed_utc", "pattern", "query",
                       "result", "scope", "searched_utc", "surface", "url"},
-                "transfer-test-family")
+                "2026-07-21-transfer-test-family")
     rec = move_to_labels(rec, ["paste_id", "title", "author", "created_utc",
                                "body_bytes", "body_sha256", "body_markers",
                                "file_drops", "observed_utc", "checked_utc",
@@ -156,7 +164,7 @@ def t_transfer_test(rec: dict) -> dict:
     elif url:
         rec["labels"]["url"] = url
     # note is canonical top-level; keep where it is
-    rec["event"] = new_event("transfer-test-family")
+    rec["event"] = new_event("2026-07-21-transfer-test-family")
     lab = rec["labels"]
     for cand in ("created_utc", "probed_utc", "searched_utc", "checked_utc",
                  "observed_utc"):
@@ -179,11 +187,11 @@ def t_transfer_test(rec: dict) -> dict:
 def t_pastebin_sweep(rec: dict) -> dict:
     expect_keys(rec, {"venue", "observed_utc", "lane", "result",
                       "surface_url", "markers_checked", "detail"},
-                "pastebin-cluster-sweep")
+                "2026-09-28-pastebin-cluster-sweep")
     rec = move_to_labels(rec, ["venue", "observed_utc", "lane", "result",
                                "markers_checked", "detail"])
     rec["source_url"] = rec.pop("surface_url")  # canonical name, same value
-    rec["event"] = new_event("pastebin-cluster-sweep")
+    rec["event"] = new_event("2026-09-28-pastebin-cluster-sweep")
     rec["@timestamp"] = to_utc_z(rec["labels"]["observed_utc"])
     # existing md5 fingerprint kept untouched
     return order(rec)
@@ -226,7 +234,7 @@ def t_collusion_wiki(rec: dict) -> dict:
     expect_keys(rec, set(fields), "collusion-wiki/events")
     eid = rec["event_id"]
     rec = move_to_labels(rec, fields)
-    rec["event"] = new_event("collusion-wiki")
+    rec["event"] = new_event("2026-05-17-collusion-wiki")
     rec["record_kind"] = "wiki_event"
     rec["@timestamp"] = to_utc_z(rec["labels"]["time"])
     rec["fingerprint"] = fp(eid)
@@ -241,7 +249,7 @@ def t_iowacollab(rec: dict) -> dict:
                       "relay_cluster", "corroboration", "origin_kinds",
                       "corpus_record_ids", "live_status", "live_checked_at",
                       "retrieved_via"},
-                "iowacollab-pastes")
+                "2026-05-17-iowacollab-pastes")
     # retrieved_via is canonical top-level already; keep it there
     keep = rec.pop("retrieved_via")
     rec = move_to_labels(rec, ["id", "body_sha256", "body_bytes", "title",
@@ -253,7 +261,7 @@ def t_iowacollab(rec: dict) -> dict:
                                "origin_kinds", "corpus_record_ids",
                                "live_status", "live_checked_at"])
     rec["retrieved_via"] = keep
-    rec["event"] = new_event("iowacollab-pastes")
+    rec["event"] = new_event("2026-05-17-iowacollab-pastes")
     rec["record_kind"] = "relay_paste"
     # No clean timestamp exists (live_checked_at/created_reported are
     # annotated prose like "2026-09-28T03:2xZ (GET /view/<id> -> 404)").
@@ -263,7 +271,7 @@ def t_iowacollab(rec: dict) -> dict:
 
 
 def t_timeline_anchors(rec: dict) -> dict:
-    expect_keys(rec, {"_id"}, "timeline-anchors")
+    expect_keys(rec, {"_id"}, "2026-03-07-timeline-anchors")
     aid = rec.pop("_id")
     labels = rec.setdefault("labels", {})
     labels["_id"] = aid  # ES artifact preserved under labels
@@ -279,7 +287,7 @@ def t_webhook_deaddrops(rec: dict) -> dict:
                       "diff_url", "in_corpus_harvest", "jfrog_inventory",
                       "jfrog_xray_id", "meta_authors", "meta_homepage",
                       "meta_summary", "source", "versions", "version_count"},
-                "webhook-deaddrops")
+                "2026-05-12-webhook-deaddrops")
     if "wave" in rec:
         assert rec["wave"] == rec["labels"].get("gem.wave"), "wave diverged!"
         rec.pop("wave")  # pure duplicate of labels.gem.wave (verified)
@@ -373,25 +381,25 @@ def t_gem_ioc_log(rec: dict) -> dict:
 
 
 JOBS = [
-    ("data/admin-deletions/staged_primary/admin-deletions_explicit.jsonl",
+    ("data/2026-06-04-admin-deletions/events.jsonl",
      t_admin_explicit),
-    ("data/admin-deletions/staged_rollup/admin-deletions-rollup-flat.jsonl",
+    ("data/2026-06-04-admin-deletions/rollup.jsonl",
      t_admin_rollup),
-    ("data/transfer-test-family/transfer-test-family.jsonl",
+    ("data/2026-07-21-transfer-test-family/events.jsonl",
      t_transfer_test),
-    ("data/pastebin-cluster-sweep/sweep.jsonl",
+    ("data/2026-09-28-pastebin-cluster-sweep/events.jsonl",
      t_pastebin_sweep),
-    ("data/gem-graph-nodes.jsonl",
+    ("data/2025-03-04-rubygems-goimport-campaign/raw/gem-graph-nodes.jsonl",
      t_gem_graph_nodes),
-    ("data/collusion-wiki/events.jsonl",
+    ("data/2026-05-17-collusion-wiki/events.jsonl",
      t_collusion_wiki),
-    ("data/iowacollab-pastes/dataset.jsonl",
+    ("data/2026-05-17-iowacollab-pastes/events.jsonl",
      t_iowacollab),
-    ("data/timeline-anchors/timeline-anchors.jsonl",
+    ("data/2026-03-07-timeline-anchors/events.jsonl",
      t_timeline_anchors),
-    ("data/webhook-deaddrops/webhook-deaddrop-hits-2026-09-27.jsonl",
+    ("data/2026-05-12-webhook-deaddrops/events.jsonl",
      t_webhook_deaddrops),
-    ("data/gem-ioc-log.jsonl",
+    ("data/2025-03-04-rubygems-goimport-campaign/raw/gem-ioc-log.jsonl",
      t_gem_ioc_log),
 ]
 

@@ -3,10 +3,10 @@
 
 1. iowacollab-pastes: set @timestamp from source-verified paste creation
    times. Sources:
-   - 34cb12da / d379207f / 538faa12: data/thecolony-ai/wiki_incident_page.html
+   - 34cb12da / d379207f / 538faa12: data/2026-09-04-thecolony-ai/raw/wiki_incident_page.html
      sect.12 ("<id> -- created <ISO>" per paste; verified verbatim).
    - df40f1f1: paste body literal ts=1781641251 -> 2026-06-16T20:20:51Z
-     (tool-verified; body on disk at data/iowacollab-pastes/df40f1f1.txt).
+     (tool-verified; body on disk at data/2026-05-17-iowacollab-pastes/raw/df40f1f1.txt).
    Wayback snapshot times are capture times, not creation times, and are
    kept in labels only. live_checked_at stays as the annotated prose string.
 
@@ -67,18 +67,18 @@ def main():
     check_only = "--check" in sys.argv
     if check_only:
         # validate only
-        for line in open(f"{REPO}/data/iowacollab-pastes/dataset.jsonl"):
+        for line in open(f"{REPO}/data/2026-05-17-iowacollab-pastes/events.jsonl"):
             if line.strip():
                 r = json.loads(line)
                 assert r["labels"]["id"] in IOWA_TS
-        for line in open(f"{REPO}/data/pastebin-cluster-sweep/sweep.jsonl"):
+        for line in open(f"{REPO}/data/2026-09-28-pastebin-cluster-sweep/events.jsonl"):
             if line.strip():
                 r = json.loads(line)
                 assert r["labels"]["venue"]  # source_url optional (finding)
         print("check ok")
         return
-    n1 = rewrite("data/iowacollab-pastes/dataset.jsonl", fix_iowa)
-    n2 = rewrite("data/pastebin-cluster-sweep/sweep.jsonl", fix_pastebin_fp)
+    n1 = rewrite("data/2026-05-17-iowacollab-pastes/events.jsonl", fix_iowa)
+    n2 = rewrite("data/2026-09-28-pastebin-cluster-sweep/events.jsonl", fix_pastebin_fp)
     print(f"iowacollab-pastes: {n1} records timestamped; "
           f"pastebin-cluster-sweep: {n2} fingerprints recomputed (sha256)")
 

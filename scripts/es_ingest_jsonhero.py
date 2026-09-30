@@ -28,8 +28,8 @@ REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 HOSTS = ["agent-apocalypse-f1f7ba.es.us-east-1.aws.elastic.cloud"]
 CRED = "custom.elastic-cloud"
 BASE = REPO_ROOT
-D = BASE + "/data/jsonhero-docs"
-INDEX = "jsonhero-docs"
+D = BASE + "/data/2026-09-28-jsonhero-docs"
+INDEX = "2026-09-28-jsonhero-docs"
 NOW = datetime.now(timezone.utc).isoformat()
 OBSERVER = {"product": "jsonhero-docs-ingest", "vendor": "swarmtraces-hunt",
             "type": "dataset"}
@@ -88,10 +88,10 @@ def classify(did, body):
 
 
 def build_docs():
-    manifest = json.load(open(f"{D}/manifest.json"))
+    manifest = json.load(open(f"{D}/raw/manifest.json"))
     # wiki ref counts per doc
     refs = {}
-    with open(BASE + "/data/jsonhero_doc_links.jsonl") as f:
+    with open(BASE + "/data/aggregates/2026-09-29-overlap-analysis/raw/jsonhero_doc_links.jsonl") as f:
         for line in f:
             r = json.loads(line)
             refs.setdefault(r["doc_id"], []).append(r)
@@ -99,7 +99,7 @@ def build_docs():
     for m in manifest:
         did = m["doc_id"]
         body = None
-        fpath = f"{D}/{did}.json"
+        fpath = f"{D}/raw/{did}.json"
         if os.path.exists(fpath):
             body = open(fpath, "rb").read()
         tags, desc = classify(did, body)

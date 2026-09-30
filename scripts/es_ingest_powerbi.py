@@ -39,8 +39,8 @@ REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 HOSTS = ["agent-apocalypse-f1f7ba.es.us-east-1.aws.elastic.cloud"]
 CRED = "custom.elastic-cloud"
 BASE = REPO_ROOT
-D = BASE + "/data/powerbi-fronting"
-INDEX = "powerbi-fronting"
+D = BASE + "/data/2026-06-20-powerbi-fronting"
+INDEX = "2026-06-20-powerbi-fronting"
 NOW = datetime.now(timezone.utc).isoformat()
 OBSERVER = {"product": "powerbi-fronting-ingest", "vendor": "swarmtraces-hunt",
             "type": "dataset"}
@@ -126,20 +126,20 @@ def build_docs():
          "the Power BI backend (section 11); recovered answers Czech 9.69, "
          "Hungary 9.91, Poland 16.38, Slovak 14.59."),
     ]
-    wiki_html = BASE + "/data/thecolony-ai/wiki_incident_page.html"
+    wiki_html = BASE + "/data/2026-09-04-thecolony-ai/raw/wiki_incident_page.html"
     for pid, desc in passages:
         docs[f"powerbi:passage:{pid}"] = base(
             WIKI_TS, "powerbi_wiki_passage", desc,
             ["kind:investigator-prose", "topic:sni-bypass", "verified:no",
              "window:2026-06-20/21"],
-            {"passage_id": pid, "source_file": "data/thecolony-ai/"
+            {"passage_id": pid, "source_file": "data/2026-09-04-thecolony-ai/"
              "wiki_incident_page.html",
              "page_sha256": sha256_file(wiki_html),
              "source_url": WIKI_URL},
             "date_source:investigator_claimed_window")
 
     # --- 2) collusion-wiki agent records
-    for line in open(BASE + "/data/collusion-wiki/records.jsonl"):
+    for line in open(BASE + "/data/2026-05-17-collusion-wiki/raw/records.jsonl"):
         r = json.loads(line)
         txt = r.get("text", "") or ""
         if not re.search(r'power.?bi', txt, re.I):
@@ -163,7 +163,7 @@ def build_docs():
             "date_source:origin_source_date_literal")
 
     # --- 3) collusion-wiki revision excerpts
-    for line in open(BASE + "/data/collusion-wiki/revisions.jsonl"):
+    for line in open(BASE + "/data/2026-05-17-collusion-wiki/raw/revisions.jsonl"):
         r = json.loads(line)
         body = r.get("body", "") or ""
         if not re.search(r'power.?bi', body, re.I):
@@ -202,7 +202,7 @@ def build_docs():
         "date_source:origin_revision_addition")
 
     # --- 5) IOC pivot rows
-    for line in open(BASE + "/data/wiki_ioc_pivots.jsonl"):
+    for line in open(BASE + "/data/aggregates/2026-09-29-overlap-analysis/raw/wiki_ioc_pivots.jsonl"):
         if 'powerbi' not in line.lower():
             continue
         r = json.loads(line)

@@ -24,9 +24,9 @@ UNWIND (staged; Elastic writes PAUSED until Christopher says resume):
   4. Field check: event.dataset.keyword present on both indexes.
 
 Staged payloads (committed, on disk):
-  data/university-shorteners/staged_primary/university-shorteners_explicit.jsonl (1520)
-  data/university-shorteners/staged_rollup/university-shorteners-rollup.jsonl    (16)
-Source of truth: data/university-shorteners-events/university-shorteners-events.jsonl
+  data/2026-09-28-university-shorteners/raw/staged_primary/university-shorteners_explicit.jsonl (1520)
+  data/2026-09-28-university-shorteners/raw/staged_rollup/university-shorteners-rollup.jsonl    (16)
+Source of truth: data/2026-05-12-university-shorteners-events/events.jsonl
 (the canonical explicit-event dataset; the staged primary is that file plus
 top-level _id = labels.event_id).
 
@@ -48,13 +48,13 @@ ES = os.environ.get("SWARMTRACES_ES_URL",
 HOSTS = ["agent-apocalypse-f1f7ba.es.us-east-1.aws.elastic.cloud"]
 CRED = "custom.elastic-cloud"
 BASE = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
-PRIMARY = "university-shorteners"
-ROLLUP = "university-shorteners-rollup"
+PRIMARY = "2026-05-12-university-shorteners"
+ROLLUP = "2026-09-28-university-shorteners-rollup"
 PAUSE_SENTINEL = os.path.join(BASE, "notes", "ELASTIC_WRITE_PAUSE")
-EXPLICIT = os.path.join(BASE, "data", "university-shorteners", "staged_primary",
-                        "university-shorteners_explicit.jsonl")
-ROLLUP_DOCS = os.path.join(BASE, "data", "university-shorteners", "staged_rollup",
-                           "university-shorteners-rollup.jsonl")
+EXPLICIT = os.path.join(BASE, "data", "2026-09-28-university-shorteners", "raw",
+                        "staged_primary", "university-shorteners_explicit.jsonl")
+ROLLUP_DOCS = os.path.join(BASE, "data", "2026-09-28-university-shorteners", "raw",
+                           "staged_rollup", "university-shorteners-rollup.jsonl")
 EXPECTED_PRIMARY = 1520
 EXPECTED_ROLLUP = 16
 
@@ -147,7 +147,7 @@ def main():
         ag = req("POST", f"/{idx}/_search",
                  {"size": 0, "aggs": {"ds": {"terms": {"field": "event.dataset.keyword", "size": 10}}}})
         b = ag["aggregations"]["ds"]["buckets"]
-        assert b and all(x["key"].startswith("university-shorteners") for x in b), (idx, b)
+        assert b and all(x["key"].startswith("2026-05-12-university-shorteners") for x in b), (idx, b)
         print(idx, "event.dataset.keyword OK:", [x["key"] for x in b])
     print("UNWIND COMPLETE: primary=1520 explicit, rollup=16 summaries.")
 
