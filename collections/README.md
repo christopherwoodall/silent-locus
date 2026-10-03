@@ -7,7 +7,7 @@ Source: `notes/transluce-us-canada-gov-2026-10-01.md` ("Hunt implications" secti
 
 | Lane | Dir | What | Status |
 |---|---|---|---|
-| arquivo-pt | `collections/arquivo-pt/` | Arquivo.pt capture metadata for incident domains+windows; adopts prior `data/2026-10-01-arquivo-pt/` pull | active |
+| arquivo-pt | `collections/arquivo-pt/` | Arquivo.pt capture metadata for incident domains+windows; adopted prior `data/2026-10-01-arquivo-pt/` pull (589,972 unique, state.json + idempotent collect.py) | adopted-complete |
 | deepsearchqa | `collections/deepsearchqa/` | DeepSearchQA benchmark question fingerprints (hunt primitives) | active |
 | fake-org | `collections/fake-org/` | "OpenAI Research" + self-identification string hunt over corpora | active |
 | sec-county-watch | `collections/sec-county-watch/` | Watch spec + sweeps for `sec.gov/files/county.json` laundering | active |
@@ -26,7 +26,7 @@ Source: `notes/transluce-us-canada-gov-2026-10-01.md` ("Hunt implications" secti
 ```bash
 cd ~/workspace/silent-locus && git checkout local
 cat collections/<lane>/state.json        # where it stands
-bash collections/<lane>/collect.sh       # idempotent resume
+python3 collections/<lane>/collect.py      # idempotent resume
 ```
 
 ## Git
