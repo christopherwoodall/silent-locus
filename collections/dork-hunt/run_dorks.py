@@ -16,7 +16,7 @@ LOG = os.path.join(BASE, "data", "dork-log.jsonl")
 STATE = os.path.join(BASE, "state.json")
 UA = ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
       "(KHTML, like Gecko) Chrome/126.0 Safari/537.36")
-PACE = 2.0  # seconds between queries
+PACE = 6.0
 
 # ---- curated term list: most distinctive ~60 ----
 TERMS = [
