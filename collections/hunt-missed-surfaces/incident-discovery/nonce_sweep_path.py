@@ -1,27 +1,29 @@
 #!/usr/bin/env python3
-"""Nonce-grammar incident discovery sweep via Wayback CDX.
+"""Nonce-grammar incident discovery sweep via Wayback CDX — PATH-SCOPED.
 
-INVERTED HUNT: sweep for the toolkit's cache-buster grammar across .gov hosts;
-bursts (dozens+ hits, one day, nonce grammar) = candidate unknown incidents.
+INVERTED HUNT: sweep for the toolkit's cache-buster grammar across .gov hosts.
 
-Read-only. Polite: 2.5s pacing, 120s timeout, backs off on 429/504 (marks host
-as too-big and moves on). Idempotent: skips queries already in the log.
+Method: path-scoped prefix queries (url=<host>/<path> + matchType=prefix +
+urlkey regex filter) are ~50x cheaper than domain-wide regex scans (1s vs
+60s+ and no 504s). Covers the path shapes of all known incidents:
+  /api/* (DoE /api/v1.0, BEA /api), /files/* (SEC county.json),
+  /ajax/* (LAC), /data/*, /search/*.
+
+Read-only. Polite: 1.5s pacing per shard, 3 shards, 120s timeout.
+Idempotent via query log.
 """
-import json, time, urllib.parse, urllib.request, urllib.error
+import json, time, urllib.parse, urllib.request, urllib.error, os
 from pathlib import Path
-from collections import Counter, defaultdict
+from collections import defaultdict
 
 ROOT = Path(__file__).resolve().parent
 LOGS = ROOT / "logs"; LOGS.mkdir(exist_ok=True)
-# Incident window: all four known incidents fall May 28 - Jun 21 2026.
-# Narrowing the CDX scan to Jun-Jul 2026 (vs full year) cuts index-scan cost
-# ~6x and brings medium hosts under the 504 threshold.
-FROM, TO = "20260601", "20260801"
-
-QLOG = LOGS / "nonce-query-log-jun.jsonl"
-HITS = LOGS / "nonce-hits-jun.jsonl"
+QLOG = LOGS / "nonce-query-log-path.jsonl"
+HITS = LOGS / "nonce-hits-path.jsonl"
 
 UA = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"}
+
+FROM, TO = "20260601", "20260801"   # incident window (all 4 known: May 28-Jun 21)
 
 GRAMMARS = {
     "zzoai":   r".*zz=oai[0-9]+.*",
@@ -32,13 +34,13 @@ GRAMMARS = {
     "cbdec":   r".*cb=0\.[0-9]{10,}.*",
 }
 
+PATHS = ["api", "files", "data", "ajax", "search"]
+
 HOSTS = [
-    # known incident hosts (positive controls / negatives)
     "civilrightsdata.ed.gov", "www.sec.gov", "sec.gov", "apps.bea.gov",
     "bea.gov", "census.gov", "www.census.gov", "kansasmemory.gov",
     "bac-lac.gc.ca", "recherche-collection-search.bac-lac.canada.ca",
     "data.nysed.gov", "wonder.cdc.gov", "portal.max.gov",
-    # eval-plausible expansion
     "ed.gov", "www.ed.gov", "nces.ed.gov", "data.gov", "api.data.gov",
     "whitehouse.gov", "justice.gov", "cdc.gov", "www.cdc.gov", "nih.gov",
     "nasa.gov", "noaa.gov", "weather.gov", "irs.gov", "ssa.gov", "va.gov",
@@ -55,10 +57,10 @@ def done_queries():
             except Exception: pass
     return s
 
-def cdx(host, grex):
+def cdx(host, path, grex):
     f = urllib.parse.quote(grex, safe="")
-    url = (f"http://web.archive.org/cdx/search/cdx?url={host}&matchType=domain"
-           f"&from={FROM}&to={TO}&filter=urlkey:{f}"
+    url = (f"http://web.archive.org/cdx/search/cdx?url={host}/{path}"
+           f"&matchType=prefix&from={FROM}&to={TO}&filter=urlkey:{f}"
            f"&collapse=urlkey&output=json&limit=20000")
     req = urllib.request.Request(url, headers=UA)
     try:
@@ -74,20 +76,20 @@ def cdx(host, grex):
         return {"http": -1, "rows": None, "err": str(e)[:120]}
 
 def main():
-    import os
     shard = int(os.environ.get("SHARD", "0"))
     nshards = int(os.environ.get("NSHARDS", "1"))
-    hosts = [h for i, h in enumerate(HOSTS) if i % nshards == shard]
-    print(f"shard {shard}/{nshards}: {len(hosts)} hosts", flush=True)
+    combos = [(h, p) for h in HOSTS for p in PATHS]
+    combos = [c for i, c in enumerate(combos) if i % nshards == shard]
+    print(f"shard {shard}/{nshards}: {len(combos)} host-path combos", flush=True)
     done = done_queries()
-    bursts = defaultdict(list)  # (host, day) -> [urls]
-    for host in hosts:
+    bursts = defaultdict(list)
+    for host, path in combos:
         for gname, grex in GRAMMARS.items():
-            qkey = f"{host}|{gname}"
+            qkey = f"{host}/{path}|{gname}"
             if qkey in done:
                 continue
-            res = cdx(host, grex)
-            rec = {"qkey": qkey, "host": host, "grammar": gname,
+            res = cdx(host, path, grex)
+            rec = {"qkey": qkey, "host": host, "path": path, "grammar": gname,
                    "http": res["http"],
                    "n": len(res["rows"]) if res["rows"] is not None else None,
                    "ts": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())}
@@ -96,19 +98,17 @@ def main():
             if res["rows"]:
                 for row in res["rows"]:
                     ts, orig = row[1], row[2]
-                    day = ts[:8]
-                    bursts[(host, day)].append(orig)
+                    bursts[(host, path, ts[:8])].append(orig)
                     with HITS.open("a") as f:
-                        f.write(json.dumps({"host": host, "grammar": gname,
-                                            "ts": ts, "url": orig}) + "\n")
-                print(f"{host} {gname}: {len(res['rows'])} rows", flush=True)
-            else:
-                print(f"{host} {gname}: http={res['http']} rows={rec['n']}", flush=True)
-            time.sleep(2.5)
-    print("\n=== BURSTS (>=10 hits, one host+day) ===")
-    for (host, day), urls in sorted(bursts.items(), key=lambda kv: -len(kv[1])):
+                        f.write(json.dumps({"host": host, "path": path,
+                                            "grammar": gname, "ts": ts,
+                                            "url": orig}) + "\n")
+                print(f"HIT {host}/{path} {gname}: {len(res['rows'])} rows", flush=True)
+            time.sleep(1.5)
+    print("\n=== BURSTS (>=10 hits, one host+path+day) ===", flush=True)
+    for (host, path, day), urls in sorted(bursts.items(), key=lambda kv: -len(kv[1])):
         if len(urls) >= 10:
-            print(f"{len(urls):5d}  {host}  {day}  e.g. {urls[0][:90]}")
+            print(f"{len(urls):5d}  {host}/{path}  {day}  e.g. {urls[0][:90]}", flush=True)
 
 if __name__ == "__main__":
     main()

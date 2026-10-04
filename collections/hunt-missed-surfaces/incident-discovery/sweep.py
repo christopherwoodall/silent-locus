@@ -13,15 +13,19 @@ ROOT.mkdir(parents=True, exist_ok=True)
 CRAWLS = ["CC-MAIN-2026-25", "CC-MAIN-2026-21", "CC-MAIN-2026-30", "CC-MAIN-2026-17"]
 DOMAINS = ["ed.gov", "sec.gov", "bea.gov", "census.gov", "gc.ca"]
 PATTERNS = {
-    "zzoai": r".*zz=oai[0-9]+.*",
-    "nonce": r".*x=0\.[0-9]{14,}.*",
-    "oai_research": r".*openai_research.*",
+    # literal substrings only — this CDX server does NOT do regex in filter
+    "zzoai": "zz=oai",
+    "zzbulk": "zzbulk",
+    "nonce": "x=0.",
+    "prepnonce": "prepnonce",
+    "wbdisable": "wbdisable",
+    "oai_research": "openai_research",
 }
 UA = "Mozilla/5.0 (compatible; incident-research/1.0)"
 
 def query(coll, domain, pname, filt):
     qs = urllib.parse.urlencode({
-        "url": domain, "matchType": "domain", "filter": "url:" + filt,
+        "url": domain, "matchType": "domain", "filter": "urlkey:" + filt,
         "output": "json", "limit": 2000, "collapse": "urlkey"})
     url = f"https://index.commoncrawl.org/{coll}-index?{qs}"
     out = subprocess.run(["curl", "-sL", "--max-time", "180", "-A", UA, url],
