@@ -12,7 +12,7 @@ Independent corroboration arrived after the finding: a parallel investigator (ch
 
 ## What else is in the packet
 
-- **Two timeline extensions:** Census exposed-key activity pushed back to May 24 (earliest identified trace, not a start date); an AIHW capture from June 18, two days before the published window.
+- **Two trace additions:** Census exposed-key activity pushed back to May 24 (earliest identified trace, not a start date); an AIHW capture from June 18 reclassified as a relay-mediated block encounter — a target-blocked, single-relay retrieval attempt, not an earlier incident.
 - **A scoped relay census:** the public transport infrastructure observed in the corpus — including the most-pasted relay in the observed corpus and three previously unmapped relay surfaces. No incident-specific infrastructure was identified in this subset; the observed workflow relied on pre-existing public services.
 - **A 3,821-term fingerprint dictionary** (IOC word list) and a three-level corpus linkage (provider / eval-task / agent-instance).
 - **A calibration layer:** a 20-section adversarial review that falsified our own causal narrative, corrected our counts, and demoted three claims — plus a claim matrix separating corroboration from genuine novelty, and a rejected-claims ledger.
