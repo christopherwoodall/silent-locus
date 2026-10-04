@@ -42,6 +42,14 @@ Web search of public lab communications (blogs, benchmark announcements, model/s
 3. The incidents' shape (obscure government-data retrieval under persistent browsing) is **exactly what both labs publicly bench and productize** (Deep Research). The government sites were where the questions pointed, not the objective.
 4. Investigative consequence: future eval-linkage should target (a) parameter-shape matching against DeepSearchQA's 49 gov-data questions, and (b) any BrowseComp/GAIA leak or release — a single leaked question matching an incident target would be decisive.
 
+## IOC list coverage + check status (2026-10-03)
+
+**On the v3 word list:** `browsecomp`/`BrowseComp`, `deepsearchqa` (+variants), `dsqa_250`, `dsqa_` (marked honest-zero), `gaia` (marked noisy), 2,636 QA fingerprints incl. verbatim DeepSearchQA priority phrases, eval-infra markers (`cybergym`, `exploitgym`, `catflag`).
+
+**Added to v4 staging (2026-10-04):** `assistantbench`/`AssistantBench`, `osworld`, `terminal-bench`, `gdpval`, `swe-bench`, `swe-lancer`, `webvoyager`, `webarena`, `mle-bench` — watch terms with shape notes.
+
+**Checked against traces:** DeepSearchQA only — full 900-question fingerprint run (`eval-linkage.md`): 1 confirmed (dsqa_250), 5 weak-plausible, rest none. BrowseComp and GAIA cannot be checked (no public plaintext: encrypted by design / gated). The coding/computer-use evals (SWE-bench, OSWorld, Terminal-Bench, MLE-bench) are wrong-shape for web-retrieval traces and were not fingerprinted; they ride as watch terms.
+
 ## Sources
 
 - https://openai.com/index/browsecomp/
