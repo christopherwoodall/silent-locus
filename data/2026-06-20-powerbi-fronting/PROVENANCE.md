@@ -103,3 +103,7 @@ multi-field. Ingest script: `scripts/es_ingest_powerbi.py`.
   per wiki page) are mechanical group-bys with no burst/window/actor
   structure in the data — inventing a rollup would add nothing. Per
   Christopher's worker rule, no rollup was built.
+
+## Historical loader relocation (2026-09-30)
+
+Preserved `es_ingest_powerbi.py` at `raw/scripts/legacy/es_ingest_powerbi.py` as a historical, optional Elasticsearch loader; it is not an active collection event builder. Its local path resolution now targets the same collection and repository inputs from the archived location. No source evidence, `events.jsonl`, or `rollup.jsonl` was changed; no network or ES actions were run. The SHA256SUMS entry records the relocated script bytes.

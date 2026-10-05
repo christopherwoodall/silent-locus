@@ -68,13 +68,16 @@ shared payload.
   `collections.md` + `collections.json` (naming taxonomy and registry),
   `schema/README.md` (human-readable rules: timestamp sentinels, labels
   rules, fingerprint rules, the `record_kind` registry).
-- `scripts/` — validators (`validate_schema.py`,
-  `validate_collections.py`), generic Elastic loader
-  (`push_to_local_es.py`), and `gen_dataset_card_table.py` (regenerates
-  the collection table below).
+- `scripts/` — maintained loaders and validators at the root,
+  cross-collection transforms in `builders/`, reusable tools in
+  `maintenance/`, and preserved one-off collectors/migrations/ES writers
+  in `archive/`. See `scripts/README.md` before running historical code.
+- `temp/` — a pointer to the archived agent scratch scripts and their
+  retained maps/reports; `hidden_files/` keeps stateful research lanes
+  in place because they depend on those paths and resume state.
 - `notes/` — methodology, verification reports, overlap plans.
 - `elk/`, `kibana-exports/` — local Elasticsearch + Kibana dev stack
-  (see repo git history; the stack is not part of the dataset).
+  (run `make ingest`; see `elk/README.md` for storage and counts).
 
 ## Collections
 
@@ -322,7 +325,7 @@ ds = load_dataset("json", data_files=files, features=features)["train"]  # 146,7
 
 Notes: use the recursive glob — `data/*/events.jsonl` misses the two
 `data/aggregates/*/events.jsonl` files and the `rollup.jsonl` sidecars
-(19,148 rows). Nested access works: `ds[0]["labels"]` → dict,
+(271 rows). Nested access works: `ds[0]["labels"]` → dict,
 `ds[0]["payloads"][0]` → `kind, content_type, content, encoding,
 truncated, byte_size, sha256`. Collections with `payloads`:
 `2026-05-17-iowacollab-pastes`, `2026-06-17-reverse-tunnels`,

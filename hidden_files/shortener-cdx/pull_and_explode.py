@@ -5,13 +5,17 @@ Standing retry worker (launched by shortener_cdx_retry.sh). When the Wayback
 CDX backend is reachable, pulls archived captures of 12 shortener stats-page
 URLs (May-Jul 2026 priority, all captures kept), saves raw HTML with SHA-256
 manifests, parses each capture into the evidence-JSON schema consumed by
-scripts/build_shortener_events.py, and re-runs that script to append explicit
-per-event docs to data/university-shorteners-events/.
+the builder now at data/2026-05-12-university-shorteners-events/build_events.py.
+Its historical append destination was data/university-shorteners-events/.
 
 STAGED ON DISK ONLY — hosted-Elastic writes are paused (2026-09-28 standing
 rule). No es_ingest calls, no index creates, no deletes.
 
 Read-only against web.archive.org. Polite pacing (2s between requests).
+
+Historical worker: its output directories below predate the canonical layout.
+Its parser remains importable by lane12, but main() refuses to recreate the
+retired directories. Reconcile its append/checksum logic before resuming it.
 """
 import hashlib
 import json
@@ -27,7 +31,8 @@ from html.parser import HTMLParser
 BASE = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)),
                                     "..", ".."))
 OUTDIR = os.path.join(BASE, "data", "university-shorteners", "wayback")
-EVENTS_SCRIPT = os.path.join(BASE, "scripts", "build_shortener_events.py")
+EVENTS_SCRIPT = os.path.join(
+    BASE, "data", "2026-05-12-university-shorteners-events", "build_events.py")
 
 # (instance, slug, stats_url) — the 12 stats-page URLs (UNCLAIMED slice:
 # lane12's wb_sweep.py covers gem pages only, not shortener stats URLs)
@@ -161,6 +166,8 @@ def parse_stats_html(html, source_url):
 
 
 def main():
+    if not os.path.isdir(OUTDIR):
+        raise RuntimeError("retired Wayback output directory; refusing to recreate it")
     os.makedirs(OUTDIR, exist_ok=True)
     manifest = []
     evidence_files = []
@@ -232,7 +239,7 @@ def main():
         "captures_downloaded": total_captures,
         "evidence_files": [os.path.relpath(p, BASE) for p in evidence_files],
         "note": "Raw HTML kept per capture (capture-first). Evidence JSONs follow the "
-                "schema consumed by scripts/build_shortener_events.py. Staged on disk only; "
+                "schema consumed by data/2026-05-12-university-shorteners-events/build_events.py. Staged on disk only; "
                 "hosted-Elastic writes paused.",
     }
     with open(os.path.join(OUTDIR, "manifest.json"), "w") as f:
@@ -241,8 +248,8 @@ def main():
 
     # explode per-row via the canonical script (import, not subprocess, so its
     # hardcoded inputs stay untouched; we call explode_referrer_json directly)
-    sys.path.insert(0, os.path.join(BASE, "scripts"))
-    import build_shortener_events as bse
+    sys.path.insert(0, os.path.dirname(EVENTS_SCRIPT))
+    import build_events as bse
     import importlib
     importlib.reload(bse)
     docs = []

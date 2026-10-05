@@ -107,3 +107,7 @@ Each basename is unique repo-wide and each capture's SOURCE header matches
 the event's `labels.short_url` (https://go.uvm.edu/-4s0q|/tgmtq|/xc26).
 
 SHA256SUMS regenerated (`events.jsonl` hash only).
+
+## Builder relocation (2026-09-30)
+
+Historical builder `scripts/university_shorteners_batch3_build_dataset.py` was moved via staging into `data/2026-09-28-university-shorteners-batch3/build_dataset.py`. This is a preservation move, not a rebuild: existing events/rollups and raw captures were not regenerated or modified. The relocated script is historical and may overwrite collection outputs, provenance, checksums, or raw evidence if executed; do not run it against this collection. Only its offline path resolution was adjusted where applicable. The canonical shortener-events builder alone explicitly rejects the canonical events file and existing output paths. Older script paths elsewhere in this document refer to their historical locations.

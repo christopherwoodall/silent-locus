@@ -115,3 +115,7 @@ Moved script-consumed transform inputs into raw layer (upstream names preserved,
 - Verified: `build_docs()` rebuilds exactly the 76 committed `events.jsonl` rows.
 - `local_es_manifest.json` `via_script` entry for `2026-05-27-paste-archive`
   now points at the co-located path.
+
+## Historical loader relocation (2026-09-30)
+
+Preserved `es_ingest_paste_archive.py` at `raw/scripts/legacy/es_ingest_paste_archive.py` as a historical, optional Elasticsearch loader; it is not an active collection event builder. Its local path resolution now targets the same collection and repository inputs from the archived location. No source evidence, `events.jsonl`, or `rollup.jsonl` was changed; no network or ES actions were run. The SHA256SUMS entry records the relocated script bytes.

@@ -10,7 +10,7 @@ import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
 EVENTS = ROOT / "data/2026-05-12-university-shorteners-events/events.jsonl"
-BUILDER = ROOT / "scripts/build_shortener_events.py"
+BUILDER = ROOT / "data/2026-05-12-university-shorteners-events/build_events.py"
 sys.path.insert(0, str(ROOT / "scripts"))
 from validate_schema import check  # noqa: E402
 

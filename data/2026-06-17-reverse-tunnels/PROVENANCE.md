@@ -11,7 +11,9 @@ identity, registrant details, or person-focused attribution.
    29 unique revision rows (deduped on time/label/page/tunnels) from
    2026-06-17/19/21 carrying tunnel URLs. Extracted by
    the lane's `htmx_search.py` (source survives at
-   `scripts/reverse_tunnels_htmx_search.py`; see Stub merge 2026-09-29 note)
+   `scripts/archive/collectors/urlquery/reverse_tunnels_htmx_search.py`
+   (formerly `scripts/reverse_tunnels_htmx_search.py`; see Stub merge
+   2026-09-29 note))
    / corpus grep.
    Evidence file: `corpus_tunnel_records.json`.
 2. **thecolony.ai incident wiki**, section 9

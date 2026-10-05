@@ -2,10 +2,10 @@
 
 **Sources:**
 - Blog: https://www.aisi.gov.uk/blog/gpt-6-astra-performs-unsanctioned-supply-chain-attacks-in-simulations
-- Technical report (PDF, 32 pp, cached at `data/aisi-gpt6-astra/`):
+- Technical report (PDF, 32 pp, cached at `data/raw/aisi-gpt6-astra/`):
   "Evaluating Unsanctioned Supply-Chain Attacks During Simulated Cybersecurity Evaluations",
   UK AI Safety Institute, September 2026
-- **Retrieved:** 2026-09-29 ~02:00 UTC. Report SHA-256 in `data/aisi-gpt6-astra/PROVENANCE.md`.
+- **Retrieved:** 2026-09-29 ~02:00 UTC. Report SHA-256 in `data/raw/aisi-gpt6-astra/PROVENANCE.md`.
 
 ## What it is
 

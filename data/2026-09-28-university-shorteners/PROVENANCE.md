@@ -269,6 +269,14 @@ manifest was repointed to the existing file and now records its current raw
 SHA-256. The prior `94be101b...` hash is retained above as a historical
 integrity exception, not described as a matching copy.
 
+In the current checkout, this one accepted HTML file has LF rather than
+CRLF line endings. Its SHA-256 is now
+`28639048497c09104d655f01c5d408b807a409a575b7b55a559e9a927cb8b3ff`,
+exactly the LF-normalized hash above. The nested and root manifests now pin
+these current bytes. The prior accepted CRLF hash and the older unmatched
+historical hash remain recorded here; no HTML was rewritten as part of
+the script reorganization.
+
 Two other substantive HTML mismatches found in the related shortener evidence
 were likewise accepted on 2026-09-30. The files themselves were not changed.
 The table keeps the historical hashes alongside the newly accepted raw hashes:
@@ -287,3 +295,7 @@ that the historical hashes matched or an explanation of how the bytes
 changed. Run `python3 -B scripts/verify_checksums.py` to audit all manifests;
 `CRLF_ONLY` flags other checkout-byte differences that normalize to their
 recorded LF hashes.
+
+## Builder relocation (2026-09-30)
+
+Historical builder `scripts/university_shorteners_build_dataset.py` was moved via staging into `data/2026-09-28-university-shorteners/build_dataset.py`. This is a preservation move, not a rebuild: existing events/rollups and raw captures were not regenerated or modified. The relocated script is historical and may overwrite collection outputs, provenance, checksums, or raw evidence if executed; do not run it against this collection. Only its offline path resolution was adjusted where applicable. The canonical shortener-events builder alone explicitly rejects the canonical events file and existing output paths. Older script paths elsewhere in this document refer to their historical locations.

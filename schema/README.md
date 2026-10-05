@@ -213,10 +213,10 @@ in the directory, verified with `sha256sum -c`).
 
 ## Conformance status
 
-The ten datasets rewritten by `scripts/backfill_schema_2026_09_28.py`
-(2026-09-28) conform. A second pass (2026-09-29, `temp/backfill_w1..w4.py`)
-brought every file loaded directly by the ingest path
-(`scripts/local_es_manifest.json` staged files, 74 files) into conformance.
-46 non-staged files (raw transform inputs, e.g. collusion-wiki source tables
-and `*/raw/` snapshots) still predate the schema and are next in line;
-`scripts/validate_schema.py` measures drift.
+The 2026-09-28 pass used the script historically named
+`scripts/backfill_schema_2026_09_28.py` (now under
+`scripts/archive/migrations/`). The 2026-09-29 wave used
+`temp/backfill_w1..w4.py` (now under `scripts/archive/temp/builders/`).
+These are records of earlier transformations, not the current ingest path.
+Use `make validate` to check present event files; raw transform inputs
+remain exempt from the record schema.
