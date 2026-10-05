@@ -120,3 +120,12 @@
   - 0186fb64 2026-10-05T04:11:00Z [place] amap-pc-ssr.amap.com/ssr/api/getPoiInfo?uqscan=qdnewapi20261005b&id=B021406HP0
   - 967b20ce 2026-10-05T04:11:00Z [place] ditu.amap.com/detail/get/detail?id=B021406HP0&uqscan=qdoldditu20261005a NEW-TAGWORD:qdoldditu
 - tag words this poll: qdnewapi, qdoldditu
+
+### Poll H4 (2026-10-05 07:05 UTC) — htmx
+- new reports: 0
+
+### Poll H5 (2026-10-05 07:36 UTC) — htmx
+- QUERY url.domain:amap.com ERROR: gave up after 3 retries — rc=1 stderr=Traceback (most recent call last):
+  File "/usr/lib/python3.12/http/client.py", line 584, in _get_chunk_left
+    chunk_l
+- new reports: 0 (SOME QUERIES ERRORED)

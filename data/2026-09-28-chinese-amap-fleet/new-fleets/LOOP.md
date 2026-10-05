@@ -10,3 +10,8 @@
 ## Retry loop started 2026-10-05T05:56:26Z
 - 2026-10-05T05:56:26Z: egress still down (uq_htmx.py failed)
 - 2026-10-05T06:37:07Z: egress still down (uq_htmx.py failed)
+- 2026-10-05T06:57:09Z: egress still down (uq_htmx.py failed)
+- 2026-10-05T07:17:11Z: egress still down (uq_htmx.py failed)
+- 2026-10-05T07:37:14Z: FETCH OK window3.json (23 reports)
+  NEEDS GRADING: see analysis-3.txt
+- 2026-10-05T07:57:22Z: egress still down (uq_htmx.py failed)

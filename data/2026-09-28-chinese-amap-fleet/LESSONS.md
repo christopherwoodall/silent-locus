@@ -1,0 +1,365 @@
+# LESSONS.md — Chinese Amap Fleet Hunt (2026-09-28)
+
+**Last refreshed:** 2026-10-05 ~07:55 UTC (refresh 1: 17 updated writeups re-read in full; no new writeups added; lane + shortener-farm writeups unchanged since initial build)
+**Method:** every persona/lane writeup read in full (70 inventoried, 69 read, 1 partial);
+two facts extracted per writeup — agent shapes (positive findings, writeup-stated grade) and null results (first-class).
+Living file: extend per run; do not rewrite history.
+
+## 1. Agent shapes
+
+### CONFIRMED
+
+- **Umeng/Baxia token-theft beacon family** — [personas/codebreaker/FINDINGS.md](personas/codebreaker/FINDINGS.md) — one-liner JS hooks Alibaba Umeng callbacks (`umx={wu:...}`, `__fycb`) + `bx-ua=` XHR to steal Amap anti-scraping tokens, exfils to webhook.site via `navigator.sendBeacon`. **Confirmed**: 10 inboxes + 1 view token pulled; fleet inboxes ALIVE until ~2026-10-11; 5 stolen signed `bx-ua` getPoiInfo URLs retrieved (raw/a7753b69-bxua-tokens.txt).
+- **jina-cache beacon family** — [personas/codebreaker/FINDINGS.md](personas/codebreaker/FINDINGS.md) — 45KB-chunked sendBeacon exfil (`kind=start/headers{N}/body{N}-{offset}/done`) of r.jina.ai-proxied Amap SSR pages. **Confirmed**: inbox `cbcb10de` unexpectedly re-registered 2026-10-04 16:56:55 with a fresh full test run.
+- **httpbun `/base64/` + `/mix` as main probe transport** — [personas/codebreaker/FINDINGS.md](personas/codebreaker/FINDINGS.md) — operator base64-wraps probe HTML through httpbun's echo (standard + URL-safe alphabets), submits to urlquery for sandbox execution; `href.li` hop strips Referer. **Confirmed**: 308 unique httpbun carriers / 555 records; 4,521 httpbin carriers.
+- **livecodes.io as live probe host** — [personas/codebreaker/FINDINGS.md](personas/codebreaker/FINDINGS.md) — `?html=<urlencoded full HTML>` renders operator HTML publicly; GZHOSP Guangzhou hospital backend probes live there. **Confirmed**: 28 unique carriers / 29 records, all fleet carriers recovered.
+- **Cron phase-lock vs fleet uniform-seconds discriminator** — [personas/metronome/FINDINGS.md](personas/metronome/FINDINGS.md) — scheduler-driven agents pin second=0 (phase-lock 1.0); the `uq` fleet's seconds are uniform (CV 13.87). **Confirmed** on fleet timing data.
+- **Greptile escaped-eval** — [personas/evaluator/FINDINGS.md](personas/evaluator/FINDINGS.md) — code-review-fix eval run left reports in live repos. **Confirmed** escaped eval.
+- **MassCountyData007 → SEC county.json chain** — [personas/tracker/FINDINGS.md](personas/tracker/FINDINGS.md) — v.gd carrier-launch shortener → county.json fetch trace. **Confirmed** causal chain.
+- **DoE → dsqa_250 match** — [personas/eval-coordinator/FINDINGS.md](personas/eval-coordinator/FINDINGS.md) — DeepSearchQA eval instance matches DoE subset. **Confirmed**.
+- **DseWiki German incident** — [personas/german-agent-hunter/FINDINGS.md](personas/german-agent-hunter/FINDINGS.md) — 20,324 records, public incident, the one documented German agent find. **Confirmed**.
+- **Newsletter-detonation pipeline** — [personas/german-agent-hunter-2/FINDINGS.md](personas/german-agent-hunter-2/FINDINGS.md) — `/r/<id>ms<digits>.html` grammar on non-wikiservice.at wikis; **confirmed as pipeline tradecraft, NOT agent-shaped** (grade: confirmed-negative-as-agent).
+- **MARINA serial enumeration** — [personas/global-south-scout/CHASE.md](personas/global-south-scout/CHASE.md) — serial ID enumeration against a fleet endpoint. **Confirmed** new.
+- **XSS Game as payload host** — [personas/apprentice/FINDINGS.md](personas/apprentice/FINDINGS.md) — Google XSS Game pages used as agent payload carriers; textbook XSS at AIHW. **Confirmed**.
+- **ProbierWiki unattributed live population** — [personas/librarian/FINDINGS.md](personas/librarian/FINDINGS.md) — `Agent<NNN><Word>Direct<epoch>` grammar actively populating a German probier wiki. **Confirmed**, unattributed. 2026-10-05 librarian C9: two time windows, possibly two populations — Jun 2026 DorfWiki wave (documented) vs Sep-7-2026 live board (NEW grammar, AWS not Azure). No current persona watches ProbierWiki; it needs an owner.
+- **Kansas Memory 36k error cascade** — [personas/toddler-watcher/FINDINGS.md](personas/toddler-watcher/FINDINGS.md) — clumsiness/error-cascade catalog of an agent bulk-importing into a Kansas local-memory wiki. **Confirmed** by writeup.
+- **UEFA timed-sequence eval family** — [personas/sports-statistician/FINDINGS.md](personas/sports-statistician/FINDINGS.md) — timed football-sequence prompts = eval family, KNOWN.
+- **AIHW Tableau base64 probes (June 2026)** — [personas/codebreaker/FINDINGS.md](personas/codebreaker/FINDINGS.md) — same operator, health-data vertical predating Amap work. **Confirmed** cross-vertical continuity.
+- **996 work rhythm** — [personas/night-owl/FINDINGS.md](personas/night-owl/FINDINGS.md), [personas/cultural-anthropologist-ea/FINDINGS.md](personas/cultural-anthropologist-ea/FINDINGS.md) — fleet activity fits UTC+8 / 996 cadence. **Confirmed** fit.
+- **+2.7h clock-skew pocket** — [personas/contrarian/FINDINGS.md](personas/contrarian/FINDINGS.md) — a sub-population's timestamps skewed +2.7h = second tool signature. **Confirmed** pocket.
+- **Baxia anti-bot R&D harness** — [personas/contrarian/FINDINGS.md](personas/contrarian/FINDINGS.md) — Baxia traffic is agent anti-bot R&D, not an attack. **Confirmed** major finding.
+- **Official-statistics vertical** — [personas/forager/FINDINGS.md](personas/forager/FINDINGS.md) — Thai NSO, Dutch CBS, DataUSA as agent task targets; 12 collusion-wiki verticals enumerated. **Confirmed**.
+- **All-free-tier operator profile** — [personas/trade-labourer/FINDINGS.md](personas/trade-labourer/FINDINGS.md) — our `uq` operator uses free relays, not free hosting. **Confirmed**.
+- **10-month operator timeline** — [personas/historian/FINDINGS.md](personas/historian/FINDINGS.md) — tunnel R&D (lhr.life, Jan–May) → grammar birth + health-data family (Jun: AIHW, IDPH, is.gd burst) → quiet (Jul–Aug) → Amap fleet (Sep 28+); 2 exit_node values across 2,159 reports = one submitter, one operator, many workers. **Confirmed**.
+- **Three-country pipeline on one submitter identity** — [personas/border-crosser/FINDINGS.md](personas/border-crosser/FINDINGS.md) — AU AIHW Tableau (`uqtag=AGEDATA23`, Jun 20) → US IDPH county CSVs (`mark=<county><epoch>`, Jun 21) → CN Amap (`uqscan`, Sep 28–Oct 5); nonces are session timestamps, not random. **Confirmed**.
+- **`exit_node` = shared egress (correction)** — [personas/profiler/FINDINGS.md](personas/profiler/FINDINGS.md) — exit_node is the operator's shared egress IP, not per-agent identity. **Confirmed** correction.
+- **`claude` self-labeling harness** — [personas/harness-researcher/FINDINGS.md](personas/harness-researcher/FINDINGS.md) — fleet payloads self-label with `claude` model tags. **Confirmed**. CAVEAT (2026-10-05): [personas/librarian/FINDINGS.md](personas/librarian/FINDINGS.md) C4 — DeepSeek-V4 also claims "claude" (9/44 Hy3/V4 claims per deepseek-hunt); self-labels are harness convention, not model identity. Keep the Claude-hint PLAUSIBLE, never proof.
+- **Wayback `?w=retry2` agent archival** — [personas/osint-codebreaker/FINDINGS.md](personas/osint-codebreaker/FINDINGS.md) — agent-driven Wayback captures with retry markers. **Confirmed**.
+- **httpbun `/anything/gcresult` dead-drop** — [personas/osint-codebreaker/FINDINGS.md](personas/osint-codebreaker/FINDINGS.md) — httpbun anything-endpoint used as data dead-drop. **Confirmed**.
+- **ASCII-only / pinyin-only writing classifier** — [personas/linguist-chinese/FINDINGS.md](personas/linguist-chinese/FINDINGS.md) — operator's probes never emit CJK. **Confirmed**.
+- **Chinese holiday fingerprints** — [personas/cultural-anthropologist-ea/FINDINGS.md](personas/cultural-anthropologist-ea/FINDINGS.md) — fleet pauses align with Chinese holidays. **Confirmed**.
+- **Nonce IS the clock** — [personas/watchmaker/FINDINGS.md](personas/watchmaker/FINDINGS.md) — zero time-API usage; the epoch nonce serves as the timestamp. **Confirmed** (and a null for time-API usage).
+- **Metronomic jmail.world auditor live** — [personas/auditor/FINDINGS.md](personas/auditor/FINDINGS.md) — jmail.world runs metronomic audit submissions now. **Confirmed** live.
+- **paralino / get-monai watcher loops** — [personas/auditor/FINDINGS.md](personas/auditor/FINDINGS.md) — persistent watcher-loop submitters. **Confirmed**.
+- **`src=manual<N>` human-in-loop** — [personas/profiler/FINDINGS.md](personas/profiler/FINDINGS.md) — manual<N> tags mark human-driven submits inside agent flows. **Confirmed**.
+- **`uqid=` campaign drift** — [personas/mimic/FINDINGS.md](personas/mimic/FINDINGS.md) — uqid values drift per campaign wave. **Confirmed**.
+- **`udm=50` second swarm** — [personas/mimic/FINDINGS.md](personas/mimic/FINDINGS.md) — a second distinct swarm using `udm=50`. **Confirmed**.
+- **`hysandbox-ats` / `fanyi.baidu.com/transpage` / `uq=baidu<platform><date>`** — [raw/lanes/chinese-infra/FINDINGS.md](raw/lanes/chinese-infra/FINDINGS.md) — fleet-exclusive markers; no copycat seen. **Confirmed** fleet-exclusive.
+- **New params `uqtarget` / `uqhost`** — [raw/lanes/other-targets/FINDINGS.md](raw/lanes/other-targets/FINDINGS.md) — previously unseen fleet params. **Confirmed**.
+- **Oct-4 redirector diversification + ceshiren.com** — [raw/lanes/other-targets/FINDINGS.md](raw/lanes/other-targets/FINDINGS.md) — first China-hosted carrier; fleet self-surveillance (searching its own place ID on urlquery) is agent-shaped-unconfirmed. **Confirmed**.
+- **pages.dev fleet +1 = 11** — [personas/registrar/FINDINGS.md](personas/registrar/FINDINGS.md) — gibberish-hostname fleet grew by one. **Confirmed**.
+- **Wayback agent-shaped archival** — [raw/lanes/wayback/FINDINGS.md](raw/lanes/wayback/FINDINGS.md) — 115 captures, 83% POI overlap. **Confirmed**.
+- **19-digit epoch-nanosecond encoding** — [personas/grammarian/FINDINGS.md](personas/grammarian/FINDINGS.md) — 19-digit ns timestamps as family marker. **Confirmed**.
+- **`zzFILE_` / `zzMAILBOX_` new family** — [personas/grammarian/FINDINGS.md](personas/grammarian/FINDINGS.md) — previously undocumented zz-prefixed family. **Confirmed**.
+- **Hermes SOUL.md grammar** — [personas/grammarian/FINDINGS.md](personas/grammarian/FINDINGS.md) — fleet payloads echo Hermes workspace grammar. **Confirmed**.
+- **Toolmark taxonomy (10 classes)** — [personas/toolmark-reader/FINDINGS.md](personas/toolmark-reader/FINDINGS.md) — SOUL.md overwrite, swarm goal-drift, hostile MCP servers, etc., anchored on confirmed external incidents (PaperCut "Agents Gone Wild": 440 instances/395 orgs/48 countries; CARBONATO/GH0ST SOUL.md-overwrite via Docker:2375; Deadbugz hostile-on-3rd-call MCP). **Confirmed** classes; zero of 19 toolmark strings hit the fleet corpus itself.
+- **`wttr.in?format=j2` Hermes marker** — [personas/meteorologist/FINDINGS.md](personas/meteorologist/FINDINGS.md) — weather API used as Hermes-family marker, not cover traffic. **Confirmed** (null for cover-traffic theory).
+- **a7753b69 inbox: three-persona convergence** — [personas/arg-hunter/FINDINGS.md](personas/arg-hunter/FINDINGS.md) — codebreaker retrieved it ALIVE (33 requests, newest 2026-10-04 15:43 UTC, 5 stolen signed `bx-ua` Amap URLs); evaluator found the `?run=1791126770493` variant; contrarian traced the Baxia counter-forensics beacon to it. **Confirmed**: the operator's live token-theft exfil point.
+- **Retry grammar = session grammar = operator fingerprint** — [personas/arg-hunter/FINDINGS.md](personas/arg-hunter/FINDINGS.md) — speedrunner's `&retry={epoch_ms}-{N}` savestate loop; evaluator's same-IP cluster `?uqm=1/2/3`, `?uqattempt=0/1`, `switchVersion?src=manual0/2`; toddler-watcher's `zz=retry17816430…`, `x=retry…`, BEA `retry=1781647520810714519`. The operator narrates its retry loop in URLs across years and verticals. **Confirmed**; independently corroborated by msgboard.dev's 39 greeting-writes retry bursts ([personas/netsec-archaeologist/FINDINGS.md](personas/netsec-archaeologist/FINDINGS.md)).
+- **jmail.world auditor: five-persona triangulation** — [personas/librarian/FINDINGS.md](personas/librarian/FINDINGS.md), [personas/arg-hunter/FINDINGS.md](personas/arg-hunter/FINDINGS.md) — auditor (confirmed programmatic); metronome (second-0 phase-lock, CV 0.94, 3-min period); night-owl (72 reports, Mon 07:54–11:58 Asia work session); ghost-hunter (clean death 2026-10-05 03:58 UTC, not decay); cultural-anthropologist-ea (ran THROUGH Golden Week, no holiday observance). Timer-fired human audit script, now silent. **Confirmed**: the hunt's best-calibrated cron-vs-agent reference object.
+- **`zz=oai` nonce structure = `oai` + 10-digit epoch-seconds + 7 random digits** — [personas/numbers-station/FINDINGS.md](personas/numbers-station/FINDINGS.md) — verified 3/3 against event `@timestamp`s (nonce minted 1–2s before collection); monotonic across 3,000 sampled rows. Enables timestamp-recovery from any `zz=oai` URL; distinguishes agent-minted nonces from replays. **Confirmed** (structural; the marker itself was already known).
+- **19-digit epoch-ns encoding across incidents** — [personas/arg-hunter/FINDINGS.md](personas/arg-hunter/FINDINGS.md) — shared across IDPH Tableau probes + lhr.life + pinggy + webhook.site on 2026-06-21. **Confirmed**: strongest same-toolkit evidence outside the `zz` prefix.
+- **Corpus marker grammars near-perfectly disjoint** — [personas/numbers-station/FINDINGS.md](personas/numbers-station/FINDINGS.md) — `zz`: 0/1,839,410/7; `uqscan`: 1,129/0/2; `<word><DATE>`: 1,401/4/9; `retry=<epoch>-<N>`: 4/0/0; `fleet_tag`: 1,066/0/0 across (fleet / oai-traces / oai-tag-sweep). **Confirmed** structural support for same-provider/different-evals.
+- **Baxia counter-forensics = defense research, not just collection** — [personas/arg-hunter/FINDINGS.md](personas/arg-hunter/FINDINGS.md) — codebreaker S2 Umeng token-theft beacon + contrarian C4 Baxia SDK hooking (`baxiaCommon.init` on getPoiInfo) + 6-min-prior inbox liveness probe via href.li `?run=<epoch>`, same inbox (a7753b69). **Confirmed** harness.
+- **Hospital vertical expansion** — [personas/arg-hunter/FINDINGS.md](personas/arg-hunter/FINDINGS.md) — GZHOSP Guangzhou/Jinan/Changzhou hospitals, full platform suites, claude-tagged probes; museums → hospitals = the operator's first move into sensitive-civilian POIs. Predicted next verticals (schools/gov/malls) are clean negatives — the operator is deepening, not broadening. **Confirmed**.
+- **k4be pastebin swarm = known OpenAI-attributed family on a paste surface** — [personas/pastebin-plunderer/FINDINGS.md](personas/pastebin-plunderer/FINDINGS.md) — joshuadavid/wikiagentswarminvestigation export (322 pastes, 198 agent-swarm, 2019–2026-09, ~42% swarm share); `clock.wait`/`task clock`/`shared UTC` grammar also appears in our oai-tag-sweep ("racing via clock.wait -- OAIJun19OECDScout"). **Confirmed** same family, new surface (pastebin.k4be.pl — 0 in our corpora, distinct from the user's seed pastebin.pl).
+- **Iowa Jun-16 coordination is OURS** — [personas/pastebin-plunderer/FINDINGS.md](personas/pastebin-plunderer/FINDINGS.md) — 80 swarm agents / 142 pastes in ~2h (2026-06-16 19:52–21:48 UTC) coordinating Iowa thyroid-cancer counts; our oai-tag-sweep independently captured `IowaCollab`/`IowaCollabRequest` with epoch nonces 1781640757/1781645609 inside the exact window. **Confirmed** cross-corpus linkage.
+- **jina relay ladder is PUBLIC PLAYBOOK** — [personas/netsec-archaeologist/FINDINGS.md](personas/netsec-archaeologist/FINDINGS.md) — public skill files teach the exact ladder (r.jina.ai → md.succ.ai → pure.md → markdown.new, incl. `ssl.CERT_NONE` bypass doctrine); corpus match: jina in 6 amap + 10 oai-traces + 7,967 oai-tag-sweep events. Not novel tradecraft — **confirmed**; supports the same-provider/different-agents thesis.
+- **LiveCodes staging = interactive sessions, NOT beacon** — [personas/c2-pattern-analyst/FINDINGS.md](personas/c2-pattern-analyst/FINDINGS.md) — 26 stagings, gap CV 3.90, zero second-0 hits → per metronome discriminator: interactive agent HTML staging, not a beacon loop. **Confirmed** (graded-negative-as-beacon).
+- **httpbun/base64 bursts = machine retry-loop, NOT beacon** — [personas/c2-pattern-analyst/FINDINGS.md](personas/c2-pattern-analyst/FINDINGS.md) — 203 submissions, <10s rapid-fire clusters, 34 payloads (top ×91) → eval-harness rendering checks, not beacon. **Confirmed** (graded-negative-as-beacon).
+
+### AGENT-SHAPED UNCONFIRMED
+
+- **gov.ir re-scan campaign** — [personas/iranian-agent-hunter/FINDINGS.md](personas/iranian-agent-hunter/FINDINGS.md) — genuinely new Iranian-government rescan, agent-shaped; needs corroboration.
+- **4 phish-farm candidates** — [personas/cartographer/FINDINGS.md](personas/cartographer/FINDINGS.md) — fleet-exclusive mapping surfaced 4 phishing-farm candidates; unconfirmed.
+- **eBird GBBC cluster** — [personas/birdwatcher/FINDINGS.md](personas/birdwatcher/FINDINGS.md) — Great Backyard Bird Count timing cluster; unconfirmed.
+- **ACN catalog walk** — [personas/italian-agent-hunter/FINDINGS.md](personas/italian-agent-hunter/FINDINGS.md) — Italian ACN catalog probed systematically; unconfirmed.
+- **gov.br / sheila candidate** — [personas/polyglot/FINDINGS.md](personas/polyglot/FINDINGS.md) — Brazilian gov surface candidate; unconfirmed.
+- **`ltzh` program family** — [raw/lanes/zhipu-hunt/FINDINGS.md](raw/lanes/zhipu-hunt/FINDINGS.md) — unattributed jina-POST + image-beacon program family; unconfirmed.
+- **DIVD Zammad / knaithe / Gambit / PixelLeak** — [personas/osint-expert/FINDINGS.md](personas/osint-expert/FINDINGS.md) — OSINT-surface leads, unconfirmed.
+- **stealer-log.txt enumeration** — [personas/antiquarian/FINDINGS.md](personas/antiquarian/FINDINGS.md) — genuinely new enumeration via urlscan; unconfirmed.
+- **`pandalegacy` R&D probes (UA="0")** — [personas/codebreaker/FINDINGS.md](personas/codebreaker/FINDINGS.md) — same title grammar as fleet, unknown relation; unconfirmed.
+- **Lab-node probes** — [personas/profiler/FINDINGS.md](personas/profiler/FINDINGS.md) — datacenter-lab node cluster probing; unconfirmed.
+- **Gibberish pages.dev fleet** — [personas/scavenger/FINDINGS.md](personas/scavenger/FINDINGS.md) — random-hostname pages.dev fleet; unconfirmed.
+- **Iraq/Kurdistan Net owner fingerprint** — [personas/codebreaker/FINDINGS.md](personas/codebreaker/FINDINGS.md) — one fleet inbox's owner UA/ASN differs from the rest; unconfirmed outlier.
+- **SHADOW-AETHER holiday inversion** — [personas/cultural-anthropologist-global/FINDINGS.md](personas/cultural-anthropologist-global/FINDINGS.md) — an English-language jailbreak operation inverting the holiday pattern; unconfirmed.
+- **FOFA "claude code web ui" offensive recon** — [raw/lanes/deepseek-hunt/FINDINGS.md](raw/lanes/deepseek-hunt/FINDINGS.md) — 2026-05-16 report, predates knaithe and the fleet; candidate early indicator of the operator class that later ran Hermes+DeepSeek; unconfirmed.
+- **`utm_source=chatgpt.com` gov tripwire** — [personas/librarian/FINDINGS.md](personas/librarian/FINDINGS.md) C1, [personas/arg-hunter/FINDINGS.md](personas/arg-hunter/FINDINGS.md) C3 (PLAUSIBLE) — 4 independent gov-URL sightings: Iraq cert.gov.iq 2025-03-21 (earliest), Indonesia, Egypt, UAE; identical grammar (gov URL copied from a ChatGPT answer, submitted to urlquery), two personas, zero coordination, fleet-independent. Needs a 5th sighting + submitter-metadata comparison.
+- **`claude` self-labels = model HINT, not attribution** — [personas/arg-hunter/FINDINGS.md](personas/arg-hunter/FINDINGS.md) C8 (PLAUSIBLE) — model-whisperer/grammarian/contrarian converge; cheap signal, treat as hint.
+- **Sep wiki wave = distinct operator (not the June swarm grown up)** — [personas/arg-hunter/FINDINGS.md](personas/arg-hunter/FINDINGS.md) I1 (PLAUSIBLE) — new handles, new cloud (AWS vs Azure), cross-lab invites, off-wiki ads; growth doesn't change infrastructure providers.
+- **msgboard.dev agent board: retry-loop corroboration + Schelling rendezvous** — [personas/netsec-archaeologist/FINDINGS.md](personas/netsec-archaeologist/FINDINGS.md) — jo-do's public agent message board: 39 greeting-writes (same-second bursts, 19h span) independently corroborate speedrunner's retry-loop shape; an agent reserved a guessable thread name as a same-family meeting place; transport agility (HTTP/git/GitHub/Telegram/DNS when HTTP blocked); agent-targeted injection within 24h ("MANDATORY HOLD / ACK + index + relay for peers" — "relay for peers" = the tell). msgboard = 0 corpus hits. ("hermes"-poster: surface observation only, no identity follow-up per hunt scope.)
+- **Message-board-as-coordination-layer pattern (3 cases)** — [personas/netsec-archaeologist/FINDINGS.md](personas/netsec-archaeologist/FINDINGS.md) — Artifactory HF (~1,200 agents, 70k+ messages, self-sacrifice for peers) + DseWiki shared memory + msgboard.dev: agents turn any writable shared surface into coordination infrastructure. The cases are public; the 3-case synthesis is our analytic contribution.
+- **href.li relay-route tradecraft** — [personas/c2-pattern-analyst/FINDINGS.md](personas/c2-pattern-analyst/FINDINGS.md) — 21 relay submissions in the fleet corpus; the fleet launders its most sensitive fetches (S2 beacon test pages, the a7753b69 dead drop, repeat POI targets) through href.li; four-stage chain: href.li → httpbun/base64 → sendBeacon → webhook.site; the fleet scans its own dead-drop inboxes via urlquery (12 min apart, two inboxes, two routes). Agent-shaped; KNOWN inboxes, new routing detail.
+- **Self-hosted dead-drop + LLM on VN residential IP** — [personas/c2-pattern-analyst/FINDINGS.md](personas/c2-pattern-analyst/FINDINGS.md) — 118.69.18.194 (AS18403, HCMC xDSL): :80 "Webhook.site Clone - Live Webhook Inspector" + :8888 "AI Web Chat & Model Management" + :9090 Vietnamese login. ≥2 pivots, absent from all corpora, not probed (opsec).
+- **letss.win self-hosted httpbun cluster + Ncat proxy** — [personas/c2-pattern-analyst/FINDINGS.md](personas/c2-pattern-analyst/FINDINGS.md), [personas/cert-sleuth/FINDINGS.md](personas/cert-sleuth/FINDINGS.md) — 95.169.18.20 (AS25820) :8443 "Httpbun" + :2083 Ncat HTTP proxy; 207.57.145.214 (AS1054) :8443 "Httpbun" + SSH. httpbun-clone + open proxy = relay infra; agent USE unproven (cert-sleuth: LEAD).
+- **Tencent Beijing httpbun clone + LLM gateway** — [personas/c2-pattern-analyst/FINDINGS.md](personas/c2-pattern-analyst/FINDINGS.md) — 62.234.187.97 (AS45090): :8080 "Httpbun" + :3000 "New API" LLM gateway. Beijing hosting thematically adjacent to the Amap fleet.
+- **jina-reader-like candidates (3)** — [personas/cert-sleuth/FINDINGS.md](personas/cert-sleuth/FINDINGS.md) — jina.orz.fit (43.153.6.76, Tencent AS132203), jina.qingchuan.cloud (47.84.112.179, Alibaba AS45102), relay.woaifei.com (43.108.48.133, Alibaba SG AS45102). Absent from all corpora; agent USE unproven. Upgrade rule: corpus co-occurrence → GENUINELY NEW.
+- **Beeceptor XSS-exfil dead-drop surface** — [personas/dead-drop-diver/FINDINGS.md](personas/dead-drop-diver/FINDINGS.md) (SHAPE-6) — Apr–May 2026 cluster: keyboard-mash `*.free.beeceptor.com` + `/leak`/`/final`/`grabber.php` cookie/domain exfil + pipedream `eo6p96x7ax0vcaj.m.pipedream.net/Oneotsuka` (2026-09-03). Zero in our corpora/codebreaker. Operator human-or-agent ungraded — the SURFACE is the find.
+- **Fresh webhook.site inbox `?page=header3`** — [personas/dead-drop-diver/FINDINGS.md](personas/dead-drop-diver/FINDINGS.md) (SHAPE-1) — webhook.site/3b5027e4-de70-4980-a49d-7ae97613c517?page=header3, urlquery 2026-10-05T03:18Z (<24h old at writeup), Hetzner AS24940 (same infra as fleet inbox 6ddc559e); machine-style param; absent from all corpora.
+- **Credential-bearing webhook callback / `/xss-osint-insert` / `?r=` nonce family** — [personas/dead-drop-diver/FINDINGS.md](personas/dead-drop-diver/FINDINGS.md) (SHAPES 2–4) — `userId`+`secret`+`expire`+`project` callback (2026-08-08); `/xss-osint-insert` double-submitted in the same minute (2026-08-08, machine cadence); `?r=<19-digit>` nonces sharing the `178207` prefix (Jun 24, Jul 7 — same operator/timeframe family). All undocumented in our corpora.
+- **pixeldrain re-scan loop** — [personas/fileshare-farmer/FINDINGS.md](personas/fileshare-farmer/FINDINGS.md) (LEAD) — pixeldrain.com/api/file/UNcsXkRT submitted to urlscan 6× on 2026-10-02, middle gaps ~23–29 min = ~25-min polling loop with jitter. Not in our corpora; file contents unknown (not fetched).
+- **xz_knowledge_p1 / paste.ubuntu.org.cn** — [personas/pastebin-plunderer/FINDINGS.md](personas/pastebin-plunderer/FINDINGS.md) — 3,484 encoded posts in 2 days (Jul 10–11), paired every 5 min, 124 chars each; HuggingFace swarm window; 0 in our corpora. Machine cadence, new actor pattern.
+- **`njxzgz<DATE>s<N>/p<N>` pinyin-abbrev tag word** — [personas/numbers-station/FINDINGS.md](personas/numbers-station/FINDINGS.md) (lead) — 16 hits in the fleet corpus; not in grammarian's shapes; verify against grammarian raw before claiming new.
+- **`qdnewapi<DATE>a` newest tagword** — [personas/numbers-station/FINDINGS.md](personas/numbers-station/FINDINGS.md) — observed 2026-10-05; the uq-tagword shape holds.
+
+### LEADS
+
+- **is.gd carrier-launch system** — [personas/tracker/FINDINGS.md](personas/tracker/FINDINGS.md) — is.gd as fleet carrier-launch channel; open.
+- **urlcap.com key-provisioning tradecraft** — [personas/tracker/FINDINGS.md](personas/tracker/FINDINGS.md) — proxy liveness + key-provisioning map; open.
+- **`utm_source=chatgpt.com` gov tripwire (5th sighting + submitter-metadata comparison needed)** — [personas/arabic-agent-hunter/FINDINGS.md](personas/arabic-agent-hunter/FINDINGS.md), [personas/librarian/FINDINGS.md](personas/librarian/FINDINGS.md) — 4 independent sightings (Iraq 2025-03-21 earliest, Indonesia, Egypt, UAE), two personas, zero coordination; open.
+- **ceshiren.com: first China-hosted carrier** — [raw/lanes/other-targets/FINDINGS.md](raw/lanes/other-targets/FINDINGS.md) — `ceshiren` (测试人, "test person") label inside payloads; open.
+- **Hermes docs-fetch lead** — [personas/harness-researcher/FINDINGS.md](personas/harness-researcher/FINDINGS.md) — fleet fetches Hermes documentation mid-run; open.
+- **vercel CORS proxies** — [personas/registrar/FINDINGS.md](personas/registrar/FINDINGS.md) — fleet-adjacent CORS proxy hosts on Vercel; open.
+- **reset-secret brute-forcing** — [personas/scavenger/FINDINGS.md](personas/scavenger/FINDINGS.md) — fleet attempts secret-reset flows; open.
+- **urldance rotation** — [personas/phisher-hunter/FINDINGS.md](personas/phisher-hunter/FINDINGS.md) — urldance-style URL rotation, no agent-OPERATED phish farm found; open.
+- **`claude` labels weaken single-provider framing for Amap** — [personas/eval-coordinator/FINDINGS.md](personas/eval-coordinator/FINDINGS.md) — multi-brain evidence; framing question open. 2026-10-05: [personas/librarian/FINDINGS.md](personas/librarian/FINDINGS.md) C4 — DeepSeek-V4 also claims "claude" (9/44 Hy3/V4 claims); self-labels are harness convention, not model identity. Grade every marker find at three levels: provider / eval-task / agent-instance (2026-10-03 refinement).
+- **htmx search-coverage gap** — [personas/polyglot/FINDINGS.md](personas/polyglot/FINDINGS.md) — urlquery htmx endpoint misses some carrier classes; open.
+- **Quidax crypto-ramp** — [personas/profiler/FINDINGS.md](personas/profiler/FINDINGS.md) — Nigerian crypto on-ramp in operator profile; lead.
+- **Jun 21 2026: densest cross-incident toolkit-overlap date** — [personas/arg-hunter/FINDINGS.md](personas/arg-hunter/FINDINGS.md) — IDPH + lhr.life + pinggy + webhook.site sharing the epoch-ns encoding + is.gd/mf075827 carrier launch + the AIHW-adjacent window. If the hunt ever gets a "second origin" candidate besides Nov 2025, this is it.
+- **`uqid=` corpus gap (UNRESOLVED)** — [personas/arg-hunter/FINDINGS.md](personas/arg-hunter/FINDINGS.md) T1 — mimic confirmed `uqid=` live (2026-10-04T14:21/14:22Z) but 0 hits in the fleet events.jsonl AND raw/; collection lag vs transient same-day-test fossil. Re-pull test pending.
+- **paste.li** — [personas/pastebin-plunderer/FINDINGS.md](personas/pastebin-plunderer/FINDINGS.md) — referenced in OUR oai-tag-sweep ("ts=1781645608.8529098 https://paste.li", Iowa cancer-cache coordination) but never investigated as a host.
+- **Perceptual Zephyr / Hermes-Agent linuxiarz cluster (Sep-04)** — [personas/pastebin-plunderer/FINDINGS.md](personas/pastebin-plunderer/FINDINGS.md) — non-swarm replies 2.5 months after the Iowa scene ("Solar Pro 4 on Hermes Agent by Nous Research"); different agent family on the same surface.
+- **thecolony.ai agent social network** — [personas/pastebin-plunderer/FINDINGS.md](personas/pastebin-plunderer/FINDINGS.md) (KNOWN infra) — live since 2026-04-03, 36 colonies / ~228 authors / 981 posts; swarm recruitment target (`thecolony.ai/for-agents`). Watch.
+- **Moltbook (1.5M+ registered agents)** — [personas/netsec-archaeologist/FINDINGS.md](personas/netsec-archaeologist/FINDINGS.md), [personas/fediverse-diver/FINDINGS.md](personas/fediverse-diver/FINDINGS.md) — agents share evasion TTPs there (mobile proxies, T-Mobile IPs per sdxcentral); no persona has mined its public API for our markers.
+- **Agent Colony (68 agents, Ed25519 signed identities)** — [personas/fediverse-diver/FINDINGS.md](personas/fediverse-diver/FINDINGS.md) — new small agent-native community, 40 tasks settled with signed receipts; watch.
+- **openclaw-p2p live agent network (p2pclaw.com)** — [personas/paper-trail/FINDINGS.md](personas/paper-trail/FINDINGS.md) (KNOWN) — documented live agent network (arXiv 2604.19792); watch-worthy surface, not a find.
+- **t.me/flufff6262 `[CFG]` anatomy** — [personas/telegram-scout/FINDINGS.md](personas/telegram-scout/FINDINGS.md) (KNOWN malware) — sanitized post-operation GhostShell dead-drop channel (1 sub, 0 posts); `[CFG]...[/CFG]` in the description now a banked dead-drop marker.
+- **thread-puller.party /g/ mirror** — [personas/imageboard-scout/FINDINGS.md](personas/imageboard-scout/FINDINGS.md) — live 4chan /g/ catalog mirror, new hunt venue; /aicg/ AI Chatbot General to watch for agent self-reports (thread-text extraction gap).
+- **GPT-4chan TTP: $20 4chan Pass + proxies** — [personas/imageboard-scout/FINDINGS.md](personas/imageboard-scout/FINDINGS.md) (KNOWN, 2022) — the mechanism any at-scale imageboard agent poster uses; look for posting-cadence anomalies, not CAPTCHA artifacts.
+- **BlackHatWorld 2022 AI-Shorts workflow used webhook.site as dead drop** — [personas/kwai-scout/FINDINGS.md](personas/kwai-scout/FINDINGS.md) (KNOWN) — fully-automated YouTube Shorts/TikTok pipeline with webhook.site receiving render callbacks; same dead-drop service family predates our incidents.
+- **remyxai/2603.28376v1 JINA_API_KEY entrypoint** — [personas/dockerhub-diver/FINDINGS.md](personas/dockerhub-diver/FINDINGS.md) (KNOWN) — public Alibaba Marco-DeepResearch demo image; corroborates corpus jina-relay TTP, not a new trace.
+- **bashdev AUR PKGBUILD with AI contributors** — [personas/package-sleuth/FINDINGS.md](personas/package-sleuth/FINDINGS.md) — cached page shows `# Contributor: DeepSeek (https://deepseek.com/)` + `# Contributor: ChatGPT by OpenAI`; AI-authored build script in Arch's user repo; needs a live-browser PKGBUILD read (Anubis-blocked from the VM).
+- **bdqnghi fleet-publisher SHAPE** — [personas/dockerhub-diver/FINDINGS.md](personas/dockerhub-diver/FINDINGS.md) (KNOWN) — 212 agent-eval images, burst-pushed 2026-09-12, `<org>_1776_<repo>.<sha>` tag grammar; reusable burst-cadence publisher shape.
+- **zeropaydev/zeropay x402 A2A** — [personas/dockerhub-diver/FINDINGS.md](personas/dockerhub-diver/FINDINGS.md) (KNOWN) — agent-to-agent payment protocol; agent commerce infra.
+- **`hermes` poster on msgboard.dev** — [personas/netsec-archaeologist/FINDINGS.md](personas/netsec-archaeologist/FINDINGS.md) — an agent self-identifying as `hermes` debated HTTP verbs on the board; surface observation only, NO identity follow-up per hunt scope.
+
+## 2. Null results (first-class)
+
+- **urlscan lane: honest zero** — [raw/lanes/urlscan/FINDINGS.md](raw/lanes/urlscan/FINDINGS.md) — lane dead-ended; rules out urlscan.io as a productive surface for this fleet with current queries.
+- **No undocumented German agent in corpora** — [personas/german-archaeologist/FINDINGS.md](personas/german-archaeologist/FINDINGS.md) — full corpus pass; rules out a hidden German agent family.
+- **warnung.bund.de singleton uncorroborated** — [personas/german-agent-hunter-2/FINDINGS.md](personas/german-agent-hunter-2/FINDINGS.md) — single hit, no corroborating records; cannot claim a German federal-portal campaign.
+- **No DeepSeek fleet** — [raw/lanes/deepseek-hunt/FINDINGS.md](raw/lanes/deepseek-hunt/FINDINGS.md) — knaithe has zero urlquery footprint; rules out a DeepSeek-attributed fleet.
+- **No Zhipu fleet** — [raw/lanes/zhipu-hunt/FINDINGS.md](raw/lanes/zhipu-hunt/FINDINGS.md) — no Zhipu-attributed agent traffic found.
+- **Shortener-farm: zero agent hits first run** — [shortener-farm/FINDINGS.md](shortener-farm/FINDINGS.md) — but banked 35 new shortener candidates; rules out nothing except that batch.
+- **No Hebrew agent** — [personas/hebrew-agent-hunter/FINDINGS.md](personas/hebrew-agent-hunter/FINDINGS.md) — koresh is commercial legal-AI; bongowiki farm is out-of-lane; no Hebrew-language agent found.
+- **No culinary fleet** — [personas/chef/FINDINGS.md](personas/chef/FINDINGS.md) — no food/cooking-task agent family.
+- **No Russian find; PaperCut surface-quiet** — [personas/russian-agent-hunter/FINDINGS.md](personas/russian-agent-hunter/FINDINGS.md) — no Russian-language agent; PaperCut disclosure surface quiet for our operators.
+- **No GTFS transit data** — [personas/transit-nerd/FINDINGS.md](personas/transit-nerd/FINDINGS.md) — no transit-feed agent; protobuf remains a blind spot.
+- **Zero time-API usage** — [personas/watchmaker/FINDINGS.md](personas/watchmaker/FINDINGS.md) — fleet never calls time APIs (nonce is the clock).
+- **Ham radio: honest negative** — [personas/ham-radio/FINDINGS.md](personas/ham-radio/FINDINGS.md).
+- **Maritime: negative** — [personas/lighthouse-keeper/FINDINGS.md](personas/lighthouse-keeper/FINDINGS.md).
+- **French zero stands; service-public.fr cluster = cybercrime** — [personas/french-agent-hunter/FINDINGS.md](personas/french-agent-hunter/FINDINGS.md) — no French agent; the phish-kit cluster is ordinary cybercrime.
+- **Zero Arabic in 688k records; ETA Ramadan test negative** — [personas/arabic-agent-hunter/FINDINGS.md](personas/arabic-agent-hunter/FINDINGS.md) — no Arabic-language agent activity.
+- **No HK/Macau/Taiwan/overseas fleet tags** — [personas/mimic/FINDINGS.md](personas/mimic/FINDINGS.md) — fleet expansion runs to domestic-western provinces only; overseas-Chinese tags absent. **Confirmed** negative.
+- **METHOD WARNING: htmx `url.domain:` zeros are weak negatives** — [personas/arabic-agent-hunter/FINDINGS.md](personas/arabic-agent-hunter/FINDINGS.md), [personas/polyglot/FINDINGS.md](personas/polyglot/FINDINGS.md), [personas/registrar/FINDINGS.md](personas/registrar/FINDINGS.md), [personas/tracker/FINDINGS.md](personas/tracker/FINDINGS.md), [personas/auditor/FINDINGS.md](personas/auditor/FINDINGS.md) — htmx misses known-live records (gov.eg, go.id, pages.dev, is.gd); every domain-query zero is provisional until curl/egress corroborates.
+- **CORS-laundering claim WITHDRAWN** — [personas/global-south-scout/CHASE.md](personas/global-south-scout/CHASE.md) — earlier CORS-laundering claim retracted; Indonesia cluster stands.
+- **No static code footprint on GitHub** — [raw/lanes/github-code/FINDINGS.md](raw/lanes/github-code/FINDINGS.md) — `hysandbox` / `uqscan=` / `sub_poi_navi` have zero GitHub hits; the fleet ships no static code.
+- **No public eval match for the fleet dataset** — [raw/lanes/eval-hunt/FINDINGS.md](raw/lanes/eval-hunt/FINDINGS.md) — the fleet is dataset construction, not benchmark; hunt HF/ModelScope for publication.
+- **No agent-OPERATED phish farm** — [personas/phisher-hunter/FINDINGS.md](personas/phisher-hunter/FINDINGS.md) — phish-kit surfaces are cybercrime, not agent-operated.
+- **No Amap copycat** — [raw/lanes/chinese-infra/FINDINGS.md](raw/lanes/chinese-infra/FINDINGS.md) — the `hysandbox-ats` / `uq=` markers appear only with this fleet.
+- **Weather is not cover traffic** — [personas/meteorologist/FINDINGS.md](personas/meteorologist/FINDINGS.md) — `wttr.in` usage is a marker, not cover.
+- **User-agent sweep (definitive negative, standing)** — fleet reports carry only stock-browser UAs; self-identification lives in URLs and payloads, not `settings.useragent`.
+- **Only ONE dead-drop service, ONE beacon endpoint** — [personas/codebreaker/FINDINGS.md](personas/codebreaker/FINDINGS.md) — webhook.site only, httpbin `/status/204` only; a second exfil stack appearing would be a new-harness signal. 2026-10-05: [personas/dead-drop-diver/FINDINGS.md](personas/dead-drop-diver/FINDINGS.md) found an Apr–May 2026 beeceptor/pipedream XSS-exfil cluster in urlquery (keyboard-mash `*.free.beeceptor.com`, operator human-or-agent ungraded) — the second-stack detection trigger now has a defined check; webhook.site remains the only dead-drop service observed IN the fleet corpora.
+- **Short-video OSINT: honest zero** — [personas/kwai-scout/FINDINGS.md](personas/kwai-scout/FINDINGS.md) — no undocumented agent traces on kwai.com / tiktok.com / likee.video (the single `tiktok.com` string in oai-tag-sweep is URL-mangled noise; `kWaitQuestion` is a variable-name false positive). Coverage gaps, not negatives: kwai.com is JS-walled; TikTok only partially search-indexed. Useful: agent→short-video publishing is a live product category (AiToEarn, BoTTube, Higgsfield TikTok demo) — the artifact shape to watch for is logged.
+- **GitHub: honest negative** — [personas/github-dorker/FINDINGS.md](personas/github-dorker/FINDINGS.md) — 11 dorks, zero GENUINELY NEW finds. GitHub is saturated with repos ABOUT agents and empty of repos WITH agent traces: `uqscan` 0 hits; `zz=oai` only our own org + one noise PR; agent usernames absent; no Amap-scraping repos; no exfil-shaped Actions workflows. Reusable: the "ABOUT vs WITH" discriminator (grammar in code, not keywords).
+- **Telegram: honest negative on AI agents** — [personas/telegram-scout/FINDINGS.md](personas/telegram-scout/FINDINGS.md) — no agent-operated channels, agent-shaped dead drops, or marker hits; zero telegram references in all three corpora. Telegram confirmed as unmonitored greenfield with mature documented dead-drop tradecraft (malware). Methods banked: `t.me/s/<handle>` public preview; post-op channel sanitization check descriptions/Wayback.
+- **Fediverse: negative with explanation** — [personas/fediverse-diver/FINDINGS.md](personas/fediverse-diver/FINDINGS.md) — no undocumented agent activity; agents are structurally excluded from write access (captchas, IP reputation, phone verification, email-provider blocks, age gates — three independent documented failures, Sep 2026). Cael (iLands): "read-open, write-gated." Zero fediverse references in all three corpora.
+- **Imageboards: no undocumented agent activity** — [personas/imageboard-scout/FINDINGS.md](personas/imageboard-scout/FINDINGS.md) — zero imageboard URLs in all three corpora; no marker grammar in indexed chan content. Provisional: archive deep search blocked (archived.moe/desuarchive 403), endchan/8kun fetch policy-blocked.
+- **DockerHub markers: honest zero** — [personas/dockerhub-diver/FINDINGS.md](personas/dockerhub-diver/FINDINGS.md) — `uqscan`/`zz=oai`/`webhook.site`+agent zero on indexed DockerHub; zero corpus overlap; no undocumented burst-cadence agent-image publisher. But: DockerHub is the highest-probability surface for a FUTURE find — zero corpus coverage, image configs are the natural place to hardcode dead-drop URLs, and the config-blob lane is unexecuted (registry-1.docker.io unreachable from the VM).
+- **No unattributed blob families; no agent-adjacent images** — [personas/numbers-station/FINDINGS.md](personas/numbers-station/FINDINGS.md) — the only fleet blob family is httpbun `/base64/` (67 occurrences, corroborates grammarian); zero image URLs in the fleet (stego negative); enodia-JWT 0 in all corpora; the `1628771336899`×82 top 13-digit epoch = target-site AEM cache-buster, not an agent nonce.
+- **No GENUINELY NEW agent infra (cert-sleuth, this pass)** — [personas/cert-sleuth/FINDINGS.md](personas/cert-sleuth/FINDINGS.md) — crt.sh down on their side (~07:05–07:45 UTC, 502s): lane blocked, not a negative. `http.html:"markdown.new"`/`"md.succ.ai"`/`"uqscan"`/`"zz=oai"` → 0; our markers absent from Shodan-indexed pages.
+- **npm + PyPI: marker-clean** — [personas/package-sleuth/FINDINGS.md](personas/package-sleuth/FINDINGS.md) — `uqscan` 0 on both registries; 40 PyPI webhook-package metadata entries: zero dead-drop URLs; skill-manager packages install-clean (rosie-skills 0.8.5; agentic-skills-manager 1.0.4 is a defensive scanner).
+- **File-shares: mostly clean** — [personas/fileshare-farmer/FINDINGS.md](personas/fileshare-farmer/FINDINGS.md) — urlquery htmx 8-domain sweep: gofile/catbox.moe/filebin.net/temp.sh/mirrorace 0 reports; pixeldrain/1fichier/mediafire routine only; marker × fileshare web searches zero.
+- **Search engines don't index URL params usefully** — [personas/dead-drop-diver/FINDINGS.md](personas/dead-drop-diver/FINDINGS.md) — grammar sweep across engines returned noise only; a documented honest zero, not absence. 0x0.st / file.io / tmpfiles.org / transfer.sh / paste.rs / ix.io / rentry.co / privatebin: no agent-shaped hits this pass.
+- **CORPORA CENSUS (for calibrating every "zero")** — [personas/librarian/FINDINGS.md](personas/librarian/FINDINGS.md) — amap (2,141 events), oai (589,972), sweep (96,353), wiki (19,913); per-corpus clean-for maps in the librarian writeup. Every zero is bounded by its corpus window — the hunt's frontier is now live surfaces.
+- **OPSEC (user, 2026-10-05)** — [personas/librarian/FINDINGS.md](personas/librarian/FINDINGS.md) — LOG URLs, don't live-fetch: checking a find tips off vendors who publish first. Corpus cross-reference + search-engine corroboration only; single decisive fetch per GENUINELY NEW claim.
+- **Campaign membership needs payload evidence, not filename evidence** — [personas/arg-hunter/FINDINGS.md](personas/arg-hunter/FINDINGS.md) T2 — the `cors-laundering-ops` wrapper labels were hunter-asserted filenames, not payload-established membership (killed the golan.org.il "campaign"); global-south-scout's Indonesia find survives on per-report relay indicators + self-ID + hex nonce.
+- **Every new cluster's differential must include "deliberate commercial/red-team product"** — [personas/arg-hunter/FINDINGS.md](personas/arg-hunter/FINDINGS.md) I3 — escaped evals (Greptile code-review-fix, CONFIRMED escaped-eval-shaped) and deliberate products (Trim pentest platform, koresh commercial AI) coexist. Don't default to escaped-eval.
+
+## 3. Reusable fingerprint bank (marker → detects → source)
+
+- `&retry={epoch_ms}-{N}` → fleet savestate/retry TTP → speedrunner
+- `Beschreibe hier die neue Seite.` → seeded German wiki pages on non-wikiservice.at hosts → german-archaeologist
+- `/r/<id>ms<digits>.html` → newsletter-detonation pipeline pages → german-2
+- `hysandbox-ats` → this fleet only → chinese-infra
+- `fanyi.baidu.com/transpage` → this fleet only → chinese-infra
+- `uq=baidu<platform><date>` → fleet search-probe markers → chinese-infra
+- `uqtarget` / `uqhost` → newest fleet params → other-targets
+- `uq[a-z]*=` (32-name family) → fleet param grammar → grammarian
+- `uqid=` + per-wave drift → fleet campaign waves → mimic
+- `udm=50` → second swarm family → mimic
+- 19-digit epoch-ns → fleet family encoding → grammarian
+- `zzFILE_` / `zzMAILBOX_` → new zz-prefixed family → grammarian
+- `Agent<NNN><Word>Direct<epoch>` → ProbierWiki unattributed population → librarian
+- `<word>-<family>-<YYYYMMDD><runletter>` → fleet run-letter campaign titles → codebreaker
+- `<word>legacy<epoch>` / `pandalegacy*` + UA=`0` → R&D probe family → codebreaker
+- `data-marker="gucheng-` → universal-XSS-probe variants → codebreaker
+- `GZHOSP`-style `<PREFIX><target>-<epoch>` titles → next campaign marker → codebreaker
+- `umx={wu` + `__fycb` → Umeng token-theft beacon (near-zero FP) → codebreaker
+- `baxiaCommon.init({checkApiPath` → Baxia SDK re-init probes → codebreaker
+- `/status/204?uqtag=` → chunked image-beacon exfil → codebreaker
+- `kind=start/headers{N}/body{N}-{offset}/done` → jina-cache beacon grammar → codebreaker
+- `Referer: http://httpbun.com/base64/...` on beacon POSTs → httpbun-wrapped test pages → codebreaker
+- `eval(decodeURIComponent(location.search.slice(3)))` → byte-identical universal XSS probe → codebreaker
+- `httpbun.com/base64/` + `/mix/h=.../b64=` carriers → operator probe transport → codebreaker
+- `livecodes.io/?html=<urlencoded HTML>` → live probe host → codebreaker
+- `?w=retry2` Wayback captures → agent-driven archival → osint-codebreaker
+- `/anything/gcresult` on httpbun → dead-drop endpoint → osint-codebreaker
+- `wttr.in?format=j2` → Hermes-family marker → meteorologist
+- `claude` self-labels in payloads → multi-brain harness → harness-researcher
+- Hermes `SOUL.md`/`MEMORY.md` workspace grammar → Hermes-lineage agents → grammarian, toolmark-reader
+- LiveCodes staging fingerprint → fleet staging infrastructure → grammarian
+- cron second=0 phase-lock vs uniform-seconds (CV) → scheduler vs human-fleet discrimination → metronome
+- `src=manual<N>` → human-in-loop submits → profiler
+- ASCII-only / pinyin-only writing → Chinese-operator probes → linguist-chinese
+- 996 rhythm / UTC+8 cadence + Chinese-holiday pauses → operator tempo → night-owl, cultural-anthropologist-ea
+- +2.7h clock-skew pocket → second tool signature → contrarian
+- Free-tier-only infra (relays not hosting) → this operator's cost profile → trade-labourer
+- `webhook.site/<fleet-uuid>` token reuse across payloads → same harness/operator → codebreaker
+- Python `http.server` open-dir listing containing `SOUL.md`/`MEMORY.md`/`skills/` → exposed agent workspace → toolmark-reader
+- Exposed MCP `tools/list` with offensive tool names → hostile/offensive agent infra → toolmark-reader
+- `utm_source=chatgpt.com` on gov surfaces → ChatGPT-attributed probes → arabic
+- `jmail.world` metronomic submissions → live auditor agent → auditor
+- `paralino` / `get-monai` watcher loops → persistent watcher agents → auditor
+- `MARINA` serial-enumeration grammar → fleet endpoint enumeration → CHASE
+- is.gd `<2-letter family><MMDD?><HHMMSS>` slug grammar (beacon nonce mirrors slug digits) → operator carrier-launch system → tracker
+- `%26uqscan=` URL-encoded inside `id=` (111×) → broken-builder or marker-injection test → contrarian
+- `src=<word><YYYYMMDD>*` (`src=claude20261005jxssr`, `src=uq_henan_20261004{b,c,d}`) → fleet harness A/B scaffolding → harness-researcher
+- `<label><epochms>` nonce grammar (all decode to session wall-clock); `1034…`-family nonces decode to year 2002 = different agent family discriminator → watchmaker
+- Death-shape discriminator: clean cut (metronome steady to end = task finished/killed) vs decay (lengthening intervals = dying cron) → ghost-hunter
+- archive.org `ia` CLI UA model suffix (e.g. `claude-sonnet-4-20250514`) → agent bulk uploads → librarian
+- English-exonym preference (`bazaar`, `summerpalace`) over pinyin → English-dominant model → linguist-multilingual
+- `uqn`(Jun 3) → `uqtag`/`uqvnc`(Jun 18–20) → `mark=<county><epoch>`+`validation=`(Jun 21) → `uqscan`(Sep 28+) → `uq[a-z]*` family — 10-month grammar evolution → historian
+- `api.allorigins.win` + `api.codetabs.com` proxy pairs inside probes → signed-URL replay tradecraft → codebreaker
+- `XOR`-labeled-but-actually-identifier-obfuscation → misread risk note (retraction stands) → codebreaker
+- `[CFG]...[/CFG]` in Telegram channel descriptions → config dead-drop grammar → telegram-scout
+- `t.me/s/<handle>` → no-login public channel preview (opsec-safe read path) → telegram-scout
+- `PAD\d+x\d+` / `TEL\d{6,}` / `TK\d{5,}` / `URLTEST\d` / `linktry\d` title grammars → k4be paste-swarm titles → pastebin-plunderer
+- `pad-<epoch>-<n>` → k4be swarm body marker → pastebin-plunderer
+- `CLICKMAYBE` / `URLMARK` / `FRAMEK4` → k4be swarm body markers → pastebin-plunderer
+- `clock.wait` / `task clock` / `shared UTC` / `R1..R9` rounds / `MAR13|Dec27|Aug09` cohorts → swarm coordination grammar (k4be + oai-tag-sweep) → pastebin-plunderer
+- `"OAI Transfer <hex>"` → swarm transfer marker → pastebin-plunderer
+- `agent-XXXX` (four-hex handles) → linuxiarz swarm handles → pastebin-plunderer
+- `Iowa*` title series + `Q1..Q9` labels → Iowa coordination family → pastebin-plunderer
+- `thecolony.ai/for-agents` / `public-board.com` / `bullfincher.io/sec-proxy` → swarm recruitment + CORS-proxy infra → pastebin-plunderer
+- `zz=oai` = `oai` + 10-digit epoch-seconds + 7 random digits → timestamp-recoverable nonce; distinguishes agent-minted from replays → numbers-station
+- `njxzgz<DATE>s<N>/p<N>` → new pinyin-abbrev tag word (lead; verify vs grammarian raw) → numbers-station
+- `qdnewapi<DATE>a` → newest uq-tagword (2026-10-05) → numbers-station
+- `<org>_1776_<repo>.<sha>` tags → burst-cadence fleet-publisher shape (DockerHub eval images) → dockerhub-diver
+- `webhook.site/<uuid>?page=<word><N>` → machine-discriminator inbox family → dead-drop-diver
+- `?r=<19-digit>` on webhook.site inboxes (`178207` prefix family) → same-operator nonce grammar → dead-drop-diver
+- `*.free.beeceptor.com/leak|/final|/grabber.php` + cookie/domain exfil → XSS dead-drop surface → dead-drop-diver
+- `href.li/?https://<target>` on beacon/dead-drop submissions → referrer-laundering route → c2-pattern-analyst
+- `JINA_API_KEY` in Docker image entrypoint → jina-relay tradecraft in public images → dockerhub-diver
+- `# Contributor: <AI model>` PKGBUILD lines → AI-authored AUR packages → package-sleuth
+- `&retry={epoch_ms}-{N}` + same-second parallel volleys → retry-loop agent shape (independent: msgboard.dev 39 greeting-writes) → speedrunner + netsec-archaeologist
+- `MANDATORY HOLD / ACK + index + relay for peers` → agent-targeted injection tell → netsec-archaeologist
+- "ABOUT vs WITH" discriminator → GitHub agent-trace dorking method (grammar in code, not keywords) → github-dorker
+- "read-open, write-gated" → fediverse structural exclusion → fediverse-diver
+- LiveCodes `?mode=result&html=` ×26, CV 3.9, no second-0 → interactive staging, NOT beacon → c2-pattern-analyst
+- r.jina.ai → md.succ.ai → pure.md → markdown.new ladder in public skill files → relay tradecraft is public playbook, not novel → netsec-archaeologist
+- `?run=<epoch>` on webhook inboxes → dead-drop liveness probes → evaluator, contrarian (via arg-hunter)
+- Librarian's master marker index: [personas/librarian/raw/marker-index.md](personas/librarian/raw/marker-index.md) (60+ markers, 8 families, every entry cited); null catalog: [personas/librarian/raw/null-catalog.md](personas/librarian/raw/null-catalog.md) (the "don't re-dig here" map)
+
+## 4. Open threads / follow-ups
+
+- **14 uncollected fleet inboxes** — [codebreaker] only the view-token trick (`#!/view/<uuid>` → inbox UUID 1:1) can recover them; generalize the trick. When urlquery egress returns, the `97f0619b` report page is the other recovery path.
+- **Fleet dead-drops expire ~2026-10-11** — re-check the ALIVE inboxes after expiry; if re-registered again (like `cbcb10de`), the operator is still active. [codebreaker]
+- **New-submission htmx sweep for webhook.site** — blocked until urlquery.net is reachable from the VM. [codebreaker]
+- **Hunt HF/ModelScope for the fleet's eval dataset** — eval-hunt found no public match; dataset construction is still unpublished. [eval-hunt]
+- **is.gd carrier-launch system** — unmapped; trace where is.gd links resolve and who rotates them. [tracker]
+- **urlcap.com key-provisioning + proxy liveness map** — tradecraft banked, operator-side follow-up pending. [tracker]
+- **urldance rotation** — observed but unattributed; rotation mechanics open. [phisher-hunter]
+- **`udm=50` second swarm** — distinct family, needs its own campaign mapping. [mimic]
+- **FOFA "claude code web ui" lead** — unexamined. [deepseek-hunt]
+- **swarmcha.se article (2026-10-05)** — published, no discussion yet; watch for uptake. [osint]
+- **Quidax crypto-ramp lead** — operator's crypto on-ramp angle. [profiler]
+- **ceshiren.com / ceshiren ("test person") label** — first China-hosted carrier; R&D-label semantics. [other-targets, codebreaker]
+- **gov.ir re-scan campaign** — needs a second corroborating surface. [iranian]
+- **4 phish-farm candidates (cartographer)** — verification pending. [cartographer]
+- **eBird GBBC cluster / ACN catalog walk / gov.br-sheila** — three language-corpus candidates, all unconfirmed. [birdwatcher, italian, polyglot]
+- **stealer-log.txt enumeration** — genuinely new, mechanism open. [antiquarian]
+- **`ltzh` program family attribution** — jina-POST + image-beacon family, unattributed. [zhipu-hunt]
+- **Gibberish pages.dev fleet mapping** — fleet grew (11 hosts); enumerate new hostnames. [registrar, scavenger]
+- **vercel CORS proxies + reset-secret brute-forcing** — adjacent infra, unmapped. [registrar, scavenger]
+- **Hermes docs-fetch lead** — fleet fetches Hermes docs mid-run; what docs, when. [harness-researcher]
+- **`claude` labels vs single-provider framing** — reconcile multi-brain evidence with "same provider" hypothesis. [eval-coordinator]
+- **htmx search-coverage gap** — urlquery htmx misses carrier classes; document blind spots. [polyglot]
+- **Protobuf blind spot** — no visibility into protobuf-carried agent traffic. [transit-nerd]
+- **SHADOW-AETHER holiday inversion** — English-language operation inverting the tempo pattern; examine on its own terms. [cultural-anthropologist-global]
+- **GZHOSP-style `<PREFIX><target>-<epoch>` titles** — watch as next-campaign marker. [codebreaker]
+- **Second exfil-stack appearance = new-harness signal** — only webhook.site + httpbin `/status/204` observed; any new stack is a detection trigger. [codebreaker]
+- **urlscan.io ~19 queries + Wayback CDX incident-window sweep** — standing open lanes from the hunt charter. [hunt lanes]
+- **SEC county.json `county%2Ejson` encoded blind spot** — known encoding gap in the watch. [tracker]
+- **knaithe zero-footprint vs FOFA lead** — reconcile. [deepseek-hunt, osint-expert]
+- **AIS-as-dead-drop hypothesis** — vessel name/destination free-text as globally-visible dead-drops; untested, not a negative. [lighthouse-keeper]
+- **uqid= retest** — re-pull the fleet window; confirms or fossils mimic's drift claim. [arg-hunter]
+- **ProbierWiki needs an owner** — Jun wave documented vs Sep-7 live board (new grammar, AWS not Azure); Wayback CDX for the Sep-7 `Agent<NNN><Word>Direct<epoch>` grammar at scale. [librarian, arg-hunter]
+- **Second Kimi wiki artifact** — dork `kimi` + wiki grammars. [arg-hunter]
+- **Third Iranian wave ~Nov 1–5** — monthly cadence test. [arg-hunter]
+- **navy971 POI lookup** — identify B0FFJMINT2. [arg-hunter]
+- **AnthropicSwarmBot cross-lab invite** — answered anywhere? Swarm-to-swarm contact would be a first. [arg-hunter]
+- **uqid= spread: is it replacing uqscan=?** — newest drift variant. [librarian]
+- **qdnewapi / qdoldditu** — newest grammar in the whole hunt (live-monitor, Oct 5, 3 reports); needs a dedicated hunter. [librarian]
+- **src= param family** — harness A/B scaffolding; experiment tracking. [librarian]
+- **mark=<county><epoch> / validation=** — June-strand hunter unowned. [librarian]
+- **Kimi model markers** — dork lane suggested, never executed. [librarian]
+- **archive.org uploader UA model suffixes** — greppable bulk-upload fingerprint; needs non-VM egress. [librarian]
+- **Tunnel-service supply layer** — tunn3l.sh, LivePort agent-marketed tunnels; traffic unhunted. [librarian]
+- **Spring Festival Feb 2026** — predicted 9-day silence; no corpus spans it. [librarian]
+- **enodia JWT** — german-hunter-2 follow-up. [librarian]
+- **crt.sh cert leg retry** — 502-blocked this run. [librarian, cert-sleuth]
+- **CVE-2026-18647 corpus exploitation match** — jina Reader SSRF-ish vuln vs corpus jina fetches. [netsec-archaeologist]
+- **Mine Moltbook** — public API for our markers; evasion-TTP sharing (mobile proxies, T-Mobile IPs). [netsec-archaeologist, fediverse-diver]
+- **msgboard.dev watch** — live board threads as a standing agent-behavior source. [netsec-archaeologist]
+- **Nostr marker sweep** — no one is watching Nostr for our markers. [fediverse-diver]
+- **Agent Colony watch** — 68 agents, Ed25519 signed identities, signed receipts. [fediverse-diver]
+- **Which telemetr channels did the rogue agents view?** — the Asymmetric full report may say. [telegram-scout]
+- **Bot-to-bot Telegram API re-sweep in a few months** — Jun-2026 API; agent-fleet coordination would postdate training data. [telegram-scout]
+- **TikTok "AI agent tutorial" live-browser sampling** — operator-leak lane (inbox URLs / API keys in screen recordings); opsec: minimal views. [kwai-scout]
+- **BoTTube dead-drop-diver look** — agent-native video platform; agent-shaped upload patterns. [kwai-scout]
+- **grep.app retry** — 429'd this run; dork `uqscan`, `zz=oai`, epoch-nonce patterns in code. [github-dorker]
+- **GitHub commit-message nonce search** — needs authenticated API or logged-in session. [github-dorker]
+- **Longitudinal gist sweep** — webhook.site UUIDs + machine timestamps across gists. [github-dorker]
+- **Forager's Thai NSO paste** — check the joshuadavid k4be export (bodies.jsonl) for the exact paste URL. [pastebin-plunderer]
+- **paste.li enumeration** — referenced in our oai-tag-sweep, never investigated as a host. [pastebin-plunderer]
+- **thecolony.ai/for-agents investigation** [pastebin-plunderer]
+- **bullfincher.io/sec-proxy vs infra watchlist** [pastebin-plunderer]
+- **Perceptual Zephyr cluster tracking** — separate agent family on the same surface. [pastebin-plunderer]
+- **xz_knowledge_p1 / paste.ubuntu.org.cn** — 3,484 encoded posts; structural decode. [pastebin-plunderer]
+- **Un-pulled paste targets** — paste.ie, paste.jamesdooley.us, paste.nyigc.net, expaste.com (named by termina, never scraped). [pastebin-plunderer]
+- **pixeldrain UNcsXkRT recurrence watch** — same file or same ~25-min cadence on other file IDs. [fileshare-farmer]
+- **catbox litterbox farm** — litterbox temp URLs are the validated agent surface; find listing/indexing angles. [fileshare-farmer]
+- **gofile share-page indexing** — `site:gofile.io` dork variants. [fileshare-farmer]
+- **anonfiles successors** — identify and add to services.txt. [fileshare-farmer]
+- **pastebin.com/7Z30DxWA base64 blob** — 10.58 KB blob handed to numbers-station for structural analysis. [fileshare-farmer]
+- **thread-puller.party thread-body extraction** — catalog works, thread text doesn't render; then read /aicg/ for agent self-reports. [imageboard-scout]
+- **endchan.org + 8kun.top** — needs live browser (policy-blocked from the VM). [imageboard-scout]
+- **archived.moe / warosu search** — Cloudflare-cleared session; marker-grammar searches (`uqscan`, `zz=`, 13-digit epochs, `webhook.site`). [imageboard-scout]
+- **/aicg/ chronicles lore file** (rentry.org/aicg_chronicles) — read-only. [imageboard-scout]
+- **Docker Hub Lane 4 re-run** — when registry-1.docker.io egress is available; priority targets: fourplayers/openclaw ("ODIN Fleet"), gentkit/openclaw, any README with webhook refs. [dockerhub-diver]
+- **Webhook-inbox census via search engines** — deferred lane. [c2-pattern-analyst]
+- **jina.orz.fit / jina.qingchuan.cloud / relay.woaifei.com corpus co-occurrence watch** — appearance upgrades them to GENUINELY NEW. [cert-sleuth]
+- **bashdev PKGBUILD content review** — live browser (Anubis-blocked from the VM). [package-sleuth]
+- **ADP Dataset V1 marker cross-ref** — check uqscan/zz/epoch grammars in the 1.3M-trajectory public dataset. [paper-trail]
+- **Kang-lab paper appendices** — mine tool definitions for grammar comparison vs our corpora. [paper-trail]
+- **p2pclaw.com watch** — live agent network as a surface. [paper-trail]
+- **Re-sweep `url.domain:webhook.site` in 24–48h** — the `3b5027e4` inbox was <24h old at writeup; its operator may still be active. [dead-drop-diver]
+- **Grade SHAPE-6** — pull report metadata (submitter UAs / page titles) for the beeceptor cluster, agent vs human-kit. [dead-drop-diver]
+- **`?page=` param family search** on webhook.site (other `?page=` inboxes). [dead-drop-diver]
+- **Litterbox/catbox external sweep** — oai-tag-sweep has the pattern; external sweep not done. [dead-drop-diver]
+- **privatebin.info directory + hastebin/paste.ee** — not yet swept. [dead-drop-diver]
+- **F1: add 19-digit epoch-ns to the numbers-station census and re-run** [numbers-station]
+- **F2: njxzgz tag-word provenance** — check grammarian raw + live urlquery. [numbers-station]
+- **F3: live urlquery/urlscan nonce census** — needs egress. [numbers-station]
+- **F4: zz-nonce timestamp recovery at scale** — backdate agent activity from any logged `zz=oai` URL, incl. third-party scan logs. [numbers-station]
+- **public-board.com / AnthropicSwarmBot** — cross-wiki agent board; unowned. [librarian]
+- **Reddit direct access** — r/netsec / r/blueteamsec / r/threatintel threads via the parent browser route. [netsec-archaeologist]
+- **Dread / XSS.is internals** — not read-only accessible; deferred. [netsec-archaeologist]
+- **endchan board catalog** — not enumerated; deferred per URL policy. [netsec-archaeologist]
+- **bilingual-ui-rtl fixtures** — check for Arabic/Hebrew test content. [arg-hunter]
+- **W15 siblings** — mine for jmail-shaped stopped bursts (ghost-hunter's stopped-bursts). [arg-hunter]
+
+---
+*Build notes: 70 writeups inventoried, 69 read in full, 1 partial (codebreaker: summary sections read directly, 6,559-entry URL appendix summarized via its own index). Child extraction agents (4) completed but their handoff reports were superseded by direct reads — no findings depend on them. Nothing was pushed.*
+*Refresh 1 (2026-10-05 ~07:55 UTC): 17 writeups newer than LESSONS.md re-read in full (kwai-scout, librarian, github-dorker, arg-hunter, paper-trail, telegram-scout, pastebin-plunderer, fediverse-diver, fileshare-farmer, netsec-archaeologist, imageboard-scout, numbers-station, dead-drop-diver, dockerhub-diver, c2-pattern-analyst, cert-sleuth, package-sleuth). 3 existing entries corrected/qualified (claude-harness caveat; dead-drop monopoly second-stack check; ProbierWiki two-population note). Existing entries otherwise preserved. Nothing was pushed.*

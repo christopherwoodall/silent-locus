@@ -90,15 +90,78 @@ Surfaces from the user's sources (zeltser.com, postmodernsecurity.com), assessed
 - Distinct-submitter detector: 189 non-Amap reports in local collection — **zero non-standard `settings.useragent` values**. No second submitter.
 - Verdict: UA-evasion behavior is exclusive to the `uq`-grammar operator, in English + pinyin only.
 
-## Open follow-ups
+## Run 2026-10-05 ~07:00 UTC — ACTIVE CAMPAIGN + webhook.site inbox pull (LIVE dead-drops)
+
+**Egress recovered** (direct + proxied curl 200; the 05:00 UTC 407 outage cleared).
+**OTX still hard-stopped**: `passive_dns` → 429 on all 4 overlap subdomains (2h+
+of throttling). OTX deep lane stays parked per policy.
+
+**MAJOR: the fleet is running an ACTIVE campaign right now.** urlquery htmx
+`uqscan` offsets 0–75 (~94 unique rows) show continuous activity 2026-10-04
+~19:20 UTC → 2026-10-05 04:11 UTC. Full detail: `webhook-inbox-pull.md`;
+raw: `raw/2026-10-05-inbox-pull/`.
+
+- **New task family: cultural/landmark POI collection across Chinese provinces**
+  (museums, zoos, hospitals, bazaars, monasteries, film studios). New tag
+  grammars: `<city>museum<date><letter>` (`qingdaomuseum20261005b`,
+  `henanmuseum_page_20261005a`, `gxmuseum`, `fujianmuseum`, `nanhaimuseum`,
+  `jxmuseum-mobile-detail`, `qdmuseum20261005a/b/c`), `wuxizoo`, `taiyuan`,
+  `taersi`, `zhenbeibao`, `anhui-famous-direct`, plus `research/target/direct/
+  mobileapi/mobilerich` + date API-surface labels.
+- **`claude20261005<target>` model-attribution labels** (`mobile1/2`, `ditussr`,
+  `dituold`, `bazaar`, `hospital2/3`, `gxzyy`, `claudeprime` on Amap's own
+  Next.js chunks) — the harness A/B-tests Claude-family agents against Amap
+  surfaces (SSR web, mobile web, legacy ditu, service APIs, `pre-amap-pc-ssr`
+  staging host, `user_loc` geo-spoofing).
+- **11 LIVE webhook.site inboxes pulled via the no-auth token API** (14 UUIDs
+  harvested from decoded beacon programs; 1 expired). Beacon bodies expose the
+  operator's TRUE agent stack: **`Firefox 134 / Windows` from 195.64.118.152
+  (Norway)** — full harness lifecycle `boot→bxinit→xdcinit→capture×5→error×5→done`
+  in 29s. Operator provisioning tooling: `python-requests/2.32.5` + `curl/8.14.1`
+  from Tencent Cloud IPs (`?verify=1`/`?hello=world`/`?headers=1`).
+- **Campaign objective = Amap "Baxia" (霸下) anti-bot reverse-engineering.**
+  Beacon programs call `baxiaCommon.init({uabOptions:{location:'cn'/'us'},
+  appendTo:'header'/'querystring', needUmidToken:true, paramsType:['uab','umid',
+  'et']})` and harvest freshly-minted `bx-ua` tokens; "Baxia signed navigation"
+  program exfils live signed URLs (confirmed working, `ccad3060` inbox).
+  Amap fights back: `FAIL_SYS_USER_VALIDATE` + `x5secdata` punish URLs in `load`
+  beacons.
+- **`r.jina.ai` CONFIRMED as a working Amap anti-bot bypass**: `jina-cache`
+  test fetched `amap-pc-ssr.amap.com/ssr/place/B001C8MXRO` (Chengdu Zoo) → HTTP
+  200 markdown exfiltrated in chunks (`cbcb10de` inbox). Connects to the
+  skill-tracer lane's r.jina.ai keyless-fetch finding.
+- **New utility services**: livecodes.io (beacon/redirect program host),
+  href.li (referrer-hiding wrapper for httpbun programs).
+- `palacelegacy1791142556` (livecodes.io redirect chain) — same
+  `<word>legacy<epoch>` label family as `pandalegacy`; treat new `<word>legacy`
+  labels as operator tests.
+- Chrome/116/X11-Linux beacons from PL/CZ/US/IN/BD/HK/NL/DE (07:07–07:22, 4 min
+  after the operator's run) assessed as third-party scanners tripping the public
+  beacon page (`xdcerr: webTracker is not defined`); attribution uncertain,
+  logged as observed.
+
+### Endpoints confirmed/working this run (for reuse)
+
+- `GET https://webhook.site/token/<uuid>/requests` — no auth; returns inbox
+  JSON incl. per-request IP/country/UA/headers/query/body. Inboxes are public
+  until expiry; fleet rotates UUIDs per program — re-sweep htmx `webhook.site`
+  each run for new ones.
+
+## Open follow-ups (updated 2026-10-05 ~07:00 UTC)
+
 - AI Village UA mining — blocked on HF token re-supply (user action)
 - Shodan/FOFA/VirusTotal/AbuseIPDB — blocked on API keys (user supplies)
 - ANY.RUN / Hybrid Analysis / CheckPhish / Zscaler Zulu — browser lane (JS-walled)
-- webhook.site — re-check for NEW fleet inboxes (ltzh family, future task families); method documented
-- `v.gd/MassCountyData007` lead — sweep label variants
-- urlcap.com `scankey` — operator provisions API keys there; urlcap submission history may hold more
-- pingllo.com — new CORS-bypass proxy in operator's kit; farm its usage
-- OTX deep lane: full lhr.life pull + passive_dns on the 4 overlap subdomains; mine all 4,309 is.gd URLs for other agent-shaped short links
+- webhook.site — DONE this run (11 live inboxes pulled, protocol decoded);
+  **standing: re-sweep for NEW fleet inboxes every run** (UUIDs rotate per program)
+- `v.gd/MassCountyData007` lead — sweep label variants (still open)
+- OTX deep lane — **hard-stopped on 429s (2h+)**; resume `passive_dns` (4 overlaps)
+  + full `is.gd` pull next run after longer backoff
+- New leads this run: monitor `r.jina.ai/https://amap-*.amap.com` usage (working
+  bypass); watch for new `<word>legacy<epoch>` redirect-chain labels; the
+  `claude*` tag family may grow per-model variants (other model names?)
+- `urlcap.com scankey` / `pingllo.com` — still open (OTX showed zero; Pulsedive
+  404)
 
 ## Addendum: urlcap.com bot directory (UA reference surface)
 - `https://urlcap.com/bots` — 173-entry public known-bot directory (no auth needed for listing)

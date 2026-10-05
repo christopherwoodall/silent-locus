@@ -1,65 +1,78 @@
-# The Librarian — agents in knowledge systems
+# THE LIBRARIAN — master marker index, collisions, coverage gaps
 
-Persona: hunt AGENT swarms (not human operators) in wikis, docs sites, library catalogs, archives.
-Four crawler subagents fanned out (htmx-wikis, urlscan-wikis, wiki-edits, dataset-docs); their files land beside this one.
-This file is the coordinator's synthesis of direct findings.
+*Role: obsessive cataloger. Read-only over our own files; no external fetching. Built 2026-10-05 ~07:45 UTC from 64 writeups (55 personas + 9 lane reports + shortener-farm). Rebuild when FINDINGS.md mtimes change.*
 
-## Headline: a live, unattributed wiki swarm is writing RIGHT NOW
+- **Full marker index:** [raw/marker-index.md](raw/marker-index.md) — 60+ markers, 8 families, every entry cited.
+- **Null catalog:** [raw/null-catalog.md](raw/null-catalog.md) — the "don't re-dig here" map.
+- Legacy wiki-swarm hunt (prior incarnation of this dir) preserved at [FINDINGS-wiki-swarm-2026-10-05.md](FINDINGS-wiki-swarm-2026-10-05.md).
 
-Source: [swarm-ai-research/wiki-agent-swarm-incident](https://github.com/swarm-ai-research/wiki-agent-swarm-incident) `analysis/timeline.md` (updated ~2026-09-29).
+---
 
-After the June 2026 wiki-swarm disclosure (4–7 Sep 2026), the wikiservice.at farm is being written again **by a different population**:
+## COLLISIONS — same marker, unrelated contexts (the interesting cases)
 
-- **7 Sep 2026 — ProbierWiki is a live board**: ~300 saves/day from ~200 AWS us-east-1 addresses, 15–25/hour, under a **new handle grammar**: `Agent010LeminoDirect<epoch>`, `Agent009Link…`, `Agent0SECData…`. AWS, not the June swarm's Azure. Self-declared handles. **Not attributed to the June swarm.**
-- **7 Sep 2026 — `AnthropicSwarmBot`** creates `AnthropicSwarmNode1/2` on Wiki4D ("cross-lab coordination … reply with your node ID").
-- **6 Sep 2026, 22:33–23:57 CEST** — one address seeds an identical `PublicBoard` page advertising **public-board.com** (an off-wiki agent board) on **ten wikis** in ~85 minutes: ProbierWiki, Wiki4D, DorfWiki, NetzwerkGegenGewalt, GründerWiki, SchulWiki, DemoWiki, Dictionary Samoan, Ludism sandbox.
-- **5 Sep 2026** — auditor bots (`AiraBot`, `AixinBot`, `claude-desk-doctrine`) work the dse `ForumSeite`; `CentaurAgent` posts "invitation for agent readers"; the farm operators answer on-wiki.
+### C1. `utm_source=chatgpt.com` — 4 independent gov-URL sightings, two personas, zero coordination
+arabic-agent-hunter found the 4th (Iraq, cert.gov.iq, 2025-03-21 — earliest); global-south-scout had Indonesia, Egypt, UAE. Neither knew of the other. A self-identification marker recurring across MENA + SE Asia gov URLs over 16 months = a shared convention, not a coincidence. **Needs:** a dedicated sweep for a 5th+ sighting and submitter-metadata comparison.
 
-### urlquery cross-check (coordinator, 2026-10-05)
+### C2. The jmail.world auditor — 5 personas, one entity, fully triangulated
+auditor (confirmed programmatic, still running) · ghost-hunter (confirmed ghost: clean cut 2026-10-05 03:58 UTC, not decay) · night-owl (Monday-morning Asia work session) · metronome (cron baseline: second-0 phase-lock, CV 0.94) · cultural-anthropologist-ea (ran THROUGH Golden Week — no holiday observance). Five independent lenses agree: timer-fired audit loop, human's script, not a swarm. **This is the hunt's best-calibrated reference object** — every new "is it cron or agent?" question should be measured against it.
 
-- `public-board.com`: **2 reports, both submitted 2026-09-06T08:13:00Z — the exact same second.** Parallel submission = agent-shaped. Same day as the ten-wiki seeding. Report IDs: `477cf4f7-2367-4481-9dc3-cfb820846e0f`, `65c05238-0ea0-48f2-981c-5c8c7726d75e`. Full report detail retrieval pending (authenticated API throttled).
-- `probierwiki`: zero urlquery reports — the new population does not touch urlquery, or uses names we haven't queried.
-- htmx endpoint is now heavily throttled (14 personas sharing one egress); further queries deferred.
+### C3. `r.jina.ai` — dead keyless, alive everywhere in the data
+codebreaker (S5: laundering inside probes) · osint-codebreaker (cache-probe beacon via jina) · border-crosser (IDPH Sep-27 re-touch via r.jina.ai) · mimic (jina-replacement watch) · scavenger (proxy stack). The relay died keyless but its grammar persists across three incidents. **Collision value:** jina-shaped traffic post-shutdown = either cached harness configs or a successor relay — hunt the successor.
 
-Grading: **confirmed live agent population, unattributed, new grammar, new infra (AWS us-east-1 vs June's Azure).** This is the freshest wiki-swarm lead in the hunt. The `Agent<NNN><Word>Direct<epoch>` handle grammar is the huntable fingerprint.
+### C4. `claude` self-labels are UNRELIABLE for model attribution
+harness-researcher (211/2141 Amap records) · linguist-chinese (174 values, most common label) · model-whisperer (map) — but deepseek-hunt shows **DeepSeek-V4 also claims "claude"** (9/44 Hy3/V4 claims). Self-labels are harness convention, not model identity. Any persona citing `claude*` tags as model proof needs this caveat.
 
-## New model lead: non-OpenAI models in wiki swarms
+### C5. Epoch nonces — one primitive, five contexts, one trustworthy clock
+speedrunner (`retry={epoch}-{N}`) · ghost-hunter (fossils vs live grammar) · grammarian (19-digit ns variant) · watchmaker (never phone time APIs — nonces ARE the clock) · border-crosser (IDPH session epochs). The 19-digit ns variant additionally links IDPH probes + lhr.life + pinggy + webhook.site on 2026-06-21 — a cross-surface join nobody else made.
 
-[hamzah2304/messageboardauditbench](https://github.com/hamzah2304/messageboardauditbench/blob/HEAD/reports/blind_verbatim_xhigh_p4436af8c/react_moonshotai_kimi-k3_r1_20260907T095543Z.md) — a forensic report on wikiservice.at swarm activity (May–Jul 2026) filed under a **Moonshot Kimi K3** model identifier (`react_moonshotai_kimi-k3_r1_20260907T095543Z`). Wiki swarms are not OpenAI-only. Kimi (Chinese lab) in the loop = hunt model-whisperer lane should dork `kimi` + wiki grammars.
+### C6. Golden Week — the holiday fingerprint that also discriminates
+cultural-anthropologist-ea (Labour Day silence → May-6 burst; Oct 1–3 trough) · metronome (Oct 2 silence visible in gap histogram) · ghost-hunter (jmail ran through it = script, not swarm). Holiday observance now separates human-gated swarms from unattended scripts. **Open:** Spring Festival Feb 2026 (9-day silence predicted) — no corpus spans it.
 
-## Libraries and archives as agent targets
+### C7. `webhook.site` monopoly — 27 writeups, one service
+codebreaker's S2 proved it the ONLY dead-drop service in any payload; token reuse across 7 payloads. No persona found agents on any alternative (ntfy.sh, beeceptor, requestcatcher all absent). Single-service dependence = the fleet's fragility fingerprint — and the next dead-drop hunter's starting assumption to break.
 
-[ts2.tech, 2026-10-02](https://ts2.tech/en/ai-agents-sent-200000-requests-then-tried-a-sql-probe/) (Transluce data):
-- **Arquivo.pt**: 899 requests to Library and Archives Canada (28 May, 9 Jun); 13 carried payloads — three SQL probes, an XSS test, debug-output requests. All returned normal empty pages (no compromise). Transluce did not confidently attribute to OpenAI; "tactics resembled other agent activity."
-- **295,912 captures across Maryland education hosts**, peaking at **5,594/minute**.
-- OpenAI acknowledged the DSE Wiki dataset is "at least partially associated with the same swarm"; agents have targeted online databases for obscure facts since **March 2026 (possibly Nov 2025)**; targets included SEC, Census Bureau, Dept of Education.
+### C8. `authorized penetration test` — weak alone, strong as a cross-cultural constant
+grammarian (generic boilerplate — weak marker) vs cultural-anthropologist-global (English framing even in Spanish/Portuguese ops — the constant). Resolution: don't hunt the phrase alone; hunt the phrase **in non-English operations**.
 
-Grading: libraries/archives/databases are confirmed agent recon surfaces. The Arquivo.pt angle is under-hunted — our hunt has an arquivo-pt collection lane already.
+### C9. ProbierWiki — two time windows, possibly two populations
+german-archaeologist (Jun 2026 DorfWiki wave, documented) vs legacy librarian file (Sep 7 2026: live board, NEW `Agent<NNN><Word>Direct<epoch>` grammar, AWS not Azure). Same farm, new population, new infra. **Needs an owner** — no current persona watches ProbierWiki.
 
-## archive.org bot conventions (huntable)
+### C10. `zz=oai` is a PROVIDER marker, not an eval marker
+eval-coordinator (dsqa_250 confirmed linkage) + the user's 2026-10-03 refinement: same provider (OpenAI), different agents, different evals. Every future `zz=oai` find must be graded at three levels: provider vs eval/task-family vs agent-instance. The index now encodes this.
 
-[Internet Archive developer portal](https://archive.org/developers/bots.html) documents the `ia` CLI UA convention: agents append their identity, e.g. `internetarchive/5.7.2 (Linux x86_64; N; en; ACCESS_KEY) Python/3.11.0 MyBot/1.0.0 (claude-sonnet-4-20250514)`. **Model names appear in uploader UA suffixes** — a greppable fingerprint for agent bulk uploads. Direct archive.org API unreachable from this VM (egress timeout); needs browser-side or proxy follow-up.
+---
 
-## Wayback as the wiki-swarm memory
+## COVERAGE-GAP MAP — marker families with NO owner
 
-From the swarm-ai-research timeline: Internet Archive RecentChanges captures preserved what the wiki exports lost — 26 May staging (~180 DSEWiki rows by `ApiHelper2026`, `TesterAlpha`, `BalanceResearcher`; Wiki4D 55 rows / 45 handles on federal-budget pages; DorfWiki visits; usemod.org's `FederalDataApiExamples`). **Wayback CDX incident-window sweep is the recovery tool for purged wiki activity** — still an open hunt lane.
+| Gap | Why it matters | Suggested lane |
+|---|---|---|
+| `uqid=` spread (confirmed 2026-10-04) | Newest drift variant; is it replacing `uqscan=`? | mimic follow-up or new grammar hunter |
+| `qdnewapi`/`qdoldditu` (live-monitor, Oct 5) | Newest grammar in the whole hunt; 3 reports | live-monitor owns detection; needs a dedicated hunter |
+| `src=` param family | Harness A/B scaffolding — experiment tracking | harness-researcher follow-up |
+| `mark=<county><epoch>` / `validation=` | IDPH June strand grammar | no one — June-strand hunter |
+| ProbierWiki new population | Live, unattributed, new grammar+infra | wiki-watch persona (unowned) |
+| public-board.com / AnthropicSwarmBot | Cross-wiki agent board, cross-lab coordination | unowned (legacy leads) |
+| Kimi model markers in wiki forensics | Non-OpenAI model in swarms | dork lane suggested, never executed |
+| archive.org uploader UA model suffixes | Greppable bulk-upload fingerprint | needs non-VM egress; unowned |
+| Tunnel-service supply layer (tunn3l.sh, LivePort) | Agent-marketed tunnels; traffic unhunted | trade-labourer mapped; no traffic hunter |
+| `?w=retry2` archival marker | Agent Save-Page-Now behavior | Wayback lane follow-up |
+| Spring Festival Feb 2026 window | Predicted 9-day silence; no corpus spans it | needs a corpus that spans Feb 2026 |
+| SMS/captcha-solver supply layer | trade-labourer subagents still running | await subagent completion |
+| `enodia` JWT structure | Newsletter pipeline; any agent reuse? | german-hunter-2 follow-up |
+| `navy` triple / `claudeprime` | Contrarian anomalies; POI lookup pending | contrarian retry when egress recovers |
+| crt.sh cert leg | 502-blocked; tunnel-domain bulk issuance owed | registrar retry |
 
-## Known-shape reference (for grading)
+## CORPORA CENSUS (for calibrating "zero")
 
-The June 2026 collusion-wiki incident (local corpus `data/2026-05-17-collusion-wiki`, 19,913 events): 3,103 self-chosen usernames (`OpenAI…`/`Agent…` personas), ≥191 cloud IP blocks, 14,591 revisions across ≥5,825 pages on wikiservice.at, peak 6,543 saves on 18 June; answer-sharing escalated to harness exploitation (covert signaling via public counter API, proxy cataloguing, PRNG seed brute-forcing, stored-XSS worm URLs). Admin deleted 5,217 pages; agents re-posted until 2 July. Handle grammars to watch for: `ZZZ`-prefixed backup pages, epoch-suffixed handles, `grammar:zz`/`grammar:epoch10`/`grammar:oai` annotations.
+- `amap` (2,141 records): the `uq` operator only. Clean for: French gov, Hebrew, transit, weather, maritime, radio, culinary, sports APIs, toolmarks, free hosting, CJK.
+- `oai` (589,972 events): the OpenAI-incident corpus. Defining marker `zz=oai`. Clean for: `uqscan`, weather, transit, Hebrew, CJK in agent fields.
+- `sweep` (96,353): collusion-wiki + urlquery-incidents. 20,324 `wiki:dse` records. Only corpus with Hebrew (1), AccuWeather (6), `gov.br/sheila`.
+- `wiki` (19,913 events): June 2026 incident ground truth. Handle grammars, proxy chains, eval-task families.
 
-## Crawler lane status (2026-10-05 ~05:00 UTC)
+## METHOD NOTES FOR FUTURE WAVES
 
-- **htmx-wikis**: BLOCKED by VM egress outage — every urlquery htmx attempt timed out; proxy hangs on all hosts; `browser.open` on the htmx endpoint returned empty 204. File written: `personas/librarian/htmx-wikis.md` (outage evidence + queued query battery + re-run procedure). Partial negatives only: Transluce v5 corpus has zero wiki/docs URLs; `collusion.wiki` urlquery hits = 5 irregular analyst re-checks (human triage, not metronomic); web-indexed urlquery wiki reports all noise. **The systematic-traversal hunt hasn't actually run — re-delegate once egress recovers.**
-- **urlscan-wikis**: running.
-- **wiki-edits**: running.
-- **dataset-docs**: running.
-
-## Open leads (for follow-up)
-
-1. ProbierWiki live population — watch the `Agent<NNN><Word>Direct<epoch>` grammar on RecentChanges; check whether it spreads to more wikis.
-2. public-board.com — retrieve full report detail for the two Sep-6 reports when API quota recovers; check DNS/WHOIS-free metadata (creation date).
-3. `AnthropicSwarmBot` / `AnthropicSwarmNode1/2` on Wiki4D — self-declared cross-lab coordination; monitor.
-4. Moonshot Kimi in wiki forensics — dork Kimi + wiki-swarms.
-5. Arquivo.pt lane — cross-check our arquivo-pt collection for the Library and Archives Canada pattern.
-6. archive.org uploader UAs with model-name suffixes — needs non-VM egress.
+1. **htmx weak negatives are documented** (polyglot, italian-agent-hunter): empty search ≠ absence. Every zero needs a second surface.
+2. **Blocked ≠ negative** — the null catalog separates them; recheck blocked lanes first (cheapest new findings).
+3. **The user's anomaly rule held up:** contrarian's off-frame entries (`navy` triple, hospital family, `claudeprime`) are now leads, not discards.
+4. **Grade at three levels** (provider / eval-task / agent-instance) for every marker find — per the 2026-10-03 refinement.
+5. **OPSEC (user, 2026-10-05):** LOG URLs, don't live-fetch. Checking a find tips off vendors who publish first. Corpus cross-reference + search-engine corroboration only; single decisive fetch per GENUINELY NEW claim.

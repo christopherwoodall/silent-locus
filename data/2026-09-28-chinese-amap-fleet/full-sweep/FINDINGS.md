@@ -35,6 +35,17 @@
 - Of the 5 May-2026 Maltrail-trail `<hex>.lhr.life` names, exactly **1 (`87e0bbc636999b.lhr.life`) is a known fleet tunnel** — sighted in our corpus 2026-05-19 and in the CIRCL trail 2026-05-16/17 (contemporaneous). Fleet tunnel reference list: 78 names extracted from `writeup-lhr-life.md` (note: `events.jsonl` carries zero `lhr.life` entries — it holds venue findings only; the writeup is the authoritative tunnel list).
 - **Revised reading**: Maltrail independently sighted the known fleet's May-2026 tunnel set (plus possibly fleet tunnels our corpus missed), classified under `hacked_npmrepos`/`metasploit` trail tags. Independent corroborating sighting of the KNOWN fleet — not a new fleet. Zero overlap with the ZeroSSL names above.
 
+### Lead D: Cloudflare Radar 16-hex tunnel — UNRESOLVED, fleet-adjacent, not attributable
+`full-sweep/raw/lead-radar-tunnel.md`
+- Scan row re-verified: `https://91b9ec611bbd73.lhr.life/`, no classification, **2026-08-01 11:34 UTC** (frontend hardcodes UTC — corrects japan-archives.md's "likely JST" guess), US/AS14618, Finished. Surfaced only on ~64-day-old Google-indexed Radar listing snapshots.
+- **Fits operator's tunnel convention** (16-hex `lhr.life`, 2026 window, US cloud egress); lands 8 days after the known fleet's Jun 21–Jul 24 sighting cluster. But: disjoint from all 78 known fleet names and every corpus inventory (repo-wide greps: name exists nowhere else in silent-locus except the two lead records); scanned URL is bare `/` with no `uq`-grammar markers; marker sweep of Google-indexed Radar pages (`uqscan`/`uqcors`/`uqtag`, `pandalegacy`, `sub_poi_navi`) → 0 (index-coverage caveat).
+- **Verdict: fleet-adjacent, not attributable.** Scan detail page unreachable without a live browser or Cloudflare API token: the widget-data XHR (`GET /charts/<WidgetId>/fetch`) 403s to curl/text-fetch behind a bot-wall. Documented endpoints for reuse: `/scan?url=`, `/scan/search?q=&type=`, `/scan/<uuid>/summary`, and the account-gated `.../accounts/{id}/urlscanner/v2/search` (ElasticSearch-ish syntax). Browser-capable delegation spec written in the file (pass bot check → `/scan/search?q=91b9ec611bbd73.lhr.life&type=url` → `/scan/<uuid>/summary`, then run fleet markers against the `/charts/` XHR).
+
+### Corpus-remine corrections (2026-10-05, from htmx-extended lane)
+- The AIHW-sibling title is **`qprobe-start`**, not `qjprobe-start` (decoded from base64 payload); "qjprobe" appears nowhere in corpus or htmx — honest zero. The claimed 09-01 `probe2-start` was vimeo spam (no such report).
+- `uqtag=` is a URL query param appended AFTER the payload, not inside it. The prior sweep's 300-char anchor regex under-surfaced the AIHW series (4 of 27); the fixed regex recovers all 27.
+- htmx search is a partial recent-window view (`q=uqscan` returned only the newest ~45 hits) — corpus remains the source of truth for Amap terms.
+
 ## Completed surfaces
 
 ### Paste services — CLEAN NEGATIVE (2/19)
@@ -51,7 +62,13 @@
 - `lhr.life`: commodity agent infra (kolonie-ai issue #585, pokemon-player SKILL.md files instruct agents to open localhost.run tunnels). Adjacent, not a fingerprint — zero Amap/uqscan co-occurrence.
 - **LEAD — Dream Security / Dream Research Labs separate Chinese-attributed agent swarm**: 8 agents, July 1–4, Hermes + OpenClaw frameworks, Simplified/Traditional Chinese log split, recon on 21 Taiwan government systems, 160MB workspace recovered (via webpronews.com). Offensive tradecraft, NO Amap-marker overlap. Naming caution: "Hermes" = open-source framework, not the hackathon's hermes-agent. **Action**: cross-check against our urlquery corpus for shared infra.
 
-## All 19 surfaces complete.
+## Coverage map — 23 lanes (2026-10-05)
+
+**Covered (clean negative or resolved):** web archives (1), paste services (2), GitHub code (3), social search (4), Certificate Transparency (5), corpus re-mine (6), Shodan/FOFA (7), China surfaces (8), Japan archives (9), regional surfaces (10), Korea surfaces (11), Russia surfaces (12), trick: fetch proxies (13), trick: url scanners + intel DBs (14), trick: tunnels + file drops (15), trick: screenshots + staged programs (16), trick: pastes/gists + extra archives (17), trick: shorteners (18), trick: dead-drops + messaging (19), trick: stash.legible.sh (20), htmx extended sweep (21).
+
+**Partial (real signal but follow-up open):** corpus re-mine (keyed `settings` pull + casino cluster still keyed-only), Kaspersky OpenTIP (22 — surface mapped, gated; markers queued for keyed run), Radar 16-hex tunnel lead (fleet-adjacent, detail bot-walled), urlscan tronzap lead (payload bytes unread).
+
+**Gap (no coverage — needs delegation):** Naver search (text-fetch anti-bot wall; browser-capable agent needed); Megalodon free-word search (live-browser); ntfy.sh poll (VM runtime blackhole — needs unblocked network); ZoomEye/Quake/ThreatBook (accounts); urlscan wildcard search (account); abuse.ch Auth-Key (free registration); PhishTank archive; Baidu session; `lhr.life` subdomain htmx search (not yet run); legible.sh primitives `slate`/`relay`/`gate`/`bigred` (zero coverage — next highest-EV lane); stash.legible.sh topic-name watch (actionable only when a lane recovers a topic name).
 
 ### Trick: url scanners + intel DBs — CIRCL sights fleet tunnel shape (14/19)
 `full-sweep/raw/trick-url-scanners.md`
@@ -60,22 +77,26 @@
 
 ---
 
-## Final tally (updated 2026-10-05 after lead-deepening)
+## Final tally (updated 2026-10-05 after lead-deepening + respawn lanes)
 
-**New species found: 0.** No undiscovered agent/swarm fleet surfaced on any of the 19 surfaces, and all 3 lead-deepening follow-ups resolved WITHOUT a new species:
-1. **ZeroSSL issuance (Lead A)** → INDEPENDENT actor's ACME-tooling experimentation, not fleet-adjacent (zero name/urlquery/corpus overlap; fleet rides the edge wildcard).
-2. **urlscan tronzap-as-fetch-engine (Lead B)** → different eval/task family on the shared provider toolkit ("same provider, different agents, different evals"): exploit-module testing (PHPUnit RCE incl. IDN-homoglyph WAF bypass, Laravel Ignition, source-disclosure), 0/10 host overlap with the 78 fleet names, Sep-29 follow-on self-tagged `87270ca9ac10`. Same-operator vs different-actor unresolvable; payload bytes unread (urlscan 403) — highest-EV follow-up needs a browser-capable agent or urlscan account.
-3. **Dream Security Taiwan swarm (Lead C)** → cleanly separate operation (0/15 corpus indicators; no shared TTP/infra; no provider markers). Hermes-recurrence across ≥5 campaigns argues against framework-as-linkage.
-4. **CIRCL/Maltrail lead REFINED** → 1 of 5 trail names is a known fleet tunnel (corpus 05-19 / trail 05-16–17, contemporaneous): independent corroborating sighting of the KNOWN fleet's May-2026 tunnels, misclassified under `hacked_npmrepos`/`metasploit` trail tags — not a new fleet.
+**New species found: 0.** No undiscovered agent/swarm fleet surfaced on any of the 23 lanes, and all 4 lead-deepening follow-ups resolved WITHOUT a new species:
+1. **ZeroSSL issuance (Lead A)** → INDEPENDENT actor's ACME-tooling experimentation, not fleet-adjacent.
+2. **urlscan tronzap-as-fetch-engine (Lead B)** → different eval/task family on the shared provider toolkit.
+3. **Dream Security Taiwan swarm (Lead C)** → cleanly separate operation.
+4. **CIRCL/Maltrail lead REFINED** → independent corroborating sighting of the KNOWN fleet's May-2026 tunnels (1 of 5 names matches).
+5. **Cloudflare Radar 16-hex tunnel (Lead D)** → UNRESOLVED: fleet-adjacent (shape/window/egress fit) but not attributable — disjoint from all 78 fleet names, bare-root scan, detail bot-walled.
 
-**What the sweep actually yielded:**
+**What the sweep actually yielded (cumulative):**
 1. **Operator timeline extension** (corpus re-mine): June 2026 AIHW strand (`uqtag=AGEDATA23`, `vizprod.aihw.gov.au`) — R&D predates Amap by 3.5 months. Single pipeline confirmed via exit_node (2 values, 2,159 reports).
-2. **New infrastructure for known swarm** (shorteners): tinyurl.com as live swarm storage (Korenblit link-list burst).
-3. **Leads (resolved 2026-10-05)**: (a) CIRCL Maltrail May-2026 tunnel sightings → independent corroborating sighting of the KNOWN fleet (1 of 5 names matches; misclassified under `hacked_npmrepos`/`metasploit` tags); (b) ZeroSSL-issued tunnel certs → independent ACME-tooling experimentation, not fleet-adjacent; (c) urlscan-as-fetch-engine tronzap PHPUnit-RCE probing (38 scans, 09-26; IDN-homoglyph WAF bypass; Sep-29 follow-on self-tagged `87270ca9ac10`) → different eval/task family on shared provider toolkit, payload bytes unread (urlscan 403); (d) Dream Security Taiwan-gov 8-agent swarm (Jul 1–4) → cleanly separate operation, 0/15 corpus indicators; (e) Cloudflare Radar 16-hex tunnel (08-01) — still open; (f) ntfy.sh/friendlyAgents public agent-status topic — still blocked from this VM; (g) PHPUnit-RCE tronzap follow-up: pull result pages for POST payload grams via browser-capable agent or urlscan account; (h) same-minute casino cluster at ltzh burst — open, needs keyed API.
-4. **Structural findings**: CT blind to fleet tunnels (wildcard edge cert); lhr.life is default agent dev-tunneling (grammar, not domain, discriminates); 106.11.226.79/47.246.165.44 are Amap's own ingress (targets, not C2); Glitch + transfer.sh dead; YOURLS instances gating stats post-CVE-2026-63135.
-5. **Reusable endpoints** (XHR doctrine): urlquery htmx, Sourcegraph SSE search, s.id keyless shorten, da.gd/clck.ru/t.ly/bit.ly reveals, Gist search, archive.today URL-search, ghostarchive WARC endpoint, Megalodon `?url=`, crt.sh params, Yandex suggest API, GreyNoise community, ip-api, YARAify anonymous lookup_hash.
+2. **AIHW strand extended 4 → ~27 reports (respawn lane)**: numbered `uqtag=` R&D sequence AGEMARK3→AGEVS25 against AIHW Tableau modules (2026-06-20), incl. `onmousemove` handler and window.open exfil beacon payloads.
+3. **Two new June-2026 `.lhr.life` tunnel lanes**: `7e7ff6dbbe9824.lhr.life` (`uqcors.html?v=1` CORS probes, Jun 18); `91ef9fc4c82a1b.lhr.life` (`probe2.html` nonce probes, Jun 21).
+4. **Operator still active**: 12 NEW Oct-05 reports (01:43–04:11 UTC) on Qingdao-museum POIs with fresh tag families (`qingdaomuseum20261005b`, `henanmuseum_20261005a`, …).
+5. **New infrastructure for known swarm** (shorteners): tinyurl.com as live swarm storage (Korenblit link-list burst).
+6. **New lead**: 9 zero-coverage legible.sh no-auth agent-infra primitives (`slate`, `relay`, `gate`, `bigred` swarm-coordination-shaped) — sweep pending.
+7. **Structural findings**: CT blind to fleet tunnels (wildcard edge cert); lhr.life is default agent dev-tunneling (grammar, not domain, discriminates); 106.11.226.79/47.246.165.44 are Amap's own ingress (targets, not C2); Glitch + transfer.sh dead; YOURLS instances gating stats post-CVE-2026-63135; htmx search is a partial recent-window view (corpus = source of truth for Amap terms).
+8. **Reusable endpoints** (XHR doctrine): urlquery htmx (curl, not python, on this VM), Sourcegraph SSE search, s.id keyless shorten, da.gd/clck.ru/t.ly/bit.ly reveals, Gist search, archive.today URL-search, ghostarchive WARC endpoint, Megalodon `?url=`, crt.sh params, Yandex suggest API, GreyNoise community, ip-api, YARAify anonymous lookup_hash, stash.legible.sh topic API, Radar `/charts/<WidgetId>/fetch` + `/scan/<uuid>/summary`, OpenTIP `/api/v1` + `x-api-key`.
 
-**Open gaps needing live-browser or creds**: Naver search, Megalodon free-word search, ZoomEye/Quake/ThreatBook accounts, abuse.ch Auth-Key, Kaspersky OpenTIP free token, PhishTank archive, urlscan wildcard search (account), Baidu session, ntfy.sh poll (runtime blackhole).
+**Open gaps needing live-browser, creds, or keyed API**: Naver search (anti-bot; prior text-fetch 500s — biggest Korea gap); Megalodon free-word search; ZoomEye/Quake/ThreatBook accounts; OpenTIP token (registration decision pending; markers queued); abuse.ch Auth-Key; Kaspersky anonymous-lookup XHR (live-browser pass); PhishTank archive; urlscan wildcard search (account); Baidu session; ntfy.sh poll (runtime blackhole); Radar scan-detail UUID (browser-capable agent); tronzap PHPUnit-RCE payload bytes (urlscan 403); keyed urlquery `settings` pull for the 47 new htmx reports + 6-casino-domain ltzh burst attribution; legible.sh primitives sweep (`slate`/`relay`/`gate`/`bigred` first); `lhr.life` subdomain search not yet run.
 
 ### Web archives — CLEAN NEGATIVE (1/19)
 `full-sweep/raw/archives.md`
@@ -172,5 +193,32 @@
 
 ### Korea surfaces — CLEAN NEGATIVE (11/19)
 
+## New lanes (2026-10-05, coordinator respawn — post-sweep fan-out, all 4 complete)
+
+### Trick: dead-drop mailbox stash.legible.sh — CLEAN NEGATIVE + 1 lead (20/23)
+`full-sweep/raw/trick-stash-legible.md`
+- Endpoint inventory audited against the open-source `src/server.mjs` (matches docs; **zero undocumented endpoints**): `PUT`/`POST /{topic}/{filename}` (X-TTL default 24h max 7d, `X-Burn: N`) → 201 + sha256; `GET /{topic}/{filename}` (`?wait=60` long-poll, max 300s); `HEAD` metadata (never burns); `GET /{topic}` (JSON/SSE listing — nonexistent topics return 200-empty, not 404); `DELETE`; `GET /`, `/README.md`, `/llms.txt` (agent docs). Homepage fully static, no scripts/forms/XHR. No enumeration, directory, search, or feed exists by design — topics are unguessable passwords.
+- Marker probes (`uqscan`, `uqcors`, `pandalegacy`, `sub_poi_navi`, `uqtag`, `probe2`, `qjprobe`, `AGEDATA23`, `httpbun`) → all 200, all empty, burn counters untouched. Sourcegraph code search: 0 matches for `stash.legible.sh`. URLQuery corpora greps: 0.
+- **LEAD — 9 sibling legible.sh primitives, zero coverage**: `gate`, `bigred`, `trail`, `slate`, `relay`, `mutex`, `quorum`, `meter`, `tally` (all `<name>.legible.sh`, soft-launched, no-auth). `slate` (multi-agent blackboard), `relay` (work queue), `gate`, `bigred` are swarm-coordination-shaped fresh surfaces — sweep each with the same marker set.
+- Standing watch note: SSE is per-known-topic only — query stash.legible.sh immediately whenever any lane recovers a topic name from code/prompts/telemetry. Caveats: TTL ≤7d and X-Burn mean empty-now ≠ never-used; self-hosted instances invisible.
+
+### urlquery htmx extended sweep — 47 NEW operator-grade reports, operator still active (21/23)
+`full-sweep/raw/htmx-extended.md`
+- 10 keyless htmx queries via curl (≥13s pacing, no 429s): 55 new unique IDs = **47 operator-grade** + 8 noise. 51 hits already in-corpus.
+- **AIHW strand extended 4 → ~27 reports** (2026-06-20, 08:51→12:32 UTC): a numbered R&D sequence of `uqtag=` values (3→25: AGEMARK3/3S, AGEUND4, AGEMARK5, AGEDIALOG7, AGECROSS8, MOUSETEST9, AGEEXCEL10h/10p, AGEEX11, AGETIP12p/12h/12u/12B, AGEHOVER13, AGEFILTER14, AGEOPEN15, FORMTEST123, AGEOBJ18, AGEMSG19/20, AGECROSS22, AGEDATA23/24/24B, AGEVS25) against `vizprod.aihw.gov.au` Tableau modules via pie.dev/httpbin/httpbingo/httpbun echo services. Standout payloads: MOUSETEST9 (`onmousemove` handler), AGEOPEN15 (window.open exfil beacon to `example.com/OPEN15/`). Sequence numbers 1, 2, 6 unaccounted.
+- **Two new June-2026 `.lhr.life` tunnel lanes**: 8× `uqcors.html?v=1` CORS probes on `7e7ff6dbbe9824.lhr.life` (Jun 18, 8 submissions in ~60s); 4× `probe2.html?n=1782077001–704` nonce probes on `91ef9fc4c82a1b.lhr.life` (Jun 21).
+- **12 NEW Oct-05 operator reports** (01:43–04:11 UTC, past corpus cutoff) with fresh tag families (`qingdaomuseum20261005b`, `henanmuseum_20261005a`, `wuxizoo20261005a`, `qdnewapi20261005a/b`, `qdoldditu20261005a`, `nested20261005b`) — **operator still active on Qingdao-museum POIs**.
+- Honest zeros: `qjprobe`, `agedata`, `zz=oai` = 0 htmx hits; `pandalegacy` has in-corpus matches but the htmx tokenizer doesn't surface them.
+- Open: keyed `settings` pull for the 47 new reports (would confirm June-2026 strands as same operator); 6-casino-domain ltzh burst attribution unchanged.
+
+### Kaspersky OpenTIP — GATED, mapped (22/23)
+`full-sweep/raw/opentip-mapping.md`
+- **No keyless/anonymous programmatic path.** REST API `https://opentip.kaspersky.com/api/v1` (`/search/hash`, `/search/ip`, `/search/domain`, `/search/url` with `?request=`, `POST /scan/file`, `POST /getresult/file`) — `x-api-key` auth, strictly 401-gated. Web UI: SPA (4.8MB bundle) with hCaptcha; frontend maps 401=CAPTCHA, 403=RATE_LIMIT. No account created (out of scope).
+- Registration requirements (live official docs): Kaspersky Account (My Kaspersky works; or email+password; or Facebook login); accept Terms + Privacy; user menu → Request token (≤1 year, immutable); token in `x-api-key`. Quota 100 req/day per 2019 article (unverified).
+- Gaps: web-UI anonymous-lookup XHR unmapped (lazy chunks not served to this egress; hCaptcha unsolvable headless) — needs live-browser pass; registration decision pending. Markers queued for a future keyed run.
+
 ## Undocumented endpoints found
-(None yet — trick agents carry the XHR-hunting doctrine.)
+(2026-10-05 lanes — trick agents carried the XHR-hunting doctrine.)
+- **stash.legible.sh**: NONE — audited against open-source `src/server.mjs`, surface matches docs exactly. `PUT`/`POST /{topic}/{filename}`, `GET /{topic}/{filename}?wait=60`, `HEAD /{topic}/{filename}`, `GET /{topic}` (JSON/SSE), `DELETE /{topic}/{filename}`, `/README.md`, `/llms.txt`.
+- **Cloudflare Radar**: `GET /charts/<WidgetId>/fetch?<params>` (widget-data XHR; bot-walled to curl/text-fetch — browser session needed); `/scan/search?q=<q>&type=<url|domain|ip>`; `/scan/<uuid>/summary`; account-gated `.../accounts/{id}/urlscanner/v2/search`.
+- **Kaspersky OpenTIP**: `https://opentip.kaspersky.com/api/v1` + `x-api-key`: `GET /search/{hash,ip,domain,url}?request=`, `POST /scan/file` (octet-stream + `?filename=`), `POST /getresult/file?request=<hash>`; UI XHR: `GET /ui/checksession`, `POST /ui/login`, app route `/token`.
