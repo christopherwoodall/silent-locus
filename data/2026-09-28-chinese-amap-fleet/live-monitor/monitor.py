@@ -12,6 +12,8 @@ KNOWN_TAGS_F = os.path.join(DIR, "known_tagstyles.json")
 
 POLLS = 17          # ~17 more polls after baseline ≈ 6h
 INTERVAL = 20 * 60  # seconds
+START_POLL = int(os.environ.get("START_POLL", "1"))
+FINAL_SUMMARY = os.environ.get("FINAL_SUMMARY", "1") == "1"
 
 def now():
     return datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
@@ -49,7 +51,7 @@ def main():
                     "translate.goog","webhook.site","httpbin.org","httpbun.com","livecodes.io"}
     log = open(LOG_F, "a")
     new_total = 0
-    for i in range(1, POLLS + 1):
+    for i in range(START_POLL, POLLS + 1):
         ts = now()
         fresh = []
         totals = {}
@@ -91,7 +93,8 @@ def main():
         json.dump(sorted(known_tags), open(KNOWN_TAGS_F, "w"))
         if i < POLLS:
             time.sleep(INTERVAL)
-    log.write(f"\n## Monitor complete ({now()}) — {new_total} new reports this run\n")
+    if FINAL_SUMMARY:
+        log.write(f"\n## Monitor complete ({now()}) — {new_total} new reports this run\n")
     log.close()
     print(f"done, {new_total} new reports")
 
