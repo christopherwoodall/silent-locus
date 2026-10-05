@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Rocket Powered Pastebin</title>
+    <meta name="author" content="Sergio Benitez" />
+    <meta name="description" content="a simple, no-frills, command-line driven
+      pastebin service powered by the Rocket web framework.">
+    <link href="https:&#x2F;&#x2F;paste.rs/new" rel="canonical">
+    <link rel="icon" type="image/png" href="/favicon-32x32.png" sizes="32x32">
+    <link rel="icon" type="image/png" href="/favicon-16x16.png" sizes="16x16">
+    <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+  </head>
+  <body><pre>
+  ABOUT
+
+      A simple pastebin powered by <a href="http://rocket.rs">Rocket</a>.
+
+      Simple API. CLI. Web form. Renders Markdown. Highlights code.
+
+      Web Form: <a href="https:&#x2F;&#x2F;paste.rs/web" alt="web form">https:&#x2F;&#x2F;paste.rs/web</a>
+
+  API USAGE
+
+      POST https:&#x2F;&#x2F;paste.rs/
+
+          Send the raw data along. Will respond with a link to the paste.
+
+          If the response code is 201 (CREATED), then the entire paste was
+          uploaded. If the response is 206 (PARTIAL), then the paste exceeded
+          the server's maximum upload size, and only part of the paste was
+          uploaded. If the response code is anything else, an error has
+          occurred. Pasting is heavily rate limited.
+
+      GET https:&#x2F;&#x2F;paste.rs/&lt;id>
+
+          Retrieve the paste with the given id as plain-text.
+
+      GET https:&#x2F;&#x2F;paste.rs/&lt;id>.&lt;ext>
+
+          Retrieve the paste with the given id.
+
+          If ext is "md", "mdown", or "markdown", the paste is rendered as
+          markdown into HTML. If ext is a known code file extension, the paste
+          is syntax highlighted and returned as HTML. If ext is a known format
+          extension, the paste is returned with the format's corresponding
+          Content-Type. Otherwise, the paste is returned as unmodified text.
+
+      DELETE https:&#x2F;&#x2F;paste.rs/&lt;id>
+
+          Delete the paste with the given id.
+
+  EXAMPLES
+
+      Paste a file named 'file.txt' using cURL:
+
+          curl --data-binary @file.txt https:&#x2F;&#x2F;paste.rs/
+
+      Paste from stdin using cURL:
+
+          echo "Hello, world." | curl --data-binary @- https:&#x2F;&#x2F;paste.rs/
+
+      Delete an existing paste with id &lt;id> using cURL:
+
+          curl -X DELETE https:&#x2F;&#x2F;paste.rs/&lt;id>
+
+      A shell function that can be added to `.bashrc` or `.bash_profle` for
+      quick pasting from the command line. The command takes a filename or reads
+      from stdin if none was supplied and outputs the URL of the paste to
+      stdout: `paste file.txt` or `echo "hi" | paste`.
+
+          function paste() {
+              local file=${1:-/dev/stdin}
+              curl --data-binary @${file} https:&#x2F;&#x2F;paste.rs
+          }
+  </pre></body>
+</html>

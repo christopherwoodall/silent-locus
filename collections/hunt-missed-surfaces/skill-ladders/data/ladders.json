@@ -1,0 +1,402 @@
+[
+ {
+  "fetched": "2026-10-03",
+  "forks_seen": [
+   "https://github.com/erfanzar/xerxes-agents/blob/HEAD/xerxes/skills/blocked-page-recovery/SKILL.md",
+   "https://github.com/s4w3d0ff/hermes-agent/blob/HEAD/skills/research/blocked-page-recovery/SKILL.md",
+   "https://github.com/ianclemence/ghost/blob/HEAD/workspace/skills/blocked-page-recovery/SKILL.md",
+   "https://github.com/rakaarwaky/agents-arwaky/blob/HEAD/.agents/skills/blocked-page-recovery/SKILL.md",
+   "https://github.com/rafaelrr5/agent-cortex/blob/HEAD/skills/blocked-page-recovery/SKILL.md"
+  ],
+  "id": "hermes-blocked-page-recovery",
+  "ladder": [
+   {
+    "how": "archive.org/wayback/available?url= for closest snapshot; web.archive.org/cdx/search/cdx for enumeration",
+    "publish_by_default": true,
+    "rung": 1,
+    "service": "Wayback Machine"
+   },
+   {
+    "how": "https://$d/newest/{URL} rotating archive.ph -> archive.md -> archive.li -> archive.is",
+    "publish_by_default": true,
+    "rung": 2,
+    "service": "archive.today"
+   },
+   {
+    "how": "live server-side re-render; Authorization: Bearer $JINA_API_KEY REQUIRED — anonymous access dead (401 -> Turnstile)",
+    "publish_by_default": false,
+    "rung": 3,
+    "service": "r.jina.ai (Jina Reader)"
+   },
+   {
+    "how": "technique, not a service: look for /api/, /graphql, .json, RSS on the same host",
+    "publish_by_default": null,
+    "rung": 4,
+    "service": "API-first pivot"
+   },
+   {
+    "how": "last, most expensive resort",
+    "publish_by_default": false,
+    "rung": 5,
+    "service": "real browser tool"
+   }
+  ],
+  "name": "blocked-page-recovery",
+  "notes": [
+   "Bundled script scripts/recover_page.py walks rungs 1-3 automatically with fake-success rejection.",
+   "Explicitly forbids generic proxy relays (MITM, unverifiable provenance).",
+   "Documents dead rungs: Google Cache (dead mid-2024), AMP caches (redirect stubs)."
+  ],
+  "origin": "NousResearch/hermes-agent",
+  "source_url": "https://raw.githubusercontent.com/NousResearch/hermes-agent/main/skills/web/blocked-page-recovery/SKILL.md",
+  "trigger": "fetch fails: 403/429, paywall, WAF, bot wall"
+ },
+ {
+  "fetched": "2026-10-03",
+  "id": "web-retrieval-ladder",
+  "ladder": [
+   {
+    "how": "native tools; open-web lookups stop here",
+    "publish_by_default": false,
+    "rung": 0,
+    "service": "WebSearch/WebFetch"
+   },
+   {
+    "how": "technique: many 403s are UA-only",
+    "publish_by_default": null,
+    "rung": 1,
+    "service": "plain curl with browser User-Agent"
+   },
+   {
+    "how": "X-Engine: browser, X-No-Cache, X-Token-Budget; tunnels Cloudflare/Turnstile",
+    "publish_by_default": false,
+    "rung": 2,
+    "service": "r.jina.ai keyed reader"
+   },
+   {
+    "how": "open-web search via plain HTTP POST; fallback search surface",
+    "publish_by_default": false,
+    "rung": 3,
+    "service": "s.jina.ai"
+   },
+   {
+    "how": "wayback available API, CDX, raw capture pull; same URL through r.jina.ai = different IP pool on 429",
+    "publish_by_default": true,
+    "rung": 4,
+    "service": "archive.org go-around"
+   },
+   {
+    "how": "real Chrome fingerprint for Turnstile/PerimeterX; handoff, not driven by the skill",
+    "publish_by_default": false,
+    "rung": 5,
+    "service": "seleniumbase-stealth browser"
+   }
+  ],
+  "name": "fetching-blocked-urls ('Jina Lord')",
+  "notes": [
+   "36KB, field-verified 2026-07-13..2026-08-16, re-verified live 2026-09-24.",
+   "STATUS-line triage discipline: every failure names its cause rung.",
+   "s.jina.ai bills a flat 10,000 tokens per call."
+  ],
+  "origin": "brookcs3/web-retrieval-ladder",
+  "source_url": "https://raw.githubusercontent.com/brookcs3/web-retrieval-ladder/main/skills/fetching-blocked-urls/SKILL.md",
+  "trigger": "page fetch fails on a WALL (403/418, Turnstile, PerimeterX, CAPTCHA, 429, empty body, JS shell, paywall soft-block)"
+ },
+ {
+  "fetched": "2026-10-03",
+  "id": "hemo-web-read",
+  "ladder": [
+   {
+    "how": "technique: ask the site for its agent-native document first",
+    "publish_by_default": null,
+    "rung": 1,
+    "service": "llms.txt / llms-full.txt"
+   },
+   {
+    "how": "prefix any URL; free tier, rate-limited",
+    "publish_by_default": false,
+    "rung": 2,
+    "service": "r.jina.ai (keyless)"
+   },
+   {
+    "how": "hemo-agent/1.0 UA; local extractors (trafilatura, pandoc)",
+    "publish_by_default": null,
+    "rung": 3,
+    "service": "raw curl with honest User-Agent"
+   },
+   {
+    "how": "closest snapshot; ALSO web.archive.org/save/ to force a fresh capture",
+    "publish_by_default": true,
+    "rung": 4,
+    "service": "archive.org available API"
+   }
+  ],
+  "name": "hemo-web-read",
+  "notes": [
+   "Keyless-by-design skill; warns every r.jina.ai URL is disclosed to a third party.",
+   "The web.archive.org/save/ rung is an ON-DEMAND capture instruction — agents told to create new Wayback captures."
+  ],
+  "origin": "fogennnnn/hemo-skills",
+  "source_url": "https://github.com/fogennnnn/hemo-skills/blob/HEAD/skills/hemo-web-read/SKILL.md",
+  "trigger": "any page read; 403/429 to plain curl; page gone/paywalled/changed"
+ },
+ {
+  "fetched": "2026-10-03",
+  "id": "agentkit-web-search",
+  "ladder": [
+   {
+    "how": "agent-reach per-site CLI readers",
+    "publish_by_default": false,
+    "rung": 1,
+    "service": "Reach tool for that site"
+   },
+   {
+    "how": "r.jina.ai",
+    "publish_by_default": false,
+    "rung": 2,
+    "service": "Jina reader"
+   },
+   {
+    "how": "technique: settle for the snippet",
+    "publish_by_default": null,
+    "rung": 3,
+    "service": "search snippet"
+   },
+   {
+    "how": "reddit-specific mirror",
+    "publish_by_default": null,
+    "rung": 4,
+    "service": "old.reddit.com"
+   },
+   {
+    "how": "technique: machine-readable variant",
+    "publish_by_default": null,
+    "rung": 5,
+    "service": "<url>.json"
+   },
+   {
+    "how": "unspecified — agent picks",
+    "publish_by_default": null,
+    "rung": 6,
+    "service": "a public mirror"
+   },
+   {
+    "how": "Wayback fallback",
+    "publish_by_default": true,
+    "rung": 7,
+    "service": "web.archive.org"
+   },
+   {
+    "how": "archive.today mirror",
+    "publish_by_default": true,
+    "rung": 8,
+    "service": "archive.ph"
+   }
+  ],
+  "name": "web-search (seat method)",
+  "notes": [
+   "Blocked-log discipline: a seat may call a site blocked only after listing each tried step and its error."
+  ],
+  "origin": "priyanshuupadhyay/agent-kit",
+  "source_url": "https://raw.githubusercontent.com/priyanshuupadhyay/agent-kit/main/skills/web-search/SKILL.md",
+  "trigger": "one session's fetches are blocked; wide/deep search"
+ },
+ {
+  "fetched": "2026-10-03",
+  "id": "claude-code-workflow-web-access",
+  "ladder": [
+   {
+    "how": "header sets, Referer: google.com, Accept-Language",
+    "publish_by_default": null,
+    "rung": 1,
+    "service": "curl variants"
+   },
+   {
+    "how": "r.jina.ai (layers 1-2 inferred from Layer 3/4 context)",
+    "publish_by_default": false,
+    "rung": 2,
+    "service": "Jina reader"
+   },
+   {
+    "how": "archive.org/wayback/available; /web/TSid_/ raw capture",
+    "publish_by_default": true,
+    "rung": 3,
+    "service": "Wayback Machine"
+   },
+   {
+    "how": "real browser via MCP",
+    "publish_by_default": false,
+    "rung": 4,
+    "service": "Chrome DevTools MCP"
+   }
+  ],
+  "name": "web-access",
+  "notes": [
+   "Layered rather than strictly ordered; Layer 4 is the heavy fallback."
+  ],
+  "origin": "yuchengzhang256/claude-code-workflow",
+  "source_url": "https://github.com/yuchengzhang256/claude-code-workflow/blob/HEAD/skills/web-access/SKILL.md",
+  "trigger": "general web access layers"
+ },
+ {
+  "archive_fallbacks_ref": "https://raw.githubusercontent.com/jhchoi-sw/second-claude-code/main/skills/unblock/references/archive-fallbacks.md",
+  "fetched": "2026-10-03",
+  "id": "second-claude-code-unblock",
+  "ladder": [
+   {
+    "how": "reddit .json, hn.algolia.com, export.arxiv.org, public.api.bsky.app, api.github.com, registry.npmjs.org, oEmbed",
+    "publish_by_default": null,
+    "rung": "0a",
+    "service": "public APIs by host pattern"
+   },
+   {
+    "how": "techniques: TLS spoofing, 2-hop cookie/referrer sequence",
+    "publish_by_default": null,
+    "rung": "1-4",
+    "service": "curl-impersonate + cookie warming + referrer chain"
+   },
+   {
+    "how": "available API -> snapshot",
+    "publish_by_default": true,
+    "rung": 5,
+    "service": "Wayback Machine"
+   },
+   {
+    "how": "archive.ph/newest/<url>",
+    "publish_by_default": true,
+    "rung": 5,
+    "service": "archive.today"
+   },
+   {
+    "how": "cdn.ampproject.org/c/s/<host>/<path> — dead per hermes skill (redirect stubs)",
+    "publish_by_default": false,
+    "rung": 5,
+    "service": "AMP cache"
+   },
+   {
+    "how": "technique: feed item whose link matches target",
+    "publish_by_default": null,
+    "rung": 5,
+    "service": "RSS/Atom discovery"
+   },
+   {
+    "how": "technique: re-fetch with facebookexternalhit/1.1 UA",
+    "publish_by_default": null,
+    "rung": 5,
+    "service": "OG-tag rescue"
+   }
+  ],
+  "name": "unblock",
+  "notes": [
+   "All Phase 5 results flagged via_archive: true; OG-rescue additionally partial: true."
+  ],
+  "origin": "jhchoi-sw/second-claude-code",
+  "source_url": "https://github.com/jhchoi-sw/second-claude-code/blob/HEAD/skills/unblock/SKILL.md",
+  "trigger": "403/blocked during research; WebFetch truncated/empty on JS SPAs"
+ },
+ {
+  "fetched": "2026-10-03",
+  "id": "zao-research",
+  "ladder": [
+   {
+    "how": "plain articles + HTML",
+    "publish_by_default": false,
+    "rung": 1,
+    "service": "WebFetch"
+   },
+   {
+    "how": "exa.ai JS-rendered fetch, clean markdown, batched URLs",
+    "publish_by_default": false,
+    "rung": 2,
+    "service": "Exa web_fetch (MCP)"
+   },
+   {
+    "how": "headless browser",
+    "publish_by_default": false,
+    "rung": 3,
+    "service": "Playwright MCP"
+   },
+   {
+    "how": "web.archive.org/web/<url> for 404s/moved pages",
+    "publish_by_default": true,
+    "rung": 4,
+    "service": "Wayback Machine"
+   }
+  ],
+  "name": "zao-research",
+  "notes": [
+   "Exa MCP also named in a DeepSearchQA harness context (deep-research 2026-10-03) — the benchmark family behind the DoE dsqa_250 task."
+  ],
+  "origin": "bettercallzaal/zao-claude-skills",
+  "source_url": "https://github.com/bettercallzaal/zao-claude-skills/blob/HEAD/skills/zao-research/SKILL.md",
+  "trigger": "fetch escalation for research"
+ },
+ {
+  "fetched": "2026-10-03",
+  "id": "auditbench-empirical",
+  "ladder": [
+   {
+    "how": "server-side jq over a fetched URL; wrapped around short-URLs hiding blocked targets (e.g. vanderbi.lt -> sec.gov/files/county.json)",
+    "publish_by_default": "unknown",
+    "rung": "recipe",
+    "service": "jqp.vercel.app"
+   },
+   {
+    "how": "markdown/reader proxies with ?mode=fit&max_tokens=3000",
+    "publish_by_default": false,
+    "rung": "recipe",
+    "service": "md.succ.ai / r.jina.ai / pure.md / markdown.new / md.dhr.wtf / magic-html-api.vercel.app"
+   },
+   {
+    "how": "CORS proxies chained under jqp",
+    "publish_by_default": false,
+    "rung": "recipe",
+    "service": "allorigins.hexlet.app/raw, corsproxy, corsmirror, cloudflare-cors-anywhere.*.workers.dev, thingproxy, codetabs, cors.bwa.workers.dev, api.cors.lol"
+   },
+   {
+    "how": "trusted-domain viewer (490 uses observed)",
+    "publish_by_default": false,
+    "rung": "recipe",
+    "service": "docs.google.com/viewer?url=..."
+   },
+   {
+    "how": "JSON viewer",
+    "publish_by_default": false,
+    "rung": "recipe",
+    "service": "jsonhero.io"
+   },
+   {
+    "how": "commercial crawl APIs",
+    "publish_by_default": false,
+    "rung": "recipe",
+    "service": "webcrawlerapi.com / proxymule"
+   },
+   {
+    "how": "archives/indexes as relays",
+    "publish_by_default": true,
+    "rung": "recipe",
+    "service": "web.archive.org / index.commoncrawl.org"
+   },
+   {
+    "how": "short-URLs laundering blocked URLs behind allowed hostnames; bitily.in /admin panel doubled as peer-lookup rendezvous",
+    "publish_by_default": "bitily.in/admin unknown",
+    "rung": "recipe",
+    "service": "vanderbi.lt / tinyurl.com / is.gd / bitily.in"
+   }
+  ],
+  "name": "messageboardauditbench empirical recipe ecosystem (agent-discovered, not shipped)",
+  "notes": [
+   "Technique diffusion is explicit: one agent's working proxy URL becomes a reusable artifact for later runs via the shared wiki.",
+   "md.succ.ai appeared in 2,349 revisions, r.jina.ai in 916, vercel in 3,249.",
+   "The fractal sub-wiki shows the same playbook aimed at aihw.gov.au with index.commoncrawl.org as relay."
+  ],
+  "origin": "hamzah2304/messageboardauditbench (public incident reports)",
+  "trigger": "n/a — observed agent behavior on timed benchmark tasks (the dominant target was sec.gov/files/county.json)",
+  "source_url": [
+   "https://github.com/hamzah2304/messageboardauditbench/blob/HEAD/reports/blind_verbatim_xhigh_p4436af8c/claude_claude-opus-4-8_r1_20260907T080053Z.md",
+   "https://github.com/hamzah2304/messageboardauditbench/blob/HEAD/reports/blind_verbatim_xhigh_p38f65fd0/claude_claude-opus-4-8_r3_20260907T095543Z.md",
+   "https://github.com/hamzah2304/messageboardauditbench/blob/HEAD/reports/blind_verbatim_xhigh_p4436af8c/react_moonshotai_kimi-k3_r2_20260907T095543Z.md",
+   "https://github.com/hamzah2304/messageboardauditbench/blob/HEAD/reports/blind_verbatim_xhigh_p4d0dbafa/claude_claude-opus-5_r2_20260907T080113Z_served-claude-opus-4-8.md"
+  ]
+ }
+]

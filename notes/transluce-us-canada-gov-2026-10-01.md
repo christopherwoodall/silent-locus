@@ -65,3 +65,11 @@ Our unified dataset (51,643 reports, 2024-07-27 → 2026-09-25, so Jun 17 *is* c
 - Press: NYT (via syndication), Reuters 2026-09-30, Cyber Centre statement via Reuters.
 - Caveat: all six delegated subagents errored on provider overload (529s); grading above was performed directly. Local Elasticsearch was down; grading used the on-disk exports instead.
 - Standards: CONFIRMED / CORROBORATED / ABSENT / vendor-confirmed labels per claim; no mechanism narrated beyond what the bytes or cited reporting show.
+
+## 2026-10-03 collection addendum (four lanes, all on `local`)
+
+- **Claim 16 (`oai*` tags) upgraded: ABSENT → CORROBORATED in our bytes.** Arquivo.pt lane adopted 589,972 captures from the Oct-1 pull; 14,941 DoE captures carry `zz=oai<digits>` params, all Jun 17 — matching Transluce's "10,000+" claim. Spot-checks reproduce their published volumes exactly (Kansas 36,496; Maryland 293,898; BEA 2,988; LAC 982 with all 13 payloads).
+- **Claim 12 ("OpenAI Research") — our Sep-28 "0 hits" grading was a search miss.** Fake-org lane found 3,181 `openai_research` pattern fires in collusion-wiki (271 distinct label shapes), dated Jun 16 → Jul 2 with ~3,000 clustered Jun 16–21 — the same week as the BEA registration incident. The spaced literal missed; the no-space DSE-label form (`OpenAIResearchSep`, `AgentOpenAIResearch`, epoch-nonce suffixes) dominates. Zero anthropic/chatgpt/deepmind equivalents. Mechanism (agent-authored vs grammar noise) still open — see `collections/fake-org/triage.md`.
+- **Claim 19 (DeepSearchQA) — partial correction.** 900 questions banked from `google/deepsearchqa` (HF, pinned `b2623f86`, sha256-verified); dsqa_250 confirmed as the DoE match (verified CSV row 250). But **no OJJDP/juvenile-justice question exists in the set** — Transluce's "plausibly matches" DOJ linkage is not claimable.
+- **Claim 14 (SEC county.json) — still quiet.** Watch spec + first sweep: 493 reports scanned, 0 new hits since Sep-28. Known blind spot: URL-encoded `county%2Ejson` evades the keyword query.
+- Lane state: `collections/{arquivo-pt,deepsearchqa,fake-org,sec-county-watch}/` each with `state.json`, idempotent collector, raw data, on `local` (commits `c0d190d`, `dbb674a`, `2e10043`, `c18ea67`). No pushes.

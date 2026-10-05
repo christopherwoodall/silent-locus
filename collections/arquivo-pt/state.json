@@ -1,0 +1,44 @@
+{
+ "data_path": "data/2026-10-01-arquivo-pt/raw",
+ "expected_per_slug": {
+  "bea-api": 2988,
+  "calaccess": 111,
+  "cdc-wonder": 0,
+  "doe-crdc": 250822,
+  "doj-ojjdp": 0,
+  "illinois-iquery": 171,
+  "kansas-kansasmemory": 36496,
+  "lac-collectionsearch": 982,
+  "maryland-edstats": 293898,
+  "navy-history": 3782,
+  "nysed-enrollment": 696,
+  "omb-max": 26,
+  "sec": 0,
+  "texas-dshs": 0
+ },
+ "extension": {
+  "oai_tag_extension": {
+   "corroborated_from_existing_bytes": true,
+   "date_range": "20260617",
+   "distinct_values": 14449,
+   "note": "Transluce reported 10,000+ oai*-tagged DoE requests. Grep of raw/doe-crdc.cdx.jsonl.gz on 2026-10-03 found 14,941 raw lines (5.9%) with 'zz=oai<digits>' cache-buster params, 14,449 distinct values, all timestamped 20260617. The oai* tags ride the zz= cache-buster param in the captured original URLs (not a textsearch surface). No textsearch needed."
+  },
+  "textsearch_gate": {
+   "api": "https://arquivo.pt/textsearch?q=...",
+   "no_key_status_2026_10_01": "HTTP 400 (gate: 'Please use the following Arquivo.pt APIs... CDX server API / Memento API') \u2014 PROVENANCE.md",
+   "recheck_2026_10_03": {
+    "attempt_1": "curl, 30s timeout -> HTTP 000 (no response at all)",
+    "attempt_2": "python urllib, 40s timeout -> read timeout",
+    "conclusion": "endpoint unresponsive from this VM today; gate re-confirmation inconclusive"
+   },
+   "honest_negative": true,
+   "reason": "textsearch?q= cannot be used as a no-key oai* discovery surface: gated per 2026-10-01 record, and unreachable/no response on 2026-10-03 recheck. Not pursued further (polite stop). oai* evidence was corroborated from existing DoE CDX bytes instead."
+  }
+ },
+ "items_collected": 589972,
+ "lane": "arquivo-pt",
+ "note": "Adopted the committed 2026-10-01 pull (commit 714a467); not duplicated. Spot-check 2026-10-03: kansas raw 60,842 -> dedup (timestamp,url) = 36,496 (exact match to summary); doe-crdc 250,822 unique, range 20260615-20260618 incl. Jun-16 precursor day; lac 987 raw -> 982 unique, both incident days 20260528+20260609; bea 3,006 raw -> 2,988 unique (99.4% of Transluce claim). Honest-negative files (doj-ojjdp, sec, cdc-wonder, texas-dshs) are 0-byte gz, matching summaries. No mismatches beyond expected raw-vs-unique dedup deltas.",
+ "status": "adopted-complete",
+ "watermark": "2026-10-01T00:00:00Z (prior pull)",
+ "started_utc": "2026-10-03T12:15:00Z"
+}
