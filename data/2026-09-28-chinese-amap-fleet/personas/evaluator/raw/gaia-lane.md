@@ -93,3 +93,55 @@ grep targets:
 
 ## Candidates
 (none yet)
+
+## Step 2 RESULTS: urlquery searches (2026-10-05 ~06:00-06:30 UTC, ≤1 req/5s via uq_htmx_curl.py)
+Egress: flaky (proxy-tunnel timeouts; 2x curl rc=28, 2x urllib RemoteDisconnected) — retried with backoff; curl variant more reliable.
+SEARCH-ENGINE BEHAVIOR NOTE: htmx search returns loosely-related/junk reports for non-matching queries
+(e.g. q=gaia → cohesity.com, anekkegoods.shop spam, expedia affiliate links). ONLY hits where the submitted URL
+visibly contains the query are treated as real matches; everything else = weak negative.
+(Caveat per HTMX_ENDPOINTS.md: htmx zero is a weak negative — search misses known-live records.)
+
+- L1vXCYZAYYM → ZERO (GAIA bird-video question a1e91b78)
+- 1htKBjuUWec → ZERO (GAIA Teal'c video question 9d191bce)
+- dwyl/english-words → junk only (edgeone.app, 18xxx.name spam) = ZERO real
+- virtuerestaurant → ZERO (GAIA Wayback question e8cb5b03)
+- benjerry → 1: c04ee077-1cde-48a7-9b38-bcd4ee4c0f2b (www.benjerry.com, 2024-06-18). Internals (filter/http): homepage-only scan, zero "graveyard" mentions → routine scan, NOT GAIA (question 624cbf11 needs flavor-graveyard page)
+- gaia-benchmark → ZERO
+- 32102e3e-d12a-4209-9163-7b3a104efe5d (validation UUID attachment) → ZERO
+- nas.er.usgs.gov → ZERO (GAIA USGS NAS questions 17b5a6a3/48eb8242/73c1f13)
+- connectedpapers → ZERO (GAIA 708b99c5 DeepFruits graph)
+- openreview.net → 1 real: 7d814627-48ed-4326-b4fc-31c21157c584 (openreview.net/forum?id=CWC4amo4qn, 2025-07-12). Internals: single MIDL.io/2024 Short Papers forum view, no NeurIPS-2022/Yuri API search → NOT GAIA (question 1dcc160f needs NeurIPS 2022 author-Yuri query). (+ junk: manumathewjiss.com, chat.z.ai share link, allenai blog)
+- 5wb7 → junk only (twisto.fr, betting, arweave) = ZERO real
+- gaia → junk only = ZERO real
+- tri-rail → 3 homepage scans (2025-03, 2026-01). Internals of e4ef535e-63c4-4282-bd57-db0e48e43d54: homepage-only, no schedule navigation → NOT GAIA (question 16d825ff needs May-27-2019 Pompano Beach timetable)
+- tropicos → junk (soundcloud spam, mobot.org .exe) = ZERO real
+- orcid.org → academic-domain scans linking to ORCID (dovepress, sikt.no, manuscriptcentral) + 1 orcid.org homepage 2026-08-18; NO 0000- profile URLs → NOT GAIA (question bec74516 needs ORCID profile pages)
+- rcsb.org → 2: 1YO8 structure + 2WY ligand (2025-07-01), NOT 5wb7 → NOT GAIA (question 7dd30055)
+- usgs.gov → 1 www.usgs.gov homepage (2026-09-24) + 1 earthquake.usgs.gov (2026-07-02); NO nas.er.usgs.gov → NOT GAIA
+- pubchem → 1 curious: 37243246-de93-4a3d-9c9c-600c4e0ffc00 (httpbin.org/redirect-to?url=https://pubchem.ncbi.nlm.nih.gov/compound/Nigerloxin, 2026-03-15). httpbin redirect wrapper = probe tradecraft (matches our httpbun corpus pattern as recon-target use), but Nigerloxin ≠ GAIA food-additive question (384d0dd8: MW≤100, 6 heavy atoms). related/similar: none. Grade: WEAK/curious, not GAIA.
+- boxofficemojo → junk = ZERO
+- merriam-webster → 1 real: 004bfc90-ddf1-48e4-9709-b0bf8f098772 (merriamwebster.com/dictionary/bug, 2026-06-18) — routine word lookup, NOT word-of-the-day 2022-06-27 → NOT GAIA. (+ typosquat dictionary-merriam-webster.all-app.top = phishing, unrelated)
+- universetoday → ZERO
+
+Step 2 verdict: NO GAIA-shaped agent activity found. All real matches are routine single-page scans; none navigate to question-specific deep resources.
+
+## Step 3 RESULTS: verification vs our sets
+Pattern: gaia|L1vXCYZAYYM|1htKBjuUWec|dwyl|virtuerestaurant|benjerry|usgs.gov|nas.er|rcsb.org|orcid.org|pubchem|connectedpapers|openreview|deep-research|deepsearch
+- data/2026-09-28-chinese-amap-fleet/events.jsonl → 0
+- data/2026-10-01-oai-tag-sweep/events.jsonl → 0
+- data/2026-10-03-openai-agent-traces/events.jsonl → 1 "GAIA" + 1 "DWYL" = FALSE POSITIVES (substrings of base32 digests: 27262HEN4NR3W3GAIA2A7CJEPBSKAL6O, ZXODBSO75NWDEHIMCDWYL3O3VHVRGKG6); 604,912 "deepsearch" = eval_family:"deepsearchqa/dsqa_250" attribution field (known DoE cluster)
+- collections/*/data/*.jsonl → 0 (for gaia-benchmark | video IDs | dwyl/english-words | virtuerestaurant)
+Verdict: zero genuine GAIA fingerprints in our sets — honest negative.
+
+## Candidates
+NONE confirmed. Weak/curious only:
+- https://urlquery.net/report/37243246-de93-4a3d-9c9c-600c4e0ffc00 — httpbin.org/redirect-to?url=https://pubchem.ncbi.nlm.nih.gov/compound/Nigerloxin (2026-03-15). Probe-shaped, pubchem-adjacent, no similar reports. Grade: weak, not GAIA.
+
+## Item 3 (multi-step tool-use shape)
+No GAIA attachment-UUID traffic, no epoch/nonce-marked GAIA resource fetches observed. GAIA harnesses likely use their own browser tooling rather than urlquery as a browse primitive — urlquery submissions skew to security researchers scanning suspicious URLs.
+
+## Item 5 (non-English bonus)
+Not probed on urlquery this pass (GAIA has Polish 305ac316 / Romanian c714ab3a / Vietnamese bda648d7 angles). Follow-up: q=filmweb.pl, q=pl.wikipedia.org.
+
+## Deep-research-eval note
+No public question set for BrowseComp/OpenAI deep-research evals was available (questions not public). GAIA was the actionable lane. Follow-up if a question list surfaces.
