@@ -130,3 +130,7 @@ line changed; all 45 entries re-verified with `sha256sum -c`).
 
 ## 2026-09-29 — popcat hash refresh
 19 popcat rows' top-level `sha256`/`size_bytes` described pre-commit capture bytes (259-byte header artifact from the nsi-venue-sweep fold-in). Refreshed to the committed on-disk bytes; observations unchanged (slugs, click counts, SOURCE URLs verified identical).
+
+## Builder relocation (2026-09-30)
+
+Historical builder `scripts/yourls_resweep_build_resweep.py` was moved via staging into `data/2026-09-28-yourls-resweep/build_resweep.py`. This is a preservation move, not a rebuild: existing events/rollups and raw captures were not regenerated or modified. The relocated script is historical and may overwrite collection outputs, provenance, checksums, or raw evidence if executed; do not run it against this collection. Only its offline path resolution was adjusted where applicable. The canonical shortener-events builder alone explicitly rejects the canonical events file and existing output paths. Older script paths elsewhere in this document refer to their historical locations.

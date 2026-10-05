@@ -79,3 +79,7 @@ The following original logs were relocated byte-for-byte from `data/2026-02-01-m
 ### Historical checksum conflicts (unresolved)
 
 Bytewise verification of `SHA256SUMS` currently reports 25 mismatched historical entries in this collection; 25 match their recorded hashes only after CRLF-to-LF conversion. This is consistent with a line-ending change, but original evidence and recorded historical hashes were not rewritten. The newly recovered log entries were independently verified byte-for-byte against their source SHA-256 and match the new manifest lines. To enumerate all mismatches locally, run `sha256sum -c SHA256SUMS` from this collection directory. 
+
+## Historical loader relocation (2026-09-30)
+
+Preserved `es_ingest_march7.py` at `raw/scripts/legacy/es_ingest_march7.py` as a historical, optional Elasticsearch loader; it is not an active collection event builder. Its local path resolution now targets the same collection and repository inputs from the archived location. No source evidence, `events.jsonl`, or `rollup.jsonl` was changed; no network or ES actions were run. The SHA256SUMS entry records the relocated script bytes.

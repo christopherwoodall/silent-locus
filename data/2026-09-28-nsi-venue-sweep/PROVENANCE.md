@@ -48,3 +48,7 @@ university-shorteners events); the live probes were ephemeral read-only API
 checks recorded inline. Verified: no raw/ files ever committed in git history;
 no stray evidence files on disk; SHA256SUMS green. Ratified as a canonical-layout
 exception.
+
+## Builder relocation (2026-09-30)
+
+Historical builder `scripts/nsi_venue_sweep_build_dataset.py` was moved via staging into `data/2026-09-28-nsi-venue-sweep/build_dataset.py`. This is a preservation move, not a rebuild: existing events/rollups and raw captures were not regenerated or modified. The relocated script is historical and may overwrite collection outputs, provenance, checksums, or raw evidence if executed; do not run it against this collection. Only its offline path resolution was adjusted where applicable. The canonical shortener-events builder alone explicitly rejects the canonical events file and existing output paths. Older script paths elsewhere in this document refer to their historical locations.

@@ -18,12 +18,13 @@ determines its index. Historical builder scripts are never executed.
 
 Reruns are idempotent: every doc gets a deterministic _id (doc's own _id when
 present, else sha256 of the canonical JSON), so re-pushing the same files is a
-no-op. Use --reset to drop and rebuild an index whose staged files changed
-shape (e.g. university-shorteners after the explicit-events re-explosion).
+no-op. Existing indices must have compatible mappings; --reset is only for
+intentional rebuilds after staged files change shape.
 
 Stdlib only.
 """
 import argparse, base64, hashlib, json, os, sys, urllib.request, urllib.error
+from urllib.parse import urlsplit
 
 BASE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 MANIFEST = os.path.join(BASE, "scripts", "local_es_manifest.json")
@@ -48,7 +49,7 @@ def inspect_file(path):
             if not isinstance(value, str) or not value:
                 raise ValueError(f"{path}:{lineno}: missing event.dataset")
             if dataset is not None and value != dataset:
-                raise ValueError(f"{path}:{lineno}: mixed event.dataset {value!r} != {dataset!r}")
+                raise ValueError(f"{path}:{lineno}: mixed event.dataset")
             dataset, count = value, count + 1
     if not count:
         raise ValueError(f"{path}: empty event file")
@@ -76,7 +77,7 @@ def discover_staged(registry=None):
             idx, _ = inspect_file(fp)
             expected = collection.get("index") if fn == "events.jsonl" else name + "-rollup"
             if not expected or idx != expected:
-                raise ValueError(f"{fp}: dataset {idx!r} != registered {expected!r}")
+                raise ValueError(f"{fp}: dataset does not match registered index")
             found.setdefault(idx, []).append(os.path.relpath(fp, BASE))
     return found
 
@@ -102,8 +103,16 @@ def ping(es, auth):
     try:
         st, info = es_req(es, "GET", "/", auth=auth, timeout=10)
         return st == 200, info.get("version", {}).get("number", "?") if isinstance(info, dict) else "?"
-    except Exception as e:
-        return False, str(e)
+    except Exception:
+        return False, "connection failed"
+
+
+def is_local_es(url):
+    parsed = urlsplit(url)
+    return (parsed.scheme in ("http", "https")
+            and parsed.hostname in ("localhost", "127.0.0.1", "::1")
+            and not parsed.username and not parsed.password
+            and parsed.path in ("", "/") and not parsed.query and not parsed.fragment)
 
 
 def head_status(es, path, auth=None, timeout=30):
@@ -120,24 +129,73 @@ def head_status(es, path, auth=None, timeout=30):
 
 
 def ensure_index(es, auth, index, mapping_path, reset=False, dry=False):
-    exists = head_status(es, f"/{index}", auth=auth) == 200
+    if dry:
+        return True
+    with open(os.path.join(BASE, mapping_path), encoding="utf-8") as fh:
+        mapping = json.load(fh)["mappings"]
+    status = head_status(es, f"/{index}", auth=auth)
+    if status not in (200, 404):
+        raise RuntimeError(f"index existence check failed (HTTP {status})")
+    exists = status == 200
     if exists and reset and not dry:
-        es_req(es, "DELETE", f"/{index}", auth=auth)
+        st, _ = es_req(es, "DELETE", f"/{index}", auth=auth)
+        if st != 200:
+            raise RuntimeError(f"index delete failed (HTTP {st})")
         exists = False
-    if not exists and not dry:
-        mapping = json.load(open(os.path.join(BASE, mapping_path)))
-        st, resp = es_req(es, "PUT", f"/{index}", body={"mappings": mapping["mappings"]}, auth=auth)
+    if exists:
+        st, resp = es_req(es, "GET", f"/{index}/_mapping", auth=auth)
+        if st != 200 or not isinstance(resp, dict) or not isinstance(resp.get(index), dict):
+            raise RuntimeError(f"mapping lookup failed (HTTP {st})")
+        actual = resp[index].get("mappings")
+        if not mapping_compatible(mapping, actual):
+            raise RuntimeError("existing index mapping is incompatible (use --reset only if intended)")
+    else:
+        st, _ = es_req(es, "PUT", f"/{index}", body={"mappings": mapping}, auth=auth)
         if st not in (200, 201):
-            print(f"  !! create {index} -> {st} {str(resp)[:160]}")
-            return False
+            raise RuntimeError(f"index create failed (HTTP {st})")
     return True
 
 
+def mapping_compatible(expected, actual):
+    """All declared mapping attributes must match; ES may add other fields."""
+    if isinstance(expected, dict):
+        return isinstance(actual, dict) and all(
+            key in actual and mapping_compatible(value, actual[key])
+            for key, value in expected.items()
+        )
+    return expected == actual
+
+
 def doc_id(doc):
-    if isinstance(doc.get("_id"), str) and doc["_id"]:
+    if "_id" in doc:
+        if not isinstance(doc["_id"], str) or not doc["_id"]:
+            raise ValueError("_id must be a nonempty string")
         return doc["_id"]
     canon = json.dumps(doc, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
     return hashlib.sha256(canon.encode()).hexdigest()
+
+
+def expected_counts(index, files):
+    """Stream staged rows and retain only IDs, not document bodies."""
+    ids = set()
+    staged = 0
+    for rel in files:
+        path = os.path.join(BASE, rel)
+        with open(path, encoding="utf-8") as fh:
+            for lineno, line in enumerate(fh, 1):
+                if not line.strip():
+                    continue
+                try:
+                    doc = json.loads(line)
+                    if doc["event"]["dataset"] != index:
+                        raise ValueError("wrong event.dataset")
+                    ids.add(doc_id(doc))
+                except (ValueError, TypeError, KeyError, AttributeError) as exc:
+                    raise ValueError(f"{path}:{lineno}: invalid staged document") from exc
+                staged += 1
+    if not staged:
+        raise ValueError(f"{index}: empty staged files")
+    return staged, len(ids)
 
 
 def bulk_load(es, auth, index, files, dry=False):
@@ -146,7 +204,7 @@ def bulk_load(es, auth, index, files, dry=False):
         path = os.path.join(BASE, rel)
         dataset, count = inspect_file(path)
         if dataset != index:
-            raise ValueError(f"{path}: dataset {dataset!r} != target index {index!r}")
+            raise ValueError(f"{path}: dataset does not match target index")
         staged += count
     if dry:
         return staged
@@ -154,13 +212,14 @@ def bulk_load(es, auth, index, files, dry=False):
     for rel in files:
         path = os.path.join(BASE, rel)
         batch, buf = 0, []
-        with open(path) as f:
+        with open(path, encoding="utf-8") as f:
             for line in f:
                 line = line.strip()
                 if not line:
                     continue
                 doc = json.loads(line)
-                _id = doc.pop("_id", None) or doc_id(doc)
+                _id = doc_id(doc)
+                doc.pop("_id", None)
                 buf.append(json.dumps({"index": {"_index": index, "_id": _id}}, ensure_ascii=False))
                 buf.append(json.dumps(doc, ensure_ascii=False))
                 batch += 1
@@ -177,18 +236,29 @@ def bulk_load(es, auth, index, files, dry=False):
 def send_batch(es, auth, index, buf):
     st, resp = es_req(es, "POST", "/_bulk?refresh=false", raw="\n".join(buf) + "\n", auth=auth, timeout=300)
     if st != 200:
-        print(f"  !! bulk -> {st} {str(resp)[:200]}")
-        return 0, len(buf) // 2
+        raise RuntimeError(f"bulk request failed (HTTP {st})")
+    if not isinstance(resp, dict) or not isinstance(resp.get("items"), list) or len(resp["items"]) != len(buf) // 2:
+        raise RuntimeError("bulk response has missing or mismatched items")
     ok = fail = 0
-    for item in resp.get("items", []):
-        s = item.get("index", {}).get("status", 0)
-        if s in (200, 201):
+    for offset, item in enumerate(resp["items"]):
+        action = item.get("index") if isinstance(item, dict) else None
+        if not isinstance(action, dict) or action.get("_index") != index or action.get("_id") != json.loads(buf[2 * offset])["index"]["_id"]:
+            raise RuntimeError("bulk response contains invalid item")
+        s = action.get("status")
+        if s in (200, 201) and not action.get("error"):
             ok += 1
         else:
             fail += 1
-            if fail <= 3:
-                print(f"  !! item error: {str(item)[:200]}")
+    if resp.get("errors") is not False or fail:
+        raise RuntimeError(f"bulk response reported errors ({fail} failed items)")
     return ok, fail
+
+
+def live_count(es, auth, index):
+    st, resp = es_req(es, "GET", f"/{index}/_count", auth=auth)
+    if st != 200 or not isinstance(resp, dict) or type(resp.get("count")) is not int:
+        raise RuntimeError(f"count failed (HTTP {st})")
+    return resp["count"]
 
 
 def main():
@@ -200,15 +270,20 @@ def main():
     selection.add_argument("--all", action="store_true", help="all registered staged indices")
     ap.add_argument("--reset", action="store_true", help="drop each index before loading")
     ap.add_argument("--dry-run", action="store_true")
+    ap.add_argument("--verify", action="store_true", help="read-only compare staged distinct IDs to live counts")
     ap.add_argument("--batch-size", type=int, default=BATCH)
     a = ap.parse_args()
     if not (a.all or a.index or a.dry_run):
         ap.error("select --all, --index, or --dry-run")
+    if a.verify and (a.dry_run or a.reset):
+        ap.error("--verify cannot be combined with --dry-run or --reset")
     if a.batch_size < 1:
         ap.error("--batch-size must be positive")
     BATCH = a.batch_size
 
     es = a.es.rstrip("/")
+    if not a.dry_run and not is_local_es(es):
+        ap.error("only local Elasticsearch URLs are supported")
     auth = None
     if os.environ.get("ES_USER"):
         auth = f"{os.environ['ES_USER']}:{os.environ.get('ES_PASS', '')}"
@@ -235,36 +310,49 @@ def main():
     else:
         ok, info = True, "offline"
     if not ok:
-        print(f"cannot reach ES at {es}: {info}")
+        print("cannot reach ES (connection or authentication failed)")
         print("start your local instance first (e.g. docker run -p 9200:9200 elasticsearch:8.x)")
         sys.exit(2)
     if not a.dry_run:
-        print(f"target: {es} (v{info})")
+        print(f"target: local ES (v{info})")
 
     rows = []
+    failed = False
     for idx in sorted(staged):
         files = staged[idx]
         if wanted and idx not in wanted:
             continue
-        if a.dry_run:
-            n = bulk_load(es, auth, idx, files, dry=True)
-            rows.append((idx, "staged", n, "-", "dry-run"))
-            continue
-        # Validate once more immediately before index creation or deletion.
-        bulk_load(es, auth, idx, files, dry=True)
-        if not ensure_index(es, auth, idx, man["mapping"], reset=a.reset):
-            rows.append((idx, "staged", "-", "-", "CREATE FAILED"))
-            continue
-        res = bulk_load(es, auth, idx, files)
-        ok_n, fail_n, staged_n = res
-        st, cnt = es_req(es, "GET", f"/{idx}/_count", auth=auth)
-        live = cnt.get("count", "?") if st == 200 else f"ERR {st}"
-        status = "OK" if (live == staged_n and fail_n == 0) else "CHECK"
-        rows.append((idx, "staged", staged_n, live, f"{status} bulk_ok={ok_n} fail={fail_n}"))
+        try:
+            # Validate before any write, including a requested reset.
+            staged_n, expected = expected_counts(idx, files)
+            if a.dry_run:
+                rows.append((idx, "staged", staged_n, "-", f"dry-run distinct={expected}"))
+                continue
+            if a.verify:
+                live = live_count(es, auth, idx)
+            else:
+                ensure_index(es, auth, idx, man["mapping"], reset=a.reset)
+                ok_n, fail_n, loaded = bulk_load(es, auth, idx, files)
+                if loaded != staged_n or ok_n != staged_n or fail_n:
+                    raise RuntimeError("bulk acknowledgement count mismatch")
+                st, _ = es_req(es, "POST", f"/{idx}/_refresh", auth=auth)
+                if st != 200:
+                    raise RuntimeError(f"refresh failed (HTTP {st})")
+                live = live_count(es, auth, idx)
+            status = "OK" if live == expected else "COUNT MISMATCH"
+            failed |= live != expected
+            rows.append((idx, "staged", staged_n, live, f"{status} expected={expected}"))
+        except (ValueError, OSError, RuntimeError, TypeError, KeyError, urllib.error.URLError) as exc:
+            # Never print ES response bodies or document values.
+            failed = True
+            message = str(exc) if isinstance(exc, RuntimeError) else "staged data or request failed"
+            rows.append((idx, "staged", "-", "-", f"FAILED: {message}"))
 
     print(f"\n{'index':32s} {'track':10s} {'staged':>8s} {'_count':>8s}  status")
     for idx, track, staged, live, status in rows:
         print(f"{idx:32s} {track:10s} {str(staged):>8s} {str(live):>8s}  {status}")
+    if failed:
+        sys.exit(1)
 
 
 if __name__ == "__main__":

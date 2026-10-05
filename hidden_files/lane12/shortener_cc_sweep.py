@@ -22,6 +22,10 @@ Polite pacing (2s between requests).
 Resumable: hidden_files/lane12/state_shortener_cc.json tracks processed
 (crawl, warc_filename, offset) records. Prints "DONE shortener-cc" to its
 log on natural completion; supervisor greps for that line.
+
+Historical worker: its output paths predate the canonical collection layout.
+Do not resume it until its append/checksum logic is reconciled; main() refuses
+to recreate the retired output directory.
 """
 import gzip
 import hashlib
@@ -38,7 +42,8 @@ from datetime import datetime, timezone
 BASE = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)),
                                     "..", ".."))
 OUTDIR = os.path.join(BASE, "data", "university-shorteners", "wayback-cc")
-EVENTS_SCRIPT_DIR = os.path.join(BASE, "scripts")
+EVENTS_SCRIPT_DIR = os.path.join(
+    BASE, "data", "2026-05-12-university-shorteners-events")
 STATE_PATH = os.path.join(BASE, "hidden_files", "lane12", "state_shortener_cc.json")
 JOB_PATH = os.path.join(BASE, "hidden_files", "lane12", "shortener_cc_job.json")
 
@@ -182,6 +187,8 @@ def save_state(state):
 
 
 def main():
+    if not os.path.isdir(OUTDIR):
+        raise RuntimeError("retired Common Crawl output directory; refusing to recreate it")
     job = job_spec()
     os.makedirs(OUTDIR, exist_ok=True)
     state = load_state()
@@ -196,7 +203,7 @@ def main():
 
     sys.path.insert(0, EVENTS_SCRIPT_DIR)
     sys.path.insert(0, os.path.join(BASE, "hidden_files", "shortener-cdx"))
-    import build_shortener_events as bse
+    import build_events as bse
     import pull_and_explode as pae
 
     manifest = []
@@ -276,7 +283,7 @@ def main():
             "job": job,
             "evidence_files": [os.path.relpath(p, BASE) for p in evidence_files],
             "note": "Raw WARC payloads kept per capture. Evidence JSONs follow the "
-                    "schema consumed by scripts/build_shortener_events.py. "
+                    "schema consumed by data/2026-05-12-university-shorteners-events/build_events.py. "
                     "Staged on disk only; hosted-Elastic writes paused.",
         }, f, indent=1)
     log("evidence files: %d" % len(evidence_files))

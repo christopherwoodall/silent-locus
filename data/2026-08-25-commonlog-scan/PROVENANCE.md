@@ -18,3 +18,7 @@
 - fingerprint: unchanged (pre-existing 64-hex SHA-256 kept verbatim).
 - `labels.false_positive_reasons` was a nested object; flattened to dotted
   keys `false_positive_reasons.<marker>` per the ECS labels rule. Lossless.
+
+## Builder relocation (2026-09-30)
+
+Historical builder `scripts/commonlog_scan_build_dataset.py` was moved via staging into `data/2026-08-25-commonlog-scan/build_dataset.py`. This is a preservation move, not a rebuild: existing events/rollups and raw captures were not regenerated or modified. The relocated script is historical and may overwrite collection outputs, provenance, checksums, or raw evidence if executed; do not run it against this collection. Only its offline path resolution was adjusted where applicable. The canonical shortener-events builder alone explicitly rejects the canonical events file and existing output paths. Older script paths elsewhere in this document refer to their historical locations.

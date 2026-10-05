@@ -204,3 +204,14 @@ The operator accepted the current bytes as canonical and authorized updating
 the nested manifest. The file itself was not changed. The old hash remains
 here for audit; this does not explain the difference or claim a matching
 historical copy.
+
+## Builder relocation (2026-09-30)
+
+Historical builder `scripts/build_shortener_events.py` was moved via staging into `data/2026-05-12-university-shorteners-events/build_events.py`. This is a preservation move, not a rebuild: existing events/rollups and raw captures were not regenerated or modified. The relocated script is historical and may overwrite collection outputs, provenance, checksums, or raw evidence if executed; do not run it against this collection. Only its offline path resolution was adjusted where applicable. The canonical shortener-events builder alone explicitly rejects the canonical events file and existing output paths. Older script paths elsewhere in this document refer to their historical locations.
+
+The event file was LF-only at the start of the script reorganization
+(1,591 rows, SHA-256 `e1a07aa5336979b1021d674f91f99eff5682333da18fbcba70603f62e2a32703`).
+Its previous manifest hash
+`8bcf0358cafa900d7e7c19ca79738e43a4cfc53a31a2da8e5e2a3ccd0b5b9ce0`
+matches the exact same content with CRLF line endings. No event content
+changed during the reorganization; the checksum now pins the LF checkout.

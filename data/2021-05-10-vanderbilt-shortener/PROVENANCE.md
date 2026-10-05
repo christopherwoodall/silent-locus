@@ -105,3 +105,7 @@ ct_cert / dns_record / ip_membership / web_article / web_mention,
 Re-running it via the via_script track would load old-format docs into index
 `2021-05-10-vanderbilt-shortener` alongside the staged venue-census docs.
 SHA256SUMS regenerated to include the script.
+
+## Historical loader relocation (2026-09-30)
+
+Preserved `es_ingest_vanderbilt.py` at `raw/scripts/legacy/es_ingest_vanderbilt.py` as a historical, optional Elasticsearch loader; it is not an active collection event builder. Its local path resolution now targets the same collection and repository inputs from the archived location. No source evidence, `events.jsonl`, or `rollup.jsonl` was changed; no network or ES actions were run. The SHA256SUMS entry records the relocated script bytes.

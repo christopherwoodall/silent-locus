@@ -96,3 +96,7 @@ Normalization-wave build scripts moved from `temp/` to the collection root
 per the 2026-09-29 convention (single-collection build scripts live in the
 collection dir; schema/collections.md). `temp/` removed. SHA256SUMS
 regenerated; `sha256sum -c` green.
+
+## Historical loader relocation (2026-09-30)
+
+Preserved `es_ingest_paste.py` at `raw/scripts/legacy/es_ingest_paste.py` as a historical, optional Elasticsearch loader; it is not an active collection event builder. Its local path resolution now targets the same collection and repository inputs from the archived location. No source evidence, `events.jsonl`, or `rollup.jsonl` was changed; no network or ES actions were run. The SHA256SUMS entry records the relocated script bytes.

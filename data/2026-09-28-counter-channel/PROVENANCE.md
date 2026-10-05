@@ -63,3 +63,7 @@ single-snapshot enumeration; no time series, no aggregate layer.
 - BUG FIX: `build_docs()` read `{D}/snapshot_2026-09-27.json` but the snapshot lives at `raw/snapshot_2026-09-27.json` — the old path never existed, so `--load` was broken; fixed to the `raw/` path.
 - Verified offline (2026-09-29): `build_docs()` assembles 4 docs from disk (3 counter_reading, 1 counter_probe) with no network/ES access.
 - ES ingest driver: `push_to_local_es.py --all` runs the path in `scripts/local_es_manifest.json` `via_script` for index `2026-09-28-counter-channel`; manifest entry updated to the new script location.
+
+## Historical loader relocation (2026-09-30)
+
+Preserved `es_ingest_counter.py` at `raw/scripts/legacy/es_ingest_counter.py` as a historical, optional Elasticsearch loader; it is not an active collection event builder. Its local path resolution now targets the same collection and repository inputs from the archived location. No source evidence, `events.jsonl`, or `rollup.jsonl` was changed; no network or ES actions were run. The SHA256SUMS entry records the relocated script bytes.

@@ -109,3 +109,7 @@ ES _id = `july7:<name>` makes bulk re-ingest idempotent.
   `raw/diffend_sweep_results_july7.jsonl`.
 - `scripts/local_es_manifest.json` via_script entry repointed here.
 - SHA256SUMS regenerated (script file added to coverage).
+
+## Historical loader relocation (2026-09-30)
+
+Preserved `es_ingest_july7.py` at `raw/scripts/legacy/es_ingest_july7.py` as a historical, optional Elasticsearch loader; it is not an active collection event builder. Its local path resolution now targets the same collection and repository inputs from the archived location. No source evidence, `events.jsonl`, or `rollup.jsonl` was changed; no network or ES actions were run. The SHA256SUMS entry records the relocated script bytes.
