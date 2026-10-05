@@ -102,3 +102,21 @@
 --- monitor resumed by respawned live-monitor agent (2026-10-05 04:54 UTC); continuing H3+ 30min polls; no end time ---
 
 --- monitor resumed by respawned live-monitor agent (2026-10-05 05:55 UTC); continuing H3+ 30min polls; no end time ---
+
+--- ANOMALY (2026-10-05 06:32:10 UTC): all 6 live-monitor state files (LOG.md, seen.json, tag_words.json, task_families.json, known_hosts.json, monitor_loop.sh) were bulk-restored to their ~06:20 state by an unidentified process (alphabetical-order copy, same-second mtimes). Poll H3 (06:27 UTC) and the 06:29 restart line were wiped from LOG.md; the 3 H3 discoveries were dropped from seen.json/tag_words.json. No writer identified among running processes; sibling new-fleets retry_loop alive, cleanup crews active on repo. Safeguard added: poll_journal.jsonl (append-only, one JSON line per poll) independent of the 6 restored files. The 3 wiped reports will be rediscovered by the next poll since seen.json was reverted.
+
+### Poll H3 (2026-10-05 06:27 UTC) — htmx [recovered from pre-restore observation]
+- new reports: 3
+  - 48bb99bc 2026-10-05T04:11:00Z [place] amap-pc-ssr.amap.com/ssr/api/getPoiInfo?id=B021406HP0&uqscan=qdnewapi20261005a NEW-TAGWORD:qdnewapi
+  - 0186fb64 2026-10-05T04:11:00Z [place] amap-pc-ssr.amap.com/ssr/api/getPoiInfo?uqscan=qdnewapi20261005b&id=B021406HP0
+  - 967b20ce 2026-10-05T04:11:00Z [place] ditu.amap.com/detail/get/detail?id=B021406HP0&uqscan=qdoldditu20261005a NEW-TAGWORD:qdoldditu
+- tag words this poll: qdnewapi, qdoldditu
+
+--- monitor loop (re)started 2026-10-05 06:35 UTC, PID 32889; H3+ 30min polls; survives agent death ---
+
+### Poll H3 (2026-10-05 06:34 UTC) — htmx
+- new reports: 3
+  - 48bb99bc 2026-10-05T04:11:00Z [place] amap-pc-ssr.amap.com/ssr/api/getPoiInfo?id=B021406HP0&uqscan=qdnewapi20261005a NEW-TAGWORD:qdnewapi
+  - 0186fb64 2026-10-05T04:11:00Z [place] amap-pc-ssr.amap.com/ssr/api/getPoiInfo?uqscan=qdnewapi20261005b&id=B021406HP0
+  - 967b20ce 2026-10-05T04:11:00Z [place] ditu.amap.com/detail/get/detail?id=B021406HP0&uqscan=qdoldditu20261005a NEW-TAGWORD:qdoldditu
+- tag words this poll: qdnewapi, qdoldditu

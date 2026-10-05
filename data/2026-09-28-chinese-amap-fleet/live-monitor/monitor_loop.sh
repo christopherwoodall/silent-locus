@@ -27,6 +27,9 @@ LOG_F       = os.path.join(DIR, "LOG.md")
 KNOWN_HOSTS_F = os.path.join(DIR, "known_hosts.json")
 TAGWORDS_F  = os.path.join(DIR, "tag_words.json")
 FAMILIES_F  = os.path.join(DIR, "task_families.json")
+JOURNAL_F   = os.path.join(DIR, "poll_journal.jsonl")  # one JSON line per poll;
+    # the 2026-10-05 06:32:10 UTC bulk restore of the 6 state files wiped LOG.md,
+    # so the journal keeps an independent, append-only record of every poll.
 GAP = 7
 
 def now():
@@ -143,6 +146,15 @@ json.dump(sorted(seen), open(SEEN_F, "w"))
 json.dump(sorted(known_hosts), open(KNOWN_HOSTS_F, "w"))
 json.dump(tag_words, open(TAGWORDS_F, "w"), indent=1)
 json.dump(families, open(FAMILIES_F, "w"), indent=1)
+try:
+    with open(JOURNAL_F, "a") as jf:
+        jf.write(json.dumps({"poll": poll, "ts": ts, "new": len(fresh),
+                             "errors": errs,
+                             "new_tag_words": sorted({w for _, _, _, _, _, nw, w in fresh if nw and w}),
+                             "new_hosts": sorted({h for _, _, _, _, nh, _, _ in fresh for h in nh}),
+                             "total_seen": len(seen)}) + "\n")
+except Exception:
+    pass
 print("poll H%d done, %d new, errors=%d" % (poll, len(fresh), len(errs)), flush=True)
 PYEOF
   sleep "$POLL_EVERY"

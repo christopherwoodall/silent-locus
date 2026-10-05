@@ -9,3 +9,4 @@
 - 2026-10-05T05:56:26Z: respawned agent manual probes (limit 96, limit 24) BOTH got partial data then IncompleteRead (36KB/45KB) — proxy truncates mid-response; egress NOT cleanly recovered. retry_loop.sh relaunching.
 ## Retry loop started 2026-10-05T05:56:26Z
 - 2026-10-05T05:56:26Z: egress still down (uq_htmx.py failed)
+- 2026-10-05T06:37:07Z: egress still down (uq_htmx.py failed)
