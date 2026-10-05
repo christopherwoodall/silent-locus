@@ -246,3 +246,44 @@ basename against the collection tree: all 12 resolved unambiguously to
 byte integrity unchanged (no sha256/size_bytes drift on any row). Pointers
 rewritten to the collection-relative `raw/...` form per schema. **Fixed: 12;
 dropped: 0.** SHA256SUMS regenerated.
+
+## Local checksum audit and accepted evidence bytes
+
+The nested `raw/wayback/SHA256SUMS` originally named four paths under the
+obsolete `data/university-shorteners/wayback/` prefix. Three entries were
+repointed to `data/2026-09-28-university-shorteners/raw/wayback/` **without
+changing their recorded SHA-256 values**: the 20260908215028 HTML is an exact
+byte match; the two referrer JSON files match after CRLF → LF normalization
+only (checkout newline drift, not evidence-content changes).
+
+The fourth entry originally retained its obsolete path and historical hash:
+`raw/wayback/IRZTIxDlZ/20260512030438.html` has expected historical SHA-256
+`94be101b85d1570f0d1ba12c90919b6cbb429b4ab96f275e81353e9b137508be`,
+but its current raw SHA-256 is
+`e4a92a304da2eb82dc6f305f1fcbd9e39961dd13939a79ea40e7b4375e84a3e3`
+and its LF-normalized SHA-256 is
+`28639048497c09104d655f01c5d408b807a409a575b7b55a559e9a927cb8b3ff`.
+This is a substantive mismatch, not just line endings. On 2026-09-30 the
+operator accepted the **current raw CRLF bytes** as canonical; the nested
+manifest was repointed to the existing file and now records its current raw
+SHA-256. The prior `94be101b...` hash is retained above as a historical
+integrity exception, not described as a matching copy.
+
+Two other substantive HTML mismatches found in the related shortener evidence
+were likewise accepted on 2026-09-30. The files themselves were not changed.
+The table keeps the historical hashes alongside the newly accepted raw hashes:
+
+| Evidence path (repository-relative) | Historical expected SHA-256 | Current raw SHA-256 | Current LF-normalized SHA-256 |
+|---|---|---|---|
+| `data/2026-05-12-university-shorteners-events/raw/wayback/5vtSk2RG2f/20260512030653.html` | `1ae6a9108fa2ab2563bcc370baf2eea69f31544564b4160f6faffed0c9b82422` | `4d54469380dcdf8df98f660078d81fe10a35ef559db7770c75eb47dbbfc9f58b` | `2575fb81db13f079b70561978a5b6b29940f567a8aab3187242ada375f12d5a4` |
+| `data/2026-09-28-university-shorteners/raw/wayback-cc/discvr/CC-MAIN-2026-34_20260817051148.html` | `e1e050393fd356280d82cf8db617499a845fcaea0c3d87ab80d0289d7fcf8256` | `95cae30ab3369d98e70fa6f712e2eee72615aab2f0c48dae510f30283f7e33fb` | `afad217f1e5809cd85790b9f06c4e9d0925bc0a18547d224b85aa79cb820a481` |
+
+The nested `raw/wayback-cc/SHA256SUMS` and the sibling
+`2026-05-12-university-shorteners-events/raw/wayback/SHA256SUMS` now pin the
+respective accepted raw HTML bytes. This collection's root `SHA256SUMS` also
+pins its accepted raw Wayback HTML and the updated nested manifest and
+provenance. This is an explicit reconciliation decision, **not** evidence
+that the historical hashes matched or an explanation of how the bytes
+changed. Run `python3 -B scripts/verify_checksums.py` to audit all manifests;
+`CRLF_ONLY` flags other checkout-byte differences that normalize to their
+recorded LF hashes.

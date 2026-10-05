@@ -20,8 +20,8 @@ configs:
 
 `silent-locus` is a machine-readable forensics corpus documenting
 **agent-activity traces and software supply-chain attacks observed in
-public systems** between 2016 and 2026. The 69 event collections
-(123,272 event rows) cover:
+public systems** between 2016 and 2026. The 71 event collections
+(127,341 event rows) cover:
 
 - **RubyGems supply-chain campaigns** — the May 2026 `go-import`
   meta-tag injection campaign (555+ gems hijacking Go tooling through
@@ -87,30 +87,31 @@ whose event time is not recoverable carry the documented sentinel
 `labels.timestamp_source = "fallback:no_recoverable_date"` and are
 excluded from the range; collections with only sentinels are marked.
 
-### Event collections (69)
+### Event collections (71)
 
 | Collection | Event rows | @timestamp range |
 |---|---|---|
 | `2016-12-28-rmn-re-history` | 768 | 2016-12-28T17:39:00Z → 2026-09-28T03:05:00Z |
+| `2016-12-28-rmn-re` | 764 | 2016-12-28T17:39:00Z → 2026-09-25T12:28:00Z |
+| `2018-05-09-paste-archive-gap` | 157 | 2018-05-09T04:11:19Z → 2026-09-28T00:00:00Z |
 | `2021-05-10-vanderbilt-shortener` | 38 | 2021-05-10T00:00:00Z → 2026-09-28T00:00:00Z |
 | `2021-10-30-demowiki` | 16 | 2021-10-30T16:33:00Z → 2026-09-28T03:19:41.575088Z |
 | `2022-03-01-jsonhero` | 19 | 2022-03-01T00:00:00Z → 2022-03-01T09:33:29Z |
 | `2022-05-14-jqp-vercel` | 2 | 2022-05-14T21:51:48Z → 2026-09-28T02:46:27Z |
 | `2022-08-09-github-forensics` | 239 | 2022-08-09T23:36:24Z → 2026-09-29T00:05:00Z |
-| `2023-11-14-hfspace-proxies` | 15 | 2023-11-14T00:00:00Z → 2026-06-07T00:00:00Z |
+| `2023-11-14-hfspace-proxies` | 38 | 2023-10-14T00:00:00Z → 2026-06-07T00:00:00Z |
 | `2025-03-04-rubygems-goimport-campaign` | 10,873 | 2025-03-04T18:22:38.613000Z → 2026-09-27T23:29:20Z |
 | `2025-05-15-hf-tampering-check` | 21 | 2025-05-15T00:14:14.000Z → 2026-09-28T00:00:00Z |
-| `2025-12-04-urlquery-marker-sweep` | 9 | 2025-12-04T00:11:47Z → 2026-09-25T02:17:12Z |
+| `2025-12-04-urlquery-marker-sweep` | 975 | 2025-12-04T00:11:47Z → 2026-09-28T14:17:49Z |
 | `2026-02-01-agent-convo-venues` | 15 | 2026-02-01T15:45:47Z → 2026-09-28T20:00:00Z |
 | `2026-02-14-md-succ-ai` | 2 | 2026-02-14T00:00:00Z → 2026-09-28T00:00:00Z |
 | `2026-03-07-march7-rce-modality` | 5 | 2026-03-07T02:58:00Z → 2026-09-05T17:02:27.720176Z |
 | `2026-03-07-timeline-anchors` | 48 | 2026-03-07T02:58:00Z → 2026-09-20T16:33:00Z |
 | `2026-03-11-dse-wiki-verification` | 21 | 2026-03-11T12:05:59Z → 2026-09-27T00:00:00Z |
-| `2018-05-09-paste-archive-gap` | 157 | 2018-05-09T04:11:19Z → 2026-09-28T00:00:00Z |
 | `2026-05-05-gomod-hunt` | 35,014 | 2026-05-05T10:23:51.592957Z → 2026-06-30T23:50:01.098797Z |
 | `2026-05-11-july6-staging` | 11 | 2026-05-11T04:30:28Z → 2026-07-06T17:41:36Z |
 | `2026-05-11-osv` | 1,965 | 2026-05-11T19:40:00Z → 2026-09-27T00:00:00Z |
-| `2026-05-12-university-shorteners-events` | 1,522 | 2026-05-12T03:04:38Z → 2026-09-28T18:05Z |
+| `2026-05-12-university-shorteners-events` | 1,591 | 2019-09-17T21:08:39Z → 2026-09-28T18:05Z |
 | `2026-05-12-webhook-deaddrops` | 17 | 2026-05-12T01:57:00Z → 2026-09-28T03:45:00Z |
 | `2026-05-17-collusion-wiki` | 19,913 | 2026-05-17T05:46:45Z → 2026-07-14T13:56:54Z |
 | `2026-05-17-iowacollab-pastes` | 4 | 2026-05-17T12:47:48Z → 2026-06-16T20:20:51Z |
@@ -118,6 +119,7 @@ excluded from the range; collections with only sentinels are marked.
 | `2026-05-27-paste-archive` | 76 | 2026-05-27T00:00:00Z |
 | `2026-06-04-admin-deletions` | 5,217 | 2026-06-04T10:53:40Z → 2026-07-14T13:56:54Z |
 | `2026-06-17-reverse-tunnels` | 107 | 2026-06-17T07:52:49Z → 2026-09-28T03:27:49Z |
+| `2026-06-19-rmn-re-linktable` | 1 | 2026-06-19T00:11:00Z |
 | `2026-06-20-powerbi-fronting` | 180 | 2026-06-20T00:00:00Z → 2026-06-22T01:02:24Z |
 | `2026-07-07-exfil-endpoint-pivot` | 5 | 2026-07-07T00:00:00Z |
 | `2026-07-07-july7-gem-forensics` | 57 | 2026-07-07T07:25:48.110000Z → 2026-07-07T07:25:52.741000Z |
@@ -132,15 +134,15 @@ excluded from the range; collections with only sentinels are marked.
 | `2026-09-04-thecolony-ai` | 55 | 2026-09-04T16:49:54.219294Z → 2026-09-28T03:18:02.950137Z |
 | `2026-09-05-fieldnotes-gem` | 7 | 2026-09-05T00:00:00Z |
 | `2026-09-05-termina-digital` | 223 | 2026-09-05T23:38:56Z → 2026-09-28T00:00:00Z |
+| `2026-09-09-pixelleak-glow-labs` | 10 | 2026-07-01T00:00:00Z → 2026-09-09T00:00:00Z |
 | `2026-09-12-jsonhero-docs-archive` | 6 | 2026-09-12T07:50:05Z → 2026-09-28T00:00:00Z |
 | `2026-09-27-gem-negative-lanes` | 20 | 2026-09-27T00:00:00Z → 2026-09-28T00:00:00Z |
 | `2026-09-27-gem-public-intel` | 11 | 2026-09-27T00:00:00Z |
-| `2026-06-19-rmn-re-linktable` | 1 | 2026-06-19T00:11:00Z |
-| `2016-12-28-rmn-re` | 764 | 2016-12-28T17:39:00Z → 2026-09-25T12:28:00Z |
 | `2026-09-27-swarmtraces-verification` | 5 | 2026-09-27T00:00:00Z |
 | `2026-09-28-ace-research-ct` | 12 | 2026-09-28T00:00:00Z |
 | `2026-09-28-agent-surfaces` | 87 | 2026-09-28T03:22:38.550322Z → 2026-09-28T03:43:13.695372Z |
 | `2026-09-28-agents-relay-sweep` | 10 | 2026-09-28T20:02:52Z |
+| `2026-09-28-api-usa-fbi-ucr` | 1 | 2026-09-28T10:54:21Z |
 | `2026-09-28-counter-channel` | 4 | 2026-09-28T03:25:00Z → 2026-09-28T03:35:00Z |
 | `2026-09-28-dockerhub-trojan-images` | 42,318 | 2026-09-28T23:35:53.629030Z → 2026-09-28T23:57:14.806718Z |
 | `2026-09-28-jsonhero-docs` | 12 | 2026-09-28T00:00:00Z |
@@ -158,10 +160,10 @@ excluded from the range; collections with only sentinels are marked.
 | `2026-09-28-worldpoverty-task-family` | 22 | 2026-09-28T10:52:00Z |
 | `2026-09-28-yourls-resweep` | 31 | 2026-09-28T20:07:12Z |
 | `2026-09-29-forged-flag-hunt` | 8 | all 1970-sentinel (no recoverable event time) |
-| `2026-09-29-gem-temporal-pivot` | 27 | all 1970-sentinel (no recoverable event time) |
+| `2026-09-29-gem-temporal-pivot` | 3,027 | all 1970-sentinel (no recoverable event time) |
 | `2026-09-29-separate-eval-test` | 9 | all 1970-sentinel (no recoverable event time) |
 
-*69 collections · 123,272 event rows*
+*71 collections · 127,341 event rows*
 
 ### Aggregate collections (4)
 
@@ -236,9 +238,10 @@ No other top-level keys are allowed.
 - **Raw layer.** Every non-event artifact (upstream captures,
   transform inputs, manifests) is kept under each collection's `raw/`
   with its upstream-native name.
-- **`SHA256SUMS` per collection**, verified with `sha256sum -c`; all
-  68 collection manifests were re-verified clean in the 2026-09-29 data
-  verification sweep.
+- **`SHA256SUMS` per collection**; `make verify-checksums` audits root and
+  nested manifests, reporting checkout-only CRLF drift separately from real
+  missing or mismatched bytes. The 2026-09-30 local audit found no missing
+  or content-mismatched entries after the documented HTML reconciliation.
 - **`PROVENANCE.md` per collection**: source, retrieval method and
   date, the fingerprint identity string, and caveats.
 - **Read-only posture**: no submissions, no accounts, no logins.
@@ -278,10 +281,11 @@ Limitations:
 
 ## Loading with 🤗 datasets
 
-Verified 2026-09-29 with `datasets` 5.0.1: the full corpus (142,657 rows,
-91 files) loads cleanly. The collections use 33 distinct top-level key sets,
-so schema inference needs an explicit union `features`; `@timestamp` stays
-a string (zone-offset ISO-8601 values fail pyarrow timestamp casting).
+A 2026-09-29 check with `datasets` 5.0.1 loaded an earlier 142,657-row,
+91-file snapshot. The current schema validator counts 146,726 rows in 93
+event files; this exact snapshot has not been rechecked with HF datasets.
+Schema inference needs explicit union `features`; `@timestamp` stays a
+string (zone-offset ISO-8601 values fail pyarrow timestamp casting).
 
 ```python
 import glob
@@ -311,7 +315,7 @@ features = Features({
 })
 files = sorted(f for f in glob.glob("data/**/*.jsonl", recursive=True)
                if "raw" not in f.split("/"))
-ds = load_dataset("json", data_files=files, features=features)["train"]  # 142,657 rows
+ds = load_dataset("json", data_files=files, features=features)["train"]  # 146,726 rows in the current corpus; not HF-reverified
 # streaming (no local cache needed):
 # ds = load_dataset("json", data_files=files, features=features, streaming=True)["train"]
 ```

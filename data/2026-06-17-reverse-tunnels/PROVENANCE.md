@@ -196,3 +196,14 @@ Per operator direction, the `.pyc` is back as a curated run artifact at
 in the repo `.gitignore`. This is a **recompilation** of the verified-identical
 original source, not the deleted original bytes (header mtime differs;
 code/constants structurally identical — verified by recursive comparison).
+
+## Orphan run-log reconciliation (preservation-first)
+
+The following original logs were relocated byte-for-byte from `data/2016-05-06-reverse-tunnels/` into this collection. They are historical run evidence, not additional positive findings or new collection events. Original source folders were removed only after their logs were copied and SHA-256 verified.
+
+- `data/2016-05-06-reverse-tunnels/raw/progress.log` -> `raw/run-logs/2016-05-06-reverse-tunnels-progress.log`; SHA-256 `1cea03dcb2cc7c511cd1ab2b63f6d83996d99968a9ad38eb54530b8bb15554f7`.
+The historical `raw/manifest.sha256` omitted a missing `progress.log` entry before this recovery; that manifest was not rewritten. The recovered log is separately named and checksummed in `SHA256SUMS`.
+
+### Historical checksum conflicts (unresolved)
+
+Bytewise verification of `SHA256SUMS` currently reports 19 mismatched historical entries in this collection; 18 match their recorded hashes only after CRLF-to-LF conversion. This is consistent with a line-ending change, but original evidence and recorded historical hashes were not rewritten. The newly recovered log entries were independently verified byte-for-byte against their source SHA-256 and match the new manifest lines. To enumerate all mismatches locally, run `sha256sum -c SHA256SUMS` from this collection directory. The remaining mismatch is `PROVENANCE.md` (provenance appended during this repair), whose historical hash necessarily predates this note.

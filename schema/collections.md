@@ -1,8 +1,9 @@
 # Collection naming schema — silent-locus
 
 Names for datasets under `data/`, and therefore for Elastic indexes
-(`event.dataset` == collection slug == index name, per
-`schema/record.schema.json`). Machine-readable registry:
+(normally `event.dataset` == collection slug == index name, with
+registered `dataset_override`, virtual mappings, and `-rollup` indices
+as explicit exceptions, per `schema/record.schema.json`). Machine-readable registry:
 [`collections.json`](collections.json). Validation:
 `scripts/validate_collections.py` (or `make validate-collections`).
 
@@ -13,8 +14,7 @@ YYYY-MM-DD-<subject>[-<activity>]
 ```
 
 Every collection dir is prefixed with the date of the **first (earliest)
-event** it contains. Because `event.dataset` == collection slug == index
-name, records and indices carry the dated slug too
+event** it contains. Records and indices usually carry the dated slug too
 (`2026-09-28-commonlog-scan`). Lowercase, hyphens only — no underscores,
 no dots. ES index names may start with a digit.
 
@@ -95,9 +95,20 @@ data/YYYY-MM-DD-<slug>/
   generic via `scripts/push_to_local_es.py` auto-discovery.
 
 Loading is generic: `scripts/push_to_local_es.py` discovers
-`events.jsonl`/`rollup.jsonl` under `data/` and loads each into the index
-named by its records' `event.dataset`. The manifest's `staged` list is
-derived, not maintained by hand.
+`events.jsonl`/`rollup.jsonl` in **registered physical collections** under
+`data/` and `data/aggregates/` and loads each into the index named by its
+records' `event.dataset`. Each complete file must have exactly one dataset;
+malformed or mixed files stop ingest before any ES request. Unregistered
+directories, raw files and virtual source mappings are not auto-loaded.
+`events.jsonl` uses the registry `index` (including `dataset_override`
+cases); `rollup.jsonl` uses `<collection>-rollup`. Reference and support
+statuses describe the evidence role, **not** an ingest exclusion: every
+registered physical collection with event files has a non-null index.
+The manifest's staged list is derived, not maintained by hand; `via_script`
+must remain empty. Historical builders only produce artifacts, never run
+as part of default ingest. Invoke the loader explicitly with `--all`,
+`--index <dataset>`, or offline `--dry-run`; `--reset` deletes remote
+indices and should be used only deliberately.
 
 Decision rule for a pre-schema file: if a script consumes it as input, or
 it is an upstream capture, it is raw layer → `raw/`. Otherwise it is a
@@ -129,7 +140,7 @@ primary source) live under `data/aggregates/<name>/` with registry
 |---|---|---|
 | `canonical` | Primary corpus collection, has (or will have) an index | required |
 | `support` | Rollups, graph projections, link tables, source tables | required |
-| `reference` | Recon captures/reference material, no index planned | recommended |
+| `reference` | Recon captures/reference material; staged event files are indexed when present | recommended |
 | `pending-relocation` | Owned by another project (the RubyGems go-import collection); tracked here until it moves | n/a |
 
 ## Rules validated by `scripts/validate_collections.py`
@@ -144,9 +155,11 @@ primary source) live under `data/aggregates/<name>/` with registry
    `dataset_override`). Records with no `event.dataset` yet are reported
    as "pending backfill", not failures. Files under `raw/` are exempt
    (raw layer).
-6. Every collection with event-layer records is loadable: registered in
-   `scripts/local_es_manifest.json` or explicitly `index: null`
-   (support/aggregate collections are exempt from this warning).
+6. Every physical collection with staged event-layer records, including
+   reference/support/aggregate, has a non-null registry index and is
+   discovered for ingest. No `via_script` entry may overlap staged data;
+   builder-script ingest is unsupported. A null index is appropriate only
+   for collections without staged event files or virtual-only mappings.
 7. Aggregate collections live under `data/aggregates/<name>/` and their
    registry `path` field matches.
 

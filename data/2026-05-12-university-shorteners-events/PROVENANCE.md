@@ -164,3 +164,43 @@ recorded as a clean negative, not retried further.
 
 Note on the raw/-missing exception above: this collection now holds its own
 `raw/wayback/` slice; the exception stands for live-capture evidence only.
+
+## Fingerprint completion
+
+The 69 rows appended after the original 1,522 (Common Crawl and Wayback
+slices) lacked the required top-level `fingerprint`. Added only that field to
+rows 1,523–1,591, as lowercase SHA-256 hex of the UTF-8 `labels.event_id`.
+Verified that the first 1,522 fingerprints already equalled this same digest,
+all 1,591 event IDs are unique, and all other row fields and row order remain
+unchanged. The collection contains 1,591 events.
+
+## Empty `best_day` normalization
+
+The 17 appended rows 1,567–1,579 and 1,588–1,591 carried empty objects
+in `labels.best_day`. Per the existing `temp/backfill_w4.py` rule for empty
+nested labels, each empty object is represented by the JSON string `"{}"`.
+Only this label value changed in those 17 rows; all other fields and row
+order were preserved. This makes the empty-object meaning lossless while
+conforming to the flat-label schema.
+
+`scripts/build_shortener_events.py` is now an **offline partial reconstruction
+only**: it reads the original September 28 captures from the sibling
+collections' `raw/` directories and emits 1,520 fingerprinted,
+schema-valid rows in an offline check, but cannot reproduce 71 Common Crawl
+and Wayback rows (including two Wayback rows in the original 1,522). It
+requires `--output` pointing to a new, distinct path and refuses to overwrite
+an existing output or this canonical `events.jsonl`; it does not rewrite this
+provenance or SHA256SUMS.
+
+## Historical HTML hash reconciliation 2026-09-30
+
+The Wayback HTML capture at
+`raw/wayback/5vtSk2RG2f/20260512030653.html` did not match its historical
+nested-manifest SHA-256
+`1ae6a9108fa2ab2563bcc370baf2eea69f31544564b4160f6faffed0c9b82422`,
+even after CRLF-to-LF normalization. Its current raw-byte SHA-256 is
+`4d54469380dcdf8df98f660078d81fe10a35ef559db7770c75eb47dbbfc9f58b`.
+The operator accepted the current bytes as canonical and authorized updating
+the nested manifest. The file itself was not changed. The old hash remains
+here for audit; this does not explain the difference or claim a matching
+historical copy.
