@@ -6,7 +6,7 @@ from collections import defaultdict, Counter
 from urllib.parse import urlparse
 
 BASE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-CW = BASE + "/data/collusion-wiki"
+CW = BASE + "/data/2026-05-17-collusion-wiki"
 
 URL_RE = re.compile(r"https?://[^\s<>\"'()\[\]{}]+", re.I)
 EMAIL_RE = re.compile(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}")
@@ -150,7 +150,7 @@ json.dump({"n": len(short_entries),
            "target_hosts": short_target_hosts.most_common(25),
            "keyword_grammars": dict(short_kw_grammars),
            "entries": short_entries},
-          open(BASE + "/data/wiki_shortener_detail.json", "w"), indent=2)
+          open(BASE + "/data/aggregates/2026-09-29-overlap-analysis/raw/wiki_shortener_detail.json", "w"), indent=2)
 
 # links.jsonl host rollup
 link_hosts = Counter()
@@ -175,7 +175,7 @@ print(f"shortener entries parsed: {len(short_entries)}, link hosts: {len(link_ho
 gem_domains = defaultdict(set)   # domain -> set of gem names
 gem_urls = set()
 try:
-    with open(BASE + "/data/gem-iocs-2026-09-27.jsonl") as f:
+    with open(BASE + "/data/2025-03-04-rubygems-goimport-campaign/raw/gem-iocs-2026-09-27.jsonl") as f:
         for line in f:
             line = line.strip()
             if not line:
@@ -194,7 +194,7 @@ except Exception as e:
     print("gem iocs note:", e, file=sys.stderr)
 
 try:
-    with open(BASE + "/data/gem-graph-nodes.jsonl") as f:
+    with open(BASE + "/data/2025-03-04-rubygems-goimport-campaign/raw/gem-graph-nodes.jsonl") as f:
         for line in f:
             line = line.strip()
             if not line:
@@ -212,7 +212,7 @@ except Exception as e:
 # 79-bridge gems' homepage chains
 bridge = {}
 try:
-    bridge = json.load(open(BASE + "/data/wiki_gem_bridge.json"))
+    bridge = json.load(open(BASE + "/data/aggregates/2026-09-29-overlap-analysis/raw/wiki_gem_bridge.json"))
 except Exception as e:
     print("bridge note:", e, file=sys.stderr)
 bridge_hosts = Counter()
@@ -300,7 +300,7 @@ for (t, v), aw in ioc_agents.items():
 
 pivots.sort(key=lambda p: -p["rank_score"])
 
-with open(BASE + "/data/wiki_ioc_pivots.jsonl", "w") as f:
+with open(BASE + "/data/aggregates/2026-09-29-overlap-analysis/raw/wiki_ioc_pivots.jsonl", "w") as f:
     for p in pivots:
         f.write(json.dumps(p) + "\n")
 
@@ -315,7 +315,7 @@ summary = {
     "bridge_top_hosts": [{"host": h, "count": c} for h, c in bridge_hosts.most_common(20)],
     "agent_wiki_span": {a: sorted(w) for a, w in agent_wikis.items() if len(w) > 1},
 }
-json.dump(summary, open(BASE + "/data/wiki_ioc_pivot_summary.json", "w"), indent=2)
+json.dump(summary, open(BASE + "/data/aggregates/2026-09-29-overlap-analysis/raw/wiki_ioc_pivot_summary.json", "w"), indent=2)
 print(json.dumps({k: (v if not isinstance(v, list) else len(v)) for k, v in summary.items()}, indent=1))
 print("TOP 15 PIVOTS:")
 for p in pivots[:15]:

@@ -20,8 +20,8 @@ UA = "rubygems-goimport-research/1.0 (read-only inventory sweep; no install)"
 PACE = 1.0
 
 PROJ = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-NAMES = json.load(open(os.path.join(PROJ, "data/osv/ghsa_gemstuffer_classified.json")))["gs_not_in_corpus"]
-OUT = os.path.join(PROJ, "data/osv/diffend_sweep_results.jsonl")
+NAMES = json.load(open(os.path.join(PROJ, "data/2026-05-11-osv/ghsa_gemstuffer_classified.json")))["gs_not_in_corpus"]
+OUT = os.path.join(PROJ, "data/2026-05-11-osv/osv-diffend-sweep-results.jsonl")
 
 MECH_PATTERNS = [
     # (label, regex) — go-import VCS value extracted separately

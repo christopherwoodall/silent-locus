@@ -28,6 +28,7 @@ import hashlib
 import io
 import json
 import os
+import subprocess
 import sys
 import time
 import urllib.parse
@@ -53,12 +54,32 @@ def log(msg):
 
 
 def fetch(url, headers=None, timeout=60):
-    h = dict(UA)
+    # 2026-09-29: Python's http.client is systematically cut off by the
+    # egress proxy on index.commoncrawl.org (IncompleteRead at ~16KB /
+    # RemoteDisconnected on every attempt, all header combos), while curl
+    # succeeds reliably. Use curl as the transport. Same signature,
+    # same retry/backoff contract, same polite pacing (pacing lives in
+    # the caller, not here).
+    cmd = ["curl", "-sS", "--max-time", str(timeout),
+           "-A", UA["User-Agent"], url]
     if headers:
-        h.update(headers)
-    req = urllib.request.Request(url, headers=h)
-    with urllib.request.urlopen(req, timeout=timeout) as r:
-        return r.read()
+        for k, v in headers.items():
+            cmd += ["-H", "%s: %s" % (k, v)]
+    last = None
+    for attempt in range(4):
+        try:
+            out = subprocess.run(cmd, capture_output=True, timeout=timeout + 10)
+            if out.returncode == 0:
+                return out.stdout
+            last = RuntimeError("curl rc=%d: %s"
+                                % (out.returncode,
+                                   out.stderr.decode("utf-8", "replace")[:160]))
+        except Exception as e:
+            last = e
+        log("fetch attempt %d/4 failed for %s: %s"
+            % (attempt + 1, url.split("?")[0][-70:], last))
+        time.sleep(2.0 * (attempt + 1))
+    raise last
 
 
 def fetch_range(url, offset, length, timeout=120):

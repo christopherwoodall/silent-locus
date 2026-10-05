@@ -2,13 +2,13 @@
 """Lane A: read-only proxy capture of ludism.org wikis and ApchemWiki (tmcleod.org).
 
 Read-only recon via public reader proxies ONLY. Gentle pacing (~1 req/5s).
-No auth, no submissions, no bypass attempts. Results land in data/ludism-wikis/raw/.
+No auth, no submissions, no bypass attempts. Results land in data/2026-09-28-ludism-wikis/raw/.
 """
 import json, os, time, urllib.request, urllib.parse
 from datetime import datetime, timezone
 
 BASE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-DDIR = BASE + "/data/ludism-wikis"
+DDIR = BASE + "/data/2026-09-28-ludism-wikis"
 RAW = DDIR + "/raw"
 os.makedirs(RAW, exist_ok=True)
 LOG = DDIR + "/progress.log"

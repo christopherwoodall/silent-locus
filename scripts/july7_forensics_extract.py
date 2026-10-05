@@ -1,16 +1,16 @@
 """July-7 forensics payload extraction (by inspection only, never executed).
 
-Reads raw Diffend captures from data/july7-gem-forensics/raw/, strips HTML tags,
+Reads raw Diffend captures from data/2026-07-07-july7-gem-forensics/raw/, strips HTML tags,
 unescapes entities, and extracts full text lines containing web-mechanism
-markers. Output: data/july7-gem-forensics/payload-reconstructions.jsonl
+markers. Output: data/2026-07-07-july7-gem-forensics/july7-gem-forensics-payload-reconstructions.jsonl
 (one record per gem/version capture with full payload strings).
 """
 import os, re, json, html as htmlmod
 
 PROJ = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-RAW = os.path.join(PROJ, "data", "july7-gem-forensics", "raw")
-OUT = os.path.join(PROJ, "data", "july7-gem-forensics",
-                   "payload-reconstructions.jsonl")
+RAW = os.path.join(PROJ, "data", "2026-07-07-july7-gem-forensics", "raw")
+OUT = os.path.join(PROJ, "data", "2026-07-07-july7-gem-forensics",
+                   "july7-gem-forensics-payload-reconstructions.jsonl")
 
 MARKERS = [
     ("xss-script", re.compile(r"<script", re.I)),

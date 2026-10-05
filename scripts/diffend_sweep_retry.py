@@ -3,7 +3,7 @@
 
 Lane 20 (scripts/diffend_sweep.py) left 672 names UNCONFIRMED: Diffend closed
 the connection before serving the gem page ("Remote end closed connection
-without response"). Those rows sit in data/osv/diffend_sweep_results.jsonl
+without response"). Those rows sit in data/2026-05-11-osv/osv-diffend-sweep-results.jsonl
 with a STRING http_status (vs int for resolved rows).
 
 KEY FIX vs the original: Python urllib's TLS handshake is now being dropped
@@ -30,9 +30,9 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import diffend_sweep as lane20
 
 PROJ = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-ORIG = os.path.join(PROJ, "data/osv/diffend_sweep_results.jsonl")
-RETRY_OUT = os.path.join(PROJ, "data/osv/diffend_sweep_results_retry.jsonl")
-LOG = os.path.join(PROJ, "data/osv/diffend_retry.log")
+ORIG = os.path.join(PROJ, "data/2026-05-11-osv/osv-diffend-sweep-results.jsonl")
+RETRY_OUT = os.path.join(PROJ, "data/2026-05-11-osv/osv-diffend-sweep-results-retry.jsonl")
+LOG = os.path.join(PROJ, "data/2026-05-11-osv/diffend_retry.log")
 
 DIFFEND = "https://my.diffend.io"
 UA = "rubygems-goimport-research/1.0 (read-only inventory sweep; no install)"

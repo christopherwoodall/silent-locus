@@ -5,7 +5,7 @@ For each name: GET https://my.diffend.io/gems/<name>, parse all versions +
 publish timestamps, flag any version dated OUTSIDE 2026-05-05..2026-07-07
 (pre-wave, inter-wave gaps, post-July-7). Read-only, ~1 req/s, checkpointed.
 
-Out: data/gem-temporal-pivot/diffend_temporal_sweep.jsonl
+Out: data/2026-09-29-gem-temporal-pivot/gem-temporal-pivot-diffend-temporal-sweep.jsonl
 """
 import csv
 import json
@@ -24,9 +24,9 @@ LO = datetime(2026, 5, 5)
 HI = datetime(2026, 7, 7, 23, 59, 59)
 
 PROJ = os.path.expanduser("~/workspace/silent-locus")
-CSV = os.path.join(PROJ, "data/gemstuffer-jfrog-2026-09-27.csv")
-OUTDIR = os.path.join(PROJ, "data/gem-temporal-pivot")
-OUT = os.path.join(OUTDIR, "diffend_temporal_sweep.jsonl")
+CSV = os.path.join(PROJ, "data/2025-03-04-rubygems-goimport-campaign/raw/gemstuffer-jfrog-2026-09-27.csv")
+OUTDIR = os.path.join(PROJ, "data/2026-09-29-gem-temporal-pivot")
+OUT = os.path.join(OUTDIR, "gem-temporal-pivot-diffend-temporal-sweep.jsonl")
 os.makedirs(OUTDIR, exist_ok=True)
 
 VER_PAT = re.compile(

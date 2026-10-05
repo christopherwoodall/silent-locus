@@ -3,7 +3,7 @@
 import re, json, hashlib, pathlib
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
-BASE = ROOT / "data" / "paste-archive" / "bodies"
+BASE = ROOT / "data" / "2026-05-27-paste-archive" / "bodies"
 
 PATTERNS = {
     "zz": re.compile(r"(?<![a-z])zz(?![a-z])"),
@@ -68,12 +68,12 @@ for host in ("k4be.pl", "anna.fyi"):
         results.append(res)
 
 out = {
-    "dataset": "paste-archive",
+    "dataset": "2026-05-27-paste-archive",
     "bodies_swept": len(results),
     "pattern_battery": sorted(PATTERNS.keys()),
     "results": results,
 }
-path = ROOT / "data" / "paste-archive" / "sweep_bodies.json"
+path = ROOT / "data" / "2026-05-27-paste-archive" / "sweep_bodies.json"
 path.write_text(json.dumps(out, indent=1))
 print(f"swept {len(results)} bodies -> {path}")
 # summary rollup

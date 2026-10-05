@@ -9,9 +9,9 @@ import json
 import os
 
 PROJ = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-ORIG = os.path.join(PROJ, "data/osv/diffend_sweep_results.jsonl")
-RETRY = os.path.join(PROJ, "data/osv/diffend_sweep_results_retry.jsonl")
-FINAL = os.path.join(PROJ, "data/osv/diffend_sweep_results_final.jsonl")
+ORIG = os.path.join(PROJ, "data/2026-05-11-osv/osv-diffend-sweep-results.jsonl")
+RETRY = os.path.join(PROJ, "data/2026-05-11-osv/osv-diffend-sweep-results-retry.jsonl")
+FINAL = os.path.join(PROJ, "data/2026-05-11-osv/diffend_sweep_results_final.jsonl")
 
 retry = {}
 for line in open(RETRY):

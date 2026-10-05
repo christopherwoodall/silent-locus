@@ -4,14 +4,14 @@
 Workstream A (2026-09-28): batches 1 and 2 are the same dataset family
 (shortener public-stats pages, canonical shared schema). Both JSONL files
 are ingested into index `university-shorteners`; per-batch provenance is
-preserved in each doc's `event.dataset` (batch1 -> "university-shorteners",
-batch2 -> "university-shorteners-batch2",
-batch3 -> "university-shorteners-batch3") and in `labels.shortener.*`.
+preserved in each doc's `event.dataset` (batch1 -> "2026-05-12-university-shorteners",
+batch2 -> "2026-09-28-university-shorteners-batch2",
+batch3 -> "2026-09-28-university-shorteners-batch3") and in `labels.shortener.*`.
 
 Sources (untouched on disk):
-  data/university-shorteners/university-shorteners.jsonl                (11 docs)
-  data/university-shorteners-batch2/university-shorteners-batch2.jsonl   (1 doc)
-  data/university-shorteners-batch3/university-shorteners-batch3.jsonl   (3 docs)
+  data/2026-09-28-university-shorteners/events.jsonl                (12 docs)
+  data/2026-09-28-university-shorteners-batch2/events.jsonl   (1 doc)
+  data/2026-09-28-university-shorteners-batch3/events.jsonl   (3 docs)
 
 Idempotent: deterministic _id "yourls:<instance>:<slug>", re-runs overwrite.
 Index `university-shorteners-batch2` is retired after a verified consolidate
@@ -38,12 +38,12 @@ ES = os.environ.get("SWARMTRACES_ES_URL", "https://agent-apocalypse-f1f7ba.es.us
 HOSTS = ["agent-apocalypse-f1f7ba.es.us-east-1.aws.elastic.cloud"]
 CRED = "custom.elastic-cloud"
 BASE = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
-INDEX = "university-shorteners"
-OLD_INDEX = "university-shorteners-batch2"
+INDEX = "2026-05-12-university-shorteners"
+OLD_INDEX = "2026-09-28-university-shorteners-batch2"
 JSONLS = [
-    BASE + "/data/university-shorteners/university-shorteners.jsonl",
-    BASE + "/data/university-shorteners-batch2/university-shorteners-batch2.jsonl",
-    BASE + "/data/university-shorteners-batch3/university-shorteners-batch3.jsonl",
+    BASE + "/data/2026-09-28-university-shorteners/events.jsonl",
+    BASE + "/data/2026-09-28-university-shorteners-batch2/events.jsonl",
+    BASE + "/data/2026-09-28-university-shorteners-batch3/events.jsonl",
 ]
 EXPECTED_FIELDS = set(json.load(open(BASE + "/notes/gems-es-mapping.json"))["mappings"]["properties"])
 
@@ -131,8 +131,8 @@ def verify():
     b = r["aggregations"]["datasets"]["buckets"]
     print("event.dataset.keyword buckets:", [(x["key"], x["doc_count"]) for x in b])
     got = {x["key"]: x["doc_count"] for x in b}
-    assert got == {"university-shorteners": 12, "university-shorteners-batch2": 1,
-                    "university-shorteners-batch3": 3}, got
+    assert got == {"2026-05-12-university-shorteners": 12, "2026-09-28-university-shorteners-batch2": 1,
+                    "2026-09-28-university-shorteners-batch3": 3}, got
     s = req("POST", "/%s/_search" % INDEX, {"size": 100, "_source": True})
     unexpected = set()
     for h in s["hits"]["hits"]:

@@ -52,7 +52,7 @@ def data_view_id():
             print("data view exists:", dv["id"])
             return dv["id"]
     dv = req("POST", "/api/data_views/data_view",
-             {"data_view": {"name": "collusion-wiki", "title": "collusion-wiki*",
+             {"data_view": {"name": "2026-05-17-collusion-wiki", "title": "collusion-wiki*",
                             "timeFieldName": "@timestamp"}})
     dv_id = dv.get("id") or dv.get("data_view", {}).get("id")
     print("created data view:", dv_id)

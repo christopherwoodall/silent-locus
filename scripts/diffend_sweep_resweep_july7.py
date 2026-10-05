@@ -18,7 +18,7 @@ Resumable: re-runs skip names already in the resweep output file. At the end
 the resweep rows are merged back into the main July-7 JSONL, replacing ONLY
 the 167 previously-unverified rows; verified rows are never touched.
 
-Output: data/july7-wave/diffend_sweep_resweep_july7.jsonl (+ progress.log).
+Output: data/2026-07-07-july7-wave/raw/diffend_sweep_resweep_july7.jsonl (+ progress.log).
 """
 import html
 import json
@@ -29,9 +29,9 @@ import sys
 import time
 
 PROJ = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-DATADIR = os.path.join(PROJ, "data", "july7-wave")
-MAIN = os.path.join(DATADIR, "diffend_sweep_results_july7.jsonl")
-RESWEEP = os.path.join(DATADIR, "diffend_sweep_resweep_july7.jsonl")
+DATADIR = os.path.join(PROJ, "data", "2026-07-07-july7-wave")
+MAIN = os.path.join(DATADIR, "raw/diffend_sweep_results_july7.jsonl")
+RESWEEP = os.path.join(DATADIR, "raw/diffend_sweep_resweep_july7.jsonl")
 LOG = os.path.join(DATADIR, "progress.log")
 
 DIFFEND = "https://my.diffend.io"
@@ -324,7 +324,7 @@ def merge(found, absent, unconfirmed):
     assert names == names2, "name set changed during merge"
     assert n2 == len(kept) == 264, "row count mismatch: %d" % n2
     os.replace(tmp, MAIN)
-    log("merge: replaced %d/264 rows in diffend_sweep_results_july7.jsonl; "
+    log("merge: replaced %d/264 rows in raw/diffend_sweep_results_july7.jsonl; "
         "row count %d validated" % (replaced, n2))
 
 

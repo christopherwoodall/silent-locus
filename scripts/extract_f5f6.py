@@ -3,14 +3,14 @@
 SwarmTraces redacted dataset, plus catalog the 64H-series strings.
 
 Reads:  data/raw/redacted.jsonl.gz
-Writes: data/matches-f5f6.jsonl
+Writes: data/aggregates/2026-09-29-overlap-analysis/events.jsonl
 (never executes payload content; inspection only)
 """
 import gzip, json, re, sys, os
 
 BASE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SRC = os.path.join(BASE, "data/raw/redacted.jsonl.gz")
-OUT = os.path.join(BASE, "data/matches-f5f6.jsonl")
+OUT = os.path.join(BASE, "data/aggregates/2026-09-29-overlap-analysis/events.jsonl")
 
 CTRL = ["G236", "OTS92", "LIBR11", "Future9180", "SC4", "BE90", "MARB051"]
 CTRL_RE = {n: re.compile(r"(?<![A-Za-z0-9])" + re.escape(n) + r"(?![A-Za-z0-9])") for n in CTRL}
