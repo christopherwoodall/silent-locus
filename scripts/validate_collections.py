@@ -7,8 +7,8 @@ schema/collections.json + schema/collections.md. Stdlib only, disk only (no ES).
 Violations (exit 1): unregistered data/ entry, bad collection name, loose
 JSONL not in the registry, records whose event.dataset matches neither the
 collection name nor its dataset_override, collections with records that no
-ingest path can load (auto-discovered events.jsonl/rollup.jsonl or a
-manifest via_script entry), non-event files/dirs at a collection root
+ingest path can load (registered staged events.jsonl/rollup.jsonl),
+via_script/staged overlap, non-event files/dirs at a collection root
 (layout: events.jsonl + PROVENANCE.md + SHA256SUMS + raw/ at the root, plus
 co-located single-collection build scripts per the 2026-09-29 convention),
 top-level `file` pointers that do not resolve to a real on-disk path (see
@@ -28,6 +28,7 @@ import os
 import re
 import sys
 from collections import Counter
+from push_to_local_es import discover_staged as loader_discover_staged
 
 REPO = __file__.rsplit("/scripts/", 1)[0]
 DATA = os.path.join(REPO, "data")
@@ -158,48 +159,22 @@ def check_file_pointers():
     return checked
 
 
-def discover_staged():
-    """Mirror of push_to_local_es.discover_staged: canonical layout event
-    files -> index (records' event.dataset). Kept standalone (stdlib)."""
-    found = {}
-    for root in (DATA, os.path.join(DATA, "aggregates")):
-        if not os.path.isdir(root):
-            continue
-        for entry in sorted(os.listdir(root)):
-            p = os.path.join(root, entry)
-            if not os.path.isdir(p) or (root == DATA and entry in
-                                        {"raw", "indexes", "aggregates"}):
-                continue
-            for fn in ("events.jsonl", "rollup.jsonl"):
-                fp = os.path.join(p, fn)
-                if not os.path.exists(fp):
-                    continue
-                idx = None
-                with open(fp, encoding="utf-8", errors="replace") as fh:
-                    for line in fh:
-                        line = line.strip()
-                        if not line:
-                            continue
-                        try:
-                            idx = (json.loads(line).get("event") or {}
-                                   ).get("dataset")
-                        except ValueError:
-                            pass
-                        break
-                if idx:
-                    found.setdefault(idx, []).append(fp)
-    return found
-
-
 def main():
     reg = json.load(open(REGISTRY))
     man = json.load(open(MANIFEST))
     collections = {c["name"]: c for c in reg["collections"]}
     reserved = set(reg["reserved_dirs"])
     loose = {f["file"] for f in reg["loose_files"]}
-    staged_idx = discover_staged()
+    try:
+        staged_idx = loader_discover_staged(reg)
+    except (ValueError, OSError) as exc:
+        v(f"staged ingest discovery failed: {exc}")
+        staged_idx = {}
     manifest_idx = {e["index"] for e in man.get("via_script", [])}
-    loadable = manifest_idx | set(staged_idx)
+    for idx in sorted(manifest_idx & set(staged_idx)):
+        v(f"via_script/staged overlap: {idx}")
+    if manifest_idx:
+        v("via_script is unsupported: stage event-layer files instead")
 
     # entries to check: data/<name> plus data/aggregates/<name>
     roots = [(DATA, "")]
@@ -269,31 +244,20 @@ def main():
             if ds_all.get("<none>"):
                 w(f"{entry}: {ds_all['<none>']} sampled records lack "
                   f"event.dataset (pending schema backfill)")
-            # loadable? (support and aggregate collections are not
-            # expected to load; raw-only dirs hold no event records)
-            all_files = glob.glob(os.path.join(p, "**", "*.jsonl"),
-                                  recursive=True)
-            if all_files and not c.get("virtual"):
+            # Every physical collection with staged events must be indexed,
+            # including reference, support and aggregate collections.
+            event_files = [os.path.join(p, fn) for fn in EVENT_FILES
+                           if os.path.isfile(os.path.join(p, fn))]
+            if event_files and not c.get("virtual"):
                 idx = c.get("index")
-                if idx and idx not in loadable:
-                    v(f"{entry}: has records and index {idx!r} but it is "
-                      f"neither discovered (events.jsonl) nor via_script")
-                if not idx and files and c.get("status") not in (
-                        "support",) and c.get("class") != "aggregate":
-                    w(f"{entry}: has JSONL records but registry index is null "
-                      f"(nothing loads it)")
+                if not idx:
+                    v(f"{entry}: staged event records require non-null registry index")
+                for fp in event_files:
+                    rel = os.path.relpath(fp, REPO)
+                    if not any(rel in paths for paths in staged_idx.values()):
+                        v(f"{entry}: {os.path.basename(fp)} is not discovered for ingest")
 
     # --- pass 2: registry/manifest consistency -----------------------------
-    for c in reg["collections"]:
-        idx = c.get("index")
-        if idx and not c.get("virtual") and c.get("status") in (
-                "canonical", "support") and idx not in loadable \
-                and os.path.isdir(cpath(c)):
-            files = glob.glob(os.path.join(cpath(c), "**", "*.jsonl"),
-                              recursive=True)
-            if files:
-                v(f"registry: {c['name']} has records + index {idx!r} but it "
-                  f"is neither discovered nor via_script")
     for e in man.get("via_script", []):
         idx = e["index"]
         base = idx.split("-rollup")[0] if idx.endswith("-rollup") else idx

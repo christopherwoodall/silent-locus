@@ -71,3 +71,13 @@ See `progress.log` for the ordered fetch log with per-file timestamps.
   `rollup.in_breach_window_2026_07_10_13` (0 for all four). `event.dataset`
   suffixed `-rollup`.
 - `event.dataset = "2025-05-15-hf-tampering-check"`; `event.created` = build time.
+
+## Orphan run-log reconciliation (preservation-first)
+
+The following original logs were relocated byte-for-byte from `data/2025-05-14-hf-tampering-check/` into this collection. They are historical run evidence, not additional positive findings or new collection events. Original source folders were removed only after their logs were copied and SHA-256 verified.
+
+- `data/2025-05-14-hf-tampering-check/raw/progress.log` -> `raw/run-logs/2025-05-14-hf-tampering-check-progress.log`; SHA-256 `f59ef634cab2e04d2987f37fdba07e86a97e4f47ce01a67924dbb594a61e1d82`.
+
+### Historical checksum conflicts (unresolved)
+
+Bytewise verification of `SHA256SUMS` currently reports 4 mismatched historical entries in this collection; 4 match their recorded hashes only after CRLF-to-LF conversion. This is consistent with a line-ending change, but original evidence and recorded historical hashes were not rewritten. The newly recovered log entries were independently verified byte-for-byte against their source SHA-256 and match the new manifest lines. To enumerate all mismatches locally, run `sha256sum -c SHA256SUMS` from this collection directory. 

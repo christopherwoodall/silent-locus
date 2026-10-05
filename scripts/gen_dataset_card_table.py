@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """Generate the collection stats tables for the HF dataset card (README.md).
 
-Walks data/YYYY-MM-DD-*/events.jsonl (the 64 dated collections) and
+Walks data/YYYY-MM-DD-*/events.jsonl (the dated collections) and
 data/aggregates/*/events.jsonl, counts event rows, and computes the
 min/max @timestamp per collection (excluding the documented
 1970-01-01T00:00:00Z sentinel). Emits two markdown tables to stdout:
-the 64-collection table, then the aggregate-collections table.
+the event-collection table, then the aggregate-collection table.
 
 Stdlib only. Run from the silent-locus repo root:
 

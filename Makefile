@@ -17,7 +17,7 @@ export ES_URL ES_USER ES_PASS
 
 .PHONY: help doctor up down restart ps logs logs-es logs-kibana wait status kibana \
         ingest ingest-corpus ingest-swarmtraces ingest-dashboards \
-        dry-run validate validate-collections clean reset
+        dry-run validate validate-collections verify-checksums clean reset
 
 ##@ Stack
 
@@ -106,11 +106,14 @@ dry-run: ## Preview everything (corpus plan, dataset counts); writes nothing
 ##@ Validation
 
 validate: ## Record-schema + collection validation; exits non-zero on violations
-	-$(PY) scripts/validate_schema.py
+	$(PY) scripts/validate_schema.py
 	$(PY) scripts/validate_collections.py
 
 validate-collections: ## Collection naming/registration/right-directory checks only
 	$(PY) scripts/validate_collections.py
+
+verify-checksums: ## Audit all collection manifests; fail on missing or changed bytes
+	$(PY) -B scripts/verify_checksums.py
 
 ##@ Maintenance
 

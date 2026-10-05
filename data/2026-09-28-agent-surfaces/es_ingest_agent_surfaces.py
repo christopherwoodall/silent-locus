@@ -126,7 +126,7 @@ def req(method, path, body=None, raw=None):
 def build_docs():
     docs = {}
     for slug, t in TRIAGE.items():
-        sdir = PDIR + "/" + slug
+        sdir = os.path.join(PDIR, "raw", slug)
         pages = json.load(open(sdir + "/pages.json"))
         ok = [p for p in pages if p.get("ok")]
         total_bytes = sum(p.get("bytes", 0) for p in ok)
