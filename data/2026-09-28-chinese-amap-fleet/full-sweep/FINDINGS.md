@@ -68,7 +68,7 @@
 
 **Partial (real signal but follow-up open):** corpus re-mine (keyed `settings` pull + casino cluster still keyed-only), Kaspersky OpenTIP (22 — surface mapped, gated; markers queued for keyed run), Radar 16-hex tunnel lead (fleet-adjacent, detail bot-walled), urlscan tronzap lead (payload bytes unread).
 
-**Gap (no coverage — needs delegation):** Naver search (text-fetch anti-bot wall; browser-capable agent needed); Megalodon free-word search (live-browser); ntfy.sh poll (VM runtime blackhole — needs unblocked network); ZoomEye/Quake/ThreatBook (accounts); urlscan wildcard search (account); abuse.ch Auth-Key (free registration); PhishTank archive; Baidu session; `lhr.life` subdomain htmx search (not yet run); legible.sh primitives `slate`/`relay`/`gate`/`bigred` (zero coverage — next highest-EV lane); stash.legible.sh topic-name watch (actionable only when a lane recovers a topic name).
+**Gap (no coverage — needs delegation):** Naver search (text-fetch anti-bot wall; browser-capable agent needed); Megalodon free-word search (live-browser); ntfy.sh poll (VM runtime blackhole — needs unblocked network); ZoomEye/Quake/ThreatBook (accounts); urlscan wildcard search (account); abuse.ch Auth-Key (free registration); PhishTank archive; Baidu session; `lhr.life` subdomain htmx search (done 2026-10-05: 216 subdomains, 4 candidate-grade Jan-2026 bare-root tunnels); legible.sh primitives sweep (`slate`/`relay`/`gate`/`bigred` first — done 2026-10-05: all 9 clean negative; re-probe slate/mutex/quorum/relay when a topic name is recovered); devin-remote disappearance check (browser-capable delegation); `c7a1f824a6efc4.lhr.life` deployment watch; `domain:onlytron.com` pre-Sep-29 lookback (30-day urlscan anonymous window); corpus integration of 9 new candidates (AGEOUT1B + 4 uqtarget + 4 Jan-2026 tunnels); Common Crawl 9×504 retry (inconclusive, not negative).
 
 ### Trick: url scanners + intel DBs — CIRCL sights fleet tunnel shape (14/19)
 `full-sweep/raw/trick-url-scanners.md`
@@ -79,7 +79,7 @@
 
 ## Final tally (updated 2026-10-05 after lead-deepening + respawn lanes)
 
-**New species found: 0.** No undiscovered agent/swarm fleet surfaced on any of the 23 lanes, and all 4 lead-deepening follow-ups resolved WITHOUT a new species:
+**New species found: 0.** No undiscovered agent/swarm fleet surfaced on any of the 28 lanes, and all 4 lead-deepening follow-ups + the 5 post-sweep fan-out lanes resolved WITHOUT a new species:
 1. **ZeroSSL issuance (Lead A)** → INDEPENDENT actor's ACME-tooling experimentation, not fleet-adjacent.
 2. **urlscan tronzap-as-fetch-engine (Lead B)** → different eval/task family on the shared provider toolkit.
 3. **Dream Security Taiwan swarm (Lead C)** → cleanly separate operation.
@@ -217,8 +217,68 @@
 - Registration requirements (live official docs): Kaspersky Account (My Kaspersky works; or email+password; or Facebook login); accept Terms + Privacy; user menu → Request token (≤1 year, immutable); token in `x-api-key`. Quota 100 req/day per 2019 article (unverified).
 - Gaps: web-UI anonymous-lookup XHR unmapped (lazy chunks not served to this egress; hCaptcha unsolvable headless) — needs live-browser pass; registration decision pending. Markers queued for a future keyed run.
 
+## Post-sweep coordinator fan-out (2026-10-05, respawn lanes 24–28)
+
+Coverage is now **28 lanes** (23 from the sweep + 5 fan-out below). New species found: **0**. New leads recorded as leads, not tracks.
+
+### Lane 24 — legible.sh primitives sweep — CLEAN NEGATIVE (all 9)
+`full-sweep/raw/trick-legible-primitives.md`
+- **All 117 live topic probes (13 topics × 9 hosts) → HTTP 200, empty state**, zero 429/403/timeouts. Marker set (`uqscan`, `uqcors`, `pandalegacy`, `sub_poi_navi`, `uqtag`, `probe2`, `qjprobe`, `AGEDATA23`, `httpbun`) + fleet-flavored names (`87270ca9ac10`, `qingdaomuseum20261005b`, `7e7ff6dbbe9824`, `91ef9fc4c82a1b`) — all empty everywhere. Probes were GET-listing only; mutating verbs deliberately untouched.
+- Full route inventory audited against `src/server.mjs` @ main (ports: gate 4180, bigred 4181, trail 4182, slate 4183, relay 4184, mutex 4185, quorum 4186, meter 4187, tally 4189; index at `https://legible.sh/llms.txt`). One doc gap: quorum `GET /healthz → {ok:true}` exists in source but not the README table. Empty-topic semantics per primitive recorded in file.
+- Sourcegraph keyless literal searches (`t=literal` — default type silently returns 0 even for control strings) for all 9 `"<name>.legible.sh"`: **0 matches each**. Caveat: the legible-sh org itself is not in Sourcegraph's public index, so these are third-party-only zeros.
+- Caveats: empty now ≠ never used (retention: gate 7d, slate hosted keys 30d after last write, tally minute-series 24h, relay dead-letters 1k/topic); self-hosted instances invisible; reads appear to materialize empty topic state (probe footprints — future lanes note marker reuse).
+- Standing watch: re-probe **slate/mutex/quorum/relay** whenever any lane recovers a topic name from prompts/skills/telemetry.
+
+### Lane 25 — htmx `lhr.life` subdomain sweep — 141 new names, 4 candidate-grade
+`full-sweep/raw/htmx-sublife.md` (34 keyless curl calls, ≥13s pacing, 0 hard stops)
+- 243 reports, **216 distinct subdomains**; 75/78 known fleet names present (3 drop off the index tail). **141 new names**: 137 = pre-2026 localhost.run background noise; **4 are January-2026 bare-root tunnels** (`30b7f1be8684bc`, `cbfbac296bddb2`, `47ff7b732b053f`, `838e63e8009d67`; report IDs `ce2a4b53`, `c8462fbe`, `d4dfbf08`, `3b8a6908`; Jan 4–5 2026) — timing matches the operator's Jan-2026 onset window but no `uq` grammar, candidate-grade, unresolvable keylessly. Zero overlap with the ZeroSSL CertSpotter set (10) and the urlscan tronzap set (10) — none of those were ever submitted to urlquery. Bare-`lhr` query = substring noise only, no fallback value.
+- **Missing AGE number #1 RECOVERED: `AGEOUT1B`** (`a2384890-2335-4988-81dd-1985eb31df5b`, 2026-06-20 08:39, httpbin base64, series skeleton) — series now **28 reports / 27 distinct tags**, headed by AGEOUT1B. **#2 and #6 verified absent** (8 targeted probes → literal "no reports" or noise) — honest zeros. Extended gap set: 2, 6, 16, 17, 21.
+- Grammar-marker sweep: **4 new operator-grade `uqtarget` reports** not in corpus — `40c029b5`/`52f4e3e4` trailing-dot hostname R&D (tags `dot-`/`pd-dot-` on `amap-pc-ssr.amap.com.`); `7f3f95b7`/`161a0441` late-day epoch-nonce uqtarget on `example.com` (11:36, 17:38). `ltzh` "new" = known casino stratum only. **`pandalegacy` tokenizer blind spot confirmed a second time** (0 htmx hits despite in-corpus matches).
+- Caveats: htmx row dates drift ~5–20 min earlier than report-page times; index most-recent-weighted, tail may extend past offset 240. Corrected a 35-char UUID typo from the prior sweep (AGEMSG19 = `000f58ed-54fa-4aa1-ab39-f116b9245775`).
+- **9 corpus integration candidates** (IDs in file): AGEOUT1B + 4 uqtarget + 4 Jan-2026 tunnels.
+
+### Lane 26 — GitHub/MCP harness sweep — 2 leads, devin-remote vanished
+`full-sweep/raw/github-harness-lhrlife.md` (Sourcegraph SSE keyless; grep.app 429 = hard stop, not retried)
+- godot-mcp v5.0.33 remains the only repo pinning `*.lhr.life` as default tunnel for external AI agents.
+- **LEAD — `useagenthq/useagent`** (created 2026-08-29, inside fleet window): e2e test harness embedding the exact `nokey@localhost.run` → `<hex>.lhr.life` recipe — pattern-match, not attribution.
+- **LEAD — `zhouyoukang1234-spec/devin-remote` now 404s** (2026-10-05): deleted/renamed/privatized within ~24h of the prior sighting. The disappearance is the lead; delegation spec for a browser-capable check recorded in file.
+- No second fleet; no hex-literal or `uqscan=`/`uqcors` code hits anywhere.
+- Method note: Sourcegraph `/.api/search/stream` needs `t=literal` — default type silently returns 0.
+
+### Lane 27 — tronzap + ZeroSSL lead watch — new cert, second self-tagged actor
+`full-sweep/raw/lead-watch-2026-10-05.md` (CertSpotter dump + 15 urlscan search JSONs staged in `raw/`)
+- **ZeroSSL: nothing new.** One new tunnel-name cert since Oct 3: **`3281cb5f73b0c2.lhr.life`**, **Let's Encrypt YR1** (not ZeroSSL), issued 2026-10-05T09:00:46Z, fresh single-use key. Oct 2–3 multi-CA/RSA+ECC experimentation has not recurred — today's cert matches the baseline single-cert pattern. Pace: ZeroSSL-specific ~1–2/week holds; any-CA issuance has run ~1/day since Sep 28 (elevated vs Aug–Sep ~2–3/week). Name absent from the 78-name fleet list.
+- **tronzap: no new activity after Sep 29.** `domain:tronzap.com` = 0 scans/day Sep 30 → Oct 5. Tag `87270ca9ac10` still exactly 7 scans, all Sep 29 — recovered detail: the tagged sweep included **`dev.onlytron.com`**, so the actor's target family is tronzap.com **+ onlytron.com**.
+- **Misfit lead (not a negative): second self-tagged actor on the same family.** `domain:onlytron.com` → 25 scans, all Sep 29; tags **`xq-recon` / `xq-recon-probe`** ran a 20-scan Laravel recon sweep (`.env`, `.git/HEAD`, `_ignition/health-check`, Livewire, telescope/horizon — same playbook as the Sep-26 tronzap probes) ending ~70 min before the `87270ca9ac10` actor hit `dev.onlytron.com`. Same-or-different-actor open; target inventory must expand beyond tronzap.com.
+- **New tunnel infra: `c7a1f824a6efc4.lhr.life`** — fresh 14-hex tunnel liveness-checked via urlscan on Oct 2 (bare root, untagged), absent from fleet list and all prior sets. Watch for page deployment/target.
+- Sep-29 roots (`1881e623217f7c`, `2f102b0544d3b3`): no further scans, no pages deployed yet. Liveness checks unanswered (VM DNS interception, HTTPS 502) — inconclusive per method note.
+- crt.sh still 502 (one check); the 4 pre-2026 ZeroSSL names remain unverifiable. CertSpotter healthy (~2 s/call).
+- Coverage limits: ~305 of 405 `domain:tronzap.com` unseen (anonymous top-100 cap); CertSpotter `lhr.life` history starts 2026-05-31; urlscan result-detail 403s still block payload reads. New verified syntax: `q=task.tags:<hex>` (bare hex matches nothing).
+
+### Lane 28 — archive resweep on new names — 20/20 honest zeros
+`full-sweep/raw/archives-resweep.md`
+- All 20 names (8 ZeroSSL, 7 tronzap Sep-26 hosts + 2 Sep-29 hosts, 2 June-2026 tunnels, Radar tunnel): Megalodon 20/20 negative; Wayback CDX 20/20 literal `[]` (45s pacing, ~29 min); archive.today 20/20 "No results" (recall verified on positive control `6e6d931ed3a4a8.lhr.life`, Oct-3 torrent capture); Common Crawl: 11/20 clean 404, **9/20 HTTP 504 = inconclusive, not negatives** (retryable).
+- Method traps documented: Megalodon renders the `取得済みの魚拓` section heading even with zero captures — correct rule is heading present AND `見つかりませんでした` absent; archive.today `/search/?q=` answers bare 302 — follow with `-L` to `archive.ph/<host>`.
+- Net reading: ephemeral tunnels are essentially never web-archived — expected absence, not evidence against the lane findings.
+
+## Post-sweep open gaps (updated)
+
+- devin-remote disappearance check — browser-capable delegation spec in `raw/github-harness-lhrlife.md`.
+- `c7a1f824a6efc4.lhr.life` deployment watch (fresh Oct-2 tunnel, untagged).
+- `domain:onlytron.com` pre-Sep-29 lookback (inside 30-day urlscan anonymous window).
+- Corpus integration of 9 new candidates (AGEOUT1B + 4 uqtarget + 4 Jan-2026 tunnels; IDs in `raw/htmx-sublife.md`).
+- Common Crawl 9×504 retry.
+- `pandalegacy` htmx tokenizer blind spot — known, unfixable keylessly; corpus stays source of truth.
+- Gated/browser-only items from the sweep stand: Naver, Megalodon free-word search, ZoomEye/Quake/ThreatBook, OpenTIP registration, abuse.ch Auth-Key, urlscan wildcard, Baidu session, ntfy.sh (VM blackhole), Radar detail UUID, tronzap payload bytes.
+
 ## Undocumented endpoints found
 (2026-10-05 lanes — trick agents carried the XHR-hunting doctrine.)
 - **stash.legible.sh**: NONE — audited against open-source `src/server.mjs`, surface matches docs exactly. `PUT`/`POST /{topic}/{filename}`, `GET /{topic}/{filename}?wait=60`, `HEAD /{topic}/{filename}`, `GET /{topic}` (JSON/SSE), `DELETE /{topic}/{filename}`, `/README.md`, `/llms.txt`.
 - **Cloudflare Radar**: `GET /charts/<WidgetId>/fetch?<params>` (widget-data XHR; bot-walled to curl/text-fetch — browser session needed); `/scan/search?q=<q>&type=<url|domain|ip>`; `/scan/<uuid>/summary`; account-gated `.../accounts/{id}/urlscanner/v2/search`.
 - **Kaspersky OpenTIP**: `https://opentip.kaspersky.com/api/v1` + `x-api-key`: `GET /search/{hash,ip,domain,url}?request=`, `POST /scan/file` (octet-stream + `?filename=`), `POST /getresult/file?request=<hash>`; UI XHR: `GET /ui/checksession`, `POST /ui/login`, app route `/token`.
+- **CertSpotter** (keyless CT, healthy ~2 s/call): `GET /v1/issuances?domain=lhr.life&include_subdomains=true&expand=dns_names&expand=issuer`, dedupe by `tbs_sha256`; history starts 2026-05-31.
+- **urlscan**: `q=task.tags:<hex>` is the verified self-tag syntax (bare hex matches nothing).
+- **Sourcegraph SSE**: `sourcegraph.com/.api/search/stream?q=…&v=V3` requires `t=literal` — default type silently returns 0 even for control strings.
+- **legible.sh** (audited vs `src/server.mjs` @ main): index at `https://legible.sh/llms.txt`; ports gate 4180, bigred 4181, trail 4182, slate 4183, relay 4184, mutex 4185, quorum 4186, meter 4187, tally 4189; quorum `GET /healthz → {ok:true}` in source only. Probe hygiene: reads materialize empty topic state (footprints).
+- **Megalodon**: the `取得済みの魚拓` section heading renders even with zero captures — correct rule is heading present AND `見つかりませんでした` absent.
+- **archive.today**: `/search/?q=<host>` answers bare HTTP 302 — follow with `-L` to `archive.ph/<host>`; positive rows read `3 Oct 2026 07:17 <title>`, negative reads "No results".

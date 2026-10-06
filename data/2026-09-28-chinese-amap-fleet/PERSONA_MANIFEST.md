@@ -39,7 +39,7 @@ OPSEC: log URLs, NEVER live-fetch candidates (a fetch tips the operator + vendor
 |---|---|---|
 | dead-drop-diver | personas/dead-drop-diver/ | RUN 1 COMPLETE 2026-10-05 07:27 UTC — 6 NEW shapes, fresh inbox today, beeceptor surface |
 | netsec-archaeologist | personas/netsec-archaeologist/ | RUN 1 COMPLETE 2026-10-05 07:20 UTC — msgboard.dev agent board, board-as-coordination synthesis |
-| pastebin-plunderer | personas/pastebin-plunderer/ | RUN 1 COMPLETE 2026-10-05 07:18 UTC — K4be/linuxiarz swarm corpus, new markers |
+| pastebin-plunderer | personas/pastebin-plunderer/ | RUN 1 COMPLETE 2026-10-05 07:18 UTC — K4be/linuxiarz swarm corpus, new markers; DEEP DIVE COMPLETE ~07:55 UTC — 198 k4be + 250 linuxiarz + xz campaign ingested |
 | numbers-station | personas/numbers-station/ | RUN 1 COMPLETE 2026-10-05 07:25 UTC — zz=oai nonce decoded (epoch+7), disjoint grammars |
 | c2-pattern-analyst | personas/c2-pattern-analyst/ | RUN 1 COMPLETE 2026-10-05 07:29 UTC — 3 NEW Shodan infra finds, no cron-beacon cadence |
 | fediverse-diver | personas/fediverse-diver/ | COMPLETE 2026-10-05 07:19 UTC — honest zero, read-open-write-gated structural explanation |

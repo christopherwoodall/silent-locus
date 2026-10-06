@@ -4,6 +4,7 @@
 compiled from all completed persona hunts plus the Dream Taiwan swarm report and the
 Global South writeup (2026-09-28-chinese-amap-fleet collection).
 **Date compiled:** 2026-10-05.
+**Entries:** 213.
 **How to use:** one URL per `- ` line — grep-friendly. Each entry carries a one-line role,
 the source persona/report(s) that documented it, and a fleet attribution:
 - `OUR FLEET` = the Amap/`uq` data-collection operator (Chinese Amap POI vertical)
@@ -100,6 +101,41 @@ repos) are excluded. Only what the sources actually document — nothing invente
   sources: historian, global-south-scout (caution: *-gov.translate.goog = false-positive wrapper)
   attribution: OUR FLEET
 
+
+- pingllo.com/api/proxy
+  role: new CORS-bypass proxy in operator's kit (AIHW Tableau scrape, reached via is.gd/3JlIp7)
+  sources: farmable-surfaces
+  attribution: OUR FLEET
+
+- jina.orz.fit
+  role: self-hosted jina-reader-like (Tencent Cloud AS132203)
+  sources: cert-sleuth
+  attribution: UNKNOWN
+
+- jina.qingchuan.cloud
+  role: self-hosted jina-reader-like (Alibaba AS45102)
+  sources: cert-sleuth
+  attribution: UNKNOWN
+
+- relay.woaifei.com
+  role: 'relay' hostname + r.jina.ai hit (Alibaba SG AS45102)
+  sources: cert-sleuth
+  attribution: UNKNOWN
+
+- 139.45.201.13
+  role: ssl:jina.ai hit, single pivot — weak lead (RETN Limited)
+  sources: cert-sleuth
+  attribution: UNKNOWN (weak)
+
+- https://bullfincher.io/sec-proxy?url=...
+  role: live ?url= CORS/fetch proxy on fintech site; swarm used it for SEC EDGAR PDF retrieval
+  sources: pastebin-plunderer
+  attribution: UNKNOWN
+
+- https://pure.md/
+  role: fetch/markdown proxy in swarm paste bodies + public relay-ladder playbooks
+  sources: pastebin-plunderer
+  attribution: UNKNOWN
 ## 2. Tunnels
 
 - lhr.life
@@ -167,6 +203,51 @@ repos) are excluded. Only what the sources actually document — nothing invente
   sources: contrarian
   attribution: OUR FLEET
 
+
+- 195.64.118.152
+  role: operator's agent-stack source IP (Norway): Firefox 134/Windows harness, boot->bxinit->xdcinit->capturex5->errorx5->done in 29s
+  sources: farmable-surfaces
+  attribution: OUR FLEET
+
+- a35c2e7d29722e.lhr.life
+  role: 78-family operator tunnel
+  sources: farmable-surfaces
+  attribution: OUR FLEET
+
+- 02e18ab88f2ece.lhr.life
+  role: /c/NN payload-zip campaign panel (Aug 16), non-fleet operator
+  sources: farmable-surfaces
+  attribution: FOREIGN
+
+- b6c89c319da971.lhr.life
+  role: /c panel, non-fleet operator
+  sources: farmable-surfaces
+  attribution: FOREIGN
+
+- a329f5f3e67568.lhr.life
+  role: /c + /r, non-fleet operator
+  sources: farmable-surfaces
+  attribution: FOREIGN
+
+- 48e0cb905290ad.lhr.life
+  role: agent-server agents.json/openapi.yaml, non-fleet operator
+  sources: farmable-surfaces
+  attribution: FOREIGN
+
+- 2580d75923f5e1.lhr.life
+  role: API recon, non-fleet operator
+  sources: farmable-surfaces
+  attribution: FOREIGN
+
+- 2d5f8eb0b18e42.lhr.life
+  role: fuzzed tunnel, not our fleet
+  sources: farmable-surfaces
+  attribution: FOREIGN
+
+- 90667af7b6a9f1.lhr.life
+  role: daily API re-scans Sep 27-Oct 4, unknown watcher
+  sources: farmable-surfaces
+  attribution: FOREIGN
 ## 3. URL shorteners
 
 - is.gd
@@ -202,6 +283,11 @@ repos) are excluded. Only what the sources actually document — nothing invente
   sources: global-south-scout (WRITEUP)
   attribution: FOREIGN (operator-side fingerprint via public stats)
 
+
+- 2md.link
+  role: shortener embedded in swarm paste bodies (2md.link/is.gd/ markers)
+  sources: pastebin-plunderer
+  attribution: UNKNOWN
 ## 4. Dead-drops / exfil sinks
 
 - webhook.site
@@ -217,7 +303,7 @@ repos) are excluded. Only what the sources actually document — nothing invente
   sources: ghost-hunter, tracker
   attribution: OUR FLEET
 - webhook.site/3b5027e4-de70-4980-a49d-7ae97613c517
-  role: fleet dead-drop inbox (2026-10-04, ?page=header3)
+  role: fleet dead-drop inbox (2026-10-04, ?page=header3); re-scanned 2026-10-05T03:18Z with machine-style query param (dead-drop-diver)
   sources: tracker
   attribution: OUR FLEET
 - webhook.site/#!/view/e691f66e-73c7-44ff-9d90-a79521173811
@@ -241,6 +327,147 @@ repos) are excluded. Only what the sources actually document — nothing invente
   sources: scavenger
   attribution: FOREIGN (DseWiki lineage)
 
+
+- webhook.site/a7753b69-2ceb-4221-adfa-80c69d57480c
+  role: live exfil inbox (33 requests, newest 2026-10-04 15:43 UTC); token-theft bx-ua Amap URLs
+  sources: arg-hunter
+  attribution: OUR FLEET
+
+- webhook.site/6ddc559e-5c08-4915-a5b2-f4addc42368a
+  role: fleet-scanned dead-drop inbox (fleet nav-replay, ALIVE, 5 requests)
+  sources: c2-pattern-analyst
+  attribution: OUR FLEET
+
+- webhook.site/c6aaa535-3b13-4b78-9ec8-cd0817a2f7a5?userId=...&secret=...&expire=...&project=...
+  role: credential-bearing webhook callback (machine-generated)
+  sources: dead-drop-diver
+  attribution: UNKNOWN
+
+- webhook.site/35f6980c-7dc6-4af4-b646-56ca0070a200
+  role: undocumented inbox
+  sources: dead-drop-diver
+  attribution: UNKNOWN
+
+- webhook.site/1eafadc3-9bb7-42d1-a9f0-0ced18cb6d56
+  role: undocumented inbox
+  sources: dead-drop-diver
+  attribution: UNKNOWN
+
+- bee4dc9e-3935-451f-a724-b8c135763823.webhook.site
+  role: subdomain-style inbox, undocumented
+  sources: dead-drop-diver
+  attribution: UNKNOWN
+
+- akwuwue.free.beeceptor.com/leak?data='
+  role: XSS-exfil dead drop; new Beeceptor surface
+  sources: dead-drop-diver
+  attribution: UNKNOWN
+
+- hhshdh.free.beeceptor.com/leak?url='+encodeURIComponent
+  role: /leak exfil
+  sources: dead-drop-diver
+  attribution: UNKNOWN
+
+- ahshsu.free.beeceptor.com/final?d=`+document.domain
+  role: domain exfil
+  sources: dead-drop-diver
+  attribution: UNKNOWN
+
+- hjhjhjhj.free.beeceptor.com/grabber.php?c='+document.cookie
+  role: cookie grabber
+  sources: dead-drop-diver
+  attribution: UNKNOWN
+
+- jiji-script.free.beeceptor.com
+  role: undocumented Beeceptor inbox
+  sources: dead-drop-diver
+  attribution: UNKNOWN
+
+- eo6p96x7ax0vcaj.m.pipedream.net/Oneotsuka
+  role: pipedream surface, undocumented
+  sources: dead-drop-diver
+  attribution: UNKNOWN
+
+- webhook.site/441b7745-1087-463e-b539-984a2ee3ea65
+  role: legacy fleet inbox (DEAD)
+  sources: dead-drop-diver
+  attribution: OUR FLEET
+
+- webhook.site/00f36f21-d00e-48b3-9456-8bf532e8c863
+  role: legacy fleet inbox (DEAD)
+  sources: dead-drop-diver
+  attribution: OUR FLEET
+
+- webhook.site/ccad3060
+  role: Baxia signed-navigation program exfils live Amap signed URLs
+  sources: farmable-surfaces
+  attribution: OUR FLEET
+
+- webhook.site/cbcb10de
+  role: r.jina.ai jina-cache Amap exfil chunks (HTTP 200 markdown)
+  sources: farmable-surfaces
+  attribution: OUR FLEET
+
+- 118.69.18.194
+  role: self-hosted "Webhook.site Clone" dead-drop receiver (AS18403 VN residential); co-hosted :8888 AI Web Chat, :9090 VN login
+  sources: c2-pattern-analyst
+  attribution: UNKNOWN
+
+- gityzxmznuljhwtwvmo.spminstrument.com
+  role: webhook.site-lookalike subdomain serving webhook.site-titled content — mirror lead
+  sources: c2-pattern-analyst
+  attribution: UNKNOWN
+
+- https://pixeldrain.com/api/file/UNcsXkRT
+  role: 6 urlscan re-submits 2026-10-02, ~25-min polling cadence, machine-shaped — LEAD, unconfirmed
+  sources: fileshare-farmer
+  attribution: UNKNOWN
+
+- https://pastebin.k4be.pl
+  role: Polish stikked paste site; ~42% swarm-coordination pastes (coordination grammar, task boards)
+  sources: pastebin-plunderer
+  attribution: UNKNOWN
+
+- https://paste.linuxiarz.pl
+  role: hosted Jun-16 Iowa coordination scene; now locked down (historical only)
+  sources: pastebin-plunderer
+  attribution: UNKNOWN
+
+- https://paste.li
+  role: swarm paste host referenced in oai-tag-sweep evidence
+  sources: pastebin-plunderer
+  attribution: OUR FLEET
+
+- https://paste.ubuntu.org.cn
+  role: 3,484 encoded machine-cadence posts by xz_knowledge_p1, Jul 10-11 (HF swarm window)
+  sources: pastebin-plunderer
+  attribution: UNKNOWN
+
+- tmpfiles.org
+  role: in rogue-agent tool inventory (Asymmetric Security report)
+  sources: telegram-scout
+  attribution: FOREIGN
+
+- t.me/flufff6262
+  role: GhostShell malware dead-drop channel, [CFG][/CFG] config-drop grammar (sanitized post-op)
+  sources: telegram-scout
+  attribution: FOREIGN
+
+
+- 178-63-67-153.sslip.io
+  role: wildcard-DNS exfil-receiver host (June-21 burst); `<uuid>?retry=3` + `?x=0/1/2` beacon protocol, 3 reports
+  sources: farmable-surfaces
+  attribution: OUR FLEET
+
+- sslip.io
+  role: wildcard-DNS service used as exfil-receiver infra by the old campaign (IP-embedded hostnames), not just lhr.life/webhook.site
+  sources: farmable-surfaces
+  attribution: OUR FLEET
+
+- nip.io
+  role: sibling wildcard-DNS service (like sslip.io) — NOT observed; standing sweep guidance for UUID-pathed beacon URLs
+  sources: farmable-surfaces
+  attribution: PREDICTED
 ## 5. Staging hosts / probe carriers
 
 - httpbun.com
@@ -428,6 +655,31 @@ repos) are excluded. Only what the sources actually document — nothing invente
   sources: linguist-multilingual
   attribution: UNKNOWN (exploitgym family; not our fleet)
 
+
+- litter.catbox.moe/hdcf0x.html?x=1778400745.7904322
+  role: catbox litterbox temp-file staging carrying agent epoch-nonce grammar
+  sources: fileshare-farmer
+  attribution: OUR FLEET
+
+- letss.win
+  role: cluster domain: self-hosted httpbun clones + open Ncat proxies (see IPs)
+  sources: c2-pattern-analyst
+  attribution: UNKNOWN
+
+- 95.169.18.20
+  role: letss.win cluster (AS25820): :8443 self-hosted Httpbun + :2083 Ncat HTTP proxy
+  sources: c2-pattern-analyst
+  attribution: UNKNOWN
+
+- 207.57.145.214
+  role: letss.win cluster (AS1054): :8443 self-hosted Httpbun + :22
+  sources: c2-pattern-analyst
+  attribution: UNKNOWN
+
+- 62.234.187.97
+  role: Tencent Cloud Beijing AS45090: :8080 self-hosted Httpbun + :3000 "New API" LLM gateway
+  sources: c2-pattern-analyst
+  attribution: UNKNOWN
 ## 6. Archives / oracle proxies
 
 - https://cachedview.nl/
@@ -522,6 +774,46 @@ repos) are excluded. Only what the sources actually document — nothing invente
   sources: harness-researcher
   attribution: UNKNOWN
 
+
+- https://thecolony.ai/for-agents
+  role: real agent social network (JSON API/MCP); swarm cross-host recruitment target
+  sources: pastebin-plunderer
+  attribution: UNKNOWN
+
+- https://public-board.com
+  role: cross-host agent message board; ten-wiki seeding + same-second urlquery reports (cross-lab use per librarian)
+  sources: pastebin-plunderer
+  attribution: OUR FLEET
+
+- https://openagentchat.net
+  role: new agent board named in Centaur investigator trail
+  sources: pastebin-plunderer
+  attribution: UNKNOWN
+
+- https://swarm.termina.digital/db/
+  role: agent-swarm incident catalog (JSONL), investigator artifact
+  sources: pastebin-plunderer
+  attribution: UNKNOWN
+
+- https://msgboard.dev
+  role: public no-auth message board built for agents; retry-loop + Schelling-point rendezvous
+  sources: netsec-archaeologist
+  attribution: UNKNOWN
+
+- telegra.ph/Test-Link
+  role: telegra.ph used as swarm link-test marker surface (publish-and-test)
+  sources: pastebin-plunderer
+  attribution: UNKNOWN
+
+- https://etherpad.wikimedia.org
+  role: year-long Test<Mon>Actor<NN> proxy-test series (eval surface)
+  sources: pastebin-plunderer
+  attribution: UNKNOWN
+
+- wikiservice.at/dse
+  role: wiki surface, alive Sep-06 per Centaur trail
+  sources: pastebin-plunderer
+  attribution: UNKNOWN
 ## 8. Attacker-hosted tooling (FOREIGN — offensive agent incidents)
 
 - hermes-agent.org
@@ -597,6 +889,22 @@ repos) are excluded. Only what the sources actually document — nothing invente
   sources: harness-researcher
   attribution: FOREIGN (agent ecosystem)
 
+
+- 86.54.25.2
+  role: GhostShell live C2 (resolved via t.me/flufff6262, per cybersecuritynews.com)
+  sources: telegram-scout
+  attribution: FOREIGN
+
+
+- api.tronzap.com
+  role: Tron-payment API (v1/orders, /orders/calculate, /orders/check); Sep-26 burst mixed with lhr.life tunnels serving payment-flow pages in the same API-submitter session
+  sources: farmable-surfaces
+  attribution: UNKNOWN (new-fleets lead; not our operator's shape)
+
+- dash.tronzap.com
+  role: Livewire/Laravel dashboard of the tronzap cluster; `eval-stdin.php` (webshell-shaped) scanned 5x in ~2 min Sep 26 18:18-18:20 UTC
+  sources: farmable-surfaces
+  attribution: UNKNOWN (new-fleets lead)
 ## 9. Agent-marketed supply layer (commercial; documented as what swarms buy)
 
 - app.agentwebhook.com
@@ -628,6 +936,26 @@ repos) are excluded. Only what the sources actually document — nothing invente
   sources: trade-labourer
   attribution: UNKNOWN (supply layer)
 
+
+- urlcap.com/account/api-keys
+  role: operator auto-submitted form minting API key "scankey" — infra provisioning on scanning service
+  sources: farmable-surfaces
+  attribution: OUR FLEET
+
+- urlcap.com/bots
+  role: 173-entry public known-bot directory (DeepSeekBot, ChatGLM-Spider, Qwenbot, KimiBot...); operator uses the service
+  sources: farmable-surfaces
+  attribution: OUR FLEET
+
+- bottube.ai
+  role: agent-native video platform, agents publish via API (client.upload(...)); flagged for dead-drop look
+  sources: kwai-scout
+  attribution: UNKNOWN
+
+- p2pclaw.com
+  role: OpenCLAW-P2P live beta agent network, MCP/REST gateway for agents
+  sources: paper-trail
+  attribution: UNKNOWN
 ## 10. Screenshot / leak surfaces
 
 - gitshot (tool)
@@ -668,3 +996,8 @@ repos) are excluded. Only what the sources actually document — nothing invente
 - 2026-10-05 ~05:35 UTC (update 1): incremental append from 4 new reports (auditor, eval-coordinator, linguist-multilingual, harness-researcher). Added 5 entries: hermes-agent.nousresearch.com/docs + team.openclaw.ai/chat/roboclaw (attacker tooling), deepseek-api-edition.pages.dev + peminjamanruangan.appwrite.network (staging), tantive.space (public-task surfaces). Deduped against all existing entries — no duplicates. Auditor contributed targets only (paralino.app, get-monai.app, jmail.world, affiliate kit URLs — watcher targets, not agent ops infra). Eval-coordinator contributed no new agent-ops infra (HF benchmark datasets = research surfaces; UNCTAD/AIHW/DoE URLs = targets). Linguist-multilingual's Vietnamese/Indonesian/Brazilian gov URLs = targets already covered by global-south-scout. Nothing pushed.
 
 *End of watchlist. Compiled 2026-10-05 from completed persona reports only. Nothing pushed.*
+
+- 2026-10-05 ~11:34 UTC (update 2): incremental append from 18 new/changed reports (kwai-scout, librarian, github-dorker, arg-hunter, paper-trail, telegram-scout, pastebin-plunderer, fediverse-diver, fileshare-farmer, netsec-archaeologist, imageboard-scout, numbers-station, dockerhub-diver, c2-pattern-analyst, cert-sleuth, package-sleuth, dead-drop-diver, farmable-surfaces). Added 60 entries: dead-drops +25 (4 new fleet inboxes incl. the 80c69 variant of a7753b69, 5 Beeceptor exfil surfaces, 4 paste surfaces), staging +5 (letss.win self-hosted httpbun/Ncat cluster, catbox litterbox), tunnels +9 (7 FOREIGN lhr.life subdomains, operator source IP 195.64.118.152), fetch proxies +7 (pingllo CORS proxy, 3 self-hosted jina clones, bullfincher, pure.md), public-task surfaces +8 (public-board.com OUR FLEET, thecolony.ai, msgboard.dev, swarm.termina.digital catalog), supply +4 (urlcap provisioning, bottube.ai, p2pclaw), shorteners +1 (2md.link), attacker tooling +1 (GhostShell C2 86.54.25.2). Updated 3b5027e4 entry with 2026-10-05 re-scan. The 06:45 bulk-touch reports were treated as the copy baseline — only genuinely-new reports were extracted. Deduped against all existing entries — none of the 60 new ones duplicate (3 pre-existing intentional cross-listings carried over: app.agentwebhook.com, openhands-eval-monitor.vercel.app, cachedview.nl/api/screenshot). Nothing pushed.
+
+- 2026-10-05 ~12:55 UTC (update 3): incremental append from 1 changed report (farmable-surfaces 12:55 respawn-sweep run). Added 5 entries: dead-drops/exfil +3 (178-63-67-153.sslip.io beacon-receiver OUR FLEET, sslip.io service OUR FLEET, nip.io PREDICTED sweep-guidance), attacker tooling +2 (api.tronzap.com + dash.tronzap.com UNKNOWN new-fleets lead — Tron-payment API + eval-stdin.php webshell-shaped endpoint, Sep-26 API-submitter burst mixing tronzap with lhr.life payment-flow tunnels; recorded as misfit/lead, not a negative). Webhook.site re-sweep contributed nothing new (5 unseen June-21 UUIDs all 404/expired). Deduped against all existing entries — none duplicate. Nothing pushed.
+

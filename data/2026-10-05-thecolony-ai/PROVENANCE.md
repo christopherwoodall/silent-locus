@@ -20,9 +20,9 @@ no live fetching of paste sites, thecolony.ai, or bullfincher.io.
 - Body bytes verified: recomputed sha256 matches the source row's
   `body_sha256` for all 19 rows that carry one (assertion in
   `build_ingest.py`; build fails otherwise).
-- 1 row (`paste-linuxiarz/08d6473d`) has no body in the source export
-  (body_len 0) — ingested as metadata-only, noted in its authorship
-  annotation.
+- 10 of 20 rows have empty bodies (empty-string sha) — ingested as
+  metadata-only; only 7 of 17 linuxiarz rows carry body bytes. (Round 2
+  correction: this file previously stated 1 metadata-only row.)
 - No payload execution; bodies stored byte-exact. Unicode/HTML entities
   in source bodies (`\xa0`, `&amp;`) preserved as-is.
 - Timestamps: k4be rows carry `api_paste_created_field` (confirmed).

@@ -15,13 +15,13 @@
 
 ## Tonight's verified finds (don't re-report these — build on them)
 1. **Numbers-station**: `zz=oai` epoch+random decomposition, verified 3/3. Grammars nearly disjoint across corpora (same provider, different agents/evals).
-2. **Fresh webhook.site inbox** `3b5027e4-...?page=header3` — scanned 2026-10-05T03:18Z, Hetzner 178.63.67.106 (same infra as fleet inbox). GENUINELY NEW.
-3. **`/xss-osint-insert`** webhook path, double-submitted same minute 2026-08-08. GENUINELY NEW.
-4. **`?r=<19-digit>` nonce family** — two inboxes, shared `178207` prefix, 13 days apart. GENUINELY NEW.
+2. **Fresh webhook.site inbox** `3b5027e4-...?page=header3` — scanned 2026-10-05T03:18Z. CORRECTION (Round 1, Jock): 178.63.67.106 is webhook.site's own host IP / a urlquery Hetzner scan-pool node — NOT operator infra. The "same infra as fleet inbox" framing conflated target-resolution IP with scan-exit IP. GENUINELY NEW (the inbox + discriminator; the infra attribution is dead).
+3. **`/xss-osint-insert`** — KILLED Round 1 (Adversary): dates were 2026-07-31T12:19:33Z and 12:32:29Z (13 min apart, not "same minute 2026-08-08"); the two reports are urlquery *scans* of an inbox page, not webhook *submissions*. Nothing ever POSTed. Do not cite.
+4. **`?r=<19-digit>` nonce pair** — KILLED as operator grammar Round 1 (Adversary): both decode to ns-timestamps 6 min apart (2026-06-21 19:40:00Z / 19:46:16Z); the shared `178207` prefix is chronology, not a signature. Cache-buster.
 5. **Beeceptor/pipedream surface** — graded HUMAN-KIT-SHAPED (keyboard-mash subdomains, classic grabber grammar, Apr–May 2026). Not agents, but detection grammar banked.
 6. **letss.win cluster** — self-hosted Httpbun (95.169.18.20, 207.57.145.214) + Ncat proxy. Found independently by TWO personas. LEAD.
-7. **Tencent Beijing 62.234.187.97** — self-hosted Httpbun + LLM gateway. Zero corpus hits. LEAD, uncorroborated.
-8. **Active Oct 4–5 campaign** — `claude20261005<target>` tags, 11 live webhook.site inboxes, assessed Amap "Baxia" anti-bot RE. LIVE.
+7. **Tencent Beijing 62.234.187.97** — KILLED as agent infra Round 1 (Adversary): personal dev VPS ("New API" 48k-star OSS LLM gateway + httpbun + default nginx page). Zero corpus hits in 688k events. Do not cite as agent-linked.
+8. **Active Oct 4–5 campaign** — `claude20261005<target>` tags, 4 confirmed-ALIVE webhook.site inboxes (Round 1 kill #8 retired the "11 live" figure as unreconciled; Round 2 thug ledger: alive as of last public scan), assessed Amap "Baxia" anti-bot RE. LIVE.
 9. **msgboard.dev** — no-auth board built for agents, retry-loop greetings. GENUINELY NEW venue.
 10. **ODIN Fleet** — named in `fourplayers/openclaw`, undocumented. Raw lead.
 

@@ -6,7 +6,9 @@ from collections import defaultdict, Counter
 from urllib.parse import urlparse, parse_qs
 
 fp = sys.argv[1]
-reps = json.load(open(fp))
+raw = json.load(open(fp))
+# windows are {"reports": [...], "query": ...}; bare lists also accepted
+reps = raw.get('reports') if isinstance(raw, dict) else raw
 print(f"total reports: {len(reps)}")
 
 # dedupe by report_id

@@ -24,18 +24,14 @@
 - Why notable: `userId` + `secret` + `expire` + `project` params = machine-generated callback credential, agent/harness-shaped
 - NOT in corpora; NOT in codebreaker
 
-### SHAPE-3: `/xss-osint-insert` webhook path, double-submitted — GENUINELY NEW
-- URL: `webhook.site/2ab7ca12-fdce-4475-8bf0-950c0cbf28f2/xss-osint-insert`
-- Observed: TWO urlquery reports `fe637b8f-8a6f-4647-89cd-b20867c9ba67` + `c6ee72ff-86fa-4a49-83b4-7906bdb721a5`, both 2026-08-08T12:25Z (same minute — double submit)
-- Report metadata: inbox page rendered + webhook.site app assets loaded (inbox existed at scan)
-- Why notable: explicit "xss-osint" path label = someone's OSINT harness exfil target; double-submit in same minute = machine cadence
-- NOT in corpora; NOT in codebreaker
+### SHAPE-3: `/xss-osint-insert` — KILLED 2026-10-05 (counsel Round 1, Adversary). Do not cite as agent activity.
+- CORRECTION: urlquery's own `date` fields show **2026-07-31T12:19:33Z and 12:32:29Z** (13 min apart), not "same minute 2026-08-08".
+- Layer confusion: the two reports are urlquery *scans* of an inbox page (5 GETs, `alert_count: 0`, zero captured webhook requests), not webhook *submissions*. Nothing ever POSTed to `/xss-osint-insert`.
+- Original (superseded) note: URL `webhook.site/2ab7ca12-fdce-4475-8bf0-950c0cbf28f2/xss-osint-insert`, reports `fe637b8f-8a6f-4647-89cd-b20867c9ba67` + `c6ee72ff-86fa-4a49-83b4-7906bdb721a5`.
 
-### SHAPE-4: `?r=<19-digit>` nonce family — GENUINELY NEW
-- `webhook.site/c1bf6b38-d6ea-4446-b17e-5f6c7a1cb357?r=1782071176301141190` (2026-07-07, report `6fbff60b`)
-- `webhook.site/441b7745-1087-463e-b539-984a2ee3ea65?r=1782070800983511679` (2026-06-24, report `2baccf7b`) — inbox itself is codebreaker-known (legacy), the `?r=` nonce param is new
-- Why notable: 19-digit nonces `1782071176301141190` / `1782070800983511679` share prefix `178207` — same operator/timeframe family, 13 days apart
-- NOT in corpora; NOT in codebreaker
+### SHAPE-4: `?r=<19-digit>` — KILLED as operator grammar 2026-10-05 (counsel Round 1, Adversary). Do not cite as a nonce family.
+- Both values decode to nanosecond timestamps **2026-06-21 19:40:00Z and 19:46:16Z** — 6 minutes apart, days before both scans. Any two ns-timestamps that close share 15+ leading digits; the `178207` prefix is what time looks like. `?r=` is a cache-buster, not operator grammar. Surviving residue: one human's June-21 session, human-shaped.
+- Original (superseded) note: `webhook.site/c1bf6b38-d6ea-4446-b17e-5f6c7a1cb357?r=1782071176301141190` (2026-07-07, report `6fbff60b`); `webhook.site/441b7745-1087-463e-b539-984a2ee3ea65?r=1782070800983511679` (2026-06-24, report `2baccf7b`).
 
 ### SHAPE-5: More undocumented inboxes — GENUINELY NEW (logged, ungraded)
 - `webhook.site/35f6980c-7dc6-4af4-b646-56ca0070a200` — 2026-08-31, report `13cced5b-0346-4ba2-afe0-ae387cba403a`
@@ -85,9 +81,9 @@ Beeceptor/pipedream appear in ZERO of our 3 corpora and ZERO of codebreaker's in
 |---|---|---|---|---|
 | webhook.site/3b5027e4-de70-4980-a49d-7ae97613c517?page=header3 | urlquery htmx | 2026-10-05T03:18Z | fresh UUID inbox, ?page=header3 | GENUINELY NEW |
 | webhook.site/c6aaa535-…?userId=…&secret=…&expire=…&project=… | urlquery htmx | 2026-08-08 | credential callback params | GENUINELY NEW |
-| webhook.site/2ab7ca12-…/xss-osint-insert | urlquery htmx | 2026-08-08 (x2) | /xss-osint-insert path, double-submit | GENUINELY NEW |
-| webhook.site/c1bf6b38-…?r=1782071176301141190 | urlquery htmx | 2026-07-07 | 19-digit ?r= nonce | GENUINELY NEW |
-| webhook.site/441b7745-…?r=1782070800983511679 | urlquery htmx | 2026-06-24 | 19-digit ?r= nonce (inbox known) | GENUINELY NEW (param) |
+| webhook.site/2ab7ca12-…/xss-osint-insert | urlquery htmx | 2026-07-31 (corrected) | /xss-osint-insert — KILLED Round 1: two scans, not submissions | KILLED |
+| webhook.site/c1bf6b38-…?r=1782071176301141190 | urlquery htmx | 2026-07-07 | 19-digit ?r= — KILLED Round 1: ns-timestamp, not operator grammar | KILLED |
+| webhook.site/441b7745-…?r=1782070800983511679 | urlquery htmx | 2026-06-24 | 19-digit ?r= — KILLED Round 1: ns-timestamp, not operator grammar | KILLED |
 | webhook.site/35f6980c-7dc6-4af4-b646-56ca0070a200 | urlquery htmx | 2026-08-31 | undocumented inbox | GENUINELY NEW |
 | webhook.site/1eafadc3-9bb7-42d1-a9f0-0ced18cb6d56 | urlquery htmx | 2026-07-31 | undocumented inbox | GENUINELY NEW |
 | bee4dc9e-3935-451f-a724-b8c135763823.webhook.site | urlquery htmx | 2026-08-08 | subdomain-style inbox | GENUINELY NEW |

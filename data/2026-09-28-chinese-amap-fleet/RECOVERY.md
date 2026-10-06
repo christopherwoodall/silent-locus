@@ -33,6 +33,12 @@ If an agent is gone after restart, respawn with the task + output path from the 
 ## Killed / converted
 
 - `proc_a0bc991c6a6a` (UA burst retry loop, background exec) — killed 2026-10-05, replaced by `ua-burst-retry` cron. Do not rerun as exec.
+- **TEARDOWN 2026-10-05 09:30 CDT (BigSexyWarlock69: "tear down all of the watchers for this. Unnheist too")** — all fleet-hunt watchers disabled, not deleted (definitions kept, re-enable anytime):
+  - `chinese-fleet-hunt-watch` (45m), `ua-burst-retry` (30m), `infra-watchlist-refresh` (6h), `hunt-watchdog` (1h) — goal-owned, disabled.
+  - `methodology-refresh` (1h), `lessons-refresh` (1h) — disabled.
+  - `un-heist-render-watch` (15m) — the UN Heist render watchdog, disabled.
+  - Detached loops killed: `monitor_loop.sh` (live monitor) and `retry_loop.sh` (new-fleets).
+  - No active watcher subagents remain. Disabling `hunt-watchdog` stops future respawns of these agents.
 
 ## Keyless routes (no API key, no rate-limit budget)
 

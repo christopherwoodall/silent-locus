@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html><head><title>UseMod Wiki: WikiPatches/ClipBoard</title>
+<meta name="keywords" content="Wiki, Patches, Clip, Board">
+<meta name="robots" content="noindex,nofollow">
+</head><body bgcolor="white">
+<div class="wikiheader"><h1><a href="wiki.pl?UseModWiki"><img src="/wiki.gif" alt="[Home]" border="0" align="right"></a><a href="wiki.pl?back=/ClipBoard">WikiPatches/ClipBoard</a></h1><a href="wiki.pl?UseModWiki" class="wikipagelink">UseModWiki</a> | <a href="wiki.pl?WikiPatches" class="wikipagelink">WikiPatches</a> | <a href="wiki.pl?RecentChanges" class="wikipagelink">RecentChanges</a> | <a href="wiki.pl?action=editprefs">Preferences</a><br>
+<hr class="wikilineheader"></div>
+<div class="wikibody">
+<b>Difference (from prior major revision)</b>
+(no other diffs)<br> <br><strong>Changed: 1c1,83</strong><br><table width="95%" bgcolor="#ffffaf" class="wikidiffold"><tr><td>
+ Struggling with allergies? Secure your relief by opting to [url=<a href="https://mnsmiles.com/prednisone/">https://mnsmiles.com/prednisone/</a>]mnsmiles.com[/url] . A simple step can alleviate your symptoms effectively.<br></td></tr></table><table width="95%" bgcolor="#cfffcf" class="wikidiffnew"><tr><td>
+ See <a href="http://features.sheep.art.pl/ClipBoard">http://features.sheep.art.pl/ClipBoard</a> for a introduction.<br><h2>The Patch</h2><br><br> <pre><br> sub UserClipBoardFilename {<br> +  my ($id) = @_;<br> +<br> +   return ""  if ($id &lt; 1);<br> +   return $UserDir . "/" . ($id % 10) . "/$id.cb";<br> + }<br> <br> sub DoOtherRequest {<br> ...<br> + } elsif ($action eq "editclipboard") {<br> +      &amp;DoEditClipboard(); <br> +} elsif ($action eq "clipboard") {<br> +      &amp;DoClipboard();<br> ...<br> + if (&amp;GetParam("edit_clipboard", 0)) {<br> +	&amp;DoUpdateClipboard();<br> +	return;<br> +	}<br> <br> + sub DoClipboard {<br> +   my ($username, $userfile);<br> +   my ($status, $data);<br> +  <br> +   $username = &amp;GetParam('username', '');<br> +   print &amp;GetHeader('', &amp;QuoteHtml(Ts('Clipboard for: %s', $username)), '');<br> +   return  if (!&amp;UserIsAdminOrError());<br> +   $userfile = &amp;UserClipBoardFilename($UserID);<br> +   ($status, $data) = &amp;ReadFile($userfile);<br> +   print &amp;WikiToHTMLNoDivNoToc($data);<br> +   print &amp;GetMinimumFooter();<br> + }<br> <br> + sub DoEditClipboard {<br> +    my $status;<br> +    my $clipboardFile;<br> +  <br> +    print &amp;GetHeader('', T('Editing Clipboard'), '');<br> +    return  if (!&amp;UserIsAdminOrError());<br> +    ($status, $clipboardFile) = &amp;ReadFile(&amp;UserClipBoardFilename($UserID));<br> +    $clipboardFile = ""  if (!$status);<br> +    print &amp;GetFormStart();<br> +    print GetHiddenValue("edit_clipboard", 1), "\n";<br> +    print &amp;GetTextArea('clipboard', $clipboardFile, 20, 100);<br> +    print '&lt;br&gt;', $q-&gt;submit(-name=&gt;'Save'), "\n";<br> +    print $q-&gt;endform;<br> +    print &amp;GetMinimumFooter();<br> + }<br>   <br> + sub DoUpdateClipboard {<br> +   my ($newList, $fname);<br> +   my ($status, $data);<br> +   my ($userfile, $clipboardFile);<br> +   <br> +   print &amp;GetHeader('', T('Updating Clipboard'), '');<br> +   return  if (!&amp;UserIsAdminOrError());<br> +   $fname = &amp;UserClipBoardFilename($UserID);<br> +   $newList = &amp;GetParam("clipboard", "#Empty file");<br> +   if ($newList eq "") {<br> +   print "&lt;p&gt;Empty clipboard file or error.";<br> +   print "&lt;p&gt;Resubmit with at least one space character to remove.";<br> +   } elsif ($newList =~ /^\s*$/s) {<br> +   unlink($fname);<br> +   print "&lt;p&gt;Removed clipboard file";<br> +   } else {<br> +     &amp;WriteStringToFile($fname, $newList);<br> +     # print "&lt;p&gt;Updated clipboard file";<br> +     $userfile = &amp;UserClipBoardFilename($UserID);<br> +     ($status, $data) = &amp;ReadFile($userfile);<br> +     print &amp;WikiToHTML($data);<br> +   }<br> +   print &amp;GetMinimumFooter();<br> + }<br> <br> sub GetAdminBar {<br> ...<br> + $result .= ' | ' . &amp;ScriptLink('action=clipboard', T("ClipBoard"));<br> + $result .= ' | ' . &amp;ScriptLink("action=editclipboard", T('Edit ClipBoard'));<br> </pre><br> --<em><a href="wiki.pl?JuanmaMP" class="wikipagelink">JuanmaMP</a></em><br></td></tr></table>
+<hr class="wikilinediff">
+<div class="wikitext">See <a href="http://features.sheep.art.pl/ClipBoard">http://features.sheep.art.pl/ClipBoard</a> for a introduction.
+<p>
+<h2>The Patch</h2>
+
+<pre>
+sub UserClipBoardFilename {
++  my ($id) = @_;
++
++   return ""  if ($id &lt; 1);
++   return $UserDir . "/" . ($id % 10) . "/$id.cb";
++ }
+
+sub DoOtherRequest {
+...
++ } elsif ($action eq "editclipboard") {
++      &amp;DoEditClipboard(); 
++} elsif ($action eq "clipboard") {
++      &amp;DoClipboard();
+...
++ if (&amp;GetParam("edit_clipboard", 0)) {
++	&amp;DoUpdateClipboard();
++	return;
++	}
+
++ sub DoClipboard {
++   my ($username, $userfile);
++   my ($status, $data);
++  
++   $username = &amp;GetParam('username', '');
++   print &amp;GetHeader('', &amp;QuoteHtml(Ts('Clipboard for: %s', $username)), '');
++   return  if (!&amp;UserIsAdminOrError());
++   $userfile = &amp;UserClipBoardFilename($UserID);
++   ($status, $data) = &amp;ReadFile($userfile);
++   print &amp;WikiToHTMLNoDivNoToc($data);
++   print &amp;GetMinimumFooter();
++ }
+
++ sub DoEditClipboard {
++    my $status;
++    my $clipboardFile;
++  
++    print &amp;GetHeader('', T('Editing Clipboard'), '');
++    return  if (!&amp;UserIsAdminOrError());
++    ($status, $clipboardFile) = &amp;ReadFile(&amp;UserClipBoardFilename($UserID));
++    $clipboardFile = ""  if (!$status);
++    print &amp;GetFormStart();
++    print GetHiddenValue("edit_clipboard", 1), "\n";
++    print &amp;GetTextArea('clipboard', $clipboardFile, 20, 100);
++    print '&lt;br&gt;', $q-&gt;submit(-name=&gt;'Save'), "\n";
++    print $q-&gt;endform;
++    print &amp;GetMinimumFooter();
++ }
+  
++ sub DoUpdateClipboard {
++   my ($newList, $fname);
++   my ($status, $data);
++   my ($userfile, $clipboardFile);
++   
++   print &amp;GetHeader('', T('Updating Clipboard'), '');
++   return  if (!&amp;UserIsAdminOrError());
++   $fname = &amp;UserClipBoardFilename($UserID);
++   $newList = &amp;GetParam("clipboard", "#Empty file");
++   if ($newList eq "") {
++   print "&lt;p&gt;Empty clipboard file or error.";
++   print "&lt;p&gt;Resubmit with at least one space character to remove.";
++   } elsif ($newList =~ /^\s*$/s) {
++   unlink($fname);
++   print "&lt;p&gt;Removed clipboard file";
++   } else {
++     &amp;WriteStringToFile($fname, $newList);
++     # print "&lt;p&gt;Updated clipboard file";
++     $userfile = &amp;UserClipBoardFilename($UserID);
++     ($status, $data) = &amp;ReadFile($userfile);
++     print &amp;WikiToHTML($data);
++   }
++   print &amp;GetMinimumFooter();
++ }
+
+sub GetAdminBar {
+...
++ $result .= ' | ' . &amp;ScriptLink('action=clipboard', T("ClipBoard"));
++ $result .= ' | ' . &amp;ScriptLink("action=editclipboard", T('Edit ClipBoard'));
+</pre>
+--<em><a href="wiki.pl?JuanmaMP" class="wikipagelink">JuanmaMP</a></em>
+</div>
+</div>
+<div class="wikifooter"><hr class="wikilinefooter">
+<form method="post" action="wiki.pl" enctype="application/x-www-form-urlencoded"><a href="wiki.pl?UseModWiki" class="wikipagelink">UseModWiki</a> | <a href="wiki.pl?WikiPatches" class="wikipagelink">WikiPatches</a> | <a href="wiki.pl?RecentChanges" class="wikipagelink">RecentChanges</a> | <a href="wiki.pl?action=editprefs">Preferences</a><br>
+<a href="wiki.pl?action=edit&amp;id=WikiPatches/ClipBoard" class="wikipageedit">Edit text of this page</a> | <a href="wiki.pl?action=history&amp;id=WikiPatches/ClipBoard">View other revisions</a> | <a href="http://sunir.org/apps/meta.pl?WikiPatches/ClipBoard">Search MetaWiki</a><br>Last edited May 31, 2026 20:57 by <a href="wiki.pl?MarkusLude" title="ID 5544 from dslb-002-202-058-149.002.202.pools.vodafone-ip.de">MarkusLude</a> <a href="wiki.pl?action=browse&amp;diff=1&amp;id=WikiPatches/ClipBoard">(diff)</a><br>Search: <input type="text" name="search"  size="20"><input type="hidden" name="dosearch" value="1" ></form></div>
+
+</body>
+</html>

@@ -5,7 +5,9 @@
 # Kill this when the new-fleets agent is stood down.
 cd /home/hatch/workspace/silent-locus/data/2026-09-28-chinese-amap-fleet/new-fleets || exit 1
 mkdir -p raw
-i=3
+# continue from the next free window index (don't clobber graded windows)
+i=$(ls raw/window*.json 2>/dev/null | sed 's/.*window//;s/\.json//' | sort -n | tail -1)
+i=$(( ${i:-2} + 1 ))
 echo "## Retry loop started $(date -u +%FT%TZ)" >> LOOP.md
 while true; do
   ts=$(date -u +%FT%TZ)

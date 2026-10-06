@@ -109,31 +109,87 @@ vendor-hosted OAuth MCP per anon.li homepage — aliases + encrypted file shares
 smithery `pipeworx/gateway` (419K useCount), `henry-ships/sparkforge` (220K),
 `creativelead/unclick`, `getgapup/gapup-mcp`, `WeRead Finance` (Cloudflare Workers remote).
 
-## Scan results
+## Scan results — full lane-E scan complete (resume session, 2026-10-05)
 
-(TBD — scanner run in progress at time of writing; results land in raw/scan-c.json.)
+- Scanner output: `raw/scan-c.json` (144 scan units, 2.5MB) + `raw/scan-c-report.md`.
+- Coverage: 45 fetched repos → 144 scan units (package.json-bearing subdirs counted
+  separately). 84 units with ≥1 hit. **4,234 total hits: CRITICAL 248, HIGH 1,908,
+  MEDIUM 2,078.**
+- Hits by category: netcall 1,819 · browser 1,606 · tunnel 235 · email 187 ·
+  img_upload 174 · gitwrite 130 · creds 32 · dns 19 · webhook 18 · relay 12 ·
+  registry 2.
 
-### Egress hits by severity
+### Top-5 riskiest (egress-relevance weighted, not raw count)
 
-TBD
+1. **team-telnyx/telnyx-mcp-server** (official Telnyx MCP; PulseMCP 390K est visitors/wk) —
+   agent-controllable **ngrok tunnel for inbound webhooks** + voice/SMS send primitives.
+   - `src/telnyx_mcp_server/config.py:111-124`: `ngrok_enabled` defaults true when
+     `NGROK_AUTHTOKEN`/`NGROK_URL` env set; `ngrok_authtoken` from env.
+   - `src/telnyx_mcp_server/server.py:40-55`: CLI flags `--ngrok-enabled`,
+     `--ngrok-authtoken`, `--ngrok-url`.
+   - `src/telnyx_mcp_server/tools/webhooks.py:30-60`: agent-facing tool reporting
+     `webhook_tunnel.{public_url, active}` and ngrok state (`"using_dynamic_url"`).
+   - `src/telnyx_mcp_server/webhook/handler.py`: ~150 ngrok references — tunnel
+     lifecycle for the webhook listener. Grade: **confirmed / CRITICAL (tunnel)**.
+2. **sjh110007/mcp-jina-ai** (community Jina MCP, proxy for smithery `jina` 5K) —
+   **r.jina.ai relay confirmed**: `index.ts:49`
+   `const response = await fetch('https://r.jina.ai/', { method:'POST', headers, body: JSON.stringify({ url: params.url, ... }) })`
+   — arbitrary agent-supplied URL laundered through Jina's reader API. This is the
+   hunt-corpus laundering-relay grammar, byte-confirmed. Grade: **confirmed / HIGH (relay)**.
+3. **Atomic-Mail/atomic-mail-agentic** (mcp.so #2, 255 installs, 267 GitHub stars) —
+   autonomous email: JMAP `runJmapRequest` send path with attachments
+   (`ts/src/bin/send-big-attachment.ts`: RFC 8620 `Blob/upload` + `send_mail.json`);
+   44 HIGH email hits. Grade: **confirmed / HIGH (email)**.
+4. **browser-use/browser-use** (PulseMCP 1.1M est visitors/wk) — third-party browser
+   relay via browser-use.com API + local browser automation (19 CRITICAL tunnel hits,
+   311 HIGH browser hits); QA methodology docs reference ngrok/cloudflared patterns.
+   Grade: **confirmed / HIGH (browser+relay)**.
+5. **adamamer20/paper-search-mcp-openai** (smithery 59K useCount) — **verify=False TLS
+   bypass**: `paper_search_mcp/academic_platforms/sci_hub.py:54`
+   `response = self.session.get(pdf_url, verify=False, timeout=30)` and `:86` on the
+   Sci-Hub search URL (default base `https://sci-hub.se`). Grade: **confirmed / MEDIUM (creds/tls)**.
 
-### Top-5 riskiest
-
-TBD
+Honorable mentions: **gologinapp/gologin-mcp** — runtime-fetched OpenAPI spec
+(`src/index.ts:180`: `fetch('https://docs-download.gologin.com/openapi-test.json')`)
+proxied as agent tools for the Gologin browser-profile/proxy/fingerprint API (bearer
+token) — configurable-endpoint pattern; **localcan/localcanapp** — repo is docs-only
+(no source; binary ships the tunnels + traffic inspector + MCP server); monorepo
+scores (medplum 1002, sentry 631, cloudflare 716) are whole-app noise, not MCP-specific.
 
 ### Hunt-corpus toolkit matches
 
-TBD — watchlist: `r.jina.ai`, `webhook.site`/`discord.com/api/webhooks`/`hooks.slack.com`,
-`httpbun.com`/`httpbin.org`, `uploads.github.com`, `ngrok`/`cloudflared`/`localtunnel`,
-`verify=False`, epoch nonces (`?x=17…`), `zz` path labels, `oai-`/`zz-` identifiers,
-`A000`/`ZZEND` markers.
+| watch item | verdict | evidence |
+|---|---|---|
+| `r.jina.ai` | **CONFIRMED** | mcp-jina-ai `index.ts:49` (above) |
+| `verify=False` | **CONFIRMED** | paper-search-mcp `sci_hub.py:54,86` (above) |
+| ngrok | **CONFIRMED (operational)** | telnyx-mcp-server: env `NGROK_AUTHTOKEN`, `--ngrok-enabled`, webhook tunnel handler (above). Docs-only mentions: localcan README, medplum OAuth README, apify DEVELOPMENT.md, browser-use QA methodology (ngrok+cloudflared). Benign: hamid-vakilzadeh `package-lock.json` (transitive dev dep), mongodb eval script. |
+| httpbin.org | present, test/doc context only | medplum demo bots (`form-data-upload.ts:30`, `file-uploads.ts:52`), mongodb integration tests, apify eval docs |
+| `uploads.github.com` | **none** | — |
+| webhook.site / discord hooks / hooks.slack.com | **none** | — |
+| epoch nonces / zz labels / oai- identifiers | **none** | sentry `debug-id.ts:22` `a000` is a benign UUID placeholder (`deb00000-de60-4d00-a000-…`), not a chunk marker |
+| postinstall | present, benign | mzxrai/mcp-webresearch `package.json:19` (`playwright install chromium`); cloudflare sandbox-container (`mkdir -p workdir`) |
+| secret-shaped tokens | **noted, not used** | sentry-mcp `packages/mcp-core/src/telem/sentry.test.ts` test fixtures contain secret-shaped token strings (values redacted in scan output; test files only) |
 
-## Caveats
+### Egress hits by severity (summary)
 
-- The scanner is regex/static: grades are `confirmed` (bytes present) vs `pattern-match`
-  (corpus grammar). A high score is dual-use surface, not an accusation.
-- Remote-only top listings dominate current Smithery usage; their server-side code cannot
-  be scanned — the scan covers what a self-hoster would actually run.
+- CRITICAL 248 — dominated by tunnel mentions (telnyx ngrok ×148, medplum ×21,
+  browser-use ×19) and img_upload multipart curl/forms in test code.
+- HIGH 1,908 — browser automation libs (playwright/puppeteer/browser-use ×1,606
+  across executeautomation/mcp-playwright, microsoft/playwright-mcp,
+  chrome-devtools-mcp, browser-use), email send paths (atomic-mail, agentmail),
+  webhook registrations.
+- MEDIUM 2,078 — generic netcalls (fetch/axios/requests), git-write APIs,
+  DNS tools, Gmail/Graph send APIs.
+
+## Caveats (updated)
+
+- Scanner is regex/static: `confirmed` = bytes present, `pattern-match` = corpus
+  grammar. High score = dual-use surface, not an accusation.
+- Monorepo scores (medplum, sentry, cloudflare, stripe) include whole-app code —
+  the MCP server is a fraction; per-unit paths in scan-c.json disambiguate.
+- `localcan/localcanapp` is docs-only; the tunnel implementation is a closed binary.
+- 14 remote-only top listings have no public source (server-side opaque by construction).
 - `wcgw` (microsoft) excluded: full coding-agent repo, outside this lane's batch scope.
 - `microsoft/learn_mcp` and `maximumsats/maximumsats` repos not found (listings stale/renamed).
 - `mcp-dice` not found on npm or the Smithery API.
+- `anon.li` MCP is vendor-hosted over OAuth (per anon.li homepage) — no public source.

@@ -34,8 +34,8 @@ Scanner output: `raw/scan-a.json`. Clones live in `~/workspace/skill-egress-work
 | 9 | anandpareek-hub/pixelbin-claude-skill | — | image-host (pixelbin) skill | cloned OK |
 | 10 | haunchen/n8n-skills | — | n8n webhook-automation skills | cloned OK (0 SKILL.md — TS generator repo; node catalog under data/cache/) |
 | 11 | jthack/threat-hunting-with-sigma-rules-skill | — | security skill | DROPPED — repo 404s on GitHub (deleted/renamed); jthack/ffuf already covers this author |
-| 10 | haunchen/n8n-skills | — | n8n webhook-automation skills | pending |
-| 11 | jthack/threat-hunting-with-sigma-rules-skill | — | security skill | pending |
+| 10 | haunchen/n8n-skills | — | n8n webhook-automation skills | cloned OK (0 SKILL.md; TS generator) |
+| 11 | jthack/threat-hunting-with-sigma-rules-skill | — | security skill | DROPPED — GitHub 404 |
 | 12 | trailofbits/skills | 7,369 | security-firm skills | cloned OK (85 SKILL.md) |
 | 13 | SimoneAvogadro/android-reverse-engineering-skill | 7,975 | reverse-engineering skill | cloned OK (1 SKILL.md, retry after proxy abort) |
 | 14 | alirezarezvani/claude-skills | 27,626 | top-starred collection | cloned OK (846 SKILL.md) |
@@ -44,55 +44,55 @@ Scanner output: `raw/scan-a.json`. Clones live in `~/workspace/skill-egress-work
 | 17 | P4nda0s/reverse-skills | 2,232 | reverse-engineering skills | cloned OK (7 SKILL.md) |
 | 18 | tradermonty/claude-trading-skills | 3,030 | trading skills | cloned OK (94 SKILL.md) |
 | 19 | vipulgupta2048/gitshot | 32 | "upload images to issues, PRs" — gitshot grammar | cloned OK (3 SKILL.md) |
-| 20 | trekawek/coffee-gb | — | gitshot skill material (v1) | cloning |
+| 20 | trekawek/coffee-gb | — | gitshot skill material (v1) | fetched OK via tarball (master); has .agents/skills/gitshot/SKILL.md |
 | 21 | conorluddy/ios-simulator-skill | — | simulator screenshot capability | cloned OK (1 SKILL.md) |
 | 22 | expo/skills | — | linked from travisvn list | cloned OK (26 SKILL.md) |
-| 23 | K-Dense-AI/claude-scientific-skills | — | linked from travisvn list | cloning |
+| 23 | K-Dense-AI/claude-scientific-skills | — | linked from travisvn list | fetched OK via tarball (177 SKILL.md) |
 | 24 | gsd-build/get-shit-done | — | linked from travisvn list | cloned OK (0 SKILL.md — layout TBD) |
 | 25 | obra/superpowers-lab | — | obra lab skills | cloned OK (4 SKILL.md) |
 | 26 | obra/superpowers-skills | — | obra community skills | cloned OK (31 SKILL.md) |
 | 27 | yusufkaraaslan/Skill_Seekers | — | linked from travisvn list | cloned OK (26 SKILL.md; hits all noise) |
 | 28 | NeoLabHQ/context-engineering-kit | 1,748 | top-starred | cloned OK (204 SKILL.md) |
-| 29 | daymade/claude-code-skills | 1,442 | top-starred | pending |
-| 30 | CharlesWiltgen/Axiom | 1,189 | top-starred | pending |
-| 31 | Aaronontheweb/dotnet-skills | 1,201 | top-starred | pending |
-| 32 | aiwithremy/claude-skills-llm-council | 2,499 | top-starred | pending |
-| 33 | chaseai-yt/claudex-loop | 2,737 | top-starred | pending |
-| 34 | zarazhangrui/codebase-to-course | 5,648 | top-starred | pending |
-| 35 | glitternetwork/pinme | 3,745 | top-starred | pending |
-| 36 | dominikmartn/nothing-design-skill | 2,806 | top-starred | pending |
-| 37 | BehiSecc/awesome-claude-skills | 10,212 | top-starred list | pending |
-| 38 | hesreallyhim/awesome-claude-code | 55,092 | top-starred list/guide | pending |
-| 39 | athola/claude-night-market | 342 | claims 186 skills | pending |
-| 40 | zhuyansen/awesome-claude-video-skills | 413 | 180 security-graded video-skill repos | pending |
-| 41 | Prat011/awesome-llm-skills | 1,781 | list | pending |
-| 42 | karanb192/awesome-claude-skills | 534 | list | pending |
-| 43 | w95/awesome-claude-corporate-skills | 230 | corporate skills list | pending |
-| 44 | danyuchn/asd-ste100-skill | 3,596 | top-starred | pending |
-| 45 | Agentchengfeng/chengfeng-videocut-skills | 3,030 | top-starred | pending |
-| 46 | agiwhitelist/auteur | 1,035 | top-starred | pending |
-| 47 | mohi-devhub/antivibe | 1,120 | top-starred | pending |
-| 48 | threerocks/hand-drawn-styles | 1,410 | top-starred | pending |
-| 49 | bevibing/tutor-skills | 1,319 | top-starred | pending |
-| 50 | onvoyage-ai/gtm-engineer-skills | 1,316 | top-starred | pending |
-| 51 | zsyggg/paper-craft-skills | 1,251 | top-starred | pending |
-| 52 | Spark-To-Paper-Skills/paperjury | 1,217 | top-starred | pending |
-| 53 | adamlyttleapps/claude-skill-app-onboarding-questionnaire | 1,211 | top-starred | pending |
-| 54 | alonw0/web-asset-generator | — | linked from lists | pending |
-| 55 | chrisvoncsefalvay/claude-d3js-skill | — | linked from lists | pending |
-| 56 | asklokesh/claudeskill-loki-mode | — | linked from lists | pending |
-| 57 | zarazhangrui/frontend-slides | — | linked from travisvn | pending |
-| 58 | omkamal/pypict-claude-skill | — | image skill (composio list) | pending |
-| 59 | zxkane/aws-skills | — | cloud skills (composio list) | pending |
-| 60 | mhattingpete/claude-skills-marketplace | — | marketplace (composio list) | pending |
-| 61 | rampstackco/claude-skills | — | collection (composio list) | pending |
-| 62 | santiago-vargas-de-kruijf/claude-overkill | — | collection (composio list) | pending |
-| 63 | emory/ASD-AuDHD-PAI-Skills | — | (composio list) | pending |
-| 64 | 1NickPappas/move-code-quality-skill | — | (composio list) | pending |
-| 65 | Anjos2/recursive-research | — | (composio list) | pending |
-| 66 | PleasePrompto/notebooklm-skill | — | (composio list) | pending |
-| 67 | yctimlin/mcp_excalidraw | 2,499 | top-starred | pending |
-| 68 | wshobson/agents | — | popular agents repo (verify name) | pending |
+| 29 | daymade/claude-code-skills | 1,442 | top-starred | cloned OK (115 SKILL.md) |
+| 30 | CharlesWiltgen/Axiom | 1,189 | top-starred | cloned OK (123 SKILL.md) |
+| 31 | Aaronontheweb/dotnet-skills | 1,201 | top-starred | cloned OK (37 SKILL.md) |
+| 32 | aiwithremy/claude-skills-llm-council | 2,499 | top-starred | cloned OK (1 SKILL.md) |
+| 33 | chaseai-yt/claudex-loop | 2,737 | top-starred | cloned OK (6 SKILL.md) |
+| 34 | zarazhangrui/codebase-to-course | 5,648 | top-starred | cloned OK (1 SKILL.md) |
+| 35 | glitternetwork/pinme | 3,745 | top-starred | cloned OK (7 SKILL.md) |
+| 36 | dominikmartn/nothing-design-skill | 2,806 | top-starred | cloned OK (1 SKILL.md, 0 hits) |
+| 37 | BehiSecc/awesome-claude-skills | 10,212 | top-starred list | cloned OK (0 SKILL.md — link list) |
+| 38 | hesreallyhim/awesome-claude-code | 55,092 | top-starred list/guide | cloned OK (0 SKILL.md — guide) |
+| 39 | athola/claude-night-market | 342 | claims 186 skills | cloned OK (225 SKILL.md) |
+| 40 | zhuyansen/awesome-claude-video-skills | 413 | 180 security-graded video-skill repos | cloned OK (0 SKILL.md — link list of 180 repos) |
+| 41 | Prat011/awesome-llm-skills | 1,781 | list | cloned OK (31 SKILL.md) |
+| 42 | karanb192/awesome-claude-skills | 534 | list | cloned OK (0 SKILL.md — link list) |
+| 43 | w95/awesome-claude-corporate-skills | 230 | corporate skills list | cloned OK (166 SKILL.md) |
+| 44 | danyuchn/asd-ste100-skill | 3,596 | top-starred | cloned OK (1 SKILL.md) |
+| 45 | Agentchengfeng/chengfeng-videocut-skills | 3,030 | top-starred | cloned OK (8 SKILL.md) |
+| 46 | agiwhitelist/auteur | 1,035 | top-starred | cloned OK (1 SKILL.md) |
+| 47 | mohi-devhub/antivibe | 1,120 | top-starred | cloned OK (1 SKILL.md) |
+| 48 | threerocks/hand-drawn-styles | 1,410 | top-starred | fetched OK via tarball (1 SKILL.md) |
+| 49 | bevibing/tutor-skills | 1,319 | top-starred | cloned OK (2 SKILL.md) |
+| 50 | onvoyage-ai/gtm-engineer-skills | 1,316 | top-starred | cloned OK (12 SKILL.md) |
+| 51 | zsyggg/paper-craft-skills | 1,251 | top-starred | cloned OK (3 SKILL.md, 0 hits) |
+| 52 | Spark-To-Paper-Skills/paperjury | 1,217 | top-starred | cloned OK (1 SKILL.md, 0 hits) |
+| 53 | adamlyttleapps/claude-skill-app-onboarding-questionnaire | 1,211 | top-starred | cloned OK (1 SKILL.md, 0 hits) |
+| 54 | alonw0/web-asset-generator | — | linked from lists | cloned OK (1 SKILL.md) |
+| 55 | chrisvoncsefalvay/claude-d3js-skill | — | linked from lists | cloned OK (1 SKILL.md) |
+| 56 | asklokesh/claudeskill-loki-mode | — | linked from lists | cloned OK via git (5,562 files) |
+| 57 | zarazhangrui/frontend-slides | — | linked from travisvn | cloned OK (2 SKILL.md) |
+| 58 | omkamal/pypict-claude-skill | — | image skill (composio list) | cloned OK (1 SKILL.md) |
+| 59 | zxkane/aws-skills | — | cloud skills (composio list) | cloned OK (6 SKILL.md) |
+| 60 | mhattingpete/claude-skills-marketplace | — | marketplace (composio list) | cloned OK (18 SKILL.md) |
+| 61 | rampstackco/claude-skills | — | collection (composio list) | cloned OK (0 SKILL.md at root; 122 units via plugins) |
+| 62 | santiago-vargas-de-kruijf/claude-overkill | — | collection (composio list) | cloned OK (1 SKILL.md) |
+| 63 | emory/ASD-AuDHD-PAI-Skills | — | (composio list) | cloned OK (1 SKILL.md, 0 hits) |
+| 64 | 1NickPappas/move-code-quality-skill | — | (composio list) | cloned OK (1 SKILL.md, 0 hits) |
+| 65 | Anjos2/recursive-research | — | (composio list) | cloned OK (1 SKILL.md, 0 hits) |
+| 66 | PleasePrompto/notebooklm-skill | — | (composio list) | cloned OK (1 SKILL.md) |
+| 67 | yctimlin/mcp_excalidraw | 2,499 | top-starred | cloned OK (1 SKILL.md) |
+| 68 | wshobson/agents | 40,206 | top-starred (verified exists) | cloned OK (184 SKILL.md) |
 
 Lane A's `raw/enum-awesome.md` does not exist yet — top-starred picks made directly via `gh search repos`.
 
@@ -384,14 +384,318 @@ names) are called out — score ≠ verdict._
 - Grade: **pattern-match**, benign. Triplicated skill trees (antigravity/, plugins/, skills/)
   inflate unit counts.
 
+### K-Dense-AI/claude-scientific-skills (177 skill units, 58 with hits)
+
+- **skills/lab-hardware-cad** — scanner CRITICAL 96 (32 `tunnel/CRITICAL`): **verified FALSE
+  POSITIVE** — "bore" is the mechanical term ("a pocket, bore, or slot", SKILL.md:130), not the
+  bore tunnel tool. All 32 hits are CAD terminology.
+- **skills/pysam** — CRITICAL 74: `requests.get` to download bioinformatics reference data —
+  pull-direction, benign.
+- **skills/paper-lookup** — CRITICAL 35: `img_upload` = `"files"` in a Zenodo API *response-shape*
+  example (references/zenodo.md:61) — benign.
+- **skills/imaging-data-commons** — CRITICAL 40: `api.github.com/repos/{REPO}/releases` in
+  scripts/check_version.py:124 — read-only version check, not a write. Benign.
+- Rest: data-fetch skills (usfiscaldata, database-lookup, ncats-arax, onekgpd, protocolsio,
+  hugging-science — HTTP clients to scientific APIs). Grade: **pattern-match**, mostly benign
+  pull-direction traffic. No corpus indicators.
+
+### trekawek/coffee-gb (5 skills in .agents/skills/)
+
+- **.agents/skills/gitshot** — MEDIUM 4: `gh issue create` (:34,78) + `catbox.moe` (:50).
+  The SKILL.md is **byte-identical** to vipulgupta2048/gitshot's — same release-asset flow
+  (`github.com/user/gitshot-images/releases/download/_gitshot/...`), same catbox.moe fallback,
+  same `screencapture → npx gitshot → gh pr comment` agent workflows. Grade: **confirmed** —
+  the gitshot exfil grammar propagates verbatim across repos (this is the "skill material in
+  trekawek/coffee-gb" cited in skill-tracer v1).
+
+### CharlesWiltgen/Axiom (scanned as 1 root unit — repo root has package.json; 123 SKILL.md inside)
+
+- Scanner CRITICAL 500 (470 primitives: netcall 409, dns 30, img_upload 25, email 3, browser 2,
+  gitwrite 1). Verified sample: `img_upload/HIGH` all `"files"` literals (package.json files-arrays,
+  inventory-sha256.json, pbxproj fixtures — benign); `email/HIGH` SMTP mentions are Apple
+  Network-framework docs in axiom-networking/networking-discipline.md:296 (×3 harness copies —
+  benign); no webhook/relay/tunnel/corpus/paste/registry hits. The netcall/dns mass is the
+  framework's own networking codebase (multi-harness agent framework).
+- Grade: **pattern-match** — extensive networking surface by design; no dead-drop primitives
+  observed. Score is volume-driven, not signal-driven.
+
+### Aaronontheweb/dotnet-skills (37 skill units)
+
+- playwright-ci-caching CRITICAL 118 / playwright-blazor CRITICAL 36 / aspire-integration-testing
+  CRITICAL 24: `browser/HIGH` = Playwright (CI caching, Blazor testing — expected).
+- aspire-mailpit-integration CRITICAL 25: `email/HIGH` SMTP/sendmail — Mailpit is a local
+  SMTP testing tool (Aspire integration); the skill wires a fake SMTP server for tests.
+  Grade: capability (email-sending primitive, test-scoped).
+- microsoft-extensions-configuration CRITICAL 16: SMTP mentions in config docs.
+- Grade: **capability** (browser automation + test SMTP); benign purpose.
+
+### aiwithremy/claude-skills-llm-council (1 skill)
+
+- No hits above LOW in scan-i (only 10 units with hits across the 3 repos; llm-council not listed).
+  Detail in raw/scan-a.json.
+
+### glitternetwork/pinme (7 skill units)
+
+- **pinme/pinme** — scanner CRITICAL 42: `tunnel/CRITICAL` = "cloudflared" in
+  skills/pinme-uniwebpay/SKILL.md:224 — verified: "To test webhooks locally, expose the Worker
+  through a tunnel (cloudflared / ngrok)." This is a payment-webhook skill (UniwebPay): the
+  agent builds a webhook *receiver* (`webhookUrl` on products.create, signature verification)
+  and is instructed to expose localhost publicly via tunnel for callback delivery.
+  Grade: **confirmed** — tunnel-to-localhost + webhook-receiver construction, purpose-aligned
+  (payment integration) but a dual-use primitive pair. `img_upload/HIGH` = `"files"` literals —
+  benign.
+
+### zarazhangrui/codebase-to-course (1 skill)
+
+- Scanner CRITICAL 13: `img_upload/CRITICAL` `github.com/user-attachments` ×4 in README.md —
+  verified: `<img>` tags embedding README screenshots (documentation images, not an upload
+  primitive). Grade: **none** (FP for exfil; shows standard GitHub image-host usage for docs).
+
+### chaseai-yt/claudex-loop (6 skill units)
+
+- LOW 2: `"files"` literal in scripts/runner.py:107. Grade: **none**.
+
+### dominikmartn/nothing-design-skill
+
+- 1 skill unit, 0 egress hits. Grade: **none**.
+
+### athola/claude-night-market (225 skill units, plugin marketplace)
+
+- browser-recording CRITICAL 112 / sanctum/tutorial-updates CRITICAL 28 / media-composition HIGH 8:
+  `browser/HIGH` = Playwright/browser automation (recording, tutorial capture — expected).
+- leyline/git-platform CRITICAL 22: `gh issue/pr create` + curl — GitHub write automation
+  (capability, purpose-aligned).
+- imbue/proof-of-work HIGH 7: curl to PoW API (pattern-match).
+- scribe/slop-detector MEDIUM 4: `"files"` literal (benign); stack-push MEDIUM 5: git push/gh create.
+- No webhook/relay/tunnel/corpus/paste/registry hits. Grade: **capability**, benign.
+
+### Prat011/awesome-llm-skills (31 skill units)
+
+- webapp-testing CRITICAL 22: Playwright (capability). pptx HIGH 7, mcp-builder/notion-meeting
+  MEDIUM 3: HTTP clients. Grade: **capability**, benign.
+
+### zhuyansen/awesome-claude-video-skills (0 SKILL.md)
+
+- Link list of ~180 video-skill repos with security grades. Not scanned as units; retained as
+  a source list for future lanes.
+
+### w95/awesome-claude-corporate-skills (166 skill units)
+
+- Quiet: 10 units with hits, all LOW/MEDIUM. webapp-testing CRITICAL 22 (Playwright);
+  slack-search MEDIUM 4 = `"files"` literals (:76,83 — benign); kaizen/mcp-builder MEDIUM 3
+  (HTTP clients); dns LOW ×5 (nslookup/dig mentions in docs — "exfil shape" is FP).
+- Grade: **pattern-match**, benign corporate skill pack.
+
+### danyuchn/asd-ste100-skill (1 skill unit)
+
+- No hits above LOW in scan-n. Detail in raw/scan-a.json.
+
+### karanb192/awesome-claude-skills (0 SKILL.md)
+
+- Link list only. Not scanned as units.
+
+### Agentchengfeng/chengfeng-videocut-skills (8 skill units)
+
+- Scanner CRITICAL 12: `creds/HIGH` ×2 in
+  plugins/chengfeng-videocut/scripts/bug-report.test.cjs:45,118 — verified raw bytes:
+  `"sk-abcdefghijklmnopqrstuvwxyz"` — a sequential-alphabet placeholder in test code, obviously
+  synthetic, not a real key. Noted, never used.
+- `img_upload/HIGH` + netcall: multipart upload + HTTP client — video upload primitive in the
+  video-cut skill (purpose-aligned). Grade: **capability**; creds hits are test placeholders.
+
+### agiwhitelist/auteur (1 skill unit)
+
+- Scanner CRITICAL 97 (50 browser + 7 netcall primitives): browser automation for book-writing
+  previews + HTTP clients. No upload/webhook/relay/tunnel. Grade: **capability**, benign.
+
+### mohi-devhub/antivibe (1 skill unit)
+
+- No hits above LOW in scan-o. Detail in raw/scan-a.json.
+
+### threerocks/hand-drawn-styles, bevibing/tutor-skills, onvoyage-ai/gtm-engineer-skills
+
+- hand-drawn-styles (1 skill): 0 egress hits. Grade: **none**.
+- tutor-skills (2 skills): 0 hits. Grade: **none**.
+- gtm-engineer-skills (12 skills): 1 LOW (single HTTP client call). Grade: **none**.
+
+### asklokesh/claudeskill-loki-mode (1 root unit — 5,562 files; autonomous agent harness)
+
+- Scanner CRITICAL 3601 (2,524 primitives). **This is the highest-signal repo in lane C.**
+  - **`tunnel/CRITICAL` ×89 — confirmed**: `autonomy/loki` automates tunnel exposure and parses
+    public URLs: `_extract_tunnel_url_cloudflared()` greps `https://[a-z0-9-]+\.trycloudflare\.com`
+    from logs (loki:8816-8826); ngrok public_url extracted from the ngrok 4040 API JSON
+    (loki:8826+). The autonomous agent exposes a dashboard via cloudflared/ngrok quick tunnels.
+  - **`webhook/HIGH` ×38 — confirmed**: `autonomy/NOTIFY_INTEGRATION.md:31-32,231,254` and
+    `autonomy/notify.sh:327-328` wire `hooks.slack.com` and `discord.com/api/webhooks` for agent
+    notifications — documented dead-drop-shaped notification feature.
+  - **"reverse-shell grammar" — FP on review**: `/dev/tcp/` in autonomy/docker-run.sh:309 is a
+    port-availability check (`exec 3<>"/dev/tcp/127.0.0.1/${port}"`), not a reverse shell.
+  - **`creds/HIGH` ×77 — all sentinel/canary placeholders**: raw bytes show
+    `ghp_LOKIWITHHELDsentinel*INVALID` (run.sh:5646, worker.ts:18) — synthetic test markers, not
+    real tokens. `xoxb-your-token` placeholder; `--insecure` curl flag (FP).
+  - `corpus/MEDIUM` ×13: `_zz_` in SWE-bench result JSONs (benchmark data, not tradecraft) +
+    `loki-ts/tests/zz/probe.test.ts` (a test dir named `zz` — coincidental).
+  - `img_upload/HIGH` ×384: overwhelmingly `"files"` literals (unchecked in bulk; volume-driven).
+- Grade: **confirmed** (tunnel automation + Slack/Discord webhook notifications). An autonomous
+  agent harness that exposes itself to the public internet via tunnels and phones home via
+  webhooks — the exact primitive pair the hunt watches for. Purpose-built (not obfuscated),
+  but highest dual-use surface in the lane.
+
+### alonw0/web-asset-generator (1 skill)
+
+- Scanner CRITICAL 12: `img_upload/HIGH` multipart file upload (6 primitives) — the skill
+  generates web assets; check upload target in final pass.
+
+### chrisvoncsefalvay/claude-d3js-skill (1 skill)
+
+- No hits above LOW in scan-s. Detail in raw/scan-a.json.
+
+### zarazhangrui/frontend-slides (2 skill units)
+
+- Scanner CRITICAL 95: `github.com/user-attachments` in README.md:21 — verified: a link to a
+  demo deck asset (documentation), not an upload primitive. Browser/curl hits are slide-generation
+  automation. Grade: **none** (FP for exfil).
+
+### zxkane/aws-skills (6 skill units)
+
+- **aws-agentic-ai** CRITICAL 14: `webhook/HIGH` `hooks.slack.com` in
+  services/registry/governance-workflows.md:166 — verified: a Lambda handler **template** with
+  `SLACK_WEBHOOK_URL = "https://hooks.slack.com/services/T.../B.../xxx"` (placeholder for the
+  user to fill). The skill instructs Bedrock AgentCore registry → Slack notifications.
+  Grade: **pattern-match** (webhook dead-drop grammar, user-configured, purpose-aligned).
+- aws-sst-development LOW 2: same Slack placeholder in references (authoring guide).
+
+### omkamal/pypict-claude-skill (1 skill)
+
+- Scanner CRITICAL 10: `git push` + curl in the skill. Image skill (per composio list).
+  Grade: **capability** (git write + HTTP client).
+
+### mhattingpete/claude-skills-marketplace, rampstackco/claude-skills, santiago-vargas-de-kruijf/claude-overkill
+
+- 122 units, 20 with hits. Top: integration-orchestrator CRITICAL 38 (browser automation);
+  code-review-web HIGH 6 (curl); dns "exfil shape" MEDIUMs are dig/nslookup in docs (FP);
+  git-pushing MEDIUM 3 (git push — expected).
+- Zero webhook/relay/tunnel/corpus/paste/registry/img_upload/email hits. Grade: **capability**,
+  benign.
+
+### wshobson/agents (184 skill units — large plugin collection)
+
+- 48 units with hits. Top: e2e-test CRITICAL 48 (Playwright); connectivity-check CRITICAL 16
+  (dig/nslookup + curl — incident-response tooling); deployment-pipeline/incident-runbook
+  CRITICAL 10 (curl); paypal-integration CRITICAL 10 (PayPal API client); javascript-testing
+  HIGH 8 (SMTP/sendmail + HTTP — test email).
+- **python-performance-optimization / async-python-patterns** MEDIUM 5: `httpbin.org/delay/1`
+  in references/advanced-patterns.md:162-165 and details.md — verified: Python async/concurrency
+  teaching examples. Grade: **pattern-match**, benign (same shape as trailofbits modern-python).
+- Grade overall: **capability** (broad DevOps/plugin surface); no webhook/tunnel/corpus hits.
+
+### PleasePrompto/notebooklm-skill (1 skill)
+
+- Scanner CRITICAL 74 (39 browser primitives): automates NotebookLM via browser.
+  Grade: **capability**, purpose-aligned.
+
+### yctimlin/mcp_excalidraw (1 skill unit)
+
+- Scanner CRITICAL 107 (77 primitives): browser + multipart upload + curl. The img_upload hits
+  are `curl -f` health checks in .github/workflows/docker.yml; uploads go to the self-hosted
+  Excalidraw instance (MCP diagram server). Grade: **capability**, benign purpose.
+
+### emory/ASD-AuDHD-PAI-Skills, 1NickPappas/move-code-quality-skill, Anjos2/recursive-research
+
+- 1 skill each, 0 egress hits. Grade: **none**.
+
+### alirezarezvani/claude-skills (847 skill units — second-largest source in lane C)
+
+- 145 units with hits, dominated by Playwright browser-automation QA skills: playwright-pro/pw
+  CRITICAL 577 (440 browser primitives), senior-qa CRITICAL 174, browser-automation CRITICAL 99,
+  migrate CRITICAL 86, browserstack/testrail CRITICAL 24 (×4 harness copies: engineering-team/,
+  .gemini/, engineering/).
+- Only corpus-watchlist hit: `hooks.slack.com` in
+  engineering/skills/observability-designer/assets/sample_alerts:258 — a sample alert config,
+  benign.
+- Grade: **capability** — the CRITICAL scores are volume-driven (Playwright by design in QA
+  skills), not signal-driven. No tunnel/relay/upload primitives of note.
+
+### travisvn/awesome-claude-skills (0 SKILL.md — link list, 15,270★)
+
+- Link-only awesome list; not scanned as units. Used as a source for repo discovery
+  (expo/skills, scientific-skills, get-shit-done, Skill_Seekers, frontend-slides came from it).
+
 ## Severity rollup
 
-(To be filled after final scan.)
+**Final (raw/scan-a.json, authoritative): 3,392 skill units scanned, 625 with egress hits.**
+Risk levels: CRITICAL 184 · HIGH 63 · MEDIUM 134 · LOW 244.
+Top hit categories (primitive-level): netcall/MEDIUM 4,420 · browser/HIGH 1,800 ·
+img_upload/HIGH 897 · gitwrite/MEDIUM 652 · browser/MEDIUM 616 · dns/MEDIUM 247 ·
+tunnel/CRITICAL 146 · creds/HIGH 87 · email/HIGH 60 · webhook/HIGH 44 · corpus/MEDIUM 15.
+
+(Volume is dominated by browser-automation and HTTP-client primitives in QA/dev skills;
+the per-skill grades below separate signal from volume.)
+
+Grade distribution (verified sample):
+- **confirmed** (bytes present, tradecraft-relevant): last30days-skill (r.jina.ai + Slack
+  webhook), gitshot (vipulgupta2048 + coffee-gb byte-identical copies), daymade/twitter-reader
+  (r.jina.ai), ComposioHQ ngrok-automation, expo ngrok tunnel, pinme/uniwebpay
+  (cloudflared/ngrok + webhook receiver), loki-mode (tunnel automation + Slack/Discord
+  webhooks), aws-skills (Slack webhook template).
+- **pattern-match** (matches corpus tradecraft shape): httpbin.org examples (trailofbits
+  modern-python, wshobson python-perf/async), Slack webhook samples (alireza observability),
+  multipart uploads (videocut, web-asset-gen), git-write automation.
+- **capability** (could be used this way, purpose-aligned): Playwright/browser skills
+  (playwright-skill, night-market browser-recording, notebooklm, full-page-screenshot),
+  SMTP/test-mail (dotnet mailpit, wshobson), cloud CLIs (aws-skills).
 
 ## Corpus-indicator watchlist hits
 
-(To be filled after final scan.)
+Hunt-corpus toolkit matches across lane C (verified):
+
+| Indicator | Hits | Where | Verdict |
+|---|---|---|---|
+| r.jina.ai | 11 | daymade/twitter-reader (SKILL.md:79,110,224; fetch_tweet.py:38,53; fetch_tweets.sh:28,33; fetch_article.py:50,63), daymade/douban-skill (troubleshooting.md:126,128) | **confirmed** — primary fetcher with JINA_API_KEY |
+| r.jina.ai (keyless) | 2 | mvanhorn/last30days-skill (web_fetch_keyless.py:4,26) | **confirmed** — JINA_READER_PREFIX keyless fallback tier |
+| Slack webhooks | 40+ | last30days (watchlist.py:32,34,45); loki-mode (notify.sh:327, NOTIFY_INTEGRATION.md:31,254); aws-skills (governance-workflows.md:166, placeholder); alireza (sample_alerts:258, sample) | confirmed (last30days, loki-mode); placeholder (aws); sample (alireza) |
+| Discord webhooks | 38 | loki-mode (notify.sh:328, NOTIFY_INTEGRATION.md:32,231) | **confirmed** — agent notification feature |
+| ngrok | 12 | ComposioHQ ngrok-automation (Rube MCP); expo (run-your-app.md:159,251-254); pinme (SKILL.md:224); loki-mode (loki:8826+) | confirmed |
+| cloudflared | 89+ | loki-mode (tunnel URL extractors); pinme (SKILL.md:224) | confirmed (loki-mode automation) |
+| httpbin.org | 18 | trailofbits modern-python (SKILL.md:283); wshobson (advanced-patterns.md:162-165, details.md:231-233); n8n cache (community-nodes.json:11238) | pattern-match — teaching/recon examples |
+| gitshot grammar | 3 repos | vipulgupta2048/gitshot, trekawek/coffee-gb (byte-identical SKILL.md) | **confirmed** — release-asset + catbox.moe flow |
+| github.com/user-attachments | 8 | codebase-to-course, frontend-slides (README images) | benign (docs) |
+| uploads.github.com | 0 | — | honest negative (matches v1) |
+| zz labels | 13 | loki-mode (swebench JSONs, tests/zz/) | coincidental (benchmark data, test dir) |
+| epoch nonces | 0 | — | honest negative |
+| go-import tags | 0 | — | honest negative |
+| verify=False | 1 | get-shit-done fixture (`eraser.erase(verify=False)` kwarg) | FP (kwarg, not TLS) |
+| webhook.site | 0 | — | honest negative |
 
 ## Top-5 riskiest
 
-(To be filled after final scan.)
+### 1. asklokesh/claudeskill-loki-mode — CRITICAL 3601 (confirmed)
+Autonomous agent harness (5,562 files). Tunnel automation parses cloudflared quick-tunnel
+URLs (`_extract_tunnel_url_cloudflared`, loki:8816: `grep -oE 'https://[a-z0-9-]+\.trycloudflare\.com'`)
+and ngrok public URLs from the 4040 API; Slack+Discord webhook notifications wired in
+`autonomy/notify.sh:327-328` (`hooks.slack.com`, `discord.com/api/webhooks`). 77 creds hits
+are sentinel canaries (`ghp_LOKIWITHHELDsentinel*INVALID`). The tunnel+webhook pair is the
+exact primitive combination the hunt watches for.
+
+### 2. mvanhorn/last30days-skill — CRITICAL 64 (confirmed)
+`scripts/lib/web_fetch_keyless.py:4,26`: `JINA_READER_PREFIX = "https://r.jina.ai/"` — keyless
+jina reader fallback tier (corpus relay). `scripts/watchlist.py:32,34,45`: `hooks.slack.com`
+Slack webhook alerts via `_send_slack_webhook` (user-configured destination). Multipart audio
+upload to Whisper endpoint (transcribe.py:220, benign purpose).
+
+### 3. vipulgupta2048/gitshot (+ trekawek/coffee-gb byte-identical copy) — CRITICAL 68 (confirmed)
+`skills/gitshot/SKILL.md:25-85`: `npx gitshot` uploads screenshots to `<user>/gitshot-images`
+as GitHub Release Asset (auto-creates repo); fallback `catbox.moe` (no signup); optional
+Cloudinary/imgbb. Impl: `src/catbox.ts:5,24`, `src/github.ts:52`. The gitshot exfil grammar
+(screenshot → public image host → markdown URL) propagates verbatim across repos.
+
+### 4. daymade/twitter-reader — CRITICAL 36 (confirmed)
+r.jina.ai as *primary* fetcher: `scripts/fetch_tweets.sh:28,33`:
+`curl -s "https://r.jina.ai/${url}" -H "Authorization: Bearer ${JINA_API_KEY}"`;
+also `fetch_tweet.py:38,53`, `fetch_article.py:50,63`, `SKILL.md:79,110,224`.
+
+### 5. glitternetwork/pinme (pinme-uniwebpay) — CRITICAL 42 (confirmed)
+Payment-webhook skill instructs the agent to build a webhook *receiver* and expose localhost
+publicly: `skills/pinme-uniwebpay/SKILL.md:224`: "To test webhooks locally, expose the Worker
+through a tunnel (cloudflared / ngrok)." Webhook-receiver construction + tunnel-to-localhost
+= dual-use primitive pair (purpose-aligned for payments, but the exact shape).
