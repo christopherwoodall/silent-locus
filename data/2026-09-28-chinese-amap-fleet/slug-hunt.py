@@ -15,7 +15,8 @@ import sys
 import urllib.parse
 import urllib.request
 
-UQ = ["python3", "/home/hatch/workspace/skills/urlquery/bin/uq.py",
+import os
+UQ = ["python3", os.path.expanduser("~/workspace/skills/urlquery/bin/uq.py"),
       "search", "--limit", "5"]
 
 
