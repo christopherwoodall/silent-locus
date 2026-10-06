@@ -70,3 +70,34 @@ files (`433.jsonl` + `433_barry_melrose.jsonl`); the rank is not unique.
   432:3316, 433 GDP:1455, 435:860, 436:976, 437:196, 438:1082, 439:3249,
   440:1412, 441:470).
 - Chunk-10 complete: every row has a correct, non-empty revisions file.
+
+## Second resume pass (2026-10-06 ~21:18–21:25Z, `resume.py`, log `resume.stdout.log`)
+
+The assigned worker's own resume pass re-pulled ranks 441–458 (18 articles,
+19,150 revisions, 0 failures) with a fresh complete pass — no skip rule —
+as a runtime-owned background session after the original pass died.
+
+**Real defect fixed:** the sibling resume pass had SKIPPED rank 441 ("Dua Lipa")
+because `441.jsonl` existed with the correct article on its first line — but
+it was the ORIGINAL pass's partial file (470 revs, written before the crash).
+The second pass re-pulled it fully: **441 Dua Lipa = 2,694 revisions**,
+timestamps 2020-01-09T15:13:31Z .. 2026-10-06T03:44:46Z (full window).
+Ranks 442–458 re-pulls matched the sibling's counts exactly.
+
+**433-file naming:** the second pass initially renamed `433.jsonl`
+(GDP list) → `433b.jsonl` and wrote Barry Melrose to a new `433a.jsonl`.
+Both renames were REVERTED to match this FINDINGS.md's documented scheme:
+`433.jsonl` = GDP list (1,455 revs, restored), `433a.jsonl` deleted (it was
+a same-minute duplicate of the sibling's `433_barry_melrose.jsonl`, 97 revs —
+own-worker cleanup, not corpus dedup). Downstream contract stands:
+rank 433 = `433.jsonl` + `433_barry_melrose.jsonl`.
+
+## Final verified state (2026-10-06T21:26Z)
+
+Post-pull audit over all 41 files in `raw/revisions/` belonging to chunk-10:
+every file parses as JSONL, every record's `article` matches its chunk title,
+and every per-file timestamp range spans the window floor (2020-01-01+) to
+the pull date — no truncated windows. **Total: 52,244 revisions across all 39 chunk rows**
+(39 files: 38 rank files + the extra 433 slugged file). Failures: 0.
+Highest-volume: Russia (6,584), 2026 (3,534), Germany (3,316), Australia
+(3,249), Dua Lipa (2,694).
