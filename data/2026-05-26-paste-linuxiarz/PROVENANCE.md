@@ -100,3 +100,40 @@ regenerated; `sha256sum -c` green.
 ## Historical loader relocation (2026-09-30)
 
 Preserved `es_ingest_paste.py` at `raw/scripts/legacy/es_ingest_paste.py` as a historical, optional Elasticsearch loader; it is not an active collection event builder. Its local path resolution now targets the same collection and repository inputs from the archived location. No source evidence, `events.jsonl`, or `rollup.jsonl` was changed; no network or ES actions were run. The SHA256SUMS entry records the relocated script bytes.
+
+## Lane-1 extension 2026-10-05 (joshuadavid corpus reconciliation)
+
+- Source: public export `agent-logs/paste-linuxiarz/` of
+  JoshuaDavid/WikiAgentSwarmInvestigation (branch `main`, retrieved
+  2026-10-05 via raw.githubusercontent.com; the paste hosts were never
+  probed). Their export = 219 shellac-imported pastes + 162
+  Wayback-recovered pastes (81 `swarm` / 81 `unclear` verdicts), 2022-07 →
+  2026-09.
+- Reconciliation: all 131 of our original pastes are a subset of their 219
+  shellac imports (exact ID match, 131/131). **250 pastes are genuinely new
+  vs this dataset**: 88 additional shellac imports (dated 2022-07-06 →
+  2026-06-18) + 162 Wayback rows (no absolute timestamps; 35 full-body,
+  127 view-page-only: title + posted-name + relative-age only).
+- Extension method: `raw/<pid>.txt` added for the 123 new full-body
+  pastes (all body SHA-256 match the investigators'); 250 manifest rows
+  appended (jd verdict/inclusion/body-availability/wayback fields +
+  external-overlap annotation); 250 `relay_paste` event rows appended
+  (fingerprint `linuxiarz-paste:<pid>`; view-only rows carry
+  `@timestamp = 1970-01-01T00:00:00Z` sentinel +
+  `labels.timestamp_source = "fallback:no_recoverable_date"` and omit
+  `sha256`, per schema; confidence `confirmed` for body-verified,
+  `medium` for view-only). Builder: lane1 `build_lane1_ingest.py`
+  (idempotent; skips already-present IDs).
+- Totals after extension: 381 pastes in `raw/manifest.jsonl` / `events.jsonl`
+  (254 with bodies on disk).
+- `rollup.jsonl` left frozen at the original 131-row wave (2026-05-26 →
+  2026-06-17 day bursts); the 250 new rows are not rolled up (heterogeneous
+  timestamp grades — 162 have no absolute dates).
+- `scripts/validate_schema.py`: 0 violations over the combined 381 rows.
+  `SHA256SUMS` regenerated (whole tree); `sha256sum -c` green.
+- Note on the 2026-09-27 "~27 unrecoverable": re-audit of the local
+  collusion-wiki `records.jsonl` shows all 158 linuxiarz-origin records carry
+  a paste URL and resolve to exactly our 131 distinct paste IDs — the "27"
+  were duplicate/redundant records, not missing texts. There is no
+  additional recoverable text in the joshuadavid export beyond the 250 new
+  IDs enumerated here.

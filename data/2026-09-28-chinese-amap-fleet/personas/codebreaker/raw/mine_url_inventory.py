@@ -16,6 +16,13 @@ FLEET = os.path.expanduser('~/workspace/silent-locus/data/2026-09-28-chinese-ama
 SWEEP = os.path.expanduser('~/workspace/silent-locus/data/2026-10-01-oai-tag-sweep')
 OUTD = os.path.join(FLEET, 'personas/codebreaker/raw')
 
+# FLEET_ONLY=1: Chinese-swarm-only run (fleet events + fleet raw JSON, no tag-sweep).
+# Standing rule (BigSexyWarlock69, 2026-10-05): NEVER redact from evidence.
+FLEET_ONLY = os.environ.get('FLEET_ONLY') == '1'
+if FLEET_ONLY:
+    SWEEP = '/tmp/empty-sweep'  # holds an empty events.jsonl; sweep contributes zero records
+OUT_SUFFIX = '-chinese-swarm' if FLEET_ONLY else ''
+
 CLASSES = [
     ('livecodes-carrier',  r'(?:https?://)?livecodes\.io/[^\s"\'<>\]]*'),
     ('httpbun-carrier',    r'(?:https?://)?httpbun\.com/(?:base64|mix)(?:/|\?)[^\s"\'<>\]]*'),
@@ -359,11 +366,16 @@ for e in final:
     occs[e['class']] += len(e['records'])
 
 order = [c for c, _ in CLASSES]
-with open(os.path.join(OUTD, 'url-inventory.md'), 'w') as md:
-    md.write('# URL Inventory — Codebreaker expansion\n\n')
-    md.write('Mined from: `2026-09-28-chinese-amap-fleet/events.jsonl` (%d recs), '
-             '`2026-10-01-oai-tag-sweep/events.jsonl` (%d recs), fleet `raw/**/*.json` (%d files).\n\n'
-             % (n_fleet, n_sweep, n_raw))
+with open(os.path.join(OUTD, 'url-inventory' + OUT_SUFFIX + '.md'), 'w') as md:
+    md.write('# URL Inventory — Codebreaker expansion%s\n\n' % (' (Chinese swarm only)' if FLEET_ONLY else ''))
+    if FLEET_ONLY:
+        md.write('Mined from: `2026-09-28-chinese-amap-fleet/events.jsonl` (%d recs), '
+                 'fleet `raw/**/*.json` (%d files). Chinese swarm ONLY — no tag-sweep (UNCTAD) records. '
+                 'Standing rule: evidence is never redacted.\n\n' % (n_fleet, n_raw))
+    else:
+        md.write('Mined from: `2026-09-28-chinese-amap-fleet/events.jsonl` (%d recs), '
+                 '`2026-10-01-oai-tag-sweep/events.jsonl` (%d recs), fleet `raw/**/*.json` (%d files).\n\n'
+                 % (n_fleet, n_sweep, n_raw))
     md.write('One URL per line: `URL | class | ref | occ=N | note`. '
              '`occ` = contributing records. `TRUNC` = snippet/note-truncated, treat as fragment.\n\n')
     md.write('## Counts per class (unique URLs / contributing records)\n\n')
@@ -383,7 +395,7 @@ with open(os.path.join(OUTD, 'url-inventory.md'), 'w') as md:
                      % (tag, e['url'], e['class'], ref0, len(e['records']), e['note']))
         md.write('\n')
 
-with open(os.path.join(OUTD, 'url-inventory.jsonl'), 'w') as jf:
+with open(os.path.join(OUTD, 'url-inventory' + OUT_SUFFIX + '.jsonl'), 'w') as jf:
     for c in order:
         for e in sorted([e for e in final if e['class'] == c], key=lambda e: e['url']):
             jf.write(json.dumps({

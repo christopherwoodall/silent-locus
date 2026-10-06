@@ -120,3 +120,96 @@
   - 0186fb64 2026-10-05T04:11:00Z [place] amap-pc-ssr.amap.com/ssr/api/getPoiInfo?uqscan=qdnewapi20261005b&id=B021406HP0
   - 967b20ce 2026-10-05T04:11:00Z [place] ditu.amap.com/detail/get/detail?id=B021406HP0&uqscan=qdoldditu20261005a NEW-TAGWORD:qdoldditu
 - tag words this poll: qdnewapi, qdoldditu
+
+### Poll H4 (2026-10-05 07:05 UTC) — htmx
+- new reports: 0
+
+### Poll H5 (2026-10-05 07:36 UTC) — htmx
+- QUERY url.domain:amap.com ERROR: gave up after 3 retries — rc=1 stderr=Traceback (most recent call last):
+  File "/usr/lib/python3.12/http/client.py", line 584, in _get_chunk_left
+    chunk_l
+- new reports: 0 (SOME QUERIES ERRORED)
+
+### Poll H6 (2026-10-05 08:34 UTC) — htmx
+- new reports: 1
+  - c25ffacb 2026-10-05T07:11:00Z [untagged] amap-pc-ssr.amap.com/ssr/place/B000A7O1CU
+- tag words this poll: 
+
+### Poll H7 (2026-10-05 08:51 UTC) — htmx
+- new reports: 0
+
+### Poll H8 (2026-10-05 09:22 UTC) — htmx
+- new reports: 0
+
+### Poll H9 (2026-10-05 09:52 UTC) — htmx
+- new reports: 0
+
+### Poll H10 (2026-10-05 10:23 UTC) — htmx
+- new reports: 0
+
+### Poll H11 (2026-10-05 10:54 UTC) — htmx
+- new reports: 0
+
+--- monitor resumed by respawned live-monitor agent (2026-10-05 12:53 UTC); prior instance died after H11 (10:54 UTC) — gap 10:54→12:53 UTC backfilled by H12; loop restarted detached, 30min polls, no end time ---
+
+### Poll H12 (2026-10-05 12:53 UTC) — htmx
+- new reports: 6
+  - 32810e37 2026-10-05T12:19:00Z [place] amap-pc-ssr.amap.com/ssr/api/getPoiInfo?id=B024F04YSV&uqscan=vfy20261005f NEW-TAGWORD:vfy
+  - 1d48abe3 2026-10-05T12:19:00Z [place] ditu.amap.com/detail/get/detail?id=B024F04YSV&uqscan=vfy20261005e
+  - c7d40817 2026-10-05T12:13:00Z [place] ditu.amap.com/ssr/place/B024F04YSV?uqscan=vfy20261005b
+  - c1c76b95 2026-10-05T12:12:00Z [place] www.amap.com/place/B024F04YSV?uqscan=vfy20261005d
+  - dcbddd95 2026-10-05T12:12:00Z [place] amap-pc-ssr.amap.com/ssr/api/getPoiInfo?id=B024F04YSV&user_loc=119.303,26.085&uqscan=vfy20261005c
+  - b77371a4 2026-10-05T12:11:00Z [place] ditu.amap.com/ssr/place/B024F04YSV?uqscan=vfy20261005a
+- tag words this poll: vfy
+
+### Poll H13 (2026-10-05 13:24 UTC) — htmx
+- new reports: 8
+  - 1fb0322f 2026-10-05T13:11:00Z [place] www.amap.com/place/B02F37TV2J?uqscan=hdr152866912 NEW-TAGWORD:hdr
+  - 914cbba0 2026-10-05T13:11:00Z [place] amap-pc-ssr.amap.com/ssr/poi-detail?id=B02F37TV2J&uqscan=fresh799641116 NEW-TAGWORD:fresh
+  - d9c75c9e 2026-10-05T13:11:00Z [place] www.amap.com/place/B02F37TV2J?uqscan=fresh199266707
+  - c64ba17d 2026-10-05T13:11:00Z [place] www.amap.com/poi-detail?id=B02F37TV2J&source=share&uqscan=fresh262781
+  - b73aa8c9 2026-10-05T13:10:00Z [untagged] amap-pc-ssr.amap.com/ssr/place/B0FFLNAVSV
+  - 2b52f35a 2026-10-05T13:10:00Z [place] amap-pc-ssr.amap.com/ssr/api/getPoiInfo?id=B0FFLNAVSV&uqscan=lz2026a2 NEW-TAGWORD:lz
+  - e5808d54 2026-10-05T13:10:00Z [untagged] www.amap.com/place/B0FFLNAVSV/
+  - 16420716 2026-10-05T13:10:00Z [place] www.amap.com/service/poiInfo?id=B001B06217&query_type=IDQ&uqscan=research20261005a NEW-TAGWORD:research
+- tag words this poll: fresh, hdr, lz, research
+
+### Poll H14 (2026-10-05 13:55 UTC) — htmx
+- new reports: 0
+
+### Poll H15 (2026-10-05 14:25 UTC) — htmx
+- new reports: 1
+  - 5b949f5f 2026-10-05T14:22:00Z [untagged] m.amap.com/detail/index/poiid=B02F37TV2J&uqmobile=957286017548
+- tag words this poll: 
+
+## 2026-10-05 ua-burst-retry: recovered `httpbin agent` UA burst (2026-09-29T19-21Z)
+
+Query returned 12 reports (the burst was described as ten; two extra hits fall in the same window).
+Every one of the 12 carries the IDENTICAL submitter UA (the stock urlquery Firefox default):
+
+`Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:134.0) Gecko/20100101 Firefox/134.0`
+
+- https://urlquery.net/report/63129686-5850-4691-b7ff-174049f141eb  (2026-09-29T21:10:21Z)
+  - UA: `Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:134.0) Gecko/20100101 Firefox/134.0`
+- https://urlquery.net/report/f4a99469-0bf5-4731-9be4-ec39bfbd121b  (2026-09-29T20:59:29Z)
+  - UA: `Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:134.0) Gecko/20100101 Firefox/134.0`
+- https://urlquery.net/report/6aa0e533-4b70-4e67-b43d-c96ddfc759fb  (2026-09-29T20:55:49Z)
+  - UA: `Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:134.0) Gecko/20100101 Firefox/134.0`
+- https://urlquery.net/report/4bc4fb68-c23b-4ce9-b8b2-f902406915da  (2026-09-29T20:55:38Z)
+  - UA: `Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:134.0) Gecko/20100101 Firefox/134.0`
+- https://urlquery.net/report/d11c9c7d-7381-4f7a-8ebe-b08aac4727b0  (2026-09-29T20:54:37Z)
+  - UA: `Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:134.0) Gecko/20100101 Firefox/134.0`
+- https://urlquery.net/report/679d68ba-4d07-41c0-b212-4dc49243e4d7  (2026-09-29T20:51:52Z)
+  - UA: `Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:134.0) Gecko/20100101 Firefox/134.0`
+- https://urlquery.net/report/3f34c8ff-574e-40e3-9851-bebed899d37d  (2026-09-29T20:28:43Z)
+  - UA: `Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:134.0) Gecko/20100101 Firefox/134.0`
+- https://urlquery.net/report/b1fb3621-a490-462d-8425-24586d58d4cd  (2026-09-29T20:18:09Z)
+  - UA: `Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:134.0) Gecko/20100101 Firefox/134.0`
+- https://urlquery.net/report/307294ff-3d0a-4a00-8130-bb0872b8a3b0  (2026-09-29T20:12:57Z)
+  - UA: `Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:134.0) Gecko/20100101 Firefox/134.0`
+- https://urlquery.net/report/caf3296f-264c-4590-b7bd-3b8431446c96  (2026-09-29T20:06:55Z)
+  - UA: `Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:134.0) Gecko/20100101 Firefox/134.0`
+- https://urlquery.net/report/6dc0f023-0f4e-4ab8-b1ff-9b674bd800ac  (2026-09-29T20:05:55Z)
+  - UA: `Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:134.0) Gecko/20100101 Firefox/134.0`
+- https://urlquery.net/report/81cf4f50-5729-4af6-87a3-efbd8eb171be  (2026-09-29T19:38:54Z)
+  - UA: `Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:134.0) Gecko/20100101 Firefox/134.0`

@@ -1,0 +1,25 @@
+# Lane-4 verification: 124-char sample decode (characterization only — nothing executed)
+
+Sample: Centaur's published paste body, post c894f76a (full 124 chars, kept
+verbatim per AGENTS.md 2026-10-05 "never redact from evidence").
+
+    31aJAPJbTQ4dcHq XjxRKna6jrxY090mMYtMN3MCx7ogCkmEL2ZFIYv4xuoT/N4p4U7oxyCkISf1ZhsSKuOOiI7ybcJkzT ADiTDr9gGr1coDaMBGjtQIyuAB1nE
+
+Method: replace ' ' with '+' (the pastebin-php form turns '+' into space in
+bodies — terminadigital venue caveat), then standard base64 decode.
+
+Results (python3, base64 stdlib, run 2026-10-05):
+- length: 124 chars, 2 spaces
+- after space->'+': length 124, mod 4 == 0, full base64 alphabet [A-Za-z0-9+/]
+- decoded: 93 bytes
+- byte entropy: 6.251 bits (max 8.0) — ciphertext-like, not structured plaintext
+- gzip magic (1f 8b): absent
+- readable UTF-8: none
+- hex head: df568900f25b4d0e1d707abe5e3c512a
+- Fernet layout: NO — 93 bytes cannot hold the 57-byte Fernet header
+  (version 1 + timestamp 8 + IV 16 + HMAC 32) plus a block-aligned ciphertext
+  (93 - 57 = 36, not a multiple of AES block size 16)
+
+Consistent with the investigators' "spaces-to-plus Base64 hypothesis" and
+"headerless cipher, unique per message". No algorithm identified from entropy
+alone (agrees with Centaur: "entropy identifies no algorithm").

@@ -29,12 +29,13 @@ Earliest non-sentinel `@timestamp` in events: **2026-09-28** (first fleet scans,
 
 ## Artifacts in this directory
 - `raw/` — verbatim API responses (search pages, 7 full reports)
-- `events.jsonl` — 2,110 `venue_finding` records (one per report; deduped by report_id)
+- `raw/analysis/` — analysis docs (corrected 2026-10-05: these live here, not at root)
+- `events.jsonl` — 2,141 `venue_finding` records (one per report; deduped by report_id). Canonical count = 1,970 base sweep reports + 171 pivot/infra reports (httpbun 65 + gaode 30 + livecodes 26 + sub_poi_navi 21 + hrefli 19 + 10 report_*.json), all verified in raw content (Round 2 archivist audit; the earlier 2,110 prose figure was stale).
 - `build_events.py` — event builder (co-located per schema)
-- `COLLECT.md` — collection stats and gaps
-- `PATTERN.md` — fleet fingerprint
-- `INFRA.md` — infrastructure inventory + watchlist
-- `LINKS.md` — running link log
+- `raw/analysis/COLLECT.md` — collection stats and gaps
+- `raw/analysis/PATTERN.md` — fleet fingerprint
+- `raw/analysis/INFRA.md` — infrastructure inventory + watchlist
+- `raw/analysis/LINKS.md` — running link log (see also `ALL_LINKS.md` at root for the full categorized list)
 - `SHA256SUMS` — manifest
 
 ## Caveats
