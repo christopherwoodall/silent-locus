@@ -153,6 +153,48 @@ def main():
         except Exception as exc:
             failures.append(f"state test: bad state file: {exc}")
 
+    # --- raw EventStreams revision-create shape normalizes end to end ---
+    # (performer.user_text -> user, database -> wiki; README's claimed mapping)
+    ran += 1
+    with tempfile.TemporaryDirectory() as tmp:
+        raw_batch = os.path.join(tmp, "raw_es.jsonl")
+        with open(raw_batch, "w") as fh:
+            fh.write(json.dumps({
+                "meta": {"uri": "https://meta.wikimedia.org/wiki/Web2Cit/data/com/arcgis/templates.json",
+                         "dt": "2026-06-25T20:35:20Z",
+                         "domain": "meta.wikimedia.org",
+                         "stream": "mediawiki.revision-create"},
+                "database": "metawiki",
+                "page_title": "Web2Cit/data/com/arcgis/templates.json",
+                "page_namespace": 0,
+                "rev_id": 30732701, "rev_parent_id": 0,
+                "rev_content": "{\"templates\": []}",
+                "comment": "adding geocoding template",
+                "performer": {"user_text": "~2026-36867-71", "user_groups": ["*"]},
+            }) + "\n")
+        proc = run_detect(raw_batch)
+        counts, err = count_rules(proc)
+        want = {"web2cit-config-edit": 1, "web2cit-nonbibliographic-target": 1}
+        if proc.returncode != 0 or err or counts != want:
+            failures.append(f"raw-ES normalization: expected {want}, "
+                            f"got rc={proc.returncode} counts={counts} err={err} "
+                            f"stderr={proc.stderr.strip()[:200]}")
+
+    # --- nameless rule / unknown type = clean exit 2, never a traceback ---
+    ran += 1
+    with tempfile.TemporaryDirectory() as tmp:
+        bad_rules = os.path.join(tmp, "rules.yaml")
+        with open(bad_rules, "w") as fh:
+            fh.write("rules:\n  - description: no name here\n    type: title_prefix\n")
+        proc = subprocess.run(
+            [sys.executable, DETECT, "--rules", bad_rules,
+             os.path.join(FIX, "f03_web2cit_config_neg.jsonl")],
+            capture_output=True, text=True)
+        if proc.returncode != 2:
+            failures.append(f"bad-rules: expected exit 2, got {proc.returncode}")
+        elif "traceback" in proc.stderr.lower():
+            failures.append("bad-rules: leaked a traceback instead of a clean error")
+
     print(f"run_tests: {ran} checks, {len(failures)} failures")
     for f in failures:
         print(f"  FAIL: {f}")

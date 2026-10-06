@@ -19,8 +19,8 @@ Alert schema (one JSON object per line on stdout):
      "wiki": ..., "user": ..., "title": ...,
      "evidence": {...}, "provenance": {"finding": ..., "source_file": ..., "grade": ...}}
 
-Exit codes: 0 = success (alerts or not); 2 = malformed input (bad JSON line /
-missing required fields) with a clear stderr message.
+Exit codes: 0 = success (alerts or not); 2 = malformed input or bad rules
+file, with a clear stderr message; 3 = PyYAML missing.
 
 Input event schema (normalized; see README.md for the full mapping):
     {"ts": "2026-06-25T20:28:27Z", "wiki": "meta.wikimedia.org",
@@ -28,8 +28,10 @@ Input event schema (normalized; see README.md for the full mapping):
      "namespace": 0, "comment": "...", "tags": ["mw-reverted"],
      "content": "<added text>", "is_new": true}
 
-The normalizer also accepts raw EventStreams `revision-create` event shapes
-(mapping meta.dt→ts, page_title→title, rev_content→content, etc.).
+The normalizer also accepts raw EventStreams `revision-create` / `page-delete`
+event shapes (mapping meta.dt→ts, database or meta.domain→wiki,
+page_title→title, page_namespace→namespace, performer.user_text→user,
+rev_content→content, rev_parent_id==0→is_new).
 """
 
 import argparse
@@ -63,27 +65,48 @@ def parse_ts(ts):
     return dt
 
 
+def _wiki_from_eventstream(raw, meta):
+    """Best-effort wiki dbname for a raw EventStreams event.
+
+    Prefers the canonical `database` field; falls back to deriving from
+    meta.domain (en.wikipedia.org -> enwiki). Returns None if unrecoverable.
+    """
+    db = raw.get("database")
+    if isinstance(db, str) and db:
+        return db
+    domain = (meta.get("domain") or "")
+    if isinstance(domain, str) and domain:
+        if domain.endswith(".wikipedia.org"):
+            return domain[:-len(".wikipedia.org")] + "wiki"
+        if domain == "commons.wikimedia.org":
+            return "commonswiki"
+        if domain.endswith(".wikimedia.org"):
+            return domain[:-len(".wikimedia.org")] + "wiki"
+    return None
+
+
 def normalize_event(raw):
-    """Map a fixture event OR a raw EventStreams revision-create event to the
-    normalized schema. Raises ValueError on malformed events."""
+    """Map a fixture event OR a raw EventStreams revision-create / page-delete
+    event to the normalized schema. Raises ValueError on malformed events."""
     if not isinstance(raw, dict):
         raise ValueError(f"event is not a JSON object: {type(raw).__name__}")
 
     meta = raw.get("meta") or {}
-    # Detect raw EventStreams shape (has meta.uri / meta.dt) vs fixture shape.
-    is_es = isinstance(meta, dict) and ("uri" in meta or "dt" in meta)
+    performer = raw.get("performer") or {}
 
     ev = {
-        "ts": raw.get("ts", meta.get("dt")),
-        "wiki": raw.get("wiki"),
-        "user": raw.get("user", raw.get("user_text")),
-        "title": raw.get("title", raw.get("page_title")),
+        "ts": raw.get("ts") or meta.get("dt"),
+        "wiki": raw.get("wiki") or _wiki_from_eventstream(raw, meta),
+        "user": raw.get("user") or performer.get("user_text") or raw.get("user_text"),
+        "title": raw.get("title") or raw.get("page_title"),
         "namespace": raw.get("namespace", raw.get("page_namespace", 0)),
         "comment": raw.get("comment", "") or "",
         "tags": raw.get("tags", []),
         "content": raw.get("content", raw.get("rev_content", "") or ""),
         "is_new": bool(raw.get("is_new", raw.get("rev_parent_id") == 0)),
     }
+    if ev["namespace"] is None:
+        ev["namespace"] = 0
     # tags may arrive as a comma-separated string (MediaWiki API style).
     if isinstance(ev["tags"], str):
         ev["tags"] = [t for t in ev["tags"].split(",") if t]
@@ -238,7 +261,6 @@ def make_alert(rule, event, evidence):
 def _burst_window_hits(ctx, predicate, n, window):
     """Generic sliding-window burst evaluator. Returns (fired_dt, hits)."""
     window = timedelta(minutes=window)
-    now = ctx.events[-1][0] if ctx.events else None
     # Group by wiki; evaluate per wiki.
     by_wiki = {}
     for dt, ev in ctx.events:
@@ -464,6 +486,14 @@ def main(argv=None):
         rules = rules_doc.get("rules", [])
         if not isinstance(rules, list) or not rules:
             raise ValueError("rules.yaml contains no rules")
+        # Validate rule records up front: a nameless rule or an unknown type
+        # must be a clean exit-2 "bad rules file", never a KeyError traceback.
+        for i, rule in enumerate(rules):
+            if not isinstance(rule, dict) or not rule.get("name"):
+                raise ValueError(f"rules.yaml: rule #{i} is missing 'name'")
+            if rule.get("type") not in EVALUATORS:
+                raise ValueError(
+                    f"rules.yaml: rule {rule['name']!r}: unknown type {rule.get('type')!r}")
     except (OSError, ValueError, yaml.YAMLError) as exc:
         print(f"detect.py: cannot load rules: {exc}", file=sys.stderr)
         return 2

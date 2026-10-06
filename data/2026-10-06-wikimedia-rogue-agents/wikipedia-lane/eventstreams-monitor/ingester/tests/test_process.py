@@ -142,4 +142,50 @@ with tempfile.TemporaryDirectory() as tmp:
     check('run()+double-close ok', True)
 
 
+# --- 7. SSE resume cursor (Last-Event-ID) -------------------------------------
+with tempfile.TemporaryDirectory() as tmp:
+    eid_file = os.path.join(tmp, 'state', 'recentchange.last_event_id')
+    p = process.Processor(out_root=tmp, heartbeat_interval=0,
+                          event_id_file=eid_file)
+    p.handle_line('id: 12345')
+    check('id: line captured as cursor (not an event)',
+          p.last_event_id == '12345' and p.counts['events'] == 0)
+    p.handle_line('data: {"a": 1}')
+    p.close()
+    with open(eid_file, encoding='utf-8') as fh:
+        check('cursor checkpointed to event-id file on close',
+              fh.read().strip() == '12345')
+
+with tempfile.TemporaryDirectory() as tmp:
+    eid_file = os.path.join(tmp, 'no-cursor.last_event_id')
+    p = process.Processor(out_root=tmp, heartbeat_interval=0,
+                          event_id_file=eid_file)
+    p.handle_line('data: {"a": 1}')
+    p.close()
+    check('no cursor seen -> no event-id file written',
+          not os.path.exists(eid_file))
+
+
+# --- 8. Wiki derivation prefers `database`; page-delete event typing ---------
+rc_db = {'meta': {'uri': 'x', 'dt': '2026-10-06T02:15:00Z',
+                  'domain': 'www.wikidata.org',
+                  'stream': 'mediawiki.revision-create'},
+         'database': 'wikidatawiki',
+         'page_title': 'Q42', 'rev_id': 5,
+         'performer': {'user_text': '~2026-40000-01'}}
+n4 = process.normalize(rc_db)
+check('database beats domain derivation', n4['wiki'] == 'wikidatawiki', n4)
+
+pd = {'meta': {'uri': 'x', 'dt': '2026-10-06T02:15:00Z',
+               'domain': 'meta.wikimedia.org',
+               'stream': 'mediawiki.page-delete'},
+      'database': 'metawiki', 'page_title': 'Web2Cit/data/com/arcgis/templates.json',
+      'page_namespace': 4, 'rev_id': 30732700,
+      'performer': {'user_text': 'Pppery'}}
+n5 = process.normalize(pd)
+check('page-delete typed correctly (not revision-create)',
+      n5['event_type'] == 'page-delete' and n5['wiki'] == 'metawiki', n5)
+check('page-delete performer user', n5['user'] == 'Pppery', n5)
+
+
 print('\nALL TESTS PASSED')

@@ -43,7 +43,8 @@ rules:
       # from the nominal 10 to tolerate the observed geometry + clock skew.
       window_minutes: 12        # sliding window length
       temp_account_regex: '~20\d{2}-\d+-\d+'   # MediaWiki temp-account shape ~YYYY-NNNNN-NN
-      fire_once_per_window: true  # emit at most one alert per (wiki, window); the Nth event carries the alert
+      # NOTE: while a window is hot, every new batch re-emits the burst alert;
+      # alert consumers dedupe (see detector/README.md "State file format").
 
   # ---------------------------------------------------------------------------
   # 2. sandbox-edit burst
@@ -58,7 +59,7 @@ rules:
       wiki. Catches the incident's sandbox-sweep TTP (recon/test before config ops).
     provenance:
       incident_finding: "~2026-28355-02 rapid sandbox-edit sequence 2026-05-10 16:01-16:14Z on enwiki (User:Example/sandbox, Wikipedia:Sandbox)"
-      source_file: "wikipedia-lane/records.json; wikipedia-lane/revisions.tsv; HUNT-SUMMARY.md (osint-scribe verdict)"
+      source_file: "wikipedia-lane/records.json; wikipedia-lane/raw/revisions.tsv; HUNT-SUMMARY.md (osint-scribe verdict)"
       claim_grade: "OBSERVED"
     severity: high
     type: sandbox_edit_burst
@@ -68,7 +69,8 @@ rules:
       window_minutes: 15
       temp_account_regex: '~20\d{2}-\d+-\d+'
       sandbox_title_regex: '(?i)(^|:|/)Sandbox'   # matches User:X/Sandbox, Wikipedia:Sandbox, etc.
-      fire_once_per_window: true
+      # NOTE: burst alerts re-emit per batch while the window is hot; alert
+      # consumers dedupe (see detector/README.md "State file format").
 
   # ---------------------------------------------------------------------------
   # 3. Web2Cit config edit

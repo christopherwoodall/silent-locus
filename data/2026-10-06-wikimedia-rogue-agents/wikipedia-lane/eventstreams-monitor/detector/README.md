@@ -33,9 +33,9 @@ Normalized JSON, one object per JSONL line:
 
 `ts` (ISO-8601 or epoch), `wiki`, `user`, `title` are required. `tags` accepts a
 list or a comma-separated string. The normalizer also accepts raw EventStreams
-`revision-create` shapes, mapping `meta.dt→ts`, `page_title→title`,
-`page_namespace→namespace`, `user_text→user`, `rev_content→content`,
-`rev_parent_id==0→is_new`.
+`revision-create` / `page-delete` shapes, mapping `meta.dt→ts`, `database` (or
+`meta.domain`)`→wiki`, `page_title→title`, `page_namespace→namespace`,
+`performer.user_text→user`, `rev_content→content`, `rev_parent_id==0→is_new`.
 
 ## Usage
 
@@ -89,7 +89,7 @@ triage = verify the domain is bibliographic, then regenerate.
 ## Tests
 
 ```bash
-python3 tests/run_tests.py   # 14 checks: 12 fixture cases + malformed-input + state persistence
+python3 tests/run_tests.py   # 16 checks: 12 fixture cases + malformed-input + state persistence + raw-ES normalization + bad-rules
 ```
 
 Fixtures in `tests/fixtures/`: hand-written positives (incident-shaped events

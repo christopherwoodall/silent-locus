@@ -16,6 +16,10 @@
 #         or ISO `meta.dt`), not wall clock — replay-safe.
 # Diagnostics go to stderr (never mixed into the JSONL evidence files).
 #
+# SSE resume: `id:` lines are captured as the resume cursor and checkpointed
+# to --event-id-file (on every heartbeat and on close); ingest.sh sends the
+# cursor back as `Last-Event-ID` on reconnect (DESIGN.md §7).
+#
 # Supported event schemas (best-effort normalization):
 #   - recentchange  (stream.wikimedia.org/v2/stream/recentchange):
 #       {wiki, title, type, timestamp(epoch), user, comment, ...}
@@ -91,25 +95,35 @@ def normalize(ev):
             'event_type': ev.get('type'),
             'timestamp': ev.get('timestamp'),
         }
-    # revision-create / page-create shape
+    # revision-create / page-delete shape
     meta = ev.get('meta') or {}
-    domain = meta.get('domain', '')
-    wiki = None
-    if isinstance(domain, str) and domain:
-        # e.g. en.wikipedia.org -> enwiki; commons.wikimedia.org -> commonswiki
-        if domain.endswith('.wikipedia.org'):
-            wiki = domain[:-len('.wikipedia.org')] + 'wiki'
-        elif domain == 'commons.wikimedia.org':
-            wiki = 'commonswiki'
-        elif domain.endswith('.wikimedia.org'):
-            # meta.wikimedia.org -> metawiki (canonical dbname = stem + 'wiki')
-            wiki = domain[:-len('.wikimedia.org')] + 'wiki'
+    # Prefer the canonical dbname when present: domain derivation misfires for
+    # e.g. www.wikidata.org ('wwwiki' instead of 'wikidatawiki').
+    wiki = ev.get('database')
+    if not wiki:
+        domain = meta.get('domain', '')
+        if isinstance(domain, str) and domain:
+            # e.g. en.wikipedia.org -> enwiki
+            if domain.endswith('.wikipedia.org'):
+                wiki = domain[:-len('.wikipedia.org')] + 'wiki'
+            elif domain == 'commons.wikimedia.org':
+                wiki = 'commonswiki'
+            elif domain.endswith('.wikimedia.org'):
+                # meta.wikimedia.org -> metawiki (canonical dbname = stem + 'wiki')
+                wiki = domain[:-len('.wikimedia.org')] + 'wiki'
     performer = ev.get('performer') or {}
+    stream = meta.get('stream') or ''
+    if 'rev_id' in ev:
+        # page-delete events also carry rev_id (head rev at delete) — tell
+        # them apart from revision-create via the stream name.
+        event_type = 'page-delete' if 'page-delete' in stream else 'revision-create'
+    else:
+        event_type = ev.get('type')
     return {
         'wiki': wiki,
         'title': ev.get('page_title') or ev.get('title'),
         'user': performer.get('user_text') or ev.get('user'),
-        'event_type': 'revision-create' if 'rev_id' in ev else ev.get('type'),
+        'event_type': event_type,
         'timestamp': ev.get('timestamp') or _meta_dt_to_epoch(meta.get('dt')),
     }
 
@@ -157,11 +171,15 @@ def make_filter(wikis, title_pattern):
 
 class Processor:
     def __init__(self, out_root, accept=None, heartbeat_interval=1000,
-                 log=sys.stderr):
+                 log=sys.stderr, event_id_file=None):
         self.out_root = out_root
         self.accept = accept or (lambda norm: True)
         self.heartbeat_interval = heartbeat_interval
         self.log = log
+        # SSE resume cursor: path of the file holding the last seen `id:` line.
+        # ingest.sh reads it and sends it back as `Last-Event-ID` on reconnect.
+        self.event_id_file = event_id_file
+        self.last_event_id = None
         self.counts = {'events': 0, 'accepted': 0, 'filtered': 0,
                        'malformed': 0}
         self._current_path = None
@@ -169,6 +187,21 @@ class Processor:
 
     def _emit(self, msg):
         print(msg, file=self.log, flush=True)
+
+    def _write_event_id(self):
+        """Persist the SSE resume cursor. Best-effort: warn, never raise."""
+        if not self.event_id_file or not self.last_event_id:
+            return
+        try:
+            parent = os.path.dirname(self.event_id_file)
+            if parent:
+                os.makedirs(parent, exist_ok=True)
+            tmp = self.event_id_file + '.tmp'
+            with open(tmp, 'w', encoding='utf-8') as fh:
+                fh.write(self.last_event_id + '\n')
+            os.replace(tmp, self.event_id_file)
+        except OSError as exc:
+            self._emit('warn: could not write event-id file: %s' % exc)
 
     def _fh_for(self, path):
         if path != self._current_path:
@@ -181,10 +214,16 @@ class Processor:
 
     def handle_line(self, line):
         """Process one raw SSE line. Returns True if an event was stored."""
+        s = line.strip()
+        if s.startswith('id:'):
+            # SSE event id — the resume cursor (DESIGN.md §7). Not an event.
+            val = s[3:].strip()
+            if val:
+                self.last_event_id = val
+            return False
         ev = parse_sse_line(line)
         if ev is None:
             # Distinguish malformed data: payloads from `data:` lines only.
-            s = line.strip()
             if s.startswith('data:') and s[5:].strip():
                 self.counts['malformed'] += 1
                 self._emit('warn: malformed data line skipped')
@@ -200,6 +239,7 @@ class Processor:
         self.counts['accepted'] += 1
         n = self.counts['events']
         if self.heartbeat_interval and n % self.heartbeat_interval == 0:
+            self._write_event_id()   # checkpoint the resume cursor
             self._emit('heartbeat: events=%d accepted=%d filtered=%d '
                        'malformed=%d current_file=%s'
                        % (n, self.counts['accepted'], self.counts['filtered'],
@@ -208,6 +248,7 @@ class Processor:
 
     def close(self):
         """Flush and close the current hour file. Idempotent."""
+        self._write_event_id()        # final cursor checkpoint
         if self._current_fh:
             self._current_fh.flush()
             self._current_fh.close()
@@ -240,6 +281,9 @@ def _parse_args(argv):
                         '(empty = all titles)')
     p.add_argument('--heartbeat', type=int, default=1000,
                    help='log a heartbeat line to stderr every N events')
+    p.add_argument('--event-id-file', default=None,
+                   help='persist the last seen SSE event id here (resume '
+                        'cursor; ingest.sh sends it back as Last-Event-ID)')
     return p.parse_args(argv)
 
 
@@ -248,7 +292,8 @@ def main(argv=None):
     accept = make_filter([w for w in args.wikis.split(',') if w] or None,
                          args.title_regex or None)
     proc = Processor(out_root=args.out_dir, accept=accept,
-                     heartbeat_interval=args.heartbeat)
+                     heartbeat_interval=args.heartbeat,
+                     event_id_file=args.event_id_file)
     proc.run(sys.stdin)
 
 
