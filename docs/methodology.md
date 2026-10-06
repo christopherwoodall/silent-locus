@@ -31,6 +31,13 @@ below refer to the manual.
     require a working query path.
 12. **Write it down as you go.** Steps, rationale, evidence, caveats —
     incrementally, in the durable file.
+13. **Direct the hunt, don't just execute it.** (§8) The coordinator
+    decides *what* to investigate; workers execute. Every lane brief
+    carries objective, approach, success criteria, and a stop condition —
+    and stopping a lane is a verdict, not a failure.
+14. **Evidence is a graph, not a list.** (§9) Typed nodes (account, IP,
+    domain, ASN, marker) joined by typed, graded, provenance-carrying
+    edges — flat IOC lists plus `nodes.jsonl`/`edges.jsonl` per event.
 
 ## Detection techniques (the working set)
 
