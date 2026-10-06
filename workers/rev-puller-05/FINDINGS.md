@@ -61,3 +61,25 @@ None.
 
 - One JSON object per line: rank, article, revid, parentid, user, timestamp, comment, tags, size.
 - A count of -1 in counts.tsv marks a failed article (see errors.log); its JSONL is empty/partial.
+
+## Incident: 8 cached files deleted post-run (recovered)
+
+- **Observed:** at ~21:02 UTC, after the main run finished cleanly (21:01:20 UTC,
+  39/39 ok, 49,225 revisions), files `217.jsonl`–`224.jsonl` were missing from
+  `raw/revisions/`, although `pull.log` shows DONE for all 8 and `counts.tsv`
+  recorded their counts.
+- **Ruled out:** no other worker's logs reference ranks 217–224; chunk files
+  do not overlap (only `chunk-05` contains these ranks); no rev-puller-05
+  process other than this one exists. Deleter unidentified.
+- **Preservation:** the deleted files' content survives in the git object
+  store (e.g. `217.jsonl` blob `b7bbef6f72e8ad60679b0e21293bcab4dadb20f6`
+  holds exactly 1,653 lines) — never redact, never lose evidence.
+- **Recovery:** re-pulled all 8 articles 21:05–21:08 UTC (`repull_05.sh`,
+  `repull.log`, `recounts.tsv`). Every count matched the first run
+  byte-for-byte (217:1653, 218:556, 219:2537, 220:412, 221:721, 222:0,
+  223:1104, 224:3291). All 39 files verified present on disk afterward.
+- **Watch item for coordinator:** several other chunks show chunk-prefix gaps
+  consistent with in-flight re-pulls by sibling workers (e.g. chunk-03 ranks
+  132–134/153–173, chunk-04 174–177/194–216, chunk-07 296/300–306). A
+  cross-chunk audit of `raw/revisions/` completeness is recommended once all
+  workers finish.
