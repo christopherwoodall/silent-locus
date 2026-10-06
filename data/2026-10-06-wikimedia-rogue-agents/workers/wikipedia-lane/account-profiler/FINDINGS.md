@@ -3,6 +3,49 @@ Branch: `wikipedia-edit-hunt-2026-10-06`. Updated incrementally.
 
 Every claim graded: OBSERVED (bytes in hand) / INFERENCE (reasoned link) / UPSTREAM (someone else's claim).
 
+## SHAPE-SCORES — burst clusters ranked by incident-shape similarity (2026-10-06)
+
+Incident shape profile (from the 28 incident accounts + 54 edits):
+- F1: ~2026-* temporary account format
+- F2: Sandbox-edit bursts with May 10 / May 27 / Jun 25 timing geometry (sandbox "test"/"Temporary technical sandbox initialization")
+- F3: Web2Cit config targeting (sandbox→live workflow, geodata/geocoding targets)
+- F4: 10-minute creation bursts (Jun-25 incubator: 8 accounts in ~7 min)
+- F5: ~4-minute micro-bursts (testwiki Sep-30 pattern: 5 accounts in 4 min)
+Threshold: ≥3/5 shared features → zoom-in lane. Ranked by shape score, NOT account count.
+
+| Rank | Cluster | n | F1 temp | F2 sandbox+timing | F3 Web2Cit | F4 10min burst | F5 4min micro | Score | Verdict |
+|---|---|---|---|---|---|---|---|---|---|
+| — | BURST-2 incubatorwiki 2026-06-25 | 8 | ✓ | ✓ | ✓ | ✓ | ~ | 4.5/5 | REFERENCE (is the incident) |
+| 1 | BURST-1 testwiki 2026-09-30 | 5 | ✓ | ✗ (Twinkle test page, Sep 30) | ✗ | ✓ | ✓ | 3/5 | ZOOM-IN → shape-partial lead |
+| 2 | mediawikiwiki 2026-05-27T16:50 | 5 | ✓ | ~ (May-27 timing ✓, but 4/5 dormant, no sandbox) | ✗ | ✓ | ✗ | 2.5/5 | Below threshold; timing noted |
+| 3 | BURST-3 mediawikiwiki 05-18/05-21 | 86 | ✓ | ✗ (95% dormant, no sandbox edits) | ✗ | ✓ | ✗ | 2/5 | CLEAN NEGATIVE (shape) |
+| 3 | BURST-4 simplewiki 7× n=10 | 70 | ✓ | ✗ | ✗ | ✓ | ✗ | 2/5 | CLEAN NEGATIVE (shape) |
+| 3 | BURST-5 bgwiki 12× n=5–6 | 63 | ✓ | ✗ (mostly active 1–17 edits, not sandbox) | ✗ | ✓ | ✗ | 2/5 | CLEAN NEGATIVE (shape) |
+
+Cross-shape vs corpus fleets (explicit):
+- zz=oai fleets: URL-grammar based (zz=oai<digits>). Zero shared grammar with temp-account bursts (no URLs involved). DIVERGENT on all clusters.
+- Shrekiolous/Mutark (Meta sandbox-burst crews, wiki-surgeon): shared sandbox-burst behavior (F2-like) but Mutark accounts were globally locked vandal-probe crew; incident accounts unlocked, temp-format, config-targeting. Our BURST-1/3/4/5 lack the sandbox-burst behavior itself → DIVERGENT.
+- Sept-2026 probe clusters (Jndufjdtidd et al.): shared burst structure only; different timing, targets, account format. DIVERGENT.
+
+### ZOOM-IN: BURST-1 (testwiki 2026-09-30, 3/5 shape match)
+Full contribs pulled for all 5 accounts (raw/contribs-burst1-testwiki-2026-*.json):
+- All 5 edits target "Twinkle test page" (revids 765142–765150, consecutive). First creates page with `{{subst:Deletion sorting/multi|Lists|sig=~~~~}}`; rest are blank/touch edits.
+- Sandbox edits: NONE. Web2Cit/config targeting: NONE. Probe markers (zz=, tok=, uqscan): NONE.
+- Shape assessment after zoom-in: shares F1 (temp), F4 (10-min burst), F5 (4-min micro) — the CREATION geometry matches the incident's micro-burst shape, but the EDIT behavior (Twinkle testing vs sandbox probing) and timing (Sep 30 vs incident waves) diverge.
+- Verdict: SHAPE-PARTIAL LEAD (3/5). Creation-burst geometry is incident-like; edit behavior is not. Referred to chunk divers for the Twinkle angle. NOT claimed as incident-related.
+
+### CLEAN NEGATIVES (shape) — filed with feature comparisons
+- **BURST-3 mediawikiwiki 2026-05-18/05-21 (86 accounts, 95% dormant):** shares F1 (temp format) + F4 (creation bursts); lacks F2 (no sandbox edits — dormant), F3 (no config targeting), F5 (bursts span 40min–2h, not micro). Does not rhyme with zz=oai (no grammar), Mutark (no sandbox bursts, unlocked), or Sept-2026 probes (different structure). FILED NEGATIVE on shape. (Dormancy remains a separate lead for infrastructure reasons, not shape.)
+- **BURST-4 simplewiki (7× n=10):** shares F1 + F4; lacks F2, F3, F5. Recurring fixed-n=10 suggests scheduled process, not incident geometry. FILED NEGATIVE.
+- **BURST-5 bgwiki (12× n=5–6):** shares F1 + F4; lacks F2 (mostly active, not sandbox), F3, F5. FILED NEGATIVE.
+
+### Dormant-account leads (carrying shape scores)
+- mediawikiwiki May-18/21 dormant (95 accounts): shape 2/5 — lead on DORMANCY (infrastructure), not shape.
+- simplewiki dormant (~30 across bursts): shape 2/5 — lead on dormancy.
+- bgwiki dormant (27): shape 2/5 — weak.
+- BURST-1 (0 dormant; all edited): shape 3/5 — lead on SHAPE.
+Full per-account dormancy: raw/dormancy-checks/dormancy.tsv.
+
 ## Burst clustering — results (incremental)
 
 ### BURST-1 (LEAD): testwiki 2026-09-30T06:33:32–06:37:19Z, n=5 — OBSERVED
@@ -13,6 +56,30 @@ Every claim graded: OBSERVED (bytes in hand) / INFERENCE (reasoned link) / UPSTR
 - Note: account numbers non-sequential (52359–52595 spread) within the 4-min window, unlike the Jun-25 incubator wave (36686→36920 sequential in 30 min). Temp-ID sequencing is not a reliable fleet clock — OBSERVED counterexample.
 
 ### test2wiki (Apr–Sep complete): zero bursts (132 temp creations, max bin < 5).
+
+### BURST-3 (LEAD, STRONGEST): mediawikiwiki dormant clusters, May 18 & May 21 — OBSERVED
+- 12 bursts total on mediawikiwiki (Apr–Sep). Standouts:
+  - 2026-05-18: FIVE bursts 08:40–10:50Z, 49 accounts in ~2h (n=14,8,8,12,7). Dormant: 10+7+6+9+7 = 39/49.
+  - 2026-05-21: TWO bursts 01:10–01:50Z, 37 accounts in ~40 min (n=13, n=24). Dormant: 13/13 and 24/24 — ALL 37 dormant.
+  - 2026-05-27T16:50Z n=5 (4 dormant) — same calendar day as the incident May-27 edit wave, but on mediawikiwiki (incident May-27 edits were test/bg/en/test2). Temporal proximity noted, not claimed as linked.
+  - Others (n=5 each): 04-12 (2 dormant), 05-30 (4), 05-31 (5/5), 07-22 (4).
+- Total: 111 burst accounts checked; 95 dormant (editcount=0). Full list: raw/dormancy-checks/dormancy.tsv; raw per-host API responses: raw/dormancy-checks/www_mediawiki_org.jsonl.
+- Grade: LEAD (agent-shaped). Dozens of temp accounts created in tight bursts that never recorded an edit = automated session creation with failed/suppressed edits. Temp accounts create on edit ATTEMPT; 0 edits means the attempts produced no recorded revision (filtered, failed, or otherwise non-persisting). Does NOT align with the incident edit bursts (different wiki, different dates) — recorded as a lead per directive, not a negative, not claimed as the same operation.
+- The 16 non-dormant burst accounts (editcount 1–72) are in dormancy.tsv; their edits not yet characterized (chunk-diver follow-up).
+
+### BURST-4 (LEAD): simplewiki recurring n=10 bursts — OBSERVED
+- 7 bursts, each exactly n=10 in a 10-min bin: 04-09, 04-14, 04-25, 05-05 (×2), 07-27, 09-21. Dormancy mixed per burst (e.g. 04-09: 6 dormant/4 with 1 edit; 07-27: 9 with 1 edit + 1 with 95 edits; 09-21: 9 dormant).
+- 70 accounts checked; full list in dormancy.tsv. Grade: LEAD (weaker) — recurring fixed-size bursts suggest a scheduled process (classroom? bot? agent?). The exact-n=10 recurrence differs from the incident's sparse pattern. Referred to chunk divers.
+
+### BURST-5 (WEAK LEAD): bgwiki small frequent bursts — OBSERVED
+- 12 bursts, n=5–6 each, spread Apr–Aug (04-07, 04-29, 05-08, 05-13, 05-17 ×2, 05-18 ×2, 05-19, 05-29, 07-13, 08-31). 63 accounts checked; only 27 dormant — most have 1–17 edits (organic-looking).
+- Grade: WEAK LEAD. Small frequent bursts with mostly-active accounts resemble workshops/classes, not the incident pattern. Noted for completeness; not prioritized.
+- 2026-05-13T18:11 burst same-day as incident May-13 commons wave (different wiki) — temporal proximity noted only.
+
+### BURST-2 (INCIDENT-ALIGNED): incubatorwiki 2026-06-25T20:18:21–20:28:21Z, n=5 — OBSERVED
+- Accounts: ~2026-36920-78, ~2026-36837-69, ~2026-36803-16, ~2026-36724-00, ~2026-36867-71 (5 of the 10 Jun-25 incident accounts; the other 3 incubator incident accounts ~2026-36686-00/~2026-36722-50/~2026-36781-18 fall in the adjacent 10-min bin 20:08–20:18Z with n=3, below threshold — the full incubator volley is 8 accounts in 20:14:13–20:21:29Z).
+- ALIGNS with the known Jun-25 edit burst — this IS the incident fleet volley, detected blind by the burst rule. Validates the method.
+- No other bursts on incubatorwiki across Apr–Sep (1,025 temp creations, 7 suppressed-title events).
 
 ## 6-month newusers pull — progress + method notes (2026-10-06 14:56 CDT)
 - Pull: 2026-04-01–2026-09-30, 9 wikis, `letype=newusers&leaction=newusers/autocreate`, lelimit=500, ≥6s pacing per host, 4 parallel per-host workers. Resume via raw/.newusers-pull-state.
@@ -64,7 +131,7 @@ Per-account clustering analysis: HELD for chunk divers per user directive. This 
 - Verdict: single-purpose incident sandbox account. 1/1 = incident edit.
 - INFERENCE: same browser-session family as ~2026-36867-71? Names differ (~2026-36837-35 vs ~2026-36867-71) → different temp-account cookies/sessions (temp accounts are cookie-bound, so distinct names = distinct sessions), created ~30 min apart on the same evening with the same distinctive edit comment. Consistent with a fleet of parallel agent sessions (same-provider/different-instances), not proof of shared human.
 
-### Coverage
+### Coverage (SUPERSEDED by 14:15 census above — historical note only)
 - 26/54 CSV oldids assigned to 3 accounts. 28 oldids pending usernames (waiting on revisions.tsv or self-enumeration at ~14:11 CDT deadline).
 - Cluster so far: ALL THREE accounts are single-purpose (only incident edits). Zero accounts with broader organic history yet.
 - OBSERVED: CSV has 54 URLs across 9 wiki hosts (bg 1, commons 6, en 11, incubator 8, meta 6, simple 1, test 13, test2 4, mediawiki.org 4). Note: HUNT-SUMMARY said "52–53" — actual count is 54 (last line lacks trailing newline).
