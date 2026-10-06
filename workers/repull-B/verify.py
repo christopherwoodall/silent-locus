@@ -16,6 +16,7 @@ def check(rank, title):
     n = 0
     prev_ts = None
     oldest = None
+    newest = None
     article_set = set()
     try:
         with open(path, encoding="utf-8") as f:
@@ -33,6 +34,8 @@ def check(rank, title):
                 article_set.add(o.get("article"))
                 ts = o.get("timestamp")
                 if ts:
+                    if newest is None:
+                        newest = ts
                     if prev_ts is not None and ts > prev_ts:
                         errs.append("line %d: timestamp increasing (%s after %s)" % (i, ts, prev_ts))
                     prev_ts = ts
@@ -47,7 +50,7 @@ def check(rank, title):
     if suspect:
         errs.append("SUSPECT: oldest timestamp %s newer than 2020-06-01 (incomplete window?)" % oldest)
     return {"rank": rank, "title": title, "ok": not errs, "count": n,
-            "oldest": oldest, "newest": prev_ts, "errs": errs}
+            "oldest": oldest, "newest": newest, "errs": errs}
 
 def main():
     with open(TSV, encoding="utf-8") as f:
