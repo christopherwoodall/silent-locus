@@ -21,6 +21,7 @@ Threshold: ≥3/5 shared features → zoom-in lane. Ranked by shape score, NOT a
 | 3 | BURST-3 mediawikiwiki 05-18/05-21 | 86 | ✓ | ✗ (95% dormant, no sandbox edits) | ✗ | ✓ | ✗ | 2/5 | CLEAN NEGATIVE (shape) |
 | 3 | BURST-4 simplewiki 7× n=10 | 70 | ✓ | ✗ | ✗ | ✓ | ✗ | 2/5 | CLEAN NEGATIVE (shape) |
 | 3 | BURST-5 bgwiki 12× n=5–6 | 63 | ✓ | ✗ (mostly active 1–17 edits, not sandbox) | ✗ | ✓ | ✗ | 2/5 | CLEAN NEGATIVE (shape) |
+| 3 | BURST-6 commonswiki 5× n=15–18 | 79 | ✓ | ✗ (76% dormant, no sandbox edits) | ✗ | ✓ | ✗ | 2/5 | CLEAN NEGATIVE (shape) |
 
 Cross-shape vs corpus fleets (explicit):
 - zz=oai fleets: URL-grammar based (zz=oai<digits>). Zero shared grammar with temp-account bursts (no URLs involved). DIVERGENT on all clusters.
@@ -38,6 +39,7 @@ Full contribs pulled for all 5 accounts (raw/contribs-burst1-testwiki-2026-*.jso
 - **BURST-3 mediawikiwiki 2026-05-18/05-21 (86 accounts, 95% dormant):** shares F1 (temp format) + F4 (creation bursts); lacks F2 (no sandbox edits — dormant), F3 (no config targeting), F5 (bursts span 40min–2h, not micro). Does not rhyme with zz=oai (no grammar), Mutark (no sandbox bursts, unlocked), or Sept-2026 probes (different structure). FILED NEGATIVE on shape. (Dormancy remains a separate lead for infrastructure reasons, not shape.)
 - **BURST-4 simplewiki (7× n=10):** shares F1 + F4; lacks F2, F3, F5. Recurring fixed-n=10 suggests scheduled process, not incident geometry. FILED NEGATIVE.
 - **BURST-5 bgwiki (12× n=5–6):** shares F1 + F4; lacks F2 (mostly active, not sandbox), F3, F5. FILED NEGATIVE.
+- **BURST-6 commonswiki (5× n=15–18: 2026-04-14, 04-22, 06-30, 09-21, 09-30):** shares F1 + F4; lacks F2 (76% dormant, no sandbox edits observed), F3, F5 (n=15–18 over 10 min, not 4-min micro). None align with May-13 incident wave. Does not rhyme with zz=oai, Mutark, or Sept-2026 probes. FILED NEGATIVE on shape. (60 dormant accounts = infrastructure lead, not shape.)
 
 ### Dormant-account leads (carrying shape scores)
 - mediawikiwiki May-18/21 dormant (95 accounts): shape 2/5 — lead on DORMANCY (infrastructure), not shape.
