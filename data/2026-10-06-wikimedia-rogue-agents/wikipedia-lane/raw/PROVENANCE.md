@@ -165,3 +165,46 @@ ca62bf6f4bf0f1513483c4888d4a824cf40fe8b91cfae1a7454bd9cdcf1d4040      9567  revi
 ```
 
 Transport note: first batch attempt failed (all HTTP 000) because oldids.txt carried CRLF \r from the seed CSV; stripped and re-ran clean. Verbatim log: wikipedia-lane/collection.log.
+
+---
+
+# PROVENANCE — account-profiler raw cache
+Worker: account-profiler (wikipedia-lane). Branch: wikipedia-edit-hunt-2026-10-06.
+Collection: 2026-10-06, paced curl (>=6s per host), 4 parallel per-host workers for the newusers pull.
+Passive public OSINT only; nothing edited on any wiki.
+
+## Per-account data (28 temp accounts)
+
+### globaluserinfo (meta.wikimedia.org, 28 requests)
+`GET https://meta.wikimedia.org/w/api.php` — action=query, meta=globaluserinfo, guiuser=<account>, guiprop=groups|merged|unattached|editcount, format=json.
+Files: `raw/globaluserinfo/2026-<id>.json` (28). Retrieved 2026-10-06T18:3xZ (paced).
+
+### Registration (list=users&usprop=registration, 7 requests)
+`GET https://<host>/w/api.php` — action=query, list=users, ususers=<account>, usprop=registration|editcount|groups, format=json.
+Files: `raw/registration-*.json` (7). All accounts carry groups `*`+`temp`.
+
+### Per-account newusers probes (3 requests)
+`GET https://<host>/w/api.php` — action=query, list=logevents, letype=newusers, letitle=User:<account>, leprop=ids|timestamp|user|comment|details|title|type, lelimit=10, format=json.
+Files: `raw/newusers-probe-*.json` (3). All three show a single `autocreate` event.
+
+### Contribution histories (usercontribs)
+`GET https://<host>/w/api.php` — action=query, list=usercontribs, ucuser=<account>, uclimit=500, ucprop=ids|title|timestamp|comment|sizediff|flags|tags, ucdir=older, format=json.
+Files: `raw/contribs-2026-28355-02-{enwiki,testwiki,test2wiki,mediawikiwiki}.json` (19 edits), `raw/contribs-2026-36867-71-incubatorwiki.json` (1), `raw/contribs-2026-36867-71-metawiki.json` (0 live; 5 deleted), `raw/contribs-2026-36837-35-metawiki.json` (1), `raw/contribs-2026-31558-62-testwiki.json` (3), `raw/contribs-burst1-testwiki-2026-*.json` (5, BURST-1 lead).
+
+### Lock status
+- `raw/locklog-globalauth/2026-<id>.json` (28): `GET https://meta.wikimedia.org/w/api.php` — action=query, list=logevents, letype=globalauth, letitle=User:<account>, leprop=ids|timestamp|user|comment|details|title|type, lelimit=10. All 28: zero events.
+- `raw/blocklog-2026-36867-71-metawiki.json` (1): letype=block, letitle=User:~2026-36867-71 — the single local sanction (indef "Unauthorized bot", 2026-06-25T22:29:53Z, NguoiDungKhongDinhDanh).
+
+### accounts.tsv
+`raw/accounts.tsv` — 28 rows: account, registration_utc, global_editcount, wikis_edited, first_edit_utc, last_edit_utc, incident_edits, locked_global, notes. Derived from the above API responses + raw/revisions.tsv. NOTE: temporary accounts auto-create on first edit; registration_utc ≈ first-edit timestamp, not a signup event.
+
+## Six-month newusers pull (2026-04-01–2026-09-30, 9 wikis)
+`GET https://<host>/w/api.php` — action=query, list=logevents, letype=newusers, leaction=newusers/autocreate, lestart=<next-month>T00:00:00Z, leend=<month>T00:00:00Z, leprop=ids|timestamp|title|type, lelimit=500, format=json; paged via lecontinue to exhaustion.
+SCOPE NOTE: leaction=newusers/autocreate only. All ~2026-* temp accounts are autocreated (verified 3/3 on sampled accounts; positive control 5/5 incident accounts found in pulled data); regular `create` signups can never be `~2026-*`. Not sampling: every autocreate event in the window is kept.
+Files: `raw/newusers-2026-04-01_2026-09-30.<shortwiki>.jsonl` (one event object per line).
+Short names: enwiki=en.wikipedia.org, testwiki=test.wikipedia.org, test2wiki=test2.wikipedia.org, mediawikiwiki=www.mediawiki.org, commonswiki=commons.wikimedia.org, incubatorwiki=incubator.wikimedia.org, simplewiki=simple.wikipedia.org, bgwiki=bg.wikipedia.org, metawiki=meta.wikimedia.org.
+
+### Row counts and sha256 (FINAL — fill at pull completion)
+```
+(pending)
+```

@@ -13,10 +13,10 @@ Branch: `wikipedia-edit-hunt-2026-10-06`. Last update: 2026-10-06 ~14:15 CDT.
 - Registration: DONE — `registration-*.json` in raw/ (`list=users&usprop=registration` per wiki) + `newusers-probe-*.json` (autocreate log entries for the 3 seed accounts).
 - Lock status: DONE — `globaluserinfo/*.json` (locked=False for all 28) + `locklog-globalauth/*.json` (0 events for 25 accounts; 3 checked earlier also 0) + `blocklog-2026-36867-71-metawiki.json` (the single local indef block "Unauthorized bot").
 - 6-month newusers pull: RUNNING in 4 parallel per-host workers (each host = separate throttle, ≥6s pacing; compliant with "separate throttles per endpoint"):
-  - proc_b895c3aae79a: enwiki (heavy: ~12k autocreates/day observed, ~85% temp; est. ~7h)
-  - proc_1a87b0be77a4: testwiki, test2wiki
-  - proc_30d0fab77876: mediawikiwiki, commonswiki
-  - proc_fa568d7ccee7: incubatorwiki, simplewiki, bgwiki, metawiki
+  - proc_1a87b0be77a4: testwiki, test2wiki — COMPLETE 2026-10-06T18:56:51Z (12/12 chunks; testwiki 2,321 events, test2wiki 665 events)
+  - proc_b895c3aae79a: enwiki — RUNNING (19k+ lines, still April)
+  - proc_30d0fab77876: mediawikiwiki (April done), commonswiki — RUNNING
+  - proc_fa568d7ccee7: incubatorwiki (April done: 7,220 events), simplewiki, bgwiki, metawiki — RUNNING
   Scope: 2026-04-01–2026-09-30, `letype=newusers&leaction=newusers/autocreate` (autocreate-only is NOT sampling: all ~2026-* temp accounts are autocreated, verified 3/3; regular `create` signups can never be `~2026-*`). Fully paged via lecontinue, lelimit=500. Resume via `raw/.newusers-pull-state` (per wiki:month). Files: `raw/newusers-2026-04-01_2026-09-30.<shortwiki>.jsonl` (one event/line; fields logid,ns,title,pageid,logpage,type,action,timestamp).
   NOTE: sequential pull was replaced by parallel at ~14:20 CDT; partial enwiki 2026-04 data (18.5k lines, no completed chunk) was truncated for a clean restart — no dupes.
 - Burst clustering: PENDING pull completion. Threshold to use: ≥5 `~2026-*` creations within 10 min (stated in analysis). Dormant-account usercontribs checks: pending.
