@@ -102,7 +102,8 @@ def normalize(ev):
         elif domain == 'commons.wikimedia.org':
             wiki = 'commonswiki'
         elif domain.endswith('.wikimedia.org'):
-            wiki = domain[:-len('.wikimedia.org')]
+            # meta.wikimedia.org -> metawiki (canonical dbname = stem + 'wiki')
+            wiki = domain[:-len('.wikimedia.org')] + 'wiki'
     performer = ev.get('performer') or {}
     return {
         'wiki': wiki,
