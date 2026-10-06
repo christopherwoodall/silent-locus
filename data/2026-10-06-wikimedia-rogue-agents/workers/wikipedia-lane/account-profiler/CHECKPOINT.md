@@ -1,7 +1,7 @@
 # CHECKPOINT — account-profiler (wikipedia-lane)
-Branch: `wikipedia-edit-hunt-2026-10-06`. Last update: 2026-10-06 ~14:15 CDT.
+Branch: `wikipedia-edit-hunt-2026-10-06`. Last update: 2026-10-06 ~17:05 CDT. COMMITTED+PUSHED as 73b5a450 ("account-profiler: account/contrib/newusers dataset cached").
 
-## Status: DATA COLLECTION (analysis HELD for chunk divers per user directive)
+## Status: DATASET CACHED (7/9 wikis; enwiki+metawiki pulls continue in background)
 - accounts.tsv: DONE — `wikipedia-lane/raw/accounts.tsv` (28 accounts, factual columns incl. registration_utc).
 - Per-account contribs: DONE — all cached in `wikipedia-lane/raw/`:
   - `contribs-2026-28355-02-{enwiki,testwiki,test2wiki,mediawikiwiki}.json` (19 edits total)
