@@ -145,6 +145,7 @@ claims against bytes before briefing them.
 
 ## License
 
-**No license is assigned.** The dataset ships without a license file
-and without a license declared in the frontmatter; publication (and
-any license choice) is undecided.
+**MIT** — see [LICENSE](LICENSE). Use the data, just keep the copyright
+notice attached so the credit survives. Third-party eval datasets under
+`collections/eval-questions/` keep their own licenses (recorded per-eval
+in each `NOTES.md`).
