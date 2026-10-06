@@ -1,5 +1,13 @@
 # CHECKPOINT — account-profiler (wikipedia-lane)
-Branch: `wikipedia-edit-hunt-2026-10-06`. Last update: 2026-10-06 ~17:05 CDT. COMMITTED+PUSHED as 73b5a450 ("account-profiler: account/contrib/newusers dataset cached").
+Branch: `wikipedia-edit-hunt-2026-10-06`. Last update: 2026-10-06 18:40 CDT (finisher session).
+
+## Status: RESUMED AFTER DRAIN — enwiki+metawiki pulls re-launched 18:38 CDT
+- 6-month newusers pull: 7/9 wikis COMPLETE (42/54 chunks). enwiki: April chunk COMPLETE (365,458 lines, 2026-04-01T00:00:01Z..2026-04-30T23:59:55Z, marked in state); May chunk partial (May31→May16 at death). metawiki: April chunk partial (Apr30→Apr05 at death, unmarked).
+- Both resume pulls launched 18:38 CDT in background (`resume_chunk.py`, curl, 5s pacing): metawiki resumes April from 2026-04-05T17:58:05Z then chains `pull_newusers_6mo.sh metawiki` (May..Sep); enwiki resumes May from 2026-05-16T23:06:34Z then chains `pull_newusers_6mo.sh enwiki` (Jun..Sep). ETA ~6h enwiki / ~11h metawiki (parallel, different hosts).
+- VERIFIED (finisher): both files gap-free within pulled ranges (pages append atomically; tails are complete JSON); unions cover their windows; worker-restart double-append blocks identified and quantified (enwiki/metawiki: exact 30,000-line repeat of lines 0-29999; commonswiki: 21,500-line repeat of preceding August block — restart artifact, union gap-free). All analysis dedupes by logid; PROVENANCE records raw vs unique counts.
+- Everything else from the 17:05 checkpoint stands: accounts.tsv (28), per-account contribs cached, registration/lock/block status done, burst clustering done on 7 wikis, SHAPE-SCORES ranked, EventStreams answered, lifeval-cross-corpus assessed (below).
+- lifeval-cross-corpus/ (event-level, untracked): NOT a mystery dir — 3 of 4 workers complete with FINDINGS.md (web-search: no public-web cross-corpus hit, LIFBench collision footnote; disk-corpora: 1 real survivor — "sandbox link test" on wikiservice.at/dse WillkommenImWiki 2026-06-18, same date as incident M5 cluster; urlquery-live: zero Lifeval markers in htmx index, weak negative). urlquery-cached: SCANLOG only, scans redundant with disk-corpora (superseded, noted).
+- PROVENANCE.md: account-profiler section appended (endpoints, params, per-file raw/unique counts; sha256 + enwiki/metawiki rows pending pull completion).
 
 ## Status: DATASET CACHED (7/9 wikis; enwiki+metawiki pulls continue in background)
 - accounts.tsv: DONE — `wikipedia-lane/raw/accounts.tsv` (28 accounts, factual columns incl. registration_utc).
