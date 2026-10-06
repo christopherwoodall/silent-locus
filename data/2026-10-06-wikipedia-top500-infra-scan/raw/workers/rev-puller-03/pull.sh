@@ -6,12 +6,13 @@
 
 set -u
 BASE="$HOME/workspace/silent-locus-top500/data/2026-10-06-wikipedia-top500-infra-scan/raw"
-CHUNK="$BASE/chunks/chunk-03"
+CHUNK="${1:-$BASE/chunks/chunk-03}"
 OUTDIR="$BASE/revisions"
 WORKER="$BASE/workers/rev-puller-03"
 ERRLOG="$WORKER/errors.log"
 UA="silent-locus-top500-scan/1.0 (research)"
 START_TS=$(date +%s)
+[ -s "$WORKER/walltime_start.txt" ] || echo "$START_TS" > "$WORKER/walltime_start.txt"
 
 enc() { python3 -c "import urllib.parse,sys; print(urllib.parse.quote(sys.argv[1], safe=''))" "$1"; }
 
@@ -19,7 +20,7 @@ enc() { python3 -c "import urllib.parse,sys; print(urllib.parse.quote(sys.argv[1
 # fd3 (or the literal string NONE if exhausted). Exit code nonzero on API error.
 parse_page() {
   local infile="$1" rank="$2" title="$3"
-  python3 "$infile" "$rank" "$title" 3>&1 <<'PY'
+  python3 - "$infile" "$rank" "$title" <<'PY'
 import json,sys
 infile, rank, title = sys.argv[1], int(sys.argv[2]), sys.argv[3]
 data = json.load(open(infile))
@@ -35,7 +36,8 @@ if "missing" in pg:
 for r in pg.get("revisions", []):
     rec = {"rank": rank, "article": title,
            "revid": r.get("revid"), "parentid": r.get("parentid"),
-           "user": r.get("user"), "timestamp": r.get("timestamp"),
+           "user": r.get("user"), "temp": bool(r.get("temp", False)),
+           "timestamp": r.get("timestamp"),
            "comment": r.get("comment"), "tags": r.get("tags", []),
            "size": r.get("size")}
     print(json.dumps(rec, ensure_ascii=False))
@@ -45,8 +47,11 @@ print("__RVCONTINUE__:" + (tok if tok else "NONE"))
 PY
 }
 
-: > "$WORKER/counts.tsv"
-: > "$ERRLOG"
+if [ "${2:-resume}" = "fresh" ]; then
+  : > "$WORKER/counts.tsv"
+  : > "$ERRLOG"
+fi
+touch "$WORKER/counts.tsv" "$ERRLOG"
 
 while IFS=$'\t' read -r rank title; do
   [ -z "$rank" ] && continue
@@ -99,5 +104,6 @@ while IFS=$'\t' read -r rank title; do
 done < "$CHUNK"
 
 END_TS=$(date +%s)
-echo "$START_TS $END_TS" > "$WORKER/walltime.txt"
-echo "DONE. wall=$((END_TS-START_TS))s"
+FIRST_TS=$(cat "$WORKER/walltime_start.txt")
+echo "$FIRST_TS $END_TS" > "$WORKER/walltime.txt"
+echo "DONE. wall_total=$((END_TS-FIRST_TS))s"
