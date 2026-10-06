@@ -39,8 +39,10 @@ rules:
     keys_on: [ts, wiki, user, title]
     params:
       n: 5                      # events in window to fire
-      window_minutes: 10        # sliding window length
-      temp_account_regex: '~20\\d{2}-\\d+-\\d+'   # MediaWiki temp-account shape ~YYYY-NNNNN-NN
+      # Incident span is 20:28:27Z-20:38:33Z = 10m06s, so the window is rounded UP
+      # from the nominal 10 to tolerate the observed geometry + clock skew.
+      window_minutes: 12        # sliding window length
+      temp_account_regex: '~20\d{2}-\d+-\d+'   # MediaWiki temp-account shape ~YYYY-NNNNN-NN
       fire_once_per_window: true  # emit at most one alert per (wiki, window); the Nth event carries the alert
 
   # ---------------------------------------------------------------------------
@@ -64,7 +66,7 @@ rules:
     params:
       n: 3                      # smaller N: incident sandbox runs were 3+ edits in ~15 min
       window_minutes: 15
-      temp_account_regex: '~20\\d{2}-\\d+-\\d+'
+      temp_account_regex: '~20\d{2}-\d+-\d+'
       sandbox_title_regex: '(?i)(^|:|/)Sandbox'   # matches User:X/Sandbox, Wikipedia:Sandbox, etc.
       fire_once_per_window: true
 
