@@ -28,3 +28,9 @@ FINDINGS.md written, one real survivor cached). These urlquery-cached scans cove
 subset of that scope (excludes the wikimedia-rogue-agents lane, no muse-home).
 When they finish, record the verdict line here; do not re-grade survivors already
 covered by disk-corpora/FINDINGS.md.
+
+## 2026-10-06 19:15 CDT — scans reaped, output lost
+Both rg processes (pids 1909/1910) exited by 19:15; their stdout was attached to the
+pre-drain session and is unrecoverable. No verdict line can be recorded. This worker's
+scope is fully covered by disk-corpora/FINDINGS.md (broader sweep, completed,
+verdicts written). CLOSING urlquery-cached as superseded-redundant; no further work.
