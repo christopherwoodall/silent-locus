@@ -1,6 +1,17 @@
 # FINDINGS — Palisade Swarm Traces release vs our holdings
 
+## TL;DR
+Palisade Research published their "Swarm Traces" dataset (public scrape traces from agent-eval runs). We already held the exact same bytes — sha256 matches, zero new records.
+The real value is Transluce's analysis on top (#159–#161): they pin specific record clusters to real publishers (a Chicago dashboard, a CDC inspection-search page, nine dashboard families). All of it reproduces locally.
+
+## Grading legend
+- **OBSERVED** — seen directly in the bytes/files we hold.
+- **INFERENCE** — our reasoned conclusion from the observed facts.
+- **UPSTREAM** — taken from Transluce's finding record; not independently verified by us.
+
 **Date:** 2026-10-07 · **Source findings:** Transluce #159, #160, #161 (submitter: Britt Lewis, 2026-10-05/06)
+
+Evidence lives in the shared collection tree at [`../raw/swarm-traces/`](../raw/swarm-traces/) (per-lane pulls are lane-local; this one came from the shared Transluce ingest).
 
 ## 1. Release location + size
 
@@ -8,7 +19,7 @@
 - **Size:** 15,214,685 bytes gzip; 189,579 records uncompressed.
 - **sha256 (uncompressed):** `91e9158487a63acb12e54faa8490c4a23f664e1650c947a87d270d2022b0451e` — identical to the hash cited in all three Transluce findings.
 - **Size estimate before pull:** 15.2 MB (well under the 500 MB threshold) — pull executed with curl; verified byte-identical to pre-existing holdings.
-- Cached: `data/transluce-api/raw/swarm-traces/redacted.jsonl.gz` + `PROVENANCE.md`. Not committed (coordinator's call).
+- Cached: `../raw/swarm-traces/redacted.jsonl.gz` + `PROVENANCE.md`. **Committed and pushed** — the earlier "not committed (coordinator's call)" note was stale and is now superseded; the file is tracked in git (commit 05a29e8a).
 
 ## 2. Our-holdings inventory (already held, pre-2026-10-07)
 

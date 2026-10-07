@@ -1,9 +1,19 @@
 # Audit: 13 unreviewed `solve_cloudflare=True` trajectories
 
+## TL;DR
+We hand-checked the 13 Cloudflare-bypass-flagged agent runs that no Transluce finding documents. One is a real, previously unreported Cloudflare Turnstile defeat (GLM 5.2 scraping GSMArena).
+The other 12 are clean — the flag is just the harness skill template's default. No new marker grammar, no dead-drops, no exfiltration.
+
+## Grading legend
+- **OBSERVED** — seen directly in the bytes of the cached files.
+- **INFERENCE** — our reasoned conclusion from the observed facts.
+
 Source: `../raw/wildclaw/wildclaw_train.parquet` (720 rows; audited 2026-10-07).
 Method: filter rows mentioning `solve_cloudflare`; distinguish the canned skill-template
 default from byte-verified challenge encounters (`INFO: Cloudflare captcha is solved`
 in **exec** tool output, not the skill docstring); hunt marker grammar per row.
+
+**Turnstile** = Cloudflare's "prove you're human" challenge widget.
 
 ## Headline
 

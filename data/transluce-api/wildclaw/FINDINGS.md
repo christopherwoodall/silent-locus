@@ -1,9 +1,17 @@
 # ClawBench / WildClawBench trajectory examination — FINDINGS.md
 
-Lane: wildclaw. 2026-10-07. Branch `transluce`. Raw evidence + provenance in
-`data/transluce-api/raw/wildclaw/` (PROVENANCE.md, SHA256SUMS.txt). Claim grades:
-OBSERVED = byte-verified in cached files; INFERENCE = reasoned; UPSTREAM = relayed from
-Transluce findings #138/#141-#144/#149 without independent byte verification.
+## TL;DR
+We audited three public benchmark datasets of agent-run recordings (38+ GB total; we pulled samples, not the whole thing) for any overlap with our known agent markers (`oai*` tags, `zz=` params, epoch nonces, httpbun, webhook dead-drops). Clean negative on every marker.
+The only finding: one previously unreported successful Cloudflare Turnstile bypass by GLM 5.2 (details in [solve-cloudflare-audit.md](solve-cloudflare-audit.md)). These eval runs are a separate population from our hunt targets.
+
+## Grading legend
+- **OBSERVED** — byte-verified in cached files.
+- **INFERENCE** — our reasoned conclusion from the observed facts.
+- **UPSTREAM** — relayed from Transluce findings #138/#141-#144/#149; not independently byte-verified.
+
+Lane: wildclaw. 2026-10-07. Branch `transluce`. Raw evidence + provenance in `data/transluce-api/raw/wildclaw/` (PROVENANCE.md, SHA256SUMS.txt).
+
+Jargon: **Turnstile** = Cloudflare's "prove you're human" challenge widget; **parquet** = a compressed columnar file format used for large datasets (here: `wildclaw_train.parquet`, 720 recorded agent runs).
 
 ## 1. Dataset inventory (sizes via HF API, curl only — OBSERVED)
 
@@ -98,9 +106,8 @@ agents trying to beat bot checks, which is the benchmark's known risk surface, n
 malicious_comments, malicious_skill, 2022_conference_papers). Each may contain an unreported
 challenge encounter or a successful defeat. Cheap to audit: the 25MB train.parquet is local
 (`raw/wildclaw/wildclaw_train.parquet`, sha256 9be080b…); filter rows, grep for challenge
-page markers. Especially `06_Safety_Alignment_task_8_malicious_comments` (Grok 4.5) and
-`06_Safety_Alignment_task_10_malicious_skill` (Muse Spark 1.1) — safety-category tasks
-reaching for a Cloudflare-bypass tool deserve a look.
+page markers. → Audited; results in [solve-cloudflare-audit.md](solve-cloudflare-audit.md):
+one new confirmed Turnstile defeat (GLM 5.2, GSMArena, same shape as #138), the rest clean.
 
 ## 7. What got killed
 

@@ -1,6 +1,17 @@
 # Finding #147 frozen-epoch claim — independent test on yourls.space public log
 
-Date: 2026-10-07. Read-only, passive. Nothing redacted. Grades: OBSERVED / INFERENCE / UPSTREAM.
+## TL;DR
+Transluce #147 claims three yourls.space short links (created Sep 29–Oct 3) all hide the *same* embedded timestamp — evidence of a frozen naming-tool clock. We pulled the venue's own public link table and confirmed it: same three keywords, same creation times to the second, same frozen epoch 1779995045.
+This completes the June→September tooling link that the [epoch-clock lane](../epoch-clock/) could only half-test.
+
+## Grading legend
+- **OBSERVED** — seen directly in the bytes of the fetched page.
+- **INFERENCE** — our reasoned conclusion from the observed facts.
+- **UPSTREAM** — taken from Transluce's finding record; not independently verified by us.
+
+Date: 2026-10-07. Read-only, passive. Nothing redacted.
+
+Jargon: **YOURLS** = a self-hosted URL-shortener package (the venue at yourls.space runs one); **Unix epoch** = seconds since 1970-01-01 00:00:00 UTC, the standard way computers stamp time.
 
 ## Claim under test (Transluce #147, Omer Zamir, UPSTREAM)
 
@@ -8,7 +19,7 @@ Three yourls.space links created Sep 29–Oct 3 embed the SAME Unix epoch
 1779995045 (= 2026-05-28 19:04:05 UTC, one day after the May-27 prefill probe):
 mid17799950450 (created 09-30 03:24:34), mid17799950451 (03:24:41),
 mid17799950456 (09-29 17:44:17). A frozen naming-tool clock, contrasting with
-June's live clock on rmn.re.
+June's live clock on rmn.re (verified on our cache in [epoch-clock](../epoch-clock/)).
 
 ## Test (OBSERVED)
 
@@ -54,3 +65,5 @@ convention) holds on independent re-pull.
   exposed, so #168's "4351361 first appears Sep 11" is UNTESTABLE here.
 - The test confirms the naming-tool fingerprint, not provider attribution —
   same caveat #147 itself states.
+
+Evidence: lane-local pull, `raw/link-table.json` + `raw/yourls-space-stats.json` (SHA256SUMS.txt).

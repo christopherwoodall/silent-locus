@@ -1,35 +1,38 @@
-# Common schema proposal — Transluce findings × our corpus
+# Common schema — Transluce findings × our observation corpus
 
-## The three shapes in play
+## TL;DR
+Transluce's API hands us **findings** (analyst conclusions drawn from many observations); our corpus holds **observations** (individual records: reports, captures, commits).
+The two fit together cleanly: keep both layers and link each finding to the observation records it rests on. The one field neither side has today is *which benchmark eval was being run* — that has to be added.
+
+## The two shapes in play
 
 | | Transluce `/api/findings` | Our `events.jsonl` | Raw captures (urlquery / arquivo.pt) |
 |---|---|---|---|
-| Grain | One **finding** = analyst synthesis over many observations | One **observation** = single record (report, commit, capture) | One **artifact** = fetched bytes |
+| Grain | One **finding** = an analyst's synthesis over many observations | One **observation** = a single record (report, commit, capture) | One **artifact** = fetched bytes |
 | Envelope | id, created_at, updated_at, submitter, submitter_id, sensitive, form_version | @timestamp, event{ dataset, created }, record_kind, fingerprint | retrieval timestamp, source URL, method, sha256 |
 | Content | data{ summary, description, evidence_links[], data_zip, untapped_source, cyberattack[], government, ai_company } | labels{...per-kind fields...}, description, confidence | raw bytes + provenance note |
-| Identity | server-assigned id | fingerprint (sha256 of canonical form) | sha256 of bytes |
+| Identity | server-assigned id | **fingerprint** (sha256 of the record's canonical form — the dedup key) | sha256 of the bytes |
 
-## Verdict: yes — two grains, one envelope
+## Verdict: two grains, one envelope
 
-The shapes are complementary, not competing. Transluce's is the **finding** layer;
-ours is the **observation** layer. A common schema keeps both and links them:
+The shapes are complementary, not competing. Transluce's is the **finding** layer; ours is the **observation** layer. A shared schema keeps both and links them:
 
 ```
 FINDING
   id                  # uuid or server id
-  summary             # ≤280 chars (Transluce's constraint is good)
-  description         # long-form, uncertainties stated
-  observed_at         # when the activity happened (range allowed)
+  summary             # ≤280 chars (Transluce's constraint is good — keep it)
+  description         # long-form, uncertainties stated plainly
+  observed_at         # when the activity happened (a range is allowed)
   recorded_at         # when the finding was written
   source              # which hunt/corpus produced it
-  submitter           # who (analyst or agent id)
+  submitter           # who wrote it (analyst name or agent id)
   classifications     # cyberattack[] (XSS, SQLi, bot-bypass, SSRF, ...),
-                      # government (national/state/none/unsure),
-                      # ai_company (openai/anthropic/xai/unknown/...),
+                      # government (national / state / none / unsure),
+                      # ai_company (openai / anthropic / xai / unknown / ...),
                       # eval (deepsearchqa, exploitgym, unknown, ...)
   evidence            # list of { kind: link|file|observation_ref,
                       #           url | fingerprint, sha256, retrieved_at }
-  untapped_source     # bool — more left to find?
+  untapped_source     # bool — is there more left to find here?
   confidence          # observed | inferred | upstream (our grading)
   sensitivity_note    # annotate, never redact
 
@@ -60,22 +63,15 @@ OBSERVATION
 |---|---|
 | fingerprint | OBSERVATION.fingerprint; referenced from FINDING.evidence[].fingerprint |
 | labels.* | OBSERVATION.labels (per-kind, namespaced: `urlquery.report_id`, not bare `report.id`) |
-| confidence | FINDING.confidence (observed/inferred/upstream) |
+| confidence | FINDING.confidence (observed / inferred / upstream) |
 | @timestamp / event.dataset | OBSERVATION.observed_at / source |
 
-## Gaps the common schema must add (neither has today)
+## Gaps the common schema must add (neither side has these today)
 
-1. **eval linkage** — which benchmark was RUN vs which was TARGETED (our incident
-   ledger keeps these separate; Transluce's schema has no eval field at all).
-2. **Shape tags** — the detection shapes (tag-grammar, burst, sweep, dead-drop)
-   as first-class labels, so findings are queryable by shape not just by text.
-3. **Cross-corpus refs** — a finding's evidence should cite observation
-   fingerprints across corpora (their urlquery report ↔ our cached capture).
+1. **Eval linkage** — which benchmark was RUN vs which was TARGETED (our incident ledger keeps these separate; Transluce's schema has no eval field at all).
+2. **Shape tags** — the detection shapes (tag-grammar, burst, sweep, dead-drop) as first-class labels, so findings are queryable by shape, not just by free text.
+3. **Cross-corpus refs** — a finding's evidence should cite observation fingerprints across corpora (their urlquery report ↔ our cached capture of the same page).
 
 ## Practical note
 
-Transluce's schema is v3 and filterable on `untapped_source`, `cyberattack`,
-`government`, `ai_company` — a shared schema should keep those exact enums where
-they exist and only ADD the eval/shape fields, so both sides can adopt it without
-breaking their current queries. The `data_zip` (200MB) convention already matches
-our "cache raw bytes with provenance" rule.
+Transluce's schema is v3 and already filterable on `untapped_source`, `cyberattack`, `government`, `ai_company` — a shared schema should keep those exact enums where they exist and only ADD the eval/shape fields, so both sides can adopt it without breaking their current queries. The `data_zip` (200MB) convention already matches our "cache raw bytes with provenance" rule.

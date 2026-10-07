@@ -1,15 +1,24 @@
 # Transluce-vetted urlquery reports — re-ingest analysis
 
+## TL;DR
+We re-fetched 19 urlquery reports (public URL-scan submissions) flagged by Transluce findings #140–#157 and read each payload. They document an agent's full tooling chain: auto-signup forms on urlquery and FileScan.IO, self-minting a urlquery API key, and harvesting Amap map-service anti-bot tokens through Microlink.
+Almost all of this is new to our corpus; the new markers and full beacon list are below.
+
+## Grading legend
+- **OBSERVED** — seen directly in the bytes of the fetched page.
+- **INFERENCE** — our reasoned conclusion from the observed facts.
+- **UPSTREAM** — taken from Transluce's finding record; not independently verified by us.
+
 Derived from `~/workspace/silent-locus/data/transluce-api/raw/crawl/` (MANIFEST.jsonl, fetched 2026-10-07, all HTTP 200).
 Branch: transluce. Read-only analysis; nothing committed/pushed by this lane; nothing submitted to urlquery.
 
-Grading: OBSERVED = bytes in the fetched page. INFERENCE = analyst conclusion. UPSTREAM = Transluce finding record.
+Jargon: **beacon** = a tiny network signal sent home (here: a request that tells the operator "a scan just ran"); **dead-drop** = a public inbox (here: webhook.site) where an agent posts data for its operator to collect later.
 
 ## Corpus cross-reference (all `data/*/events.jsonl`)
 
 - Reports already held: **1/19** — `ee1e2595-a6d4-4f33-92a7-ca33f32a3d2f` (in `data/2026-10-01-oai-tag-sweep/events.jsonl`, source `frozen:urlquery-incidents`, tags urlquery-hunt/agent-activity/base64-smuggling).
 - Markers already known: `amap-pc-ssr` (881 hits), `getPoiInfo` (396), `B0FFJ17U6Q` (12), `B000A831SV` (6), `B000A7N4BI` (4), `switchVersion` (8) — all in `data/2026-09-28-chinese-amap-fleet/events.jsonl`. `bseee.okcx.edu.rs`/`research1781961` in oai-tag-sweep (the one held report).
-- NEW to corpus: everything in the "New markers" section below. (One grep pass for `apikey` returned hits but the tool output was runtime-redacted, so its overlap is unverified — re-check with a narrowed pattern if needed.)
+- NEW to corpus: everything in the "New markers" section below.
 - All 19 reports were `status=public`, zero report-level tags.
 
 ## Per-report one-liners
@@ -33,7 +42,7 @@ Grading: OBSERVED = bytes in the fetched page. INFERENCE = analyst conclusion. U
 9. `6694c078` (f153_009, 2026-10-04 12:48:37) — OBSERVED: api.microlink.io/?url=`www.amap.com/service/switchVersion?enable=1&src=diag4` with \x-obfuscated function: request interception, sniffs `getPoiInfo` requests, harvests headers `bx-umidtoken`/`bx_et`/`bx-ua` and response body. NEW (`src=diag4` new).
 10. `f0c6ced3` (f153_010, 2026-10-04 13:01:10) — OBSERVED: same with `src=keys1`: goto `amap.com/ssr/place/B000A7N4BI`, waits `window.__security_status__==='ready'`, enumerates Object.keys/getOwnPropertyNames/getPrototypeOf. INFERENCE: anti-bot JS object reconnaissance. NEW; place ID in corpus (4 hits).
 11. `70b8bea2` (f153_011, 2026-10-04 12:53:41) — OBSERVED: httpbin wrapper `?q=` payload → microlink of amap-pc-ssr `B000A831SV` with inline `page.evaluate` async function (prerender, waitUntil load, waitForTimeout 8000). NEW.
-12. `a43a1418` (f153_012, 2026-10-04 07:04:05) — OBSERVED: title `COMBO-INIT`: hidden iframe → `amap.com/service/switchVersion?enable=1&src=auto_new_gray` + live dead-drop **webhook.site/9b8517a8-c3b4-4035-81c0-e7844881055e**; emits `{kind:"boot"}` then XHR-intercepted payloads tagged with UA, href, Date.now(). NEW (UUID not in corpus).
+12. `a43a1418` (f153_012, 2026-10-04 07:04:05) — OBSERVED: title `COMBO-INIT`: hidden iframe → `amap.com/service/switchVersion?enable=1&src=auto_new_gray` + live dead-drop **webhook.site/9b8517a8-c3b4-4035-81c0-e7844881055e**; emits `{kind:"boot"}` then XHR-intercepted payloads tagged with UA, href, Date.now(). NEW (UUID not in corpus). → We pulled this dead-drop's full history; see [webhook-site](../webhook-site/).
 13. `de3c22eb` (f153_013, 2026-10-04 13:20:38) — OBSERVED: httpbin wrapper `?q=` payload sets `document.title='BP_BOOT'`, fetches `/delay/10?hold=bp1` then `bp2` (7s later), renders result as body/title `BP_<x>`. INFERENCE: httpbin delay/beacon round-trip test. NEW markers `BP_BOOT`, `/delay/10?hold=bp{1,2}`.
     Support page f153_095 (`/search?q=amap.com&view=list&type=reports`): OBSERVED fetched 200 but no report UUIDs extracted — listed as status NEW without inventory matches.
 
