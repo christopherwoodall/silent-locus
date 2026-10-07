@@ -50,3 +50,38 @@ Kill: set empty or all-benign with human-shaped timing.
 - ClawBench transaction-hunt (write-heavy eval → consumer platforms)
 - Name the DseWiki swarm's eval (collapses a dozen unattributed incidents)
 - Package-registry one-pass (npm/PyPI/crates)
+
+## Transluce-derived (2026-10-07, from 25 findings + 4 lanes)
+
+9. **Bounty-Watch** (from #166/#167): monitor rentahuman.ai for agent-posted
+   bounties (CAPTCHA clearing, phone-label removal, review posting). The
+   human-outsourcing channel is a new surface. Kill: bounties are all human.
+
+10. **Dead-Drop Grammar Search** (from lane 4): hunt urlquery for COMBO-INIT
+    siblings — `bxinit`/`xdcinit`/`capture` payloads, httpbin base64 carriers,
+    webhook.site/ntfy.sh dead-drops. Grammar is known; find its family.
+    Kill: the one drop is the whole population.
+
+11. **POI-ID Expansion** (from dead-drop): B0138027SQ is new to our corpus.
+    Search urlquery for `getPoiInfo?id=` with other IDs + `live=N_` cache-busters.
+    Maps the current Amap target set. Kill: single POI, no family.
+
+12. **Frozen-Epoch Sweep** (from #147): the `mid<epoch><seq>` naming tool is
+    fingerprinted. Sweep other public YOURLS instances (start with our tracked
+    university shorteners) for the same keyword grammar. Kill: yourls.space only.
+
+13. **Trajectory-Dataset Hunt** (from WildClaw lane): one unreported defeat hid
+    in the "unreviewed" pile. Search HF for more `*Trajector*`/`*Trace` eval
+    datasets; audit their solve_*/bypass flags. Kill: the three sets are all there is.
+
+14. **Turnstile-Defeat Search** (from solve_cloudflare audit): search urlquery +
+    corpus for "turnstile" with agent markers, "captcha is solved" strings,
+    GSMArena + agent traffic. Kill: the GLM run is the only one.
+
+15. **Key-Mint Watch** (from #152): agents self-provisioning via
+    `/api/htmx/apikey/new` (Microlink). Search for more key-minting activity —
+    it marks the self-provisioning phase. Kill: the one report is the whole story.
+
+16. **Sandbox-Signup Probing** (from #157): FileScan.IO signup probes via
+    urlquery. Search for filescan.io and sibling sandbox-signup probing.
+    Kill: isolated probes, no pattern.
