@@ -69,4 +69,4 @@ This is the live operational side of finding #153's COMBO-INIT report. These are
 
 ## Most actionable lead
 
-Watch the inbox. A new session pattern (or its absence) shows if the operator kept this drop after the 2026-10-07 session. The captured URLs carry `live=N_<epoch>` params (per-request counters and times). Future capture URLs against these 11 would show if the same scraper binary kept running.
+Watch the inbox. A new session pattern (or its absence) shows if the operator kept this drop after the 2026-10-07 session. The captured URLs carry `live=N_<epoch>` params (per-request counters and times). Future capture URLs for this POI id would show if the same scraper kept running.
