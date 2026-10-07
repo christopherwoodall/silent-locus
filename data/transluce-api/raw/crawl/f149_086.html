@@ -1,0 +1,1548 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ClawBench — Real-World Browser Agent Benchmark</title>
+  <meta name="description" content="ClawBench: a comprehensive evaluation framework with 130 real-world tasks across 130+ live platforms to test AI agents' ability to automate everyday online tasks like purchases, reservations, and job applications.">
+  <meta name="keywords" content="ClawBench, browser agent benchmark, AI agent evaluation, web automation, real-world tasks, LLM benchmark, V2 leaderboard">
+  <link rel="canonical" href="https://claw-bench.com/home">
+  <meta name="robots" content="index, follow">
+  <!-- Open Graph -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="ClawBench — Real-World Browser Agent Benchmark">
+  <meta property="og:description" content="Can AI agents complete everyday online tasks? 130 real-world tasks across 130+ live platforms and 15 life categories. Best model: GLM 5.1 at 51.7%.">
+  <meta property="og:url" content="https://claw-bench.com/home">
+  <meta property="og:site_name" content="ClawBench">
+  <meta property="og:image" content="https://claw-bench.com/static/social-card.png?v=20260515">
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="ClawBench — Real-World Browser Agent Benchmark">
+  <meta name="twitter:description" content="Can AI agents complete everyday online tasks? 130 real-world tasks across 130+ live platforms. Best model: GLM 5.1 at 51.7%.">
+  <meta name="twitter:image" content="https://claw-bench.com/static/social-card.png?v=20260515">
+  <meta name="twitter:url" content="https://claw-bench.com/home">
+  <link rel="icon" type="image/png" href="/static/favicon.png">
+  <link rel="alternate" type="text/plain" href="/llms.txt" title="LLM context">
+  <!-- Google Scholar citation meta -->
+  <meta name="citation_title" content="ClawBench: Can AI Agents Complete Everyday Online Tasks?">
+  <meta name="citation_arxiv_id" content="2604.08523">
+  <meta name="citation_pdf_url" content="https://arxiv.org/pdf/2604.08523">
+  <meta name="citation_date" content="2026/04">
+  <meta name="citation_author" content="Zhang, Yuxuan">
+  <meta name="citation_author" content="Wang, Yubo">
+  <meta name="citation_author" content="Zhu, Yipeng">
+  <meta name="citation_author" content="Du, Penghui">
+  <meta name="citation_author" content="Miao, Junwen">
+  <meta name="citation_author" content="Lu, Xuan">
+  <meta name="citation_author" content="Xu, Wendong">
+  <meta name="citation_author" content="Hao, Yunzhuo">
+  <meta name="citation_author" content="Cai, Songcheng">
+  <meta name="citation_author" content="Wang, Xiaochen">
+  <meta name="citation_author" content="Zhang, Huaisong">
+  <meta name="citation_author" content="Wu, Xian">
+  <meta name="citation_author" content="Lu, Yi">
+  <meta name="citation_author" content="Lei, Minyi">
+  <meta name="citation_author" content="Zou, Kai">
+  <meta name="citation_author" content="Yin, Huifeng">
+  <meta name="citation_author" content="Nie, Ping">
+  <meta name="citation_author" content="Chen, Liang">
+  <meta name="citation_author" content="Jiang, Dongfu">
+  <meta name="citation_author" content="Chen, Wenhu">
+  <meta name="citation_author" content="Allen, Kelsey R.">
+  <!-- JSON-LD Structured Data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Dataset",
+    "name": "ClawBench",
+    "alternateName": "ClawBench Browser Agent Benchmark",
+    "description": "A benchmark of 130 real-world everyday tasks across 130+ live websites for evaluating AI browser agents, with 5 layers of behavioral data. The best model (GLM 5.1) achieves 51.7% interception rate. Two-stage scoring: HTTP-request interception + LLM judge.",
+    "url": "https://claw-bench.com",
+    "sameAs": [
+      "https://github.com/TIGER-AI-Lab/ClawBench",
+      "https://huggingface.co/datasets/TIGER-Lab/ClawBenchV2Trace",
+      "https://huggingface.co/datasets/TIGER-Lab/ClawBench",
+      "https://huggingface.co/spaces/TIGER-Lab/ClawBench",
+      "https://huggingface.co/collections/TIGER-Lab/clawbench-6a0247d04680f475038797d4",
+      "https://arxiv.org/abs/2604.08523",
+      "https://huggingface.co/papers/2604.08523"
+    ],
+    "identifier": "https://doi.org/10.48550/arXiv.2604.08523",
+    "license": "https://www.apache.org/licenses/LICENSE-2.0",
+    "creator": {
+      "@type": "Organization",
+      "name": "NAIL Group",
+      "url": "https://github.com/TIGER-AI-Lab/ClawBench"
+    },
+    "distribution": {
+      "@type": "DataDownload",
+      "encodingFormat": "application/x-parquet",
+      "contentUrl": "https://huggingface.co/datasets/TIGER-Lab/ClawBenchV2Trace"
+    },
+    "measurementTechnique": "Agentic evaluation with VLM, LLM, and Human-Agent evaluators",
+    "variableMeasured": "Browser agent task success rate",
+    "temporalCoverage": "2026",
+    "keywords": ["browser agent", "benchmark", "web automation", "AI evaluation", "real-world tasks", "LLM benchmark", "ClawBench"]
+  }
+  </script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "ScholarlyArticle",
+    "name": "ClawBench: Can AI Agents Complete Everyday Online Tasks?",
+    "headline": "ClawBench: Can AI Agents Complete Everyday Online Tasks?",
+    "url": "https://arxiv.org/abs/2604.08523",
+    "datePublished": "2026-04",
+    "author": [
+      {"@type": "Person", "name": "Yuxuan Zhang", "affiliation": {"@type": "Organization", "name": "University of British Columbia"}},
+      {"@type": "Person", "name": "Yubo Wang", "affiliation": {"@type": "Organization", "name": "University of Waterloo"}},
+      {"@type": "Person", "name": "Yipeng Zhu", "affiliation": {"@type": "Organization", "name": "University of British Columbia"}},
+      {"@type": "Person", "name": "Penghui Du", "affiliation": {"@type": "Organization", "name": "Etude AI"}},
+      {"@type": "Person", "name": "Junwen Miao", "affiliation": {"@type": "Organization", "name": "Carnegie Mellon University"}},
+      {"@type": "Person", "name": "Xuan Lu", "affiliation": {"@type": "Organization", "name": "Shanghai Jiao Tong University"}},
+      {"@type": "Person", "name": "Wendong Xu", "affiliation": {"@type": "Organization", "name": "UniPat AI"}},
+      {"@type": "Person", "name": "Yunzhuo Hao", "affiliation": {"@type": "Organization", "name": "Zhejiang University"}},
+      {"@type": "Person", "name": "Songcheng Cai", "affiliation": {"@type": "Organization", "name": "University of Waterloo"}},
+      {"@type": "Person", "name": "Xiaochen Wang", "affiliation": {"@type": "Organization", "name": "HKUST"}},
+      {"@type": "Person", "name": "Huaisong Zhang", "affiliation": {"@type": "Organization", "name": "Tsinghua University"}},
+      {"@type": "Person", "name": "Xian Wu", "affiliation": {"@type": "Organization", "name": "Etude AI"}},
+      {"@type": "Person", "name": "Yi Lu", "affiliation": {"@type": "Organization", "name": "University of Waterloo"}},
+      {"@type": "Person", "name": "Minyi Lei", "affiliation": {"@type": "Organization", "name": "University of Waterloo"}},
+      {"@type": "Person", "name": "Kai Zou", "affiliation": {"@type": "Organization", "name": "Netmind.ai"}},
+      {"@type": "Person", "name": "Huifeng Yin", "affiliation": {"@type": "Organization", "name": "UniPat AI"}},
+      {"@type": "Person", "name": "Ping Nie", "affiliation": {"@type": "Organization", "name": "University of Waterloo"}},
+      {"@type": "Person", "name": "Liang Chen", "affiliation": {"@type": "Organization", "name": "UniPat AI"}},
+      {"@type": "Person", "name": "Dongfu Jiang", "affiliation": {"@type": "Organization", "name": "University of Waterloo"}},
+      {"@type": "Person", "name": "Wenhu Chen", "affiliation": {"@type": "Organization", "name": "University of Waterloo"}},
+      {"@type": "Person", "name": "Kelsey R. Allen", "affiliation": {"@type": "Organization", "name": "University of British Columbia"}}
+    ],
+    "about": {"@type": "Dataset", "name": "ClawBench"},
+    "publisher": {"@type": "Organization", "name": "arXiv"}
+  }
+  </script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "ClawBench",
+    "applicationCategory": "DeveloperApplication",
+    "operatingSystem": "Linux, macOS",
+    "url": "https://claw-bench.com",
+    "codeRepository": "https://github.com/TIGER-AI-Lab/ClawBench",
+    "license": "https://www.apache.org/licenses/LICENSE-2.0",
+    "programmingLanguage": ["Python", "JavaScript"],
+    "description": "Framework for evaluating AI browser agents on 130 real-world tasks across 130+ live websites.",
+    "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"}
+  }
+  </script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {"@type": "Question", "name": "What is ClawBench?", "acceptedAnswer": {"@type": "Answer", "text": "ClawBench is an open-source benchmark for AI browser agents \u2014 the systems (GPT-based, Claude-based, or open) that drive a real web browser to complete a user's task. It measures whether the agent actually finishes 130 everyday online tasks across 130+ live websites, not whether it produces the right-looking text."}},
+      {"@type": "Question", "name": "What kinds of tasks does ClawBench cover?", "acceptedAnswer": {"@type": "Answer", "text": "Fifteen life categories: food delivery, travel booking, job applications, shopping, housing search, email and calendar management, academic research, software development, learning platforms, and more. Every task is something a normal person might do in a normal week, on a real website."}},
+      {"@type": "Question", "name": "How is a task judged successful?", "acceptedAnswer": {"@type": "Answer", "text": "Each task runs in an isolated browser container with a 5-layer recording (DOM, network, screenshots, action trace, console). A rubric of deterministic DOM checks covers the verifiable steps; an LLM judge grades the remaining subjective criteria against the recording. Scores are the fraction of rubric items the agent satisfied end-to-end."}},
+      {"@type": "Question", "name": "What's the current top score?", "acceptedAnswer": {"@type": "Answer", "text": "GLM 5.1 leads at 51.7% interception rate across 130 tasks, followed by DeepSeek V4 Pro at 43.8%. Most tasks still defeat every model we've tested; the headroom is real, and the benchmark is not saturated."}},
+      {"@type": "Question", "name": "How do I reproduce a published score?", "acceptedAnswer": {"@type": "Answer", "text": "Run 'uv tool install clawbench-eval && clawbench'. The harness installs, launches an interactive TUI, downloads the task set from Hugging Face, builds the container image, and runs any subset of the 130 tasks against your model of choice. No manual dataset setup and no API keys to paste into config files."}},
+      {"@type": "Question", "name": "Is ClawBench safe to run against live websites?", "acceptedAnswer": {"@type": "Answer", "text": "The runner uses a hardened container with a request interceptor that blocks purchases, account creation, outbound email sends, and similar irreversible actions by default. Tasks that need to simulate those actions (e.g., 'add to cart and checkout') terminate at the last reversible step. You can relax the interceptor per-task if your research requires it."}},
+      {"@type": "Question", "name": "Can I contribute new tasks or harnesses?", "acceptedAnswer": {"@type": "Answer", "text": "Yes. Tasks live in src/clawbench/data/test-cases/ as a YAML spec plus a rubric; see docs/contributing/adding-a-task.md. Harnesses (the glue between a model and the browser) plug in as Python entry points \u2014 see the sister project HarnessBench for the harness-side scaffold."}},
+      {"@type": "Question", "name": "How does ClawBench relate to HarnessBench?", "acceptedAnswer": {"@type": "Answer", "text": "Same scoring pipeline, orthogonal axis. ClawBench fixes the harness and varies the model; HarnessBench fixes the model and varies the harness. They share the 153-task corpus, the 5-layer recording, and the DOM and LLM judge \u2014 so numbers are directly comparable."}}
+    ]
+  }
+  </script>
+  <link rel="stylesheet" href="/static/fa/css/fontawesome.min.css">
+  <link rel="stylesheet" href="/static/fa/css/light.min.css">
+  <link rel="stylesheet" href="/static/fa/css/regular.min.css">
+  <link rel="stylesheet" href="/static/fa/css/solid.min.css">
+  <link rel="stylesheet" href="/static/fa/css/brands.min.css">
+  <link rel="stylesheet" href="/static/style.css?v=1791405525">
+  
+  <style>
+    /* Difficulty tab */
+    .difficulty-pills {
+      display: flex; flex-wrap: wrap; gap: 8px;
+      margin: var(--space-lg) 0 var(--space-md);
+    }
+    .diff-pill {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 8px 14px; border-radius: 999px;
+      background: rgba(255,255,255,0.55);
+      border: 1px solid rgba(148,163,184,0.28);
+      font-size: var(--font-size-sm); font-weight: 500;
+      color: var(--text-primary); cursor: pointer;
+      backdrop-filter: blur(14px) saturate(160%);
+      -webkit-backdrop-filter: blur(14px) saturate(160%);
+      transition: transform .15s ease, background .15s ease, border-color .15s ease, box-shadow .15s ease;
+    }
+    .diff-pill:hover { transform: translateY(-1px); border-color: rgba(148,163,184,0.5); }
+    .diff-pill.active {
+      background: var(--pill-color, #0091FF);
+      color: #fff; border-color: transparent;
+      box-shadow: 0 4px 14px color-mix(in srgb, var(--pill-color, #0091FF) 45%, transparent);
+    }
+    .diff-pill.active .diff-pill-count {
+      background: rgba(255,255,255,0.25); color: #fff;
+    }
+    .diff-pill-count {
+      display: inline-flex; align-items: center; justify-content: center;
+      min-width: 22px; height: 20px; padding: 0 7px;
+      border-radius: 999px;
+      background: rgba(15,23,42,0.08); color: var(--text-secondary);
+      font-size: 11px; font-weight: 600; font-variant-numeric: tabular-nums;
+    }
+    .dark-mode .diff-pill { background: rgba(30,35,56,0.55); border-color: rgba(148,163,184,0.20); color: var(--text-primary); }
+    .dark-mode .diff-pill:hover { border-color: rgba(148,163,184,0.40); }
+    .dark-mode .diff-pill-count { background: rgba(148,163,184,0.18); color: var(--text-secondary); }
+
+    .difficulty-toolbar {
+      display: flex; flex-wrap: wrap; align-items: center;
+      gap: 10px; margin-bottom: var(--space-lg);
+    }
+    .diff-search {
+      flex: 1 1 280px; display: flex; align-items: center; gap: 8px;
+      padding: 8px 14px; border-radius: 12px;
+      background: rgba(255,255,255,0.55);
+      border: 1px solid rgba(148,163,184,0.28);
+      backdrop-filter: blur(14px) saturate(160%);
+      -webkit-backdrop-filter: blur(14px) saturate(160%);
+    }
+    .diff-search i { color: var(--text-tertiary); }
+    .diff-search input {
+      flex: 1; border: none; outline: none; background: transparent;
+      font-size: var(--font-size-base); color: var(--text-primary);
+    }
+    .dark-mode .diff-search { background: rgba(30,35,56,0.55); border-color: rgba(148,163,184,0.20); }
+
+    .diff-count-chip {
+      display: inline-flex; align-items: center; justify-content: center;
+      min-width: 44px; height: 34px; padding: 0 10px;
+      border-radius: 10px;
+      background: rgba(15,23,42,0.06); color: var(--text-secondary);
+      font-weight: 600; font-variant-numeric: tabular-nums;
+    }
+    .dark-mode .diff-count-chip { background: rgba(148,163,184,0.15); }
+
+    .diff-sort, .diff-view {
+      display: inline-flex; padding: 3px;
+      border-radius: 10px;
+      background: rgba(15,23,42,0.06);
+      border: 1px solid rgba(148,163,184,0.18);
+    }
+    .dark-mode .diff-sort, .dark-mode .diff-view { background: rgba(148,163,184,0.10); border-color: rgba(148,163,184,0.20); }
+    .diff-sort-btn, .diff-view-btn {
+      display: inline-flex; align-items: center; justify-content: center;
+      gap: 4px; padding: 6px 12px; min-width: 40px;
+      border: none; background: transparent; cursor: pointer;
+      font-size: var(--font-size-sm); font-weight: 500;
+      color: var(--text-secondary); border-radius: 8px;
+      transition: background .15s ease, color .15s ease;
+    }
+    .diff-sort-btn.active, .diff-view-btn.active {
+      background: var(--surface-elevated, #fff);
+      color: var(--text-primary);
+      box-shadow: 0 1px 4px rgba(15,23,42,0.08);
+    }
+    .dark-mode .diff-sort-btn.active, .dark-mode .diff-view-btn.active {
+      background: rgba(30,35,56,0.95);
+      box-shadow: 0 1px 4px rgba(0,0,0,0.35);
+    }
+
+    .difficulty-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: var(--space-md);
+    }
+    .difficulty-list { display: flex; flex-direction: column; gap: 10px; }
+
+    .diff-card {
+      display: flex; flex-direction: column; gap: 10px;
+      padding: var(--space-md);
+      text-decoration: none; color: inherit;
+      transition: transform .15s ease, box-shadow .15s ease;
+    }
+    .diff-card:hover { transform: translateY(-2px); }
+    .diff-card-title {
+      font-size: var(--font-size-base); font-weight: 600;
+      color: var(--text-primary); line-height: 1.35;
+      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .diff-card-slug {
+      font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+      font-size: 12px; color: var(--text-tertiary);
+      font-variant-numeric: tabular-nums;
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    .diff-card-tag-row { display: flex; flex-wrap: wrap; gap: 6px; }
+    .diff-card-tag-row .subcategory-tag {
+      padding: 3px 9px; border-radius: 6px; font-size: 11px; font-weight: 500;
+    }
+    .diff-card-bar-row {
+      display: flex; align-items: center; gap: 12px;
+      margin-top: auto;
+    }
+    .diff-progress {
+      flex: 1; height: 8px; border-radius: 999px;
+      background: rgba(148,163,184,0.18); overflow: hidden;
+    }
+    .diff-progress-fill {
+      height: 100%; border-radius: 999px;
+      transition: width .4s cubic-bezier(.22,.61,.36,1);
+    }
+    .diff-rate {
+      font-weight: 600; font-variant-numeric: tabular-nums;
+      min-width: 44px; text-align: right;
+      font-size: var(--font-size-base);
+    }
+
+    .diff-row {
+      display: flex; align-items: center; gap: var(--space-md);
+      padding: 12px var(--space-md);
+      text-decoration: none; color: inherit;
+    }
+    .diff-row-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+    .diff-row-title {
+      font-weight: 600; color: var(--text-primary);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .diff-row-meta { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+    .diff-row-meta .subcategory-tag { padding: 2px 8px; border-radius: 5px; font-size: 11px; }
+    .diff-row-bar {
+      flex: 0 0 240px; display: flex; align-items: center; gap: 10px;
+    }
+
+    @media (max-width: 640px) {
+      .difficulty-toolbar { gap: 8px; }
+      .diff-search { flex: 1 1 100%; }
+      .diff-row-bar { flex-basis: 160px; }
+    }
+
+    /* Leaderboard distribution bar (Results table) */
+    .lb-th-dist { min-width: 160px; }
+    .lb-td-dist { min-width: 160px; }
+    .dist-bar {
+      display: flex;
+      align-items: flex-end;
+      height: 28px;
+      width: 160px;
+      gap: 1px;
+      border-radius: 4px;
+      overflow: hidden;
+      background: rgba(148, 163, 184, 0.08);
+      padding: 0;
+    }
+    .dist-seg {
+      position: relative;
+      display: inline-block;
+      height: 100%;
+      min-width: 4px;
+      overflow: hidden;
+    }
+    .dist-seg-fill {
+      position: absolute;
+      left: 0; right: 0; bottom: 0;
+      border-radius: 0;
+      transition: height 0.4s var(--ease-out, ease);
+    }
+    .dist-bar-empty {
+      display: inline-block;
+      width: 160px;
+      text-align: center;
+      color: var(--text-tertiary);
+      font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+      font-size: 12px;
+    }
+    @media (max-width: 735px) {
+      .lb-th-dist, .lb-td-dist, .dist-bar, .dist-bar-empty { display: none; }
+    }
+
+    /* 3-layer architecture stack on Dashboard */
+    .stack-card {
+      padding: var(--space-lg) var(--space-lg) var(--space-md);
+      text-align: left;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      position: relative;
+      overflow: hidden;
+      border-top: 3px solid var(--stack-color);
+    }
+    .stack-card .stack-icon {
+      width: 44px; height: 44px; border-radius: 10px;
+      display: inline-flex; align-items: center; justify-content: center;
+      color: var(--stack-color);
+      background: color-mix(in srgb, var(--stack-color) 12%, transparent);
+      font-size: 18px;
+      margin-bottom: 2px;
+    }
+    .stack-head {
+      font-size: var(--font-size-lg);
+      font-weight: 700;
+      color: var(--text-primary);
+      margin: 0;
+      letter-spacing: -0.01em;
+    }
+    .stack-body {
+      font-size: var(--font-size-sm);
+      color: var(--text-secondary);
+      line-height: 1.55;
+      margin: 0;
+      flex: 1;
+    }
+    /* solved-by row on Difficulty cards */
+    .diff-solved-row {
+      display: flex; flex-wrap: wrap; align-items: center;
+      gap: 6px;
+      margin-top: 8px;
+      padding-top: 8px;
+      border-top: 1px dashed rgba(148, 163, 184, 0.22);
+      font-size: 11px; line-height: 1.4;
+    }
+    .diff-solved-label {
+      color: var(--text-tertiary);
+      font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+      font-size: 10.5px;
+      letter-spacing: 0.04em;
+      text-transform: lowercase;
+    }
+    .diff-solved-count {
+      font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-primary);
+      padding: 1px 7px;
+      border-radius: 999px;
+      background: rgba(109, 124, 255, 0.12);
+      border: 1px solid rgba(109, 124, 255, 0.22);
+    }
+    .diff-solved-count.diff-solved-none {
+      background: rgba(148, 163, 184, 0.15);
+      border-color: rgba(148, 163, 184, 0.25);
+      color: var(--text-secondary);
+    }
+    .diff-solved-unsolved {
+      font-size: 10.5px;
+      color: #b8261d;
+      font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+      letter-spacing: 0.04em;
+    }
+    .dark-mode .diff-solved-unsolved { color: #ff8a80; }
+    .diff-solved-chips {
+      display: inline-flex; flex-wrap: wrap; gap: 4px;
+    }
+    .diff-model-chip {
+      font-size: 10.5px;
+      line-height: 1;
+      padding: 3px 7px;
+      border-radius: 6px;
+      background: rgba(148, 163, 184, 0.10);
+      border: 1px solid rgba(148, 163, 184, 0.22);
+      color: var(--text-primary);
+      font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+      letter-spacing: 0.01em;
+      white-space: nowrap;
+    }
+    .dark-mode .diff-model-chip {
+      background: rgba(30, 35, 56, 0.55);
+      border-color: rgba(148, 163, 184, 0.18);
+    }
+
+    /* ── Contribute page ─────────────────────────────────── */
+    .contrib-root { max-width: 1080px; margin: 0 auto; }
+    .contrib-hero { text-align: center; margin-bottom: var(--space-2xl); }
+    .contrib-kicker {
+      font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+      font-size: 12px; color: var(--accent); letter-spacing: 0.04em;
+      text-transform: lowercase; margin-bottom: 6px;
+    }
+    .contrib-lead {
+      max-width: 720px; margin: var(--space-md) auto 0;
+      color: var(--text-secondary); font-size: var(--font-size-base); line-height: 1.65;
+    }
+    .contrib-section { margin-top: var(--space-3xl); }
+    .contrib-section-title {
+      font-size: var(--font-size-xl); font-weight: 700;
+      color: var(--text-primary); margin-bottom: 6px;
+      letter-spacing: -0.01em;
+    }
+    .contrib-section-sub {
+      color: var(--text-secondary); font-size: var(--font-size-sm);
+      margin-bottom: var(--space-lg); line-height: 1.55;
+    }
+
+    /* Tier cards */
+    .contrib-tier-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: var(--space-md);
+    }
+    .contrib-tier {
+      padding: var(--space-lg);
+      cursor: pointer;
+      display: flex; flex-direction: column; gap: 14px;
+      transition: transform .2s var(--ease-out, ease),
+                  box-shadow .2s var(--ease-out, ease),
+                  border-color .2s var(--ease-out, ease);
+      border: 1px solid transparent;
+      outline: none;
+    }
+    .contrib-tier:hover { transform: translateY(-2px); }
+    .contrib-tier--active {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(109, 124, 255, 0.14), 0 8px 28px rgba(109, 124, 255, 0.18);
+    }
+    .contrib-tier-super {
+      font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+      font-size: 11px; letter-spacing: 0.04em;
+    }
+    .contrib-tier-head { display: flex; align-items: center; gap: 10px; }
+    .contrib-tier-icon {
+      width: 36px; height: 36px; border-radius: 10px;
+      display: inline-flex; align-items: center; justify-content: center;
+      font-size: 16px;
+    }
+    .contrib-tier-name {
+      font-size: var(--font-size-lg); font-weight: 700; color: var(--text-primary); margin: 0;
+    }
+    .contrib-tier-blurb {
+      color: var(--text-secondary); font-size: var(--font-size-sm);
+      line-height: 1.55; margin: 0;
+    }
+    .contrib-tier-section {
+      border-top: 1px dashed rgba(148, 163, 184, 0.25);
+      padding-top: 10px;
+    }
+    .contrib-tier-label {
+      font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+      font-size: 10.5px; text-transform: uppercase;
+      letter-spacing: 0.08em; color: var(--text-tertiary);
+      margin-bottom: 6px;
+    }
+    .contrib-tier-list {
+      list-style: none; padding: 0; margin: 0;
+      color: var(--text-primary); font-size: var(--font-size-sm);
+      line-height: 1.6;
+    }
+    .contrib-tier-list li {
+      position: relative; padding-left: 16px;
+    }
+    .contrib-tier-list li::before {
+      content: '▸'; color: var(--accent);
+      position: absolute; left: 0; top: 0;
+      font-size: 10px;
+    }
+    .contrib-tier-after {
+      color: var(--text-secondary); font-size: var(--font-size-sm); line-height: 1.5;
+    }
+    .contrib-tier-reward {
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid rgba(148, 163, 184, 0.25);
+      color: var(--text-primary);
+      font-size: var(--font-size-sm); line-height: 1.5;
+    }
+
+    /* Form */
+    .contrib-form {
+      padding: var(--space-lg);
+      display: flex; flex-direction: column; gap: var(--space-md);
+    }
+    .contrib-field-row {
+      display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-md);
+    }
+    @media (max-width: 640px) {
+      .contrib-field-row { grid-template-columns: 1fr; }
+    }
+    .contrib-field { display: flex; flex-direction: column; gap: 6px; }
+    .contrib-field label {
+      font-size: 12px; font-weight: 600;
+      color: var(--text-secondary); letter-spacing: 0.02em;
+      text-transform: lowercase;
+    }
+    .contrib-req { color: #ff3b30; margin-left: 2px; }
+    .contrib-hint {
+      color: var(--text-tertiary); font-weight: 400;
+      text-transform: none; font-size: 11px; margin-left: 4px;
+    }
+    .contrib-field input,
+    .contrib-field textarea,
+    .contrib-field select {
+      width: 100%;
+      font: inherit;
+      color: var(--text-primary);
+      background: rgba(148, 163, 184, 0.08);
+      border: 1px solid rgba(148, 163, 184, 0.25);
+      border-radius: 8px;
+      padding: 10px 12px;
+      transition: border-color .15s, background .15s, box-shadow .15s;
+      box-sizing: border-box;
+    }
+    .contrib-field textarea { resize: vertical; min-height: 84px; line-height: 1.5; }
+    .contrib-field input:focus,
+    .contrib-field textarea:focus,
+    .contrib-field select:focus {
+      outline: none;
+      border-color: var(--accent);
+      background: rgba(109, 124, 255, 0.06);
+      box-shadow: 0 0 0 3px rgba(109, 124, 255, 0.14);
+    }
+    .dark-mode .contrib-field input,
+    .dark-mode .contrib-field textarea,
+    .dark-mode .contrib-field select {
+      background: rgba(30, 35, 56, 0.55);
+      border-color: rgba(148, 163, 184, 0.20);
+    }
+
+    .contrib-submit-row {
+      display: flex; align-items: center; gap: var(--space-md); flex-wrap: wrap;
+    }
+    .contrib-submit {
+      font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+      letter-spacing: 0.02em;
+    }
+    .contrib-submit-note {
+      color: var(--text-tertiary); font-size: 12px;
+    }
+    .contrib-feedback {
+      display: none;
+      padding: 10px 14px; border-radius: 8px;
+      font-size: var(--font-size-sm); line-height: 1.5;
+    }
+    .contrib-feedback code {
+      font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+      background: rgba(0, 0, 0, 0.08); padding: 1px 6px; border-radius: 4px;
+    }
+    .contrib-feedback--ok {
+      display: block;
+      background: rgba(52, 199, 89, 0.12);
+      color: #1a7f3a;
+      border: 1px solid rgba(52, 199, 89, 0.3);
+    }
+    .contrib-feedback--error {
+      display: block;
+      background: rgba(255, 59, 48, 0.10);
+      color: #b8261d;
+      border: 1px solid rgba(255, 59, 48, 0.3);
+    }
+    .dark-mode .contrib-feedback--ok { color: #8be3a7; background: rgba(52, 199, 89, 0.14); }
+    .dark-mode .contrib-feedback--error { color: #ff8a80; background: rgba(255, 59, 48, 0.14); }
+
+    /* Citation */
+    .contrib-cite { margin-bottom: var(--space-3xl); }
+    .contrib-bibtex {
+      padding: var(--space-md);
+      background: rgba(148, 163, 184, 0.08);
+      border: 1px solid rgba(148, 163, 184, 0.22);
+      border-radius: 10px;
+      font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+      font-size: 12.5px; line-height: 1.55;
+      color: var(--text-primary);
+      overflow-x: auto;
+      margin-bottom: 8px;
+    }
+    .dark-mode .contrib-bibtex {
+      background: rgba(30, 35, 56, 0.55);
+      border-color: rgba(148, 163, 184, 0.20);
+    }
+
+    /* Clickable category table rows */
+    .task-row-linkable { transition: background .12s; }
+    .task-row-linkable:hover { background: rgba(109, 124, 255, 0.05); }
+    .dark-mode .task-row-linkable:hover { background: rgba(109, 124, 255, 0.12); }
+    .task-row-linkable:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+
+    /* Dashboard callouts (Leading model + Hardest tasks) */
+    .dashboard-callouts-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--space-md);
+    }
+    @media (max-width: 735px) {
+      .dashboard-callouts-grid { grid-template-columns: 1fr; }
+    }
+    .dashboard-callout {
+      display: flex; flex-direction: column; gap: 10px;
+      padding: var(--space-md) var(--space-lg);
+      text-decoration: none;
+      color: inherit;
+      transition: transform .15s var(--ease-out, ease), box-shadow .15s var(--ease-out, ease);
+      position: relative;
+      min-height: 180px;
+    }
+    a.dashboard-callout:hover { transform: translateY(-2px); }
+
+    .callout-leader-head {
+      display: flex; align-items: baseline; justify-content: space-between;
+      gap: var(--space-md);
+    }
+    .callout-leader-name {
+      font-size: var(--font-size-xl);
+      font-weight: 700;
+      color: var(--text-primary);
+      letter-spacing: -0.01em;
+    }
+    .callout-leader-pct {
+      display: flex; align-items: baseline;
+      font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+      color: var(--accent);
+    }
+    .callout-leader-num { font-size: 32px; font-weight: 700; line-height: 1; }
+    .callout-leader-pct-sym { font-size: 16px; margin-left: 1px; font-weight: 500; }
+    .callout-leader-sub {
+      font-size: var(--font-size-sm);
+      color: var(--text-secondary);
+      line-height: 1.45;
+    }
+    .callout-leader-runner { color: var(--text-primary); font-weight: 500; }
+    .callout-leader-bar {
+      height: 4px;
+      background: rgba(148, 163, 184, 0.18);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+    .callout-leader-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent) 0%, #a5b4fc 100%);
+      border-radius: 2px;
+      transition: width .6s var(--ease-out, ease);
+    }
+    .callout-footer {
+      margin-top: auto;
+      font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+      font-size: 11px;
+      letter-spacing: 0.04em;
+      color: var(--accent);
+      text-transform: lowercase;
+      text-decoration: none;
+      display: inline-flex; align-items: center; gap: 6px;
+    }
+    .callout-footer i { font-size: 10px; transition: transform .15s; }
+    a.dashboard-callout:hover .callout-footer i,
+    .callout-footer:hover i { transform: translateX(3px); }
+
+    /* Hardest tasks */
+    .callout-hardest-head {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: var(--space-md);
+    }
+    .callout-hardest-title {
+      font-size: var(--font-size-base);
+      font-weight: 600;
+      color: var(--text-primary);
+      line-height: 1.35;
+    }
+    .callout-hardest-badge {
+      font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+      font-size: 11px;
+      padding: 3px 9px;
+      border-radius: 999px;
+      color: #b8261d;
+      background: rgba(255, 59, 48, 0.10);
+      border: 1px solid rgba(255, 59, 48, 0.22);
+      white-space: nowrap;
+    }
+    .dark-mode .callout-hardest-badge { color: #ff8a80; background: rgba(255, 59, 48, 0.14); }
+    .callout-hardest-list {
+      display: flex; flex-direction: column; gap: 4px;
+    }
+    .callout-hardest-row {
+      display: grid;
+      grid-template-columns: 40px 1fr;
+      gap: 8px;
+      padding: 6px 0;
+      font-size: 12.5px;
+      text-decoration: none;
+      color: var(--text-primary);
+      border-bottom: 1px dashed rgba(148, 163, 184, 0.18);
+    }
+    .callout-hardest-row:last-child { border-bottom: none; }
+    .callout-hardest-row:hover { color: var(--accent); }
+    .callout-hardest-num {
+      font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+      color: var(--text-tertiary);
+      font-variant-numeric: tabular-nums;
+      font-size: 11px;
+    }
+    .callout-hardest-text {
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+
+    /* Task Detail view */
+    .task-detail-hero { margin-bottom: var(--space-xl); }
+    .task-detail-meta {
+      display: flex; flex-wrap: wrap; gap: 10px;
+      margin-bottom: var(--space-md);
+      font-size: var(--font-size-sm);
+    }
+    .task-detail-slug {
+      font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+      font-size: 12px;
+      color: var(--text-tertiary);
+      padding: 4px 10px;
+      background: rgba(148, 163, 184, 0.10);
+      border-radius: 6px;
+      font-variant-numeric: tabular-nums;
+    }
+    .task-detail-category {
+      display: inline-flex; align-items: center;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-weight: 500;
+      text-decoration: none;
+      font-size: 12.5px;
+    }
+    .task-detail-category:hover { filter: brightness(1.05); }
+    .task-detail-platform {
+      padding: 4px 10px;
+      background: rgba(148, 163, 184, 0.10);
+      border: 1px solid rgba(148, 163, 184, 0.20);
+      border-radius: 6px;
+      color: var(--text-secondary);
+      font-size: 12.5px;
+    }
+    .task-detail-bar-row {
+      display: flex; align-items: center; gap: var(--space-md);
+      margin-top: 6px;
+    }
+    .task-detail-rate {
+      font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+      font-weight: 600;
+      font-size: 13px;
+      font-variant-numeric: tabular-nums;
+    }
+    .task-detail-section {
+      margin-top: var(--space-lg);
+      padding: var(--space-lg);
+    }
+    .task-detail-subhead {
+      font-size: var(--font-size-lg);
+      font-weight: 700;
+      color: var(--text-primary);
+      margin: 0 0 var(--space-md);
+    }
+    .task-detail-label {
+      font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+      font-size: 11px;
+      letter-spacing: 0.06em;
+      text-transform: lowercase;
+      color: var(--text-tertiary);
+      margin-bottom: 6px;
+    }
+    .task-detail-instruction {
+      font-size: var(--font-size-base);
+      line-height: 1.65;
+      color: var(--text-primary);
+      white-space: pre-wrap;
+    }
+    .task-detail-extra {
+      margin: 0;
+      padding: 10px 12px;
+      background: rgba(148, 163, 184, 0.08);
+      border: 1px solid rgba(148, 163, 184, 0.20);
+      border-radius: 8px;
+      font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+      font-size: 12px;
+      line-height: 1.55;
+      color: var(--text-primary);
+      overflow-x: auto;
+      white-space: pre-wrap;
+    }
+    .dark-mode .task-detail-extra {
+      background: rgba(30, 35, 56, 0.50);
+      border-color: rgba(148, 163, 184, 0.18);
+    }
+    .task-detail-cli { border-left: 3px solid var(--accent); line-height: 1.6; }
+    .task-detail-cli-links { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+    .task-detail-cli-links .glass-btn-sm {
+      font-size: 12px;
+      padding: 5px 10px;
+      text-decoration: none;
+    }
+
+    .task-model-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 12px;
+    }
+    .task-model-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      padding: 12px 14px;
+      text-decoration: none;
+      color: inherit;
+      transition: transform .15s var(--ease-out, ease);
+    }
+    .task-model-row:hover { transform: translateY(-1px); }
+    .task-model-row-name {
+      grid-column: 1 / 2;
+      font-weight: 600;
+      color: var(--text-primary);
+      font-size: 13.5px;
+    }
+    .task-model-row-short {
+      grid-column: 1 / 2;
+      font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+      font-size: 11px;
+      color: var(--text-tertiary);
+    }
+    .task-model-row-status {
+      grid-column: 2 / 3;
+      grid-row: 1 / span 2;
+      display: flex; align-items: center;
+    }
+    .task-model-pass, .task-model-fail {
+      display: inline-flex; align-items: center; gap: 4px;
+      font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+      font-size: 11.5px;
+      padding: 3px 9px;
+      border-radius: 6px;
+      letter-spacing: 0.02em;
+    }
+    .task-model-pass { color: #1a7f3a; background: rgba(52, 199, 89, 0.12); border: 1px solid rgba(52, 199, 89, 0.25); }
+    .task-model-fail { color: #b8261d; background: rgba(255, 59, 48, 0.10); border: 1px solid rgba(255, 59, 48, 0.22); }
+    .dark-mode .task-model-pass { color: #8be3a7; background: rgba(52, 199, 89, 0.15); }
+    .dark-mode .task-model-fail { color: #ff8a80; background: rgba(255, 59, 48, 0.14); }
+
+    .task-detail-footer {
+      display: flex; flex-wrap: wrap; gap: 10px;
+      margin-top: var(--space-xl);
+    }
+
+    /* Model Detail view */
+    .model-detail-hero { margin-bottom: var(--space-xl); }
+    .model-detail-id {
+      font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+      font-size: 12px;
+      color: var(--text-tertiary);
+      padding: 4px 10px;
+      background: rgba(148, 163, 184, 0.10);
+      border-radius: 6px;
+      display: inline-block;
+    }
+    .model-stat-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 12px;
+      margin-top: var(--space-md);
+    }
+    .model-stat { padding: 14px 16px; }
+    .model-stat-label {
+      font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+      font-size: 11px;
+      letter-spacing: 0.04em;
+      text-transform: lowercase;
+      color: var(--text-tertiary);
+      margin-bottom: 6px;
+    }
+    .model-stat-value {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--text-primary);
+      font-variant-numeric: tabular-nums;
+      line-height: 1.2;
+    }
+    .model-stat-value.model-stat-text { font-size: 16px; line-height: 1.3; }
+    .model-stat-total {
+      font-size: 12px;
+      color: var(--text-tertiary);
+      font-weight: 500;
+      margin-left: 4px;
+    }
+    .model-cat-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 12px;
+      margin-top: var(--space-md);
+    }
+    .model-cat-card {
+      padding: 14px;
+      text-decoration: none;
+      color: inherit;
+      transition: transform .15s var(--ease-out, ease);
+    }
+    .model-cat-card:hover { transform: translateY(-1px); }
+    .model-cat-head { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+    .model-cat-icon {
+      width: 32px; height: 32px; border-radius: 8px;
+      display: inline-flex; align-items: center; justify-content: center;
+      font-size: 14px;
+    }
+    .model-cat-name { font-weight: 600; color: var(--text-primary); font-size: 13px; }
+    .model-cat-count { font-size: 11px; color: var(--text-tertiary); }
+    .model-cat-pct {
+      margin-left: auto;
+      font-weight: 700;
+      font-size: 18px;
+      font-variant-numeric: tabular-nums;
+    }
+    .model-cat-pct span { font-size: 11px; margin-left: 1px; }
+
+    .model-task-list { display: flex; flex-direction: column; gap: 8px; margin-top: var(--space-md); }
+    .model-task-row {
+      display: grid;
+      grid-template-columns: 44px 1fr auto auto;
+      gap: 12px;
+      align-items: center;
+      padding: 10px 14px;
+      text-decoration: none;
+      color: inherit;
+      font-size: 13px;
+      transition: background .15s;
+    }
+    .model-task-row:hover { background: rgba(109, 124, 255, 0.05); }
+    .dark-mode .model-task-row:hover { background: rgba(109, 124, 255, 0.10); }
+    .model-task-num {
+      font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+      color: var(--text-tertiary);
+      font-variant-numeric: tabular-nums;
+      font-size: 12px;
+    }
+    .model-task-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .model-task-cat { font-size: 12px; font-weight: 500; }
+    .model-task-context {
+      font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+      font-size: 11px;
+      color: var(--text-secondary);
+      display: inline-flex; gap: 4px; align-items: center;
+    }
+    .model-task-context i { font-size: 11px; margin-right: 2px; }
+    .model-task-row--fail { opacity: 0.95; }
+
+    /* Task × Model heatmap (Results page) */
+    .task-heatmap-body { position: relative; }
+    .heatmap-scroll {
+      overflow: auto;
+      max-height: 70vh;
+      border-radius: 12px;
+      border: 1px solid rgba(148, 163, 184, 0.18);
+      background: rgba(255, 255, 255, 0.55);
+    }
+    .dark-mode .heatmap-scroll {
+      background: rgba(18, 20, 28, 0.55);
+      border-color: rgba(148, 163, 184, 0.18);
+    }
+    .task-heatmap-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+      font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+    }
+    .task-heatmap-table th,
+    .task-heatmap-table td {
+      padding: 4px 8px;
+      text-align: left;
+      border-bottom: 1px solid rgba(148, 163, 184, 0.10);
+      vertical-align: middle;
+    }
+    .task-heatmap-table thead th {
+      position: sticky; top: 0; z-index: 2;
+      background: rgba(240, 242, 250, 0.96);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      font-weight: 600;
+      font-size: 11px;
+      color: var(--text-secondary);
+      white-space: nowrap;
+      padding: 8px 10px;
+    }
+    .dark-mode .task-heatmap-table thead th {
+      background: rgba(22, 24, 34, 0.96);
+      color: var(--text-primary);
+    }
+    .task-heatmap-table .heatmap-task-col { min-width: 360px; width: 360px; }
+    @media (max-width: 735px) {
+      .task-heatmap-table .heatmap-task-col { min-width: 200px; width: 200px; }
+      .heatmap-task-row th.heatmap-task-label { max-width: 200px; width: 200px; }
+      .task-heatmap-table .heatmap-model-col { min-width: 72px; }
+      .heatmap-cell { width: 24px; height: 16px; }
+      .heatmap-cell-td { padding: 2px 3px; }
+    }
+    .task-heatmap-table .heatmap-model-col { min-width: 88px; text-align: center; }
+    .heatmap-cat-row th {
+      background: rgba(148, 163, 184, 0.10);
+      font-size: 11px; text-transform: lowercase;
+      letter-spacing: 0.04em;
+      color: var(--text-primary);
+      font-weight: 700;
+    }
+    .dark-mode .heatmap-cat-row th {
+      background: rgba(148, 163, 184, 0.12);
+    }
+    .heatmap-cat-label { position: sticky; left: 0; z-index: 1; }
+    .heatmap-cat-dot {
+      display: inline-block;
+      width: 8px; height: 8px; border-radius: 2px;
+      margin-right: 6px; vertical-align: middle;
+    }
+    .heatmap-cat-count { color: var(--text-tertiary); font-weight: 400; margin-left: 4px; }
+    .heatmap-cat-agg {
+      text-align: center;
+      font-weight: 600;
+      color: var(--text-secondary);
+      font-size: 10.5px;
+    }
+    .heatmap-cat-bar {
+      width: 72%; height: 3px; margin: 2px auto 0;
+      background: rgba(148, 163, 184, 0.18); border-radius: 2px;
+      overflow: hidden;
+    }
+    .heatmap-cat-bar-fill { height: 100%; }
+
+    .heatmap-task-row th.heatmap-task-label {
+      position: sticky; left: 0; z-index: 1;
+      background: inherit;
+      font-weight: 400;
+      font-size: 12px;
+      color: var(--text-primary);
+      max-width: 360px; width: 360px;
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    .heatmap-task-num {
+      display: inline-block; width: 34px;
+      color: var(--text-tertiary);
+      font-size: 11px;
+      font-variant-numeric: tabular-nums;
+    }
+    .heatmap-task-name { color: var(--text-primary); }
+    .heatmap-task-link {
+      color: inherit; text-decoration: none; display: inline-flex; align-items: baseline; gap: 4px;
+    }
+    .heatmap-task-link:hover .heatmap-task-name { color: var(--accent); text-decoration: underline; }
+    .heatmap-model-link { color: inherit; text-decoration: none; }
+    .heatmap-model-link:hover { color: var(--accent); text-decoration: underline; }
+    .heatmap-task-row:hover { background: rgba(109, 124, 255, 0.04); }
+    .dark-mode .heatmap-task-row:hover { background: rgba(109, 124, 255, 0.10); }
+
+    /* Heatmap body cell: <td> keeps native table-cell flow, inner span is the colored rect */
+    .heatmap-cell-td {
+      text-align: center;
+      padding: 3px 4px;
+      vertical-align: middle;
+    }
+    .heatmap-cell {
+      display: inline-block;
+      width: 28px; height: 18px;
+      border-radius: 4px;
+      border: 1px solid transparent;
+      vertical-align: middle;
+    }
+    .heatmap-cell-pass {
+      background: #34C759;
+      border-color: rgba(40, 167, 80, 0.3);
+    }
+    .heatmap-cell-fail {
+      background: rgba(255, 59, 48, 0.12);
+      border-color: rgba(255, 59, 48, 0.20);
+    }
+    .heatmap-cell-none {
+      background: rgba(148, 163, 184, 0.12);
+      border-color: rgba(148, 163, 184, 0.20);
+    }
+    .dark-mode .heatmap-cell-pass { background: #30B454; }
+    .dark-mode .heatmap-cell-fail { background: rgba(255, 138, 128, 0.15); border-color: rgba(255, 138, 128, 0.25); }
+    .dark-mode .heatmap-cell-none { background: rgba(148, 163, 184, 0.10); }
+
+    .task-heatmap-table tfoot th {
+      background: rgba(109, 124, 255, 0.06);
+      font-weight: 600;
+      text-align: center;
+      font-size: 11.5px;
+      color: var(--text-primary);
+      border-top: 2px solid rgba(109, 124, 255, 0.20);
+    }
+    .task-heatmap-table tfoot .heatmap-total-label { text-align: left; color: var(--text-secondary); }
+    .heatmap-total-pct { color: var(--text-tertiary); font-weight: 400; }
+    .dark-mode .task-heatmap-table tfoot th {
+      background: rgba(109, 124, 255, 0.10);
+      color: var(--text-primary);
+    }
+
+    .heatmap-legend {
+      display: flex; flex-wrap: wrap; gap: 16px;
+      margin-top: 10px;
+      font-size: 11.5px;
+      color: var(--text-secondary);
+      font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+    }
+    .heatmap-legend-item {
+      display: inline-flex; align-items: center; gap: 6px;
+    }
+    .heatmap-legend-item .heatmap-cell {
+      display: inline-block; width: 16px; height: 12px; margin: 0;
+    }
+
+    /* File-tree inside tier card */
+    .contrib-tier-tree {
+      margin: 0;
+      padding: 10px 12px;
+      background: rgba(148, 163, 184, 0.07);
+      border: 1px solid rgba(148, 163, 184, 0.18);
+      border-left: 3px solid var(--accent);
+      border-radius: 6px;
+      font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+      font-size: 11.5px;
+      line-height: 1.55;
+      color: var(--text-primary);
+      white-space: pre;
+      overflow-x: auto;
+    }
+    .dark-mode .contrib-tier-tree {
+      background: rgba(30, 35, 56, 0.45);
+      border-color: rgba(148, 163, 184, 0.18);
+      color: var(--text-primary);
+    }
+
+    /* Add-Your-Model CTA (Compare page footer) */
+    .add-model-cta {
+      padding: var(--space-xl) var(--space-lg);
+      margin-top: var(--space-3xl);
+      text-align: center;
+    }
+    .add-model-cta h2 {
+      font-size: var(--font-size-xl);
+      font-weight: 700;
+      color: var(--text-primary);
+      margin: 6px 0 8px;
+      letter-spacing: -0.01em;
+    }
+    .add-model-cta p {
+      color: var(--text-secondary);
+      font-size: var(--font-size-sm);
+      max-width: 560px;
+      margin: 0 auto var(--space-md);
+      line-height: 1.55;
+    }
+    .add-model-cta .glass-btn {
+      font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+      letter-spacing: 0.02em;
+      text-decoration: none;
+    }
+    .add-model-cta .glass-btn i { margin-right: 6px; }
+  </style>
+  <script>
+    // Prevent flash of wrong theme
+    (function() {
+      var saved = localStorage.getItem('theme');
+      var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      if (saved === 'dark' || (!saved && prefersDark)) {
+        document.documentElement.classList.add('dark-mode');
+      }
+    })();
+  </script>
+</head>
+<body>
+<a href="#app" class="skip-link">Skip to content</a>
+
+<!-- Starfield background (visible in dark mode) -->
+<canvas id="starfield"></canvas>
+
+<!-- Gradient orbs (visible in dark mode) -->
+<div class="gradient-orbs">
+  <div class="gradient-orb"></div>
+  <div class="gradient-orb"></div>
+  <div class="gradient-orb"></div>
+</div>
+
+<!-- Navigation -->
+<nav class="glass-nav" id="main-nav">
+  <a href="/" class="glass-nav-brand"><span class="nav-logo-icon"><i class="fa-solid fa-alien-8bit"></i></span>ClawBench</a>
+  <ul class="glass-nav-links" id="nav-links">
+    <li><a href="/" data-view="dashboard" class="active">Home</a></li>
+    <li><a href="/tasks" data-view="search">Tasks</a></li>
+    <li><a href="/gallery" data-view="gallery">Gallery</a></li>
+    <li><a href="/traces" data-view="traces">Traces</a></li>
+    <li><a href="/compare" data-view="compare">Compare</a></li>
+    <li><a href="/contribute" data-view="contribute">Contribute</a></li>
+  </ul>
+  <div class="glass-nav-actions">
+    <a href="https://arxiv.org/abs/2604.08523" target="_blank" rel="noopener" class="nav-external-link" title="arXiv preprint (2604.08523)"><i class="fa-solid fa-file-lines"></i><span class="nav-external-link-label">arXiv</span></a>
+    <a href="https://huggingface.co/datasets/TIGER-Lab/ClawBenchV2Trace" target="_blank" rel="noopener" class="nav-external-link" title="HF Dataset · V2 Traces (TIGER-Lab/ClawBenchV2Trace)"><i class="fa-solid fa-database"></i><span class="nav-external-link-label">HF Dataset</span></a>
+    <a href="https://huggingface.co/datasets/TIGER-Lab/ClawBenchV2Trace" target="_blank" rel="noopener" class="nav-external-link" title="HF Dataset · Trace bundles (V2)"><i class="fa-solid fa-layer-group"></i><span class="nav-external-link-label">HF Traces</span></a>
+    <a href="https://huggingface.co/papers/2604.08523" target="_blank" rel="noopener" class="nav-external-link" title="Hugging Face Papers discussion"><i class="fa-brands fa-hugging-face"></i><span class="nav-external-link-label">HF Papers</span></a>
+    <a href="https://github.com/TIGER-AI-Lab/ClawBench" target="_blank" rel="noopener" class="nav-external-link" title="GitHub"><i class="fa-brands fa-github"></i><span class="nav-external-link-label">GitHub</span></a>
+    <button class="theme-toggle" id="theme-toggle" role="switch" aria-checked="false" aria-label="Dark mode">
+      <span class="theme-toggle-icon sun"><i class="fa-solid fa-sun-bright"></i></span>
+      <span class="theme-toggle-icon moon"><i class="fa-solid fa-moon"></i></span>
+    </button>
+  </div>
+</nav>
+
+<!-- Recent activity widget (option B) -->
+<!-- recent-runs widget temporarily disabled
+<style>
+  .recent-runs {
+    max-width: 1280px;
+    margin: 96px auto 0;
+    padding: 14px 20px;
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.55);
+    border: 1px solid rgba(255, 255, 255, 0.45);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    box-shadow: 0 8px 28px rgba(15, 23, 42, 0.08);
+    font-size: 13px;
+    color: #1f2937;
+  }
+  .dark-mode .recent-runs {
+    background: rgba(20, 24, 38, 0.55);
+    border-color: rgba(255, 255, 255, 0.10);
+    color: #e5e7eb;
+    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.35);
+  }
+  .recent-runs-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 8px;
+  }
+  .recent-runs-title {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    font-size: 11px;
+    opacity: 0.85;
+  }
+  .recent-runs-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 999px;
+    background: #10b981;
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.6);
+    animation: recentPulse 1.8s ease-out infinite;
+  }
+  @keyframes recentPulse {
+    0%   { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.55); }
+    70%  { box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+  }
+  .recent-runs-updated {
+    font-size: 11px;
+    opacity: 0.65;
+  }
+  .recent-runs-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 6px 18px;
+  }
+  .recent-runs-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 0;
+    min-width: 0;
+  }
+  .recent-runs-status {
+    flex-shrink: 0;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 999px;
+    letter-spacing: 0.05em;
+  }
+  .recent-runs-status.pass {
+    background: rgba(16, 185, 129, 0.15);
+    color: #047857;
+    border: 1px solid rgba(16, 185, 129, 0.35);
+  }
+  .recent-runs-status.fail {
+    background: rgba(239, 68, 68, 0.12);
+    color: #b91c1c;
+    border: 1px solid rgba(239, 68, 68, 0.30);
+  }
+  .dark-mode .recent-runs-status.pass { color: #34d399; }
+  .dark-mode .recent-runs-status.fail { color: #fca5a5; }
+  .recent-runs-model {
+    font-weight: 600;
+    flex-shrink: 0;
+  }
+  .recent-runs-task {
+    opacity: 0.75;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex: 1;
+    min-width: 0;
+  }
+  .recent-runs-time {
+    font-variant-numeric: tabular-nums;
+    opacity: 0.6;
+    flex-shrink: 0;
+    font-size: 11px;
+  }
+  .recent-runs-empty {
+    opacity: 0.6;
+    font-style: italic;
+    padding: 4px 0;
+  }
+  @media (max-width: 640px) {
+    .recent-runs { margin-top: 80px; padding: 12px 14px; }
+    .recent-runs-list { grid-template-columns: 1fr; }
+  }
+</style>
+<aside class="recent-runs" id="recent-runs" aria-label="Recent evaluation runs">
+  <div class="recent-runs-head">
+    <span class="recent-runs-title"><span class="recent-runs-dot"></span> Recent eval runs</span>
+    <span class="recent-runs-updated" id="recent-runs-updated"></span>
+  </div>
+  <ul class="recent-runs-list" id="recent-runs-list">
+    <li class="recent-runs-empty">Loading recent activity...</li>
+  </ul>
+</aside>
+<script>
+(function () {
+  var listEl = document.getElementById('recent-runs-list');
+  var updatedEl = document.getElementById('recent-runs-updated');
+  if (!listEl) return;
+
+  function timeAgo(ts) {
+    var nowSec = Date.now() / 1000;
+    var delta = Math.max(0, Math.floor(nowSec - ts));
+    if (delta < 60) return delta + 's ago';
+    if (delta < 3600) return Math.floor(delta / 60) + ' min ago';
+    if (delta < 86400) return Math.floor(delta / 3600) + ' h ago';
+    var d = Math.floor(delta / 86400);
+    return d === 1 ? '1 day ago' : d + ' days ago';
+  }
+
+  function escapeHtml(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+      return ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' })[c];
+    });
+  }
+
+  function render(payload) {
+    var runs = (payload && payload.runs) || [];
+    if (!runs.length) {
+      listEl.innerHTML = '<li class="recent-runs-empty">No recent eval runs available.</li>';
+      updatedEl.textContent = '';
+      return;
+    }
+    var html = runs.map(function (r) {
+      var status = r.pass ? 'PASS' : 'FAIL';
+      var cls = r.pass ? 'pass' : 'fail';
+      var approx = r.timestamp_approx ? '~' : '';
+      var taskLabel = (r.task_id ? '#' + r.task_id : '') + (r.task_name ? ' ' + r.task_name : '');
+      return '<li class="recent-runs-item" title="' + escapeHtml(r.model + ' on task ' + (r.task_id || '?') + ' — ' + (r.task_name || '')) + '">' +
+        '<span class="recent-runs-status ' + cls + '">' + status + '</span>' +
+        '<span class="recent-runs-model">' + escapeHtml(r.model) + '</span>' +
+        '<span class="recent-runs-task">' + escapeHtml(taskLabel) + '</span>' +
+        '<span class="recent-runs-time">' + approx + escapeHtml(timeAgo(r.timestamp)) + '</span>' +
+      '</li>';
+    }).join('');
+    listEl.innerHTML = html;
+    if (payload && payload.generated_at) {
+      updatedEl.textContent = 'Updated ' + timeAgo(payload.generated_at);
+    }
+  }
+
+  var lastPayload = null;
+  function reRender() { if (lastPayload) render(lastPayload); }
+
+  function fetchRuns() {
+    fetch('/api/recent-runs?limit=8', { cache: 'no-store' })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (data) {
+        if (!data) return;
+        lastPayload = data;
+        render(data);
+      })
+      .catch(function () { /* silent */ });
+  }
+
+  fetchRuns();
+  setInterval(fetchRuns, 60000);
+  // Tick relative timestamps every 20s without refetching
+  setInterval(reRender, 20000);
+})();
+</script>
+recent-runs end -->
+
+<!-- Main content area -->
+<main id="app" class="main-content">
+  <div class="loading-state" id="loading-state">
+    <div class="skeleton-preview" aria-hidden="true">
+      <div class="skeleton-hero">
+        <div class="skeleton-line skeleton-sm"></div>
+        <div class="skeleton-line skeleton-lg"></div>
+        <div class="skeleton-line skeleton-md"></div>
+      </div>
+      <div class="skeleton-grid">
+        <div class="skeleton-card"></div>
+        <div class="skeleton-card"></div>
+        <div class="skeleton-card"></div>
+        <div class="skeleton-card"></div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- Mobile Tab Bar -->
+<nav class="mobile-tab-bar" id="mobile-tab-bar">
+  <div class="mobile-tab-bar-inner">
+    <a href="/" data-view="dashboard" class="active">
+      <span class="tab-icon"><i class="fa-solid fa-house"></i></span>
+      Home
+    </a>
+    <a href="/tasks" data-view="search">
+      <span class="tab-icon"><i class="fa-solid fa-list-check"></i></span>
+      Tasks
+    </a>
+    <a href="/gallery" data-view="gallery">
+      <span class="tab-icon"><i class="fa-solid fa-images"></i></span>
+      Gallery
+    </a>
+    <a href="/traces" data-view="traces">
+      <span class="tab-icon"><i class="fa-solid fa-timeline"></i></span>
+      Traces
+    </a>
+    <a href="/compare" data-view="compare">
+      <span class="tab-icon"><i class="fa-solid fa-scale-balanced"></i></span>
+      Compare
+    </a>
+    <a href="/contribute" data-view="contribute">
+      <span class="tab-icon"><i class="fa-solid fa-seedling"></i></span>
+      Contribute
+    </a>
+  </div>
+</nav>
+
+<!-- Site Footer -->
+<footer class="site-footer" id="site-footer">
+  <div class="footer-inner">
+    <span class="footer-logo"><i class="fa-solid fa-alien-8bit"></i></span>
+    <span>ClawBench &copy; 2026</span>
+    <span class="footer-sep">&middot;</span>
+    <span>Agent Benchmark</span>
+    <span class="footer-sep">&middot;</span>
+    <a href="#contribute" data-view="contribute" class="footer-link"><i class="fa-solid fa-seedling" style="margin-right:4px"></i>Contribute</a>
+    <span class="footer-sep">&middot;</span>
+    <a id="footer-contact" href="#" data-u="cmVhY2hlcg==" data-d="Y3MudWJjLmNh" class="footer-link" title="Email the maintainer" style="color:var(--accent)"><i class="fa-solid fa-envelope" style="margin-right:4px"></i>Contact</a>
+  </div>
+</footer>
+<script>
+/* Contact email — assembled client-side so the literal address never appears in HTML source. */
+(function () {
+  const at = String.fromCharCode(64);
+  document.querySelectorAll('a[data-u][data-d]').forEach(function (a) {
+    try {
+      const addr = atob(a.dataset.u) + at + atob(a.dataset.d);
+      a.href = 'mailto:' + addr;
+      a.setAttribute('title', 'Email ' + addr);
+    } catch (e) {}
+  });
+})();
+</script>
+
+<script src="/static/starfield.js?v=1791405525"></script>
+<script src="/static/app.js?v=1791405525"></script>
+</body>
+</html>
