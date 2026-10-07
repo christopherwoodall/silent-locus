@@ -2,7 +2,7 @@
 
 - Target: token UUID `9b8517a8-c3b4-4035-81c0-e7844881055e`
   (from COMBO-INIT urlquery report f153_012, finding #153; documented in
-  `data/transluce-api/raw/urlquery-reports/FINDINGS.md`)
+  `data/transluce-api/urlquery-reports/FINDINGS.md`)
 - Access method: `GET https://webhook.site/token/<uuid>/requests` — the token
   UUID in the path IS the read credential; no other auth required. Read-only;
   nothing was submitted to the inbox.
