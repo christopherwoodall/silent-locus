@@ -1,0 +1,59 @@
+# urlquery htmx endpoint probe log — 2026-10-07 00:13–00:15 UTC (from 2026-10-06 19:13 CDT worker)
+# pacing >=5s between requests; rate-sensitive endpoint
+# NOTE: proxy credential lines (Proxy-Authorization) redacted from the verbose dump.
+
+## probe 1 — baseline, no headers
+timestamp=2026-10-07T00:13:27Z
+cmd: curl -sS -o /dev/null -w "%{http_code} %{size_download}\n" "https://urlquery.net/api/htmx/search/?q=webhook.site&limit=24&offset=0"
+result: 204 0
+
+## probe 2 — HX-Request: true only
+timestamp=2026-10-07T00:13:38Z
+cmd: curl -sS -o /dev/null -w "%{http_code} %{size_download}\n" -H "HX-Request: true" "https://urlquery.net/api/htmx/search/?q=webhook.site&limit=24&offset=0"
+result: 204 0
+
+## probe 3 — HX-Request + HX-Current-URL
+timestamp=2026-10-07T00:13:48Z
+cmd: curl -sS -o /tmp/p3.html -w "%{http_code} %{size_download}\n" -H "HX-Request: true" -H "HX-Current-URL: https://urlquery.net/search?q=webhook.site" "https://urlquery.net/api/htmx/search/?q=webhook.site&limit=24&offset=0"
+result: 200 118178 (21 href="/report/<uuid>" rows)
+
+## probe 3b — HX-Current-URL only (minimality check)
+timestamp=2026-10-07T00:14:19Z
+cmd: curl -sS -o /tmp/p3b.html -w "%{http_code} %{size_download}\n" -H "HX-Current-URL: https://urlquery.net/search?q=webhook.site" "https://urlquery.net/api/htmx/search/?q=webhook.site&limit=24&offset=0"
+result: HTTP 200, 136540 bytes, 23 href="/report/<uuid>" rows
+
+## probe 4 — UA + Accept only
+timestamp=2026-10-07T00:14:40Z
+cmd: curl -sS -o /dev/null -w "%{http_code} %{size_download}\n" -H "User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36" -H "Accept: text/html" "https://urlquery.net/api/htmx/search/?q=webhook.site&limit=24&offset=0"
+result: 204 0
+
+## probe 5 — negative control, no headers, nonsense query
+timestamp=2026-10-07T00:14:49Z
+cmd: curl -sS -o /dev/null -w "%{http_code} %{size_download}\n" "https://urlquery.net/api/htmx/search/?q=zzz-no-such-term-xyz&limit=24&offset=0"
+result: 204 0
+
+## probe 6 — negative control, winning header, nonsense query
+timestamp=2026-10-07T00:14:57Z
+cmd: curl -sS -o /tmp/p6.html -w "%{http_code} %{size_download}\n" -H "HX-Current-URL: https://urlquery.net/search?q=zzz-no-such-term-xyz" "https://urlquery.net/api/htmx/search/?q=zzz-no-such-term-xyz&limit=24&offset=0"
+result: 200 1202, body contains "No reports found", 0 report rows
+
+## winning probe — full curl -v header dump (2026-10-07T00:15:09Z)
+request:
+> Host: urlquery.net
+> User-Agent: curl/8.5.0
+> Accept: */*
+> HX-Current-URL: https://urlquery.net/search?q=webhook.site
+response:
+< HTTP/1.1 200 OK
+< Server: nginx
+< Date: Wed, 07 Oct 2026 00:15:14 GMT
+< Content-Type: text/html; charset=utf-8
+< Referrer-Policy: strict-origin-when-cross-origin
+< X-Content-Type-Options: nosniff
+< Hx-Push-Url: /search?q=webhook.site&view=&type=reports
+< Hx-Trigger-After-Swap: reInitFB
+< Vary: Accept-Encoding
+< Strict-Transport-Security: max-age=31536000
+< X-Frame-Options: DENY
+< Transfer-Encoding: chunked
+final: HTTP 200, 23 href="/report/<uuid>" report rows

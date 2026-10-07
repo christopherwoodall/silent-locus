@@ -13,9 +13,17 @@ QUERIES = {
     "label_handle": "ResearchHelperNovOne",
 }
 
-def fetch(url):
+def fetch(url, current_url):
     try:
-        r = urllib.request.Request(url, headers={"User-Agent": "swarmtraces-hunt/lane-c"})
+        r = urllib.request.Request(url, headers={
+            "User-Agent": "swarmtraces-hunt/lane-c",
+            # HTMX fix (2026-10-06): HX-Current-URL is the header that flips
+            # /api/htmx/search/ from 204 No Content to 200 + rows. Verified live
+            # (see data/2026-10-06-wikimedia-rogue-agents/htmx-fix/workers/verification/VERIFICATION.md);
+            # HX-Request alone does NOT fix it. Mirrors the skill pattern
+            # (~/workspace/skills/urlquery/bin/uq_htmx_curl.py).
+            "HX-Current-URL": current_url,
+        })
         with urllib.request.urlopen(r, timeout=60) as resp:
             return resp.status, resp.read().decode("utf-8", "replace")
     except urllib.error.HTTPError as e:
@@ -26,14 +34,15 @@ def fetch(url):
 summary = {}
 for name, q in QUERIES.items():
     url = "https://urlquery.net/api/htmx/search/?q=" + urllib.parse.quote(q) + "&limit=50&offset=0"
-    status, body = fetch(url)
+    current_url = "https://urlquery.net/search?q=" + urllib.parse.quote(q)
+    status, body = fetch(url, current_url)
     uuids = sorted(set(re.findall(r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}", body)))
     fn = f"{BASE}/htmx_{name}.html"
     open(fn, "w").write(body)
     summary[name] = {"query": q, "http_status": status, "html_bytes": len(body),
                      "uuid_count": len(uuids), "uuids": uuids}
     print(f"{name}: status={status} uuids={len(uuids)}", flush=True)
-    time.sleep(2)
+    time.sleep(5)
 
 open(f"{BASE}/htmx_summary.json", "w").write(json.dumps(summary, indent=2))
 print("done")

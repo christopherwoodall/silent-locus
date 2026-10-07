@@ -21,10 +21,17 @@ QUERIES = {
     "prng_seed": "random.Random",
 }
 
-def fetch(url):
+def fetch(url, q):
+    # HTMX fix (2026-10-06): HX-Current-URL is the header that flips
+    # /api/htmx/search/ from 204 No Content to 200 + rows. Verified live
+    # (see data/2026-10-06-wikimedia-rogue-agents/htmx-fix/workers/verification/VERIFICATION.md);
+    # the prior HX-Request-only set did NOT fix it. Mirrors the skill pattern
+    # (~/workspace/skills/urlquery/bin/uq_htmx_curl.py).
+    current_url = "https://urlquery.net/search?q=" + urllib.parse.quote(q)
     req = urllib.request.Request(url, headers={
         "User-Agent": "Mozilla/5.0 (research; read-only)",
         "HX-Request": "true",
+        "HX-Current-URL": current_url,
         "Referer": "https://urlquery.net/search",
     })
     try:
@@ -39,13 +46,13 @@ def main():
     summary = {}
     for name, q in QUERIES.items():
         url = "https://urlquery.net/api/htmx/search/?q=" + urllib.parse.quote(q) + "&limit=50&offset=0"
-        status, body = fetch(url)
+        status, body = fetch(url, q)
         # extract report UUIDs from the htmx HTML
         import re
         uuids = sorted(set(re.findall(r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}", body)))
         summary[name] = {"query": q, "http_status": status, "html_bytes": len(body), "uuids": uuids, "count": len(uuids)}
         print(f"{name}: status={status} uuids={len(uuids)}")
-        time.sleep(2)
+        time.sleep(5)
     with open(os.path.join(OUT, "search_summary.json"), "w") as f:
         json.dump(summary, f, indent=2)
 
