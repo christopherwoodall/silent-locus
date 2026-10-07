@@ -50,3 +50,10 @@ original coordinator errored.
 ## Coverage
 
 `raw/.newusers-pull-state`: 54/54 (9 wikis × 6 months).
+
+## SHA-256 (backfilled 2026-10-07)
+
+Per-file SHA-256 for the 24 canonical files lives in
+`raw/NEWUSERS-SHA256.txt` (computed 2026-10-07, excludes the redundant
+`newusers-2026-06.metawiki.resume.jsonl` fragment). Recompute to verify
+any file before analysis: `sha256sum -c` against that manifest.

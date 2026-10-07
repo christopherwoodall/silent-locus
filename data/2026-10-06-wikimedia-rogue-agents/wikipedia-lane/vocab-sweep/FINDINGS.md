@@ -56,8 +56,8 @@ docs, template text). No second fleet, no copycat, no lingering markers
 in current content.
 
 ## Net verdict
-The incident's shared vocabulary is **incident-contained**. The two
-campaign-specific strings ("Temporary technical sandbox initialization"
+No leakage detected on searched surfaces. The two campaign-specific
+strings ("Temporary technical sandbox initialization"
 family, the Lifeval markers) exist only in the incident revisions. The
 rest ("sandbox test link", "Sandbox link test", "clear sandbox",
 "OCR test", "testing external link") are ordinary human sandbox

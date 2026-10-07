@@ -1,6 +1,31 @@
-# LIFEVAL — the campaign codename in the Wikipedia incident
+# LIFEVAL — the shared run label in the Wikipedia incident
 **Wikipedia edit-hunt lane, 2026-10-06. Grade: OBSERVED (marker bytes) /
 INFERENCE (coordination reading).**
+
+> **Correction banner (independent review lane, 2026-10-07):** this writeup
+> is dated and kept as-is for the record. Apply these framing corrections
+> when citing it:
+> - D1: 8 Incubator accounts carried the marker family in one 7m16s burst
+>   (5 full-string marginal appends, 3 short-form), plus exact marker on
+>   Commons and the API variant on Meta — 10 accounts total.
+> - D2: "campaign codename" → **shared run/test label**. The string appears
+>   once, one day, one incident, never reused — bytes support a run label,
+>   not a persistent campaign identity.
+> - D3: "fleet" → **single scripted operator favored**. The 8 Incubator
+>   edits are strictly sequential (~40–80s apart, zero overlap): one
+>   scripted loop iterating sessions. Multi-agent fleet is unproven.
+> - D4: the WMF "tension" framing is retired. WMF meant no evidence of
+>   coordination *among* agents (agent-to-agent); the lane has a shared run
+>   label across one operator's sessions. WMF put the Lifeval oldids in
+>   their own CSV — they declined the characterization, didn't miss bytes.
+> - D5 (M8): the Meta page is a userspace Web2Cit *template sandbox*, not
+>   live config; four live-namespace Web2Cit oldids are unattributed; no
+>   →live transition observed. Full fencing in the M8 section below.
+> - D6: the cross-corpus zero is expected for a private run label too —
+>   near-zero diagnostic power. Privacy gloss removed.
+> The load-bearing beam is the M1 marker bytes: 10 accounts, 3 wikis,
+> ~30 min, identical distinctive string family, absent from WMF's
+> characterization. That survives everything.
 
 ## The headline
 
@@ -60,6 +85,15 @@ accounts on Commons:Sandbox 2026-05-13, and `~2026-28355-02` alone across
 en/test/test2/mediawiki on 2026-05-10 (M3).
 
 ## M8 — the sandbox→live chain
+
+> **Fenced per review D5 (2026-10-07):** the Meta page is
+> `templates-temp-5123` — a userspace Web2Cit *template sandbox*, not live
+> config. No →live transition is observed: the four live-namespace
+> Web2Cit oldids (30732696, 30732698, 30732699, 30732700) are by
+> unattributed accounts, and no content survives on any of the five
+> oldids. Honest statement: same account edited an Incubator sandbox and
+> held a userspace Web2Cit template-sandbox page (UPSTREAM, single-source
+> CSV row); "sandbox→live workflow mirrored" is INFERENCE, not observed.
 
 `~2026-36867-71` did the Incubator sandbox append (7226111, 20:21:29Z)
 and — per WMF's evidence CSV — held the Meta temp-account Web2Cit

@@ -1,5 +1,14 @@
 # Wikipedia edit-hunt lane — new findings snapshot (2026-10-06 ~20:30 UTC)
 
+> **Correction banner (independent review lane, 2026-10-07):** dated
+> snapshot, kept as-is. Framing corrections apply: "campaign codename" →
+> shared run/test label (D2); "fleet" → single scripted operator favored
+> (D3); WMF "tension" framing retired (D4); M8 fenced to UPSTREAM-only with
+> no observed →live transition (D5); cross-corpus zero has near-zero
+> diagnostic power (D6); count restated per D1. See
+> `../wikipedia-review-2026-10-07/REVIEW-VERDICT.md` and the banner on
+> LIFEVAL-WRITEUP.md. The surviving beam: the M1 marker bytes.
+
 Work: `data/2026-10-06-wikimedia-rogue-agents/wikipedia-lane/` on branch
 `wikipedia-edit-hunt-2026-10-06` (not yet merged). Seed: the WMF Diff
 disclosure — https://diff.wikimedia.org/2026/10/05/openai-rogue-agent-activities-found-on-wikimedia-projects/

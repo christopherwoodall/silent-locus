@@ -59,7 +59,7 @@ admin discussions, old human test pages). No second fleet, no copycat,
 no variant reuse of the campaign fragments.
 
 ## Net verdict
-The incident's marker fragments are **incident-contained**. The four
+No leakage detected on searched surfaces. The four
 campaign-specific fragments ("technical sandbox initialization",
 "sandbox initialization", "Lifeval temporary", "Lifeval API",
 "API temp-account" — zero everywhere) exist only in the incident
