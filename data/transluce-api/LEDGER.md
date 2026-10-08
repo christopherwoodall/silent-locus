@@ -62,6 +62,15 @@ assessments are grep-verified against `~/workspace/silent-locus/data/`.
   `~/workspace/silent-locus/data/` (grep of *.md/*.jsonl/*.json, 2026-10-08).
   New lead: DeepSeek/Qwen defeat of bot-check gates on a named benchmark
   corpus not yet ingested.
+- CORPUS (2026-10-08): corpus now holds `data/transluce-api/betterwright/`
+  (AUDIT.md + PROVENANCE.md + SHA256SUMS.txt + raw/): 26 files / ~178 MB at
+  pinned rev 7e81937f8d968b61fafeb942cfc1f6079a813807 — 3,840 accepted rows
+  (DeepSeek-V4.1-Flash 2,722; Qwen3.8-Flash-Next 1,118). Audit: 193 traces
+  with harness `bot_challenge` detection, 192 with agent-executed
+  `captcha.solve()`, 141 cleared. Evidence URL inventoried in
+  `lists/urls/urls.jsonl` (canonical home; the legacy
+  `data/transluce-api/url-inventory.jsonl` left untouched per repo
+  AGENTS.md).
 
 ### Finding 173 — Dead-drop follow-up / fleet attribution (filed by Christopher Ta)
 
@@ -88,6 +97,17 @@ assessments are grep-verified against `~/workspace/silent-locus/data/`.
   termina.digital/mailbox.termina.digital already known in corpus notes.
   NEW corpus details from this filing: Tencent Cloud HK origin,
   hysandbox-ats self-tests, fleet-side vocabulary adoption of the report.
+- CORPUS (2026-10-08): corpus now holds
+  `data/transluce-api/deaddrop-followup/` (FINDINGS.md + raw/ with
+  PROVENANCE.md + SHA256SUMS.txt): 11 files — finding173.json, 5 urlquery
+  report JSONs (cae7c9a4, b9812d90, 575882e1, f5c035e5, 685636b5) + 2
+  overviews, chinese-agent-fleet.html, termina-we-mean-no-harm.html,
+  mailbox-termina-digital.html. Finding's attachment
+  fleet-infra-contact-evidence.zip NOT retrieved (no attachment-download
+  path in the transluce skill; metadata quoted in raw/PROVENANCE.md).
+  Evidence URLs inventoried in `lists/urls/urls.jsonl` (canonical home;
+  the legacy `data/transluce-api/url-inventory.jsonl` left untouched per
+  repo AGENTS.md).
 
 ### Finding 174 — WildClawBench leaked test keys (filed by Aman Gokrani)
 
@@ -108,3 +128,16 @@ assessments are grep-verified against `~/workspace/silent-locus/data/`.
   our hf-trajectories lane reviewed 720 trajectories with a clean-negative
   verdict, so this adds model-instance detail on credential-handling
   behavior rather than a new corpus signal.
+- CORPUS (2026-10-08): corpus now holds
+  `data/transluce-api/wildclaw-keys/` (VERIFY.md + raw/ with PROVENANCE.md +
+  SHA256SUMS.txt): the two pinned-rev
+  d2816016a7a7b41fa6b7ba368b28ddafcb54fd93 session JSONLs —
+  intern-s2-preview-397b (63,055 bytes; 22 events, 18 messages) and
+  claude_opus_4_8_thinking (32,869 bytes; 28 events, 24 messages).
+  Verdicts: both agents noticed the keys, both committed locally, both
+  pushes failed auth; keys are real-shaped (sk-ant-, no fixture markers),
+  live status untested. The other four sessions (GLM, HY3, Kimi runs) not
+  pulled — the "six agents / five pushes" aggregate stays UNCLEAR.
+  Evidence URLs inventoried in `lists/urls/urls.jsonl` (canonical home;
+  the legacy `data/transluce-api/url-inventory.jsonl` left untouched per
+  repo AGENTS.md).
