@@ -53,7 +53,7 @@ texts = []
 for root, _, files in os.walk(BASE):
     for f in files:
         p = os.path.join(root, f)
-        if os.path.basename(p) == 'PROVENANCE.md' or p.endswith('.json') and 'api_card' in p:
+        if os.path.basename(p) in ('PROVENANCE.md','SHA256SUMS.txt') or p.endswith('.json') and 'api_card' in p:
             continue
         if f.endswith(('.jsonl', '.json', '.txt', '.log', '.md', '.cast', '.py')):
             texts.append(p)
