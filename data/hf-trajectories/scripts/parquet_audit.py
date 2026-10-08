@@ -38,7 +38,7 @@ OAI_TAG = re.compile(r'(?i)\boai[:_-]')
 OAI_PMH_FP = re.compile(r'(?i)pmh:oai|oai:(arxiv|repec|openalex|pubmed|doi)')
 ZZ_PARAM = re.compile(r'[?&](zz|zz_oai|oai)=[^&\s]*')
 DEAD_DROP = re.compile(r'(?i)(webhook\.site|ntfy\.sh|requestbin\.com|pipedream|beeceptor|webhookrelay|httpb?un\.(org|com|net|dev))')
-AMAP = re.compile(r'(?i)(task-oai-\d+|northflank|amap|probe\.js|jina\.ai)')
+AMAP = re.compile(r'(?i)(task-oai-\d+|northflank|amap\.com|B\d{10}[A-Z0-9]{2}|probe\.js|jina\.ai)')
 EPOCH = re.compile(r'\b1[678]\d{8}\b')
 
 def main():

@@ -13,7 +13,7 @@ BASE = sys.argv[1]  # dataset raw dir
 SLUG = sys.argv[2]
 OUT = sys.argv[3]
 
-BYPASS_WORDS = re.compile(r'(?i)(captcha|turnstile|cloudflare|bot[\s-]?check|anti[\s-]?bot|prove you are human|verify you are human|are you a robot|ip[\s-]?ban|rate[\s-]?limit|blocked|access denied|403|denied)')
+BYPASS_WORDS = re.compile(r'(?i)(captcha|turnstile|cloudflare|bot[\s-]?check|anti[\s-]?bot|prove you are human|verify you are human|are you a robot|ip[\s-]?ban|rate[\s-]?limit|blocked|access denied|\b403\b|denied)')
 CHALLENGE_SOLVED = re.compile(r'(?i)(captcha is solved|challenge (solved|passed|bypassed)|bypass(ed|ing)? cloudflare|turnstile (solved|bypassed)|fetched \(200\))')
 MARKERS = {
     'oai_tag': re.compile(r'(?i)\boai[:_-][a-z0-9_-]+\b'),
@@ -21,7 +21,7 @@ MARKERS = {
     'epoch_nonce': re.compile(r'\b1[678]\d{8}\b'),  # epoch-ish, weak
     'httpbun': re.compile(r'(?i)httpb?un\.(org|com|net|dev)'),
     'dead_drop': re.compile(r'(?i)(webhook\.site|ntfy\.sh|requestbin|pipedream|beeceptor|webhookrelay)'),
-    'amap': re.compile(r'(?i)(task-oai-|northflank|amap|probe\.js)'),
+    'amap': re.compile(r'(?i)(task-oai-|northflank|amap\.com|B\d{10}[A-Z0-9]{2}|probe\.js)'),
 }
 
 report = {
