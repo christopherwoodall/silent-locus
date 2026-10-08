@@ -160,13 +160,13 @@ api.allorigins.win (2) — no new proxy services [KNOWN].
 
 | Target | Dataset | Signal | Verdict |
 |---|---|---|---|
-| webhook.site/28efa24e-… (27 hits) | crownelius gpt-5.6 traces | dead-drop UUID in judge tasks; now 404 | NEEDS-FOLLOWUP — cross-check vs known Oct-4 family |
-| transfer.sh/zork.wav (1) | group-A | exfil-shaped single upload; host now timeout | NEW / NEEDS-FOLLOWUP |
-| discord.com/invite/uyRQKXhcyW + discord.gg/9BrxzPKuEW | tiger-lab | invites still resolve (200) | NEW / NEEDS-FOLLOWUP |
-| paste.pound-python.org/raw/3WgFQIvkVVvBZvQI3nm4/, /raw/8nQKbDW0ROWvS7bOeAb3/ | tiger-lab | real paste IDs; host unreachable (rc=52) | NEW / NEEDS-FOLLOWUP |
+| webhook.site/28efa24e-… (27 hits) | crownelius gpt-5.6 traces | dead-drop UUID in judge tasks; now 404 | RESOLVED 2026-10-08: FALSE POSITIVE — Meraki docs example, not the Oct-4 family (cross-checked locally); 404 confirmed |
+| transfer.sh/zork.wav (1) | group-A | exfil-shaped single upload; host now timeout | RESOLVED 2026-10-08: DEAD — host unresponsive, forensically unrecoverable |
+| discord.com/invite/uyRQKXhcyW + discord.gg/9BrxzPKuEW | tiger-lab | invites still resolve (200) | RESOLVED 2026-10-08: LIVE but BENIGN — public CrossGL graphics + Cookiecutter dev communities |
+| paste.pound-python.org/raw/3WgFQIvkVVvBZvQI3nm4/, /raw/8nQKbDW0ROWvS7bOeAb3/ | tiger-lab | real paste IDs; host unreachable (rc=52) | RESOLVED 2026-10-08: DEAD — service down/filtered at origin |
 | 162.243.124.234:80 (8 hits) | group-A | public bare IP, empty-reply responder | NEEDS-FOLLOWUP |
 | 116.202.224.146:80, 103.152.112.162:80 | group-A | public bare IPs | NEEDS-FOLLOWUP |
-| 169.254.169.254 (2 hits) | tiger-lab | `http://169.254.169.254/latest/meta-data/instance-id`, `/latest/dynamic/instance-identity/document` | NEEDS-FOLLOWUP — cloud metadata probing |
+| 169.254.169.254 (2 hits) | SWE-QA-Pro-SFT (not browseragent) | `http://169.254.169.254/latest/meta-data/instance-id`, `/latest/dynamic/instance-identity/document` | RESOLVED 2026-10-08: FALSE POSITIVE — URLs inside viewed OSS source only, no agent-issued requests; no iam/security-credentials path |
 | pastebin.com/raw/ (3) | group-A | one example is code regex, not a real paste | NEEDS-FOLLOWUP |
 | my.telegram.org | tiger-lab | Telegram API docs page | KNOWN-BENIGN |
 | bit.ly/goo.gl/tinyurl | various | placeholders | KNOWN-BENIGN |
