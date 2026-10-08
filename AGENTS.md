@@ -92,6 +92,13 @@ doubt, read `lists/README.md` and the nearest PROVENANCE.md.
   term on first use.
 - **Scope**: agents and agent infrastructure only. Never pursue
   human/operator identity, registrant details, or social profiles.
+- **Novelty rule**: before claiming any find is NEW, dedupe against (a)
+  the 2026-09-28 corpus (`data/2026-09-28-chinese-amap-fleet/`,
+  `data/2026-09-28-*`), (b) the Transluce findings DB via `tl.py`
+  (`~/workspace/skills/transluce/bin/tl.py`), (c) `lists/` and
+  `data/transluce-api/url-inventory.jsonl`. Diff against the internal
+  corpus, not just the excluded list. Assume REPORTED until proven
+  novel. (Standing rule from the 2026-10-08 novelty audit.)
 
 ## Key files
 
