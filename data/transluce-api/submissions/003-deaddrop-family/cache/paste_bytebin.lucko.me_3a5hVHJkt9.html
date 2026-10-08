@@ -1,0 +1,34 @@
+<!doctype html><html><head><meta charset="utf-8"><title>loader</title></head><body>
+<div id="st">running</div>
+<script>
+var WH = 'https://webhook.site/ab53d845-0e43-4c18-9f5b-513e7da7a33e';
+var ECHO = 'https://httpbun.com/anything/mochouC';
+function post(o){ try { fetch(WH, {method:'POST', mode:'cors', headers:{'Content-Type':'text/plain'}, body: JSON.stringify(o)}).catch(function(){}); } catch(e){} }
+function echo(d){ try { var img = new Image(); img.src = ECHO + '?d=' + encodeURIComponent(String(d).slice(0,1400)); } catch(e){} }
+function grab(name, u, timeout){
+  var t = (timeout||25) * 1000;
+  return Promise.race([
+    fetch(u, {mode:'cors', headers:{'X-Return-Format':'markdown','X-Timeout':String(timeout||25)}})
+      .then(function(r){ return r.text().then(function(t){ return {kind:name, status:r.status, len:t.length, text:t.slice(0,30000)}; }); })
+      .catch(function(e){ return {kind:name, err:String(e)}; }),
+    new Promise(function(res){ setTimeout(function(){ res({kind:name, err:'timeout'}); }, t+8000); })
+  ]);
+}
+var urls = [
+  ['a-ssr-pcssr', 'https://r.jina.ai/https://amap-pc-ssr.amap.com/ssr/place/B00190BBTX', 25],
+  ['b-ssr-www',   'https://r.jina.ai/https://www.amap.com/ssr/place/B00190BBTX', 25],
+  ['c-www-place', 'https://r.jina.ai/https://www.amap.com/place/B00190BBTX', 25],
+  ['d-mobile',    'https://r.jina.ai/https://m.amap.com/detail/index/poiid=B00190BBTX', 25],
+  ['e-old',       'https://r.jina.ai/https://ditu.amap.com/detail/B00190BBTX', 25],
+  ['f-ssr-pcssr2','https://r.jina.ai/https://amap-pc-ssr.amap.com/ssr/place/B00190BBTX', 25]
+];
+post({t:'start', ts: Date.now(), ua: navigator.userAgent});
+document.getElementById('st').textContent = 'started';
+Promise.allSettled(urls.map(function(p){ return grab(p[0], p[1], p[2]).then(function(r){
+  post(r); echo(r.kind + ' status=' + r.status + ' len=' + r.len + ' :: ' + String(r.text||r.err||'').slice(0,1000));
+  return r;
+}); })).then(function(rs){
+  var summary = rs.map(function(r){ return r.status==='fulfilled' ? (r.value.kind+'='+(r.value.status||'err')) : 'rej'; }).join(' , ');
+  post({t:'done', summary: summary}); echo('DONE ' + summary);
+});
+</script></body></html>
