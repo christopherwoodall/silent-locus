@@ -18,3 +18,15 @@
   (url, finding_id, filename, retrieved_at_utc, method, http_code, sha256, size_bytes, error)
 - Result: 126/135 fetched OK (15,454,310 bytes); 9 failed with honest HTTP errors
   (1x404, 1x405, 7x403 anti-bot on live sites). No content redacted.
+
+## Findings list pull (2026-10-08)
+
+- File: raw/findings-list-20261008.json — paginated GET /api/findings?limit=100&offset=N
+  via curl + Secure Vault surrogate (custom.transluce); tl.py CLI only returns
+  the first 25 and its export truncates at 200KB, so pagination was required.
+- Retrieved: 2026-10-08 ~12:41Z (07:40 CDT run).
+- sha256: 65681e8cf8815011c86a973e4edf708761f7ace18583588c9260f04053fc4ab2
+- Result: 109 findings total (25 covered by the 2026-10-07 file; 84 seen via
+  pagination for the first time; 5 genuinely new by created_at, ids 170-174).
+- New findings logged in ../LEDGER.md; 15 new evidence URLs appended to
+  ../url-inventory.jsonl (139 -> 154 rows).
