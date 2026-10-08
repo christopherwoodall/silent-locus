@@ -11,5 +11,6 @@ Each submission gets a numbered file with the full form content as filed.
 
 ## Status values
 - Prepared — form prefilled, not yet submitted.
+- ON HOLD — BigSexyWarlock69 2026-10-07: do not file on the Transluce tracker. Standing until he reverses it.
 - Submitted — live on the tracker; Transluce ID recorded.
 - Withdrawn — removed or superseded.
