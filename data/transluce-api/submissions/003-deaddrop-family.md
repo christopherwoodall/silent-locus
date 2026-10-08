@@ -1,7 +1,7 @@
 # Submission 003 — dead-drop family (live webhook.site inboxes)
 
-- Status: Prepared (awaiting manual submit; user approved burning the inboxes)
-- Transluce ID: _pending_
+- Status: Submitted (2026-10-07)
+- Transluce ID: 171
 - Evidence pack: `data/transluce-api/deaddrop-evidence-pack.zip`
 - Full writeup: `data/transluce-api/submissions/003-deaddrop-family/README.md`
 
