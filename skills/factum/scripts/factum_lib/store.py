@@ -866,11 +866,25 @@ class State:
             return [("sha256", body["sha256"])]
 
         if kind == "observation":
-            return [
-                ("url", body["data"][key])
+            data = body.get("data", {})
+            entries = [
+                ("url", data[key])
                 for key in ("requested_url", "final_url")
-                if isinstance(body["data"].get(key), str)
+                if isinstance(data.get(key), str)
             ]
+            # Generic: index all other top-level string values and string
+            # arrays in the data payload as text, so custom observation
+            # types (e.g. infra.* packs) are searchable via match --text.
+            for key, value in data.items():
+                if key in ("requested_url", "final_url"):
+                    continue
+                if isinstance(value, str) and value:
+                    entries.append(("text", value))
+                elif isinstance(value, list):
+                    for item in value:
+                        if isinstance(item, str) and item:
+                            entries.append(("text", item))
+            return entries
 
         if kind == "event":
             return [("text", body["title"])]
