@@ -8,6 +8,8 @@ The lab-intel workers feed the AI behavioral analytics pipeline — systematic
 ingestion of AI lab behavior reports (Anthropic, OpenAI, DeepMind) and
 Transluce incident reports. Extracted behaviors, TTPs, and model patterns
 are stored as `intel.*` records for hunt verification and pattern matching.
+Reports may also contain specific IOCs (hashes, URLs, domains, IPs) — these
+should be extracted as `infra.ioc` records linked to the source report.
 
 ## Active workers
 
