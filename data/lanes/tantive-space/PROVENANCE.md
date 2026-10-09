@@ -20,7 +20,7 @@
 
 ## Cascade surfaces
 - `scripts/tantive_cascade.py` captured each linked agent surface's `llms.txt`/`for-agents` page (GET-only, one page per surface) into `data/<surface-slug>/` with `surface_capture.json` (URL, status, timestamp, SHA-256) + body file. Failures (404s etc.) are recorded in the capture JSON, not retried aggressively.
-- Note: `data/2026-09-04-thecolony-ai/` (earlier full lane) already covers thecolony.ai in depth; the cascade re-captured only its for-agents/llms.txt pages into a stub dir for cross-reference.
+- Note: `evidence/2026-09-04-thecolony-ai/` (earlier full lane) already covers thecolony.ai in depth; the cascade re-captured only its for-agents/llms.txt pages into a stub dir for cross-reference.
 
 ## Elastic
 - Index `tantive-space`, canonical shared mapping (`notes/gems-es-mapping.json`), `event.dataset=tantive-space`. One doc per unique message id (`tn:<id>`). Script: `scripts/es_ingest_tantive.py`.
@@ -31,8 +31,8 @@
 
 ## Raw layer 2026-09-29
 
-- `data/tantive-space/messages.jsonl` -> `data/2026-08-19-tantive-space/raw/messages.jsonl` (upstream capture consumed by scripts/es_ingest_tantive.py, scripts/tantive_pull.py, scripts/tantive_sweep.py)
-- `data/tantive-space/threads.jsonl` -> `data/2026-08-19-tantive-space/raw/threads.jsonl` (upstream capture consumed by scripts/es_ingest_tantive.py, scripts/tantive_pull.py, scripts/tantive_sweep.py)
+- `data/tantive-space/messages.jsonl` -> `evidence/remove-2026-08-19-tantive-space/raw/messages.jsonl` (upstream capture consumed by scripts/es_ingest_tantive.py, scripts/tantive_pull.py, scripts/tantive_sweep.py)
+- `data/tantive-space/threads.jsonl` -> `evidence/remove-2026-08-19-tantive-space/raw/threads.jsonl` (upstream capture consumed by scripts/es_ingest_tantive.py, scripts/tantive_pull.py, scripts/tantive_sweep.py)
 
 ## Schema build 2026-09-29 (worker W5)
 
@@ -41,7 +41,7 @@
   message ids; thread rows carry the metadata-only fields
   `reply_count`/`last_message_id`/`last_activity_at`/`truncated` and are
   distinguished by `labels.tantive.row_kind = "thread"|"message"`) + 1
-  summary record for `raw/sweep.json`.
+  summary record for `evidence/remove-2026-08-19-tantive-space/raw/sweep.json`.
 - fingerprint identity string: `tantive|<row_kind>|<id>`; sweep summary:
   `tantive|sweep`.
 - `@timestamp`: `created_at` from the raw row (`timestamp_source =
@@ -53,7 +53,7 @@
   `tantive.body_excerpt`. The sweep summary flattens `pattern_counts` to
   `sweep.count_<key>` labels (nested objects are not valid labels) and lists
   the 36 zero-hit pattern categories in `sweep.zero_hit_categories`; hit
-  detail remains in raw/sweep.json.
+  detail remains in evidence/remove-2026-08-19-tantive-space/raw/sweep.json.
 - SHA256SUMS regenerated: covers events.jsonl + all 10 raw files; verify
   clean.
 - Verified: all 1326 records validate; fingerprint recomputed by hand for
@@ -72,8 +72,8 @@
 
 ## 2026-09-28: ingest script co-located (hunt convention)
 - `es_ingest_tantive.py` moved from `scripts/` into this directory per
-  Christopher's single-collection convention; transforms raw/messages.jsonl +
-  raw/threads.jsonl into grammar-tagged shared-schema docs (real transform,
+  Christopher's single-collection convention; transforms evidence/remove-2026-08-19-tantive-space/raw/messages.jsonl +
+  evidence/remove-2026-08-19-tantive-space/raw/threads.jsonl into grammar-tagged shared-schema docs (real transform,
   not a pure loader).
 - `REPO_ROOT` in the script adjusted (repo root is now three levels up); the
   `D` path still resolves to this directory.
@@ -83,4 +83,4 @@
 
 ## Historical loader relocation (2026-09-30)
 
-Preserved `es_ingest_tantive.py` at `raw/scripts/legacy/es_ingest_tantive.py` as a historical, optional Elasticsearch loader; it is not an active collection event builder. Its local path resolution now targets the same collection and repository inputs from the archived location. No source evidence, `events.jsonl`, or `rollup.jsonl` was changed; no network or ES actions were run. The SHA256SUMS entry records the relocated script bytes.
+Preserved `es_ingest_tantive.py` at `evidence/remove-2026-08-19-tantive-space/raw/scripts/legacy/es_ingest_tantive.py` as a historical, optional Elasticsearch loader; it is not an active collection event builder. Its local path resolution now targets the same collection and repository inputs from the archived location. No source evidence, `events.jsonl`, or `rollup.jsonl` was changed; no network or ES actions were run. The SHA256SUMS entry records the relocated script bytes.

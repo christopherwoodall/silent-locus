@@ -2,7 +2,7 @@
 
 ## Sources
 - **Candidate list**: JFrog's public GemStuffer inventory CSV,
-  `data/2025-03-04-rubygems-goimport-campaign/raw/gemstuffer-jfrog-2026-09-27.csv` (3,025 rows: Package, Versions, Xray ID),
+  `evidence/2025-03-04-rubygems-goimport-campaign/raw/gemstuffer-jfrog-2026-09-27.csv` (3,025 rows: Package, Versions, Xray ID),
   saved 2026-09-27 from https://research.jfrog.com/gemstuffer.csv
   (see `notes/gem-jfrog-report-2026-09-27.md`).
   The CSV carries NO per-row upload dates; the July-7 window is established only
@@ -60,14 +60,14 @@ ES _id = `july7:<name>` makes bulk re-ingest idempotent.
 
 ## Raw layer 2026-09-29
 
-- `diffend_sweep_results_july7.jsonl` -> `raw/diffend_sweep_results_july7.jsonl` and `diffend_sweep_resweep_july7.jsonl` -> `raw/diffend_sweep_resweep_july7.jsonl` (script-consumed sweep outputs; consumers: scripts/sweep_july7.py, es_upsert_july7_resweep.py, es_ingest_july7.py, diffend_sweep_resweep_july7.py). Upstream names preserved; raw layer exempt from event schema.
+- `diffend_sweep_results_july7.jsonl` -> `evidence/remove-2026-07-07-july7-wave/raw/diffend_sweep_results_july7.jsonl` and `diffend_sweep_resweep_july7.jsonl` -> `evidence/remove-2026-07-07-july7-wave/raw/diffend_sweep_resweep_july7.jsonl` (script-consumed sweep outputs; consumers: scripts/sweep_july7.py, es_upsert_july7_resweep.py, es_ingest_july7.py, diffend_sweep_resweep_july7.py). Upstream names preserved; raw layer exempt from event schema.
 
 ## Schema build 2026-09-29 (worker W5)
 
 - events.jsonl: **264 records** (record_kind `diffend_probe`), one per row of
-  the final sweep file `raw/diffend_sweep_results_july7.jsonl`.
+  the final sweep file `evidence/remove-2026-07-07-july7-wave/raw/diffend_sweep_results_july7.jsonl`.
 - Dedupe decision: the intermediate resweep file
-  `raw/diffend_sweep_resweep_july7.jsonl` (167 rows) was verified to be
+  `evidence/remove-2026-07-07-july7-wave/raw/diffend_sweep_resweep_july7.jsonl` (167 rows) was verified to be
   fully merged into the final 264-row file — every resweep name is present,
   and zero rows differ in outcome (`in_diffend`/`diffend_wave`/
   `first_publish` all identical). The resweep file is kept in raw/ as the
@@ -106,10 +106,10 @@ ES _id = `july7:<name>` makes bulk re-ingest idempotent.
   JSONL into shared-schema docs (real transform, not a pure loader).
 - `REPO_ROOT` in the script adjusted (repo root is now three levels up).
   Offline verification: `load_docs()` builds 264 docs from
-  `raw/diffend_sweep_results_july7.jsonl`.
+  `evidence/remove-2026-07-07-july7-wave/raw/diffend_sweep_results_july7.jsonl`.
 - `scripts/local_es_manifest.json` via_script entry repointed here.
 - SHA256SUMS regenerated (script file added to coverage).
 
 ## Historical loader relocation (2026-09-30)
 
-Preserved `es_ingest_july7.py` at `raw/scripts/legacy/es_ingest_july7.py` as a historical, optional Elasticsearch loader; it is not an active collection event builder. Its local path resolution now targets the same collection and repository inputs from the archived location. No source evidence, `events.jsonl`, or `rollup.jsonl` was changed; no network or ES actions were run. The SHA256SUMS entry records the relocated script bytes.
+Preserved `es_ingest_july7.py` at `evidence/remove-2026-07-07-july7-wave/raw/scripts/legacy/es_ingest_july7.py` as a historical, optional Elasticsearch loader; it is not an active collection event builder. Its local path resolution now targets the same collection and repository inputs from the archived location. No source evidence, `events.jsonl`, or `rollup.jsonl` was changed; no network or ES actions were run. The SHA256SUMS entry records the relocated script bytes.

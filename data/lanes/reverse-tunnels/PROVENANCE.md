@@ -7,7 +7,7 @@ identity, registrant details, or person-focused attribution.
 
 ## Sources
 
-1. **Own collusion-wiki corpus** (`data/2026-05-17-collusion-wiki/raw/revisions.jsonl`) —
+1. **Own collusion-wiki corpus** (`evidence/2026-05-17-collusion-wiki/raw/revisions.jsonl`) —
    29 unique revision rows (deduped on time/label/page/tunnels) from
    2026-06-17/19/21 carrying tunnel URLs. Extracted by
    the lane's `htmx_search.py` (source survives at
@@ -19,7 +19,7 @@ identity, registrant details, or person-focused attribution.
 2. **thecolony.ai incident wiki**, section 9
    (`https://thecolony.ai/wiki/openai-escapee-agent-incident-2026`,
    fetched live 2026-09-28 via read-only page-text fetch; earlier capture at
-   `data/2026-09-04-thecolony-ai/raw/wiki_incident_page.html`). Published ONLY wildcarded
+   `evidence/2026-09-04-thecolony-ai/raw/wiki_incident_page.html`). Published ONLY wildcarded
    forms (`*.run.pinggy-free.link`, `*.serveousercontent.com`) — the exact
    hostnames were recovered from the corpus export + third-party analyses
    below. Source note: `notes/thecolony-ai-ingest-2026-09-27.md`.
@@ -81,7 +81,7 @@ Generated at dataset freeze; verify with `sha256sum -c manifest.sha256`.
     `htmx_summary.json`); 2 `dns_probe` — the DNS resolution and
     authoritative checks (INCONCLUSIVE: sinkholed resolver).
   - `uq_report_summary.json` is a derived digest (covered by per-report
-    events); `raw/manifest.sha256` is lane bookkeeping — corrected
+    events); `evidence/remove-2026-06-17-reverse-tunnels/raw/manifest.sha256` is lane bookkeeping — corrected
     2026-09-29 to drop its three nonexistent entries (`progress.log`,
     `htmx_search.py`, bare `PROVENANCE.md`); all remaining entries verify.
 - `rollup.jsonl`: 6 rows, `urlquery_rollup` — per-query `total_hits` /
@@ -194,7 +194,7 @@ identical to the pre-promotion files (identity strings untouched).
 ## 2026-09-29 — htmx_search .pyc re-added (recompiled)
 Per operator direction, the `.pyc` is back as a curated run artifact at
 `raw/run-logs/htmx_search.cpython-312.pyc`, with an explanatory note beside it
-(`raw/run-logs/NOTE-htmx_search.pyc.md`) and a `*.py[cod]` gitignore exemption
+(`evidence/remove-2026-06-17-reverse-tunnels/raw/run-logs/NOTE-htmx_search.pyc.md`) and a `*.py[cod]` gitignore exemption
 in the repo `.gitignore`. This is a **recompilation** of the verified-identical
 original source, not the deleted original bytes (header mtime differs;
 code/constants structurally identical — verified by recursive comparison).
@@ -204,7 +204,7 @@ code/constants structurally identical — verified by recursive comparison).
 The following original logs were relocated byte-for-byte from `data/2016-05-06-reverse-tunnels/` into this collection. They are historical run evidence, not additional positive findings or new collection events. Original source folders were removed only after their logs were copied and SHA-256 verified.
 
 - `data/2016-05-06-reverse-tunnels/raw/progress.log` -> `raw/run-logs/2016-05-06-reverse-tunnels-progress.log`; SHA-256 `1cea03dcb2cc7c511cd1ab2b63f6d83996d99968a9ad38eb54530b8bb15554f7`.
-The historical `raw/manifest.sha256` omitted a missing `progress.log` entry before this recovery; that manifest was not rewritten. The recovered log is separately named and checksummed in `SHA256SUMS`.
+The historical `evidence/remove-2026-06-17-reverse-tunnels/raw/manifest.sha256` omitted a missing `progress.log` entry before this recovery; that manifest was not rewritten. The recovered log is separately named and checksummed in `SHA256SUMS`.
 
 ### Historical checksum conflicts (unresolved)
 

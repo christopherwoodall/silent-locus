@@ -99,7 +99,7 @@ regenerated; `sha256sum -c` green.
 
 ## Historical loader relocation (2026-09-30)
 
-Preserved `es_ingest_paste.py` at `raw/scripts/legacy/es_ingest_paste.py` as a historical, optional Elasticsearch loader; it is not an active collection event builder. Its local path resolution now targets the same collection and repository inputs from the archived location. No source evidence, `events.jsonl`, or `rollup.jsonl` was changed; no network or ES actions were run. The SHA256SUMS entry records the relocated script bytes.
+Preserved `es_ingest_paste.py` at `evidence/remove-2026-05-26-paste-linuxiarz/raw/scripts/legacy/es_ingest_paste.py` as a historical, optional Elasticsearch loader; it is not an active collection event builder. Its local path resolution now targets the same collection and repository inputs from the archived location. No source evidence, `events.jsonl`, or `rollup.jsonl` was changed; no network or ES actions were run. The SHA256SUMS entry records the relocated script bytes.
 
 ## Lane-1 extension 2026-10-05 (joshuadavid corpus reconciliation)
 
@@ -124,7 +124,7 @@ Preserved `es_ingest_paste.py` at `raw/scripts/legacy/es_ingest_paste.py` as a h
   `sha256`, per schema; confidence `confirmed` for body-verified,
   `medium` for view-only). Builder: lane1 `build_lane1_ingest.py`
   (idempotent; skips already-present IDs).
-- Totals after extension: 381 pastes in `raw/manifest.jsonl` / `events.jsonl`
+- Totals after extension: 381 pastes in `evidence/remove-2026-05-26-paste-linuxiarz/raw/manifest.jsonl` / `events.jsonl`
   (254 with bodies on disk).
 - `rollup.jsonl` left frozen at the original 131-row wave (2026-05-26 →
   2026-06-17 day bursts); the 250 new rows are not rolled up (heterogeneous

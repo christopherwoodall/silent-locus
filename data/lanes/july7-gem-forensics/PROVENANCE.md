@@ -1,4 +1,4 @@
-# Provenance — July-7 gem forensics (`data/2026-07-07-july7-gem-forensics/`)
+# Provenance — July-7 gem forensics (`evidence/remove-2026-07-07-july7-gem-forensics/`)
 
 Date: 2026-09-28/29. Worker 2 of the off-task web-mechanism hunt.
 Lane: July-7 gem forensics (XSS/SSTI reconstruction). Read-only throughout.
@@ -10,7 +10,7 @@ Forensic reconstruction of the July-7 RubyGems wave's third mechanism family
 
 1. **Our bytes** — `raw/` + `payload-reconstructions.jsonl`: read-only captures
    of Diffend (`my.diffend.io`) gem pages and version-diff pages for the 18
-   `in_diffend=true` gems from the Lane-J sweep (`data/2026-07-07-july7-wave/`). These are
+   `in_diffend=true` gems from the Lane-J sweep (`evidence/remove-2026-07-07-july7-wave/`). These are
    third-party test/security-researcher gems (NOT GemStuffer campaign gems —
    the campaign's named specimens are absent from Diffend, verified across the
    full 264-name re-sweep), but 5 carry real XSS payloads in their Diffend
@@ -48,7 +48,7 @@ Forensic reconstruction of the July-7 RubyGems wave's third mechanism family
 | `PROVENANCE.md` | this file | — |
 | `SHA256SUMS` | manifest | — |
 | `raw-manifest.json` | 50 entries | — |
-| `raw/run-logs/progress.log` | run log | — |
+| `evidence/remove-2026-07-07-july7-gem-forensics/raw/run-logs/progress.log` | run log | — |
 
 ## Key facts established
 
@@ -113,8 +113,8 @@ manifest also corrects those.
 
 ## Run-log relocation (2026-09-29)
 
-Moved `progress.log` from the collection root to `raw/run-logs/progress.log`
+Moved `progress.log` from the collection root to `evidence/remove-2026-07-07-july7-gem-forensics/raw/run-logs/progress.log`
 for consistency with the house convention (`2026-09-29-separate-eval-test`,
-`2026-09-29-gem-temporal-pivot` both keep run logs under `raw/run-logs/`).
+`2026-09-29-gem-temporal-pivot` both keep run logs under `evidence/remove-2026-07-07-july7-gem-forensics/raw/run-logs/`).
 The log is the fetch run's own record of producing `raw/`, so it belongs under
 `raw/`. Inventory table updated; SHA256SUMS regenerated.

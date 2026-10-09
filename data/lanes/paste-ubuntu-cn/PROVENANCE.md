@@ -29,13 +29,13 @@ ingested with external-overlap annotations per keep-all + annotate.
    `analyses/termina-digital-mirror/scrape/outputs/swarm.termina.digital/pub/`
    (SHA-256-verified scrape, 2026-09-08).
 4. Wayback captures of the termina.digital db pages in our own
-   `data/2026-09-05-termina-digital/raw/wayback/db/`
+   `evidence/2026-09-05-termina-digital/raw/wayback/db/`
    (`venue/paste-ubuntu-cn.html`, `cluster/xinzhai-store.html`,
    `campaign/xinzhai-2026-07.html`).
 5. Lane-4 verification (2026-10-05): spaces-to-plus base64 decode of Centaur's
    published 124-char sample → 93 bytes, entropy 6.251 bits/byte, no gzip magic,
    no UTF-8, not Fernet. Characterization only; nothing executed.
-   Notes in `raw/sample_decode_verification.txt`.
+   Notes in `evidence/remove-2026-07-10-paste-ubuntu-cn/raw/sample_decode_verification.txt`.
 
 ## What is NOT in this dataset (deliberate gap)
 
@@ -87,4 +87,4 @@ Nothing dropped. The per-paste gap is recorded in the rollup row
 
 ## Lane notes
 
-Full characterization: `data/2026-09-28-chinese-amap-fleet/personas/pastebin-plunderer/raw/deep-dive/lane4-xz-knowledge/XZ_KNOWLEDGE.md`.
+Full characterization: `evidence/2026-09-28-chinese-amap-fleet/personas/pastebin-plunderer/raw/deep-dive/lane4-xz-knowledge/XZ_KNOWLEDGE.md`.

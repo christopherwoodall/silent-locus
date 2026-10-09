@@ -10,11 +10,11 @@ hosted-Elastic writes paused — staged on disk for the local-push script).
 
 ## Sources (untouched)
 
-- data/2026-09-28-university-shorteners/raw/goto-unm-edu/{7t6-o,discvr,reso,urphy21}_referrer_urls_daily_2026-09-28.json
-- data/2026-09-28-university-shorteners/raw/u-ethz-ch/nB1nv_referrer_urls_daily_2026-09-28.json
-- data/2026-09-28-university-shorteners-batch2/raw/goto-unm-edu/vbudg_stats_2026-09-28.txt (control)
-- data/2026-09-28-university-shorteners-batch3/raw/go-uvm-edu/{-4s0q,tgmtq,xc26}_stats_2026-09-28.txt (UVM controls)
-- data/2026-09-28-university-shorteners/raw/url-popcat-xyz/{5vtSk2RG2f,IRZTIxDlZ}_info_2026-09-28.txt
+- evidence/2026-09-28-university-shorteners/raw/goto-unm-edu/{7t6-o,discvr,reso,urphy21}_referrer_urls_daily_2026-09-28.json
+- evidence/2026-09-28-university-shorteners/raw/u-ethz-ch/nB1nv_referrer_urls_daily_2026-09-28.json
+- evidence/2026-09-28-university-shorteners-batch2/raw/goto-unm-edu/vbudg_stats_2026-09-28.txt (control)
+- evidence/2026-09-28-university-shorteners-batch3/raw/go-uvm-edu/{-4s0q,tgmtq,xc26}_stats_2026-09-28.txt (UVM controls)
+- evidence/2026-09-28-university-shorteners/raw/url-popcat-xyz/{5vtSk2RG2f,IRZTIxDlZ}_info_2026-09-28.txt
 
 ## Supersedes
 
@@ -63,12 +63,12 @@ Each pointer was relocated by basename search across the repo and verified
 byte-for-byte against the row's own `sha256` + `size_bytes` before the
 rewrite — no ambiguities, no unverifiable pointers:
 
-- `data/2026-09-28-university-shorteners/raw/goto-unm-edu/{7t6-o,discvr,reso,urphy21}_referrer_urls_daily_2026-09-28.json` — 1,407 rows
-- `data/2026-09-28-university-shorteners/raw/u-ethz-ch/nB1nv_referrer_urls_daily_2026-09-28.json` — 90 rows
-- `data/2026-09-28-university-shorteners/raw/url-popcat-xyz/{5vtSk2RG2f,IRZTIxDlZ}_info_2026-09-28.txt` — 2 rows
-- `data/2026-09-28-university-shorteners/raw/wayback/IRZTIxDlZ/IRZTIxDlZ_referrer_urls_daily_wayback_{20260512030438,20260908215028}.json` — 2 rows
-- `data/2026-09-28-university-shorteners-batch2/raw/goto-unm-edu/vbudg_stats_2026-09-28.txt` — 5 rows
-- `data/2026-09-28-university-shorteners-batch3/raw/go-uvm-edu/{-4s0q,tgmtq,xc26}_stats_2026-09-28.txt` — 16 rows
+- `evidence/2026-09-28-university-shorteners/raw/goto-unm-edu/{7t6-o,discvr,reso,urphy21}_referrer_urls_daily_2026-09-28.json` — 1,407 rows
+- `evidence/2026-09-28-university-shorteners/raw/u-ethz-ch/nB1nv_referrer_urls_daily_2026-09-28.json` — 90 rows
+- `evidence/2026-09-28-university-shorteners/raw/url-popcat-xyz/{5vtSk2RG2f,IRZTIxDlZ}_info_2026-09-28.txt` — 2 rows
+- `evidence/2026-09-28-university-shorteners/raw/wayback/IRZTIxDlZ/IRZTIxDlZ_referrer_urls_daily_wayback_{20260512030438,20260908215028}.json` — 2 rows
+- `evidence/2026-09-28-university-shorteners-batch2/raw/goto-unm-edu/vbudg_stats_2026-09-28.txt` — 5 rows
+- `evidence/2026-09-28-university-shorteners-batch3/raw/go-uvm-edu/{-4s0q,tgmtq,xc26}_stats_2026-09-28.txt` — 16 rows
 
 Only the top-level `file` value changed; every other field byte-identical
 (line-level round-trip checked). SHA256SUMS regenerated.
@@ -77,7 +77,7 @@ Only the top-level `file` value changed; every other field byte-identical
 
 2026-09-29: no raw/ layer — derived explicit-events re-explosion: all 1,522
 events were parsed offline from existing captures held in sibling raw/ layers
-(data/2026-09-28-university-shorteners/raw/, -batch2/raw/, -batch3/raw/);
+(evidence/2026-09-28-university-shorteners/raw/, -batch2/raw/, -batch3/raw/);
 this collection holds no own captures. Verified: no raw/ files ever committed
 in git history; no stray evidence files on disk; SHA256SUMS green. Ratified as
 a canonical-layout exception.
@@ -107,12 +107,12 @@ out of the 2026-09-28 all-time table (api.census.gov API-key queries,
 allorigins-laundered sec.gov fetch, 2dd.pl, heyzine, TESTREF/TESTRR canaries).
 
 Evidence staged at
-`data/2026-09-28-university-shorteners/raw/wayback-cc/discvr/`
+`evidence/2026-09-28-university-shorteners/raw/wayback-cc/discvr/`
 (`CC-MAIN-2026-34_20260817051148.html` raw WARC payload +
 `discvr_referrer_urls_daily_cc_CC-MAIN-2026-34_20260817051148.json` evidence
 JSON, SHA256SUMS + manifest.json regenerated after relocation). The script's
 docstring staging path (`data/university-shorteners/wayback-cc/`) was
-relocated to the normalized raw/ layer (sibling of `raw/wayback/`); its
+relocated to the normalized raw/ layer (sibling of `evidence/2026-09-28-university-shorteners/raw/wayback/`); its
 events-JSONL append step targets the pre-normalization collection path and
 was superseded by this merge — no parallel collection created, no
 duplicates committed.
@@ -136,15 +136,15 @@ Method: CDX `url=<stats_url> output=json fl=timestamp,original,statuscode,digest
 filter=statuscode:200 collapse=digest` for all 12 stats URLs (5 goto.unm.edu,
 u.ethz.ch, 2 url.popcat.xyz, 3 go.uvm.edu, vanderbi.lt), 2s polite pacing,
 urllib primary with curl fallback, read-only. Raw HTML kept per capture
-(capture-first) at `data/2026-05-12-university-shorteners-events/raw/wayback/<slug>/`
+(capture-first) at `evidence/remove-2026-05-12-university-shorteners-events/raw/wayback/<slug>/`
 plus per-capture evidence JSONs (`<slug>_referrer_urls_daily_wayback_<ts>.json`),
-`manifest.json` + `SHA256SUMS` regenerated in `raw/wayback/`. Parsed with the
+`manifest.json` + `SHA256SUMS` regenerated in `evidence/remove-2026-05-12-university-shorteners-events/raw/wayback/`. Parsed with the
 same table-row extractor; exploded via `scripts/build_shortener_events.py`
 (`vanderbi.lt` monkeypatched locally as Vanderbilt University / university —
 the canonical script lacks that instance entry).
 
 Result: 12 targets, 19 captures seen, 17 downloaded (2 IRZTIxDlZ captures
-already held in `data/2026-09-28-university-shorteners/raw/wayback/` — not
+already held in `evidence/2026-09-28-university-shorteners/raw/wayback/` — not
 duplicated). 57 docs exploded from 17 evidence files — **24 new rows
 appended** (1,567 → 1,591), 32 skipped as duplicates on `labels.event_id`,
 1 within-batch dup skipped. New rows: 16 `yourls_stats_page`
@@ -163,7 +163,7 @@ Common Crawl clean negative, both backends are exhausted for this window —
 recorded as a clean negative, not retried further.
 
 Note on the raw/-missing exception above: this collection now holds its own
-`raw/wayback/` slice; the exception stands for live-capture evidence only.
+`evidence/remove-2026-05-12-university-shorteners-events/raw/wayback/` slice; the exception stands for live-capture evidence only.
 
 ## Fingerprint completion
 
@@ -195,7 +195,7 @@ provenance or SHA256SUMS.
 ## Historical HTML hash reconciliation 2026-09-30
 
 The Wayback HTML capture at
-`raw/wayback/5vtSk2RG2f/20260512030653.html` did not match its historical
+`evidence/remove-2026-05-12-university-shorteners-events/raw/wayback/5vtSk2RG2f/20260512030653.html` did not match its historical
 nested-manifest SHA-256
 `1ae6a9108fa2ab2563bcc370baf2eea69f31544564b4160f6faffed0c9b82422`,
 even after CRLF-to-LF normalization. Its current raw-byte SHA-256 is

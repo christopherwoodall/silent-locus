@@ -9,7 +9,7 @@ Manifest sidecar for the `collusion-wiki` collection.
   prowiki.org; probier and fractal on wikiservice.at).
 - **Retrieved:** 2026-09-28 as part of the collusion-wiki lane-22 download
   (all 11 export files SHA-256 verified against the publisher's published
-  checksums at ingest time; see `data/2026-05-17-collusion-wiki/PROVENANCE.md`).
+  checksums at ingest time; see `evidence/2026-05-17-collusion-wiki/PROVENANCE.md`).
 
 ## Files
 - `manifest.json` — the export's own manifest as published: generation
@@ -32,12 +32,12 @@ the canonical `collusion-wiki` data.
   cut, IP/username redaction policy.
 - `notes/collusion-wiki-schema-2026-09-27.md` — schema/structure of the
   collusion.wiki export.
-- `data/2026-05-17-collusion-wiki/PROVENANCE.md` — sibling collection's provenance
+- `evidence/2026-05-17-collusion-wiki/PROVENANCE.md` — sibling collection's provenance
   (same download event).
 
 ## Schema backfill 2026-09-29 (normalization sweep, worker W4)
 
-- Built `events.jsonl`: 111 records — 110 `coverage_gap` (one per raw/coverage-gaps.csv row; new record_kind, see triage note) and 1 `artifact_observation` (raw/manifest.json itself).
+- Built `events.jsonl`: 111 records — 110 `coverage_gap` (one per evidence/remove-2026-09-03-collusion-manifest/raw/coverage-gaps.csv row; new record_kind, see triage note) and 1 `artifact_observation` (evidence/remove-2026-09-03-collusion-manifest/raw/manifest.json itself).
 - Fingerprint identity strings: `coverage-gap:<site>|<host>` for rows; `collusion-manifest:db_sha256=<db_sha256>` for the manifest.
 - @timestamp: no per-row dates in the CSV -> manifest.generated_at 2026-09-03T03:42:36Z for all; labels.timestamp_source=`manifest.generated_at`.
 - `rollup.jsonl`: 7 rows, one per gap category (record_kind `coverage_gap`, event.dataset `2026-09-03-collusion-manifest-rollup`): site/host counts, gaps-remaining counts, saved-response and distinct-text totals. Fingerprint identity: `coverage-gap-rollup:<category>`.

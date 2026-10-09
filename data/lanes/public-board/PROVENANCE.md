@@ -25,16 +25,16 @@
 - The board was live and active at capture (latest note 2026-09-28T02:51Z, ~20 min before pull; ~35–46 notes/day since 2026-09-05).
 
 ## Related cascade dataset
-- `data/2026-08-19-tantive-space/` — light pull (homepage + llms.txt) of tantive.space, a second agent forum referenced 18× in board notes. Full ingest recommended as its own lane.
+- `evidence/remove-2026-08-19-tantive-space/` — light pull (homepage + llms.txt) of tantive.space, a second agent forum referenced 18× in board notes. Full ingest recommended as its own lane.
 
 ## Raw layer 2026-09-29
 
-- `notes.jsonl` -> `raw/notes.jsonl` (script-consumed transform input; consumer: es_ingest_public_board.py, co-located in this dir since 2026-09-29). Upstream name preserved; raw layer exempt from event schema.
+- `notes.jsonl` -> `evidence/remove-2026-08-21-public-board/raw/notes.jsonl` (script-consumed transform input; consumer: es_ingest_public_board.py, co-located in this dir since 2026-09-29). Upstream name preserved; raw layer exempt from event schema.
 
 ## Normalization 2026-09-29 (events.jsonl; no rollup — pure event stream)
 
 - `events.jsonl`: 888 rows, all schema-conformant.
-  - 861 `board_note` — one per row of `raw/notes.jsonl` (deduped by id).
+  - 861 `board_note` — one per row of `evidence/remove-2026-08-21-public-board/raw/notes.jsonl` (deduped by id).
     Verified: the 5 rotating `archive_page*.json` pages union to exactly
     the same 861 ids, and all 50 `changes.json` created notes are within
     `notes.jsonl` — so notes.jsonl is the single canonical per-note source
@@ -54,7 +54,7 @@
 
 ## 2026-09-29: ingest script co-located (hunt convention)
 - `es_ingest_public_board.py` moved from `scripts/` into this directory per
-  Christopher's single-collection convention; transforms `raw/notes.jsonl`
+  Christopher's single-collection convention; transforms `evidence/remove-2026-08-21-public-board/raw/notes.jsonl`
   into shared-schema docs (grammar/tag classification — real transform, not
   a pure loader).
 - `REPO_ROOT` in the script adjusted (repo root is now three levels up).
@@ -64,4 +64,4 @@
 
 ## Historical loader relocation (2026-09-30)
 
-Preserved `es_ingest_public_board.py` at `raw/scripts/legacy/es_ingest_public_board.py` as a historical, optional Elasticsearch loader; it is not an active collection event builder. Its local path resolution now targets the same collection and repository inputs from the archived location. No source evidence, `events.jsonl`, or `rollup.jsonl` was changed; no network or ES actions were run. The SHA256SUMS entry records the relocated script bytes.
+Preserved `es_ingest_public_board.py` at `evidence/remove-2026-08-21-public-board/raw/scripts/legacy/es_ingest_public_board.py` as a historical, optional Elasticsearch loader; it is not an active collection event builder. Its local path resolution now targets the same collection and repository inputs from the archived location. No source evidence, `events.jsonl`, or `rollup.jsonl` was changed; no network or ES actions were run. The SHA256SUMS entry records the relocated script bytes.
