@@ -531,6 +531,12 @@ def parser():
 
     template = sub.add_parser("template")
     template.add_argument("--type", default="web.capture")
+    template.add_argument(
+        "--bare",
+        action="store_true",
+        help="Print only the submittable bundle (no CLI envelope). "
+        "Pipe directly to a file for use with `add --input`.",
+    )
 
     def submission(command):
         command.add_argument("--key", required=True)
@@ -698,37 +704,43 @@ def dispatch(repo, args):
 
     if args.command == "template":
         definition = state.catalog.definition("observation", args.type)
+        bundle = {
+            "bundle": FORMAT_VERSION,
+            "idempotency_key": "replace-with-stable-request-key",
+            "actor": "agent:researcher",
+            "tags": {},
+            "records": [
+                {
+                    "ref": "source",
+                    "kind": "source",
+                    "body": {
+                        "source_type": "submitted",
+                        "locator": "replace-with-source-locator",
+                    },
+                },
+                {
+                    "ref": "observation",
+                    "kind": "observation",
+                    "body": {
+                        "type": args.type,
+                        "source": "@source",
+                        "files": [],
+                        "data_schema": definition["schema"],
+                        "data": {},
+                    },
+                    "tags": {},
+                },
+            ],
+        }
+        if args.bare:
+            print(canonical(bundle))
+            return None
         return {
-            "note": "Fill data using the assigned schema; this is a scaffold, not a valid capture.",
+            "note": "Fill data using the assigned schema; this is a scaffold, not a valid capture. "
+            "The submittable bundle is the value under 'bundle'; "
+            "use --bare to print only the bundle.",
             "data_schema": state.catalog.documents[definition["schema"]],
-            "bundle": {
-                "bundle": FORMAT_VERSION,
-                "idempotency_key": "replace-with-stable-request-key",
-                "actor": "agent:researcher",
-                "tags": {},
-                "records": [
-                    {
-                        "ref": "source",
-                        "kind": "source",
-                        "body": {
-                            "source_type": "submitted",
-                            "locator": "replace-with-source-locator",
-                        },
-                    },
-                    {
-                        "ref": "observation",
-                        "kind": "observation",
-                        "body": {
-                            "type": args.type,
-                            "source": "@source",
-                            "files": [],
-                            "data_schema": definition["schema"],
-                            "data": {},
-                        },
-                        "tags": {},
-                    },
-                ],
-            },
+            "bundle": bundle,
         }
 
     if args.command == "add":
@@ -796,7 +808,9 @@ def main():
         lock = checked_path(repo, "data/.local/writer.lock")
         durable_mkdir(lock.parent)
         with FileLock(str(lock), timeout=30):
-            emit(dispatch(repo, args))
+            result = dispatch(repo, args)
+            if result is not None:
+                emit(result)
     except FactumError as error:
         emit({"error": {"code": error.code, "message": str(error)}}, ok=False)
         raise SystemExit(1)

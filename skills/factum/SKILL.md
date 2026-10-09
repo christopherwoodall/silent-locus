@@ -145,7 +145,9 @@ template --type <observation-type>
 ```
 
 `template` returns a scaffold and its payload schema. The scaffold is not a
-completed valid capture.
+completed valid capture. The submittable bundle is the value under the
+`bundle` key; use `template --type <observation-type> --bare` to print only
+the bundle, ready to fill in and submit with `add --input`.
 
 Submit a bundle:
 
