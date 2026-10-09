@@ -2,6 +2,13 @@
 
 Background jobs that keep the Factum corpus clean as the project evolves.
 
+## AI behavioral analytics
+
+The lab-intel workers feed the AI behavioral analytics pipeline — systematic
+ingestion of AI lab behavior reports (Anthropic, OpenAI, DeepMind) and
+Transluce incident reports. Extracted behaviors, TTPs, and model patterns
+are stored as `intel.*` records for hunt verification and pattern matching.
+
 ## Active workers
 
 ### factum-verify-daily
