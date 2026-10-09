@@ -35,7 +35,7 @@ A local saved copy of the JFrog article lives at
    `http.url.addr` wildcards; raw JSONs in `raw/`).
 4. Paste corpora (`evidence/2026-05-27-paste-archive`, `evidence/2018-05-09-paste-archive-gap`,
    `evidence/2026-05-17-iowacollab-pastes`), `evidence/aggregates/2026-09-29-overlap-analysis/events.jsonl`,
-   sibling `data/2026-07-07-xss-ssti-census/events.jsonl` (122 payloads).
+   sibling `data/lanes/xss-ssti-census/events.jsonl` (122 payloads).
 5. Public web search (verbatim quoted queries).
 6. sourcegraph public code search (reachable 2026-09-28; archived+fork
    scopes). grep.app returned HTTP 429 — still unusable.
