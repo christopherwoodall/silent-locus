@@ -23,7 +23,7 @@ therefore extracted from the public JFrog GemStuffer report
   probes whose endpoints are only in a JFrog screenshot).
 
 A local saved copy of the JFrog article lives at
-`evidence/2026-09-29-separate-eval-test/raw/sources/jfrog-gemstuffer-post.html`.
+`data/2026-09-29-separate-eval-test/raw/sources/jfrog-gemstuffer-post.html`.
 
 ## Search venues (all read-only; no HTTP to exfil endpoints)
 
