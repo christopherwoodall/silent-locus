@@ -1,0 +1,22 @@
+name: Factum validation
+
+# Manual only. The runner must already provide uv and a Git identity.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validation:
+    runs-on: [self-hosted, linux]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check prerequisites
+        run: |
+          uv --version
+          git var GIT_AUTHOR_IDENT > /dev/null
+      - name: Run tests
+        run: uv run --group dev pytest -q
+      - name: Run external-host smoke
+        run: uv run --no-project tools/smoke_test.py
