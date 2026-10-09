@@ -221,9 +221,9 @@ uv run skills/factum/scripts/edge-builder.py --repo . \
 
 ### Retractions
 
-Factum records are immutable. Never edit a stored record in place.
+Factum evidence is immutable. Never edit a stored record's evidence in place.
 
-If a record is wrong, submit a retraction record instead. The retraction
+If evidence is wrong, submit a retraction record instead. The retraction
 type is `retraction` in the `factum-core` pack. It has two fields:
 
 - `target` — the ID of the record being retracted.
@@ -231,6 +231,21 @@ type is `retraction` in the `factum-core` pack. It has two fields:
 
 The original record stays. The retraction explains what changed. Future
 queries must respect active retractions.
+
+### Metadata updates (exception to immutability)
+
+The `factum update` command allows in-place edits to record *metadata*
+only — never evidence. This is a deliberate, narrow exception ratified
+by BigSexyWarlock69 (2026-10-09).
+
+Editable: `tags` (except `factum.*` reserved keys), schema-declared
+`provenance` paths, schema-declared `status` fields.
+
+Immutable: all `body` evidence fields, record ID/kind/schema, `@timestamp`,
+`tags["factum.author"]`.
+
+Use `update` for metadata corrections (typos, stale paths, status changes).
+Use retractions for evidence corrections (wrong term, wrong data).
 
 ### Rebuild before match
 

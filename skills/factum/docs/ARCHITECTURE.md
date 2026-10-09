@@ -120,6 +120,12 @@ Do not substitute one for another.
 Record fingerprints use Factum's canonical JSON serialization. This is not
 a claim of RFC 8785 compliance.
 
+Every record carries the system-assigned tag `factum.author`, set at
+creation from the bundle's actor. A submitter-provided value is overwritten,
+not trusted. The key is immutable: record updates must reject changes to it
+with `EVIDENCE_EDIT`. It is part of the signed envelope, so the fingerprint
+covers it.
+
 Hashes detect inconsistency. Without an independently trusted signature or
 reference, they do not prove who collected evidence or whether a source was
 truthful.

@@ -19,7 +19,7 @@ from .schemas import (
 )
 from .store import (
     FactumError, State, add_bundle, atomic_bytes, export_pending,
-    fail, head, initialize, new_id, now, resolve_repo,
+    fail, head, initialize, new_id, now, resolve_repo, update_record,
 )
 
 
@@ -499,6 +499,32 @@ def lane_command(state, args):
     return add_bundle(state, bundle)
 
 
+def update_command(state, args):
+    assignments = []
+    if args.tags is not None:
+        for key, value in parse_tags(args.tags).items():
+            if key.startswith("tags."):
+                key = key[len("tags."):]
+            assignments.append((f"tags.{key}", value))
+    for item in args.set:
+        path, separator, raw = item.partition("=")
+        path = path.strip()
+        if not separator or not path:
+            fail("SET", "Use --set <path>=<value>.")
+        try:
+            value = parse_json(raw)
+        except (SchemaError, ValueError):
+            fail("SET", f"Value is not valid JSON: {path}.")
+        assignments.append((path, value))
+    before = state.records.get(args.record_id)
+    before_fingerprint = before["fingerprint"] if before else None
+    record = update_record(state, args.record_id, args.actor, assignments)
+    return {
+        "updated": record["fingerprint"] != before_fingerprint,
+        "record": record,
+    }
+
+
 def parser():
     p = argparse.ArgumentParser(prog="factum")
     p.add_argument("--repo")
@@ -611,6 +637,22 @@ def parser():
     link = submission(ls.add_parser("link"))
     link.add_argument("lane")
     link.add_argument("ids", nargs="+")
+
+    update_p = sub.add_parser("update")
+    update_p.add_argument("record_id")
+    update_p.add_argument("--actor", required=True)
+    update_p.add_argument(
+        "--set",
+        action="append",
+        default=[],
+        help="Metadata assignment as <path>=<value>; repeatable. "
+        "Values are JSON; null on a tags.* path deletes the key.",
+    )
+    update_p.add_argument(
+        "--tags",
+        help="JSON object of tag assignments merged with --set; "
+        "null values delete the tag.",
+    )
     return p
 
 
@@ -632,7 +674,7 @@ def dispatch(repo, args):
 
     state = State(repo, args.at).load()
     mutating = (
-        args.command in {"add", "capture", "extract", "note", "export"}
+        args.command in {"add", "capture", "extract", "note", "export", "update"}
         or args.command == "lane" and args.action in {"new", "edit", "link"}
         or args.command == "schema" and args.action == "install"
     )
@@ -757,6 +799,9 @@ def dispatch(repo, args):
         return graph(state, args)
     if args.command == "lane":
         return lane_command(state, args)
+
+    if args.command == "update":
+        return update_command(state, args)
 
     if args.command == "note":
         bundle = base_bundle(args)

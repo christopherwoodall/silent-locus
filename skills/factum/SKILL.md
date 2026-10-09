@@ -254,6 +254,15 @@ An event is an anchor, not an automatic canonical truth.
 Retractions preserve original records. Search does not automatically hide
 retracted material; inspect retractions when interpreting current claims.
 
+Metadata-only updates use `factum update <record-id> --actor <agent>
+--set <path>=<value>`. Editable paths are `tags.*` (except reserved
+`factum.*` keys) and the schema-declared body paths `body.provenance`,
+`body.data.provenance`, and `body.data.status` (enum-enforced). Values are
+JSON; `null` on a `tags.*` path deletes the key. Anything else is rejected
+with `EVIDENCE_EDIT`. Retracted records cannot be updated, `--at` is
+read-only, and every effective change stamps `factum.updated_by` /
+`factum.updated_at` and recomputes the fingerprint before re-projecting.
+
 ## Schema extension decision
 
 Before creating a pack:
