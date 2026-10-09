@@ -328,3 +328,7 @@ Map agent-facing requests to the toolkit:
 Native slash-command registration is host-specific.
 
 For a complete synthetic walkthrough, see [docs/HANDOFF.md](docs/HANDOFF.md).
+
+For scheduled connection discovery between records, see
+[docs/EDGE_BUILDER.md](docs/EDGE_BUILDER.md). For the absorbed-copy Git
+workflow, see [docs/DUAL-GIT.md](docs/DUAL-GIT.md).
