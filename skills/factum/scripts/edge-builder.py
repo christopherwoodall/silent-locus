@@ -54,6 +54,8 @@ def main():
                         help="Tag key defining groups; only cross-group edges (default: lane)")
     parser.add_argument("--min-term-len", type=int, default=4,
                         help="Skip terms shorter than this (default: 4)")
+    parser.add_argument("--categories", default=None,
+                        help="Comma-separated IOC categories to process (e.g. proxy,dead-drop,url). Skips generic terms.")
     parser.add_argument("--limit", type=int, default=100,
                         help="Max observations to process (default: 100)")
     parser.add_argument("--dry-run", action="store_true",
@@ -85,11 +87,17 @@ def main():
 
     new_edges = []
     checked = 0
+    allowed_cats = set(args.categories.split(",")) if args.categories else None
 
     for record in result.get("records", []):
         body = record.get("body", {})
         if body.get("type") != args.obs_type:
             continue
+        # Category filter (for infra.ioc and similar)
+        if allowed_cats:
+            cat = body.get("data", {}).get("category", "")
+            if cat not in allowed_cats:
+                continue
         term = get_field(record, args.term_field)
         if not term or not isinstance(term, str) or len(term) < args.min_term_len:
             continue
@@ -106,13 +114,17 @@ def main():
             hit_id = hit.get("id", "")
             if hit_id == record_id or (record_id, hit_id) in existing:
                 continue
-            # Cross-group only — need hit's tags; fetch via query if needed
-            # For now, record the candidate
+            # Cross-group filter: match results don't include tags,
+            # so we check via the hit's lane if available
+            hit_group = hit.get("tags", {}).get(args.group_tag, "unknown")
+            if hit_group == "unknown" or hit_group == record_group:
+                continue  # Same group or unknown — not a cross-lane connection
             new_edges.append({
                 "from": record_id,
                 "to": hit_id,
                 "term": term,
                 "record_group": record_group,
+                "hit_group": hit_group,
             })
 
     print(f"Checked {checked} observations, {len(new_edges)} new edge candidates",
