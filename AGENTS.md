@@ -65,24 +65,34 @@ to exist.
 
 ### Factum-managed paths
 
-- `evidence/corpus.json` — corpus identity and portable format.
-- `evidence/schema-lock.json` — active, pinned schema-pack inventory.
-- `evidence/schema-packs/` — installed schema contracts and type definitions.
-- `evidence/records/` — exported immutable batches and receipts.
-- `evidence/lanes/` — Factum lane definitions and optional lane documents.
-- `evidence/blobs/` — explicitly Git-retained artifact bytes.
-- `evidence/.local/` — local index, pending submissions, and local-only bytes.
+Factum owns `data/`. The `evidence/` tree is legacy and is being migrated
+into Factum (see "Factum workflow").
+
+- `data/corpus.json` — corpus identity and portable format.
+- `data/schema-lock.json` — active, pinned schema-pack inventory.
+- `data/schema-packs/` — installed schema contracts and type definitions.
+- `data/records/` — exported immutable batches and receipts.
+- `data/lanes/` — Factum lane definitions and optional lane documents.
+- `data/blobs/` — explicitly Git-retained artifact bytes.
+- `data/.local/` — local index, pending submissions, and local-only bytes.
 
 Do not edit managed records, manifests, installed packs, or SQLite directly.
 
-`evidence/.local/` is ignored by Git, but it is not entirely disposable.
+`data/.local/` is ignored by Git, but it is not entirely disposable.
 Pending submissions and local-only evidence may be the only copies.
+
+The search index lives in `data/.local/`. Git does not store it. After a
+clone, restore, pull, merge, or checkout, run Factum `rebuild` before using
+`match` or search.
 
 ### Existing research paths
 
-- `evidence/<YYYY-MM-DD-slug>/` — established hunt event or lane directories.
+- `evidence/<YYYY-MM-DD-slug>/` — legacy hunt event or lane directories.
   Existing directories may contain `events.jsonl`, `PROVENANCE.md`,
   `SHA256SUMS`, `raw/`, scripts, and notes.
+  These stay readable, but new evidence goes through Factum. A directory
+  renamed with a `remove-` prefix has been ingested into Factum and is safe
+  for later removal.
 - `evidence/transluce-api/` — tracker integration, pulls, ingest ledger,
   investigations, and submission drafts.
 - `evidence/hf-trajectories/` — trajectory audits, cached datasets, farm outputs,
@@ -127,6 +137,101 @@ Do not move existing reports merely to match Factum's default lane layout.
 For existing event-directory naming, use the known event date, not the
 analysis date. If the event date is unknown, do not fabricate one. A work-lane
 date may instead describe when the work began; label that distinction.
+
+## Factum workflow
+
+Factum is the system of record for new structured evidence. It stores
+validated records, keeps provenance, and provides local search.
+
+The corpus lives in `data/`. The `evidence/` tree is legacy and is being
+migrated into Factum through the lane ingest pattern.
+
+### Lane ingest pattern
+
+Use this pattern to move a legacy lane or a new collection into Factum:
+
+1. **Extract.** Pull observations from the legacy lane directory or the new
+   capture.
+2. **Clean and enhance.** Normalize fields, fix obvious errors, and add
+   provenance. Do not change raw observed values. Never redact.
+3. **Validate.** Submit through the Factum scripts so the installed schema
+   pack checks every record.
+4. **Move artifacts.** Place retained bytes under `data/lanes/<lane>/` for
+   lane documents, or `data/blobs/` for Git-kept artifact bytes. Choose
+   `--storage local` or `--storage git` explicitly at submit time.
+5. **Rename the old lane.** Add the `remove-` prefix to the legacy
+   directory, for example `remove-2026-05-12-webhook-deaddrops`. The prefix
+   marks the directory as ingested and safe for later removal. Do not delete
+   it yet.
+6. **Commit and push.** Run `export`, then `verify --blobs`, then review,
+   then commit, then push when authorized.
+
+### Lane tagging
+
+Every submitted record gets the tag `{"lane": "<lane-name>"}`. The tag
+groups records by work lane. Edge building uses it to keep groups apart.
+Lane names are lowercase with hyphens, for example `webhook-deaddrops`.
+
+### Infra pack types
+
+The `factum-infra` pack holds structured infrastructure observations. Use
+these types:
+
+- `infra.proxy_chain` — observed proxy usage. Fields: `proxy_service`,
+  `target_url`, `chain`, `success`. Use when you saw an agent send traffic
+  through a proxy service.
+- `infra.proxy_instance` — deployed proxy infrastructure. Fields: `host`,
+  `invocation_shape`, `live`, `access`. Use when you found a proxy server
+  and probed how to reach it.
+- `infra.dead_drop` — exfiltration endpoint. Fields: `service`,
+  `endpoint_kind`, `beacon_type`, `markers`. Use when you found a place
+  where an agent sends or drops data.
+- `infra.tunnel` — reverse tunnel. Fields: `service`, `public_host`. Use
+  when you found a tunnel that exposes an internal service to the public.
+- `infra.shortcut` — short URL. Fields: `short_url`, `destination`,
+  `service`. Use when you found a shortened link and its target.
+- `infra.ioc` — indicator term. Fields: `term`, `category`, `provenance`,
+  `status`. Use for a searchable marker term, with its category and status.
+
+Check the registered schema before submitting a new shape. Use `tags` for
+miscellaneous metadata only.
+
+### Edge builder
+
+`skills/factum/scripts/edge-builder.py` finds connections between records
+and writes them as edge records. It takes a record type, a term field
+(a dot path like `data.term`), and a group tag (default `lane`). It matches
+terms against the corpus, keeps only cross-group hits, skips pairs that
+already have an edge, and submits the new edges.
+
+Full documentation: `skills/factum/docs/EDGE_BUILDER.md`.
+
+Example: match indicator terms across lanes, with a dry run first:
+
+```bash
+uv run skills/factum/scripts/edge-builder.py --repo . \
+  --type infra.ioc --term-field data.term --group-tag lane --dry-run
+```
+
+### Retractions
+
+Factum records are immutable. Never edit a stored record in place.
+
+If a record is wrong, submit a retraction record instead. The retraction
+type is `retraction` in the `factum-core` pack. It has two fields:
+
+- `target` — the ID of the record being retracted.
+- `reason` — why the record is wrong.
+
+The original record stays. The retraction explains what changed. Future
+queries must respect active retractions.
+
+### Rebuild before match
+
+The search index (`data/.local/factum.db`) is derived, not stored in Git.
+After clone, restore, pull, merge, or checkout, run `rebuild`. `match` and
+other search commands do not work until the index is rebuilt. This is why
+the Git policy lists `verify` then `rebuild` after every Git operation.
 
 ## Data conventions
 
@@ -234,7 +339,7 @@ publication.
 For Factum submissions, choose retention explicitly:
 
 - `--storage local`: preserve bytes locally; synchronize metadata.
-- `--storage git`: preserve bytes in `evidence/blobs/` for intended publication.
+- `--storage git`: preserve bytes in `data/blobs/` for intended publication.
 - Reference artifact: record an external dataset or file locator without
   claiming local preservation.
 
@@ -332,11 +437,12 @@ An export is not a commit, and a commit is not a push.
 Use the installed Factum skill for new structured evidence, provenance,
 claims, and relationships.
 
-- Skill: `.agents/skills/factum/SKILL.md`
-- Setup and schema-pack installation: `.agents/skills/factum/INSTALL.md`
-- Host corpus: `evidence/`
+- Skill: `skills/factum/SKILL.md`
+- Setup and schema-pack installation: `skills/factum/INSTALL.md`
+- Edge builder docs: `skills/factum/docs/EDGE_BUILDER.md`
+- Host corpus: `data/`
 - Command:
-  `uv run .agents/skills/factum/scripts/factum.py --repo <host-repository> <command>`
+  `uv run skills/factum/scripts/factum.py --repo <host-repository> <command>`
 
 Read the skill at the start of evidence-storage work. Run `status` before
 submitting or searching data.
