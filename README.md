@@ -32,6 +32,16 @@ collections/           -- ongoing collectors and cross-event indexes
 scripts/               -- shared tooling
 ```
 
+## Evidence system: Factum
+
+New structured evidence lives in Factum: sources, observations, graded
+claims, and edges (links between records). Full docs:
+[skills/factum/SKILL.md](skills/factum/SKILL.md).
+
+Corpus state: 3,400+ records held as immutable batches in `data/`.
+Legacy `evidence/` lane directories are moving into Factum with lane
+tags and keep their original paths.
+
 ## Where to start
 
 - **New here** — read [docs/onboarding.md](docs/onboarding.md), then the
