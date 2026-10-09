@@ -155,6 +155,11 @@ without updating the taxonomy docs.
 
 Use this pattern to move a legacy lane or a new collection into Factum:
 
+**Shared-branch rule:** When multiple workers ingest on the same branch,
+always commit with explicit pathspecs (`git commit --only <paths>` or
+`git add <specific-paths> && git commit`). Never use bare `git commit` or
+`git add -A` — these sweep other workers' staged changes into your commit.
+
 1. **Extract.** Pull observations from the legacy lane directory or the new
    capture.
 2. **Pre-ingest dedup (standing rule).** Before submitting any record, run
