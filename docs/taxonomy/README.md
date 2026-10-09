@@ -4,8 +4,6 @@ This directory documents the classification systems used across the hunt.
 
 ## Contents
 
-- `event-schema.md` — the event JSONL schema (fields, types, conventions)
-- `record-types.md` — Factum record types and when to use each
 - `behavior-categories.md` — AI behavioral analytics categories
 - `ttp-taxonomy.md` — tactics, techniques, and procedures
 

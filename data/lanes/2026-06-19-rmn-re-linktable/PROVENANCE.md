@@ -61,3 +61,19 @@ own date-prefix correction (2026-09-27 → 2016-12-28, first event 2016-12-28).
 ## Historical loader relocation (2026-09-30)
 
 Preserved `es_ingest_rmnre.py` at `raw/scripts/legacy/es_ingest_rmnre.py` as a historical, optional Elasticsearch loader; it is not an active collection event builder. Its local path resolution now targets the same collection and repository inputs from the archived location. No source evidence, `events.jsonl`, or `rollup.jsonl` was changed; no network or ES actions were run. The SHA256SUMS entry records the relocated script bytes.
+
+## 2026-10-09: Factum lane ingest (Phase 3)
+
+The legacy directory `evidence/2026-06-19-rmn-re-linktable/` was ingested
+into Factum under lane `2026-06-19-rmn-re-linktable`
+(`lane_c92d1d60c72741fcb7f520e2c6b0ffa1`).
+
+- Pre-ingest dedup: `match --text` (fuzzy) for `masscounty1781813461d`,
+  `rmn.re`, `cors.bwa.workers.dev`, `county.json` — zero matches. New
+  to the corpus.
+- Submitted: 1 source + 2 observations (`infra.shortcut`
+  `observation_a35b28355da349c79ffc0bacd8fe282a`, `infra.ioc`
+  `observation_6c986b60dd8d4eaa8862f8b34ead0c9a`) + 3 `in_lane` edges.
+- Lane artifacts moved to `data/lanes/2026-06-19-rmn-re-linktable/`
+  (this directory). Legacy directory renamed
+  `evidence/remove-2026-06-19-rmn-re-linktable/`.
