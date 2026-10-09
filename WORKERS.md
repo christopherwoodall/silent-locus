@@ -60,3 +60,8 @@ Workers are implemented as cron jobs. See `cron.list` for active schedules.
 - **Schedule:** Daily ~08:40 America/Chicago
 - **Job:** Check Transluce API for new agent incident reports.
 - **Purpose:** Feed Transluce reports into intel pipeline.
+
+### taxonomy-maintenance-weekly
+- **Schedule:** Weekly Monday ~09:40 America/Chicago
+- **Job:** Review docs/taxonomy/ against recently ingested intel records. Update behavior categories, TTPs, and record types as needed.
+- **Purpose:** Keep taxonomy docs in sync with the corpus.

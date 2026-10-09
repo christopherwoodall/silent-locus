@@ -146,6 +146,11 @@ validated records, keeps provenance, and provides local search.
 The corpus lives in `data/`. The `evidence/` tree is legacy and is being
 migrated into Factum through the lane ingest pattern.
 
+**Before ingesting or building edges, read `docs/taxonomy/`.** It documents
+the classification systems: event schema, record types, behavior categories,
+and TTP taxonomy. Use the established categories — don't invent new ones
+without updating the taxonomy docs.
+
 ### Lane ingest pattern
 
 Use this pattern to move a legacy lane or a new collection into Factum:
