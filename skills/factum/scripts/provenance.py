@@ -68,22 +68,29 @@ def main():
         if lane == "transluce-ioc":
             fid = tags.get("transluce_finding", "?")
             origin_desc = f"Transluce finding #{fid}"
-            # Look up finding created_at from the snapshot
+            finding_url = f"https://d3ncjnql1bmhe8.cloudfront.net/findings/{fid}"
+            # Look up finding created_at and evidence links from the snapshot
             try:
                 with open("evidence/transluce-api/raw/findings-list-20261008.json") as f:
                     findings = json.load(f)["items"]
                     for item in findings:
                         if str(item["id"]) == str(fid):
                             origin_ts = item["created_at"][:10]
+                            ev_links = item["data"].get("evidence_links", [])
+                            if ev_links:
+                                origin_desc += f" | evidence: {ev_links[0][:60]}"
                             break
             except Exception:
                 pass
+            origin_desc += f" | {finding_url}"
         elif lane == "proxy-fresh-blood":
             origin_desc = "FRESH.md (2026-10-08)"
             origin_ts = "2026-10-08"
+            origin_desc += " | data/lanes/proxy-fresh-blood/FRESH.md"
         elif lane == "webhook-deaddrops":
             origin_desc = "events.jsonl (2026-05-12)"
             origin_ts = "2026-05-12"
+            origin_desc += " | data/lanes/webhook-deaddrops/events.jsonl"
 
         seen.append((origin_ts or ingest_ts, lane, rid, origin_desc, ingest_ts))
 
