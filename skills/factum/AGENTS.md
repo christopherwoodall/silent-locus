@@ -5,7 +5,7 @@ This file is for agents changing the Factum project itself.
 For agents using Factum to conduct research, follow [SKILL.md](SKILL.md).
 For installation, follow [INSTALL.md](INSTALL.md).
 For technical contracts and test requirements, read
-[ARCHITECTURE.md](ARCHITECTURE.md).
+[ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
 ## Product boundary
 
@@ -150,7 +150,7 @@ available to rebuild historical records.
 
 ## Required tests
 
-The detailed matrix is in ARCHITECTURE.md.
+The detailed matrix is in docs/ARCHITECTURE.md.
 
 At minimum, changes should preserve:
 
@@ -192,6 +192,6 @@ guarantees.
 - INSTALL.md: setup, upgrades, and schema-pack installation.
 - SKILL.md: concise operating rules for research agents.
 - AGENTS.md: development rules.
-- ARCHITECTURE.md: technical contracts, tests, and limitations.
+- docs/ARCHITECTURE.md: technical contracts, tests, and limitations.
 
 Avoid copying extensive implementation detail into every document.

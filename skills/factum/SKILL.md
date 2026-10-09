@@ -55,7 +55,7 @@ For development smoke tests, use a separate disposable host Git repository,
 not the Factum source checkout.
 
 Read [INSTALL.md](INSTALL.md) for setup, code updates, and schema-pack
-installation. Read [ARCHITECTURE.md](ARCHITECTURE.md) when authoring packs,
+installation. Read [ARCHITECTURE.md](docs/ARCHITECTURE.md) when authoring packs,
 debugging integrity issues, or changing implementation details.
 
 ## Code and schema versions
