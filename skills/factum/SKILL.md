@@ -170,21 +170,36 @@ the submission fails.
 
 Strings in `tags` and claim values are not automatically resolved as references.
 
-### Pre-ingest dedup (standing rule)
+### Pre-ingest validation (standing rule)
 
-Before submitting any record, check for existing duplicates:
+Before submitting any record, validate all of the following. Post-hoc
+retractions are a fallback for genuine errors, not a substitute for care.
 
-1. For each candidate record, run `match --text "<key-term>" --mode fuzzy`
-   against the corpus, where `<key-term>` is the record's primary identifier
-   (term, hostname, URL, paste ID, etc.).
-2. If a matching record already exists, do not submit a duplicate. Note the
-   overlap and link to the existing record instead.
-3. Dedup within the batch itself by key field before submitting.
-4. `seen_before` only catches byte-exact duplicates — it does not catch the
-   same entity with slightly different metadata. The manual check above does.
+**1. Dedup check.** For each candidate record, run
+`match --text "<key-term>" --mode fuzzy` against the corpus, where
+`<key-term>` is the record's primary identifier (term, hostname, URL,
+paste ID, etc.).
+- If a matching record already exists, do not submit a duplicate. Note the
+  overlap and link to the existing record instead.
+- Dedup within the batch itself by key field before submitting.
+- `seen_before` only catches byte-exact duplicates — it does not catch the
+  same entity with slightly different metadata. The manual check above does.
+- Also check provenance paths on matches: a match with a stale `evidence/`
+  path vs your `data/lanes/` path indicates a pre/post-move duplicate.
 
-This rule applies to all ingest work. Post-hoc dedup via retractions is a
-fallback, not the plan.
+**2. Schema mapping.** Verify the term/field mapping before submitting:
+- The `term` (or primary identifier) must be the actual IOC value, not an
+  internal ID. If the source uses internal IDs (e.g. `R0002137`), map to the
+  real value from the appropriate label (e.g. `markers_present`).
+- Check `schema describe <schema-id>` if unsure which fields are available.
+- Do not submit records with placeholder terms.
+
+**3. Verbatim bodies.** Message and payload bodies must be byte-identical to
+source. Do not truncate, do not replace newlines, do not excerpt. Pull from
+`raw/` if `events.jsonl` has excerpts.
+
+**4. Edges.** Do not create edges during ingest. Edge building is a separate
+pass after lanes are in, with explicit bounds per run.
 
 ## Search
 
