@@ -159,6 +159,13 @@ Use this pattern to move a legacy lane or a new collection into Factum:
 always commit with explicit pathspecs (`git commit --only <paths>` or
 `git add <specific-paths> && git commit`). Never use bare `git commit` or
 `git add -A` — these sweep other workers' staged changes into your commit.
+Empirically, `git commit --only <paths>` does exclude other workers'
+already-staged paths (verified 2026-10-09: a vanderbilt commit contained
+zero out-of-path files). Before diagnosing "my commit swept their files,"
+check `git log`/`git reflog` — on a fast branch HEAD may have moved under
+you and the foreign files belong to a sibling's later commit. Never
+`git reset --soft` to "fix" a suspected mix-up without that check: the
+reset can orphan the sibling's commit instead.
 
 1. **Extract.** Pull observations from the legacy lane directory or the new
    capture.
