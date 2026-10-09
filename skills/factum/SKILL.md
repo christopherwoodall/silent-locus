@@ -170,6 +170,22 @@ the submission fails.
 
 Strings in `tags` and claim values are not automatically resolved as references.
 
+### Pre-ingest dedup (standing rule)
+
+Before submitting any record, check for existing duplicates:
+
+1. For each candidate record, run `match --text "<key-term>" --mode fuzzy`
+   against the corpus, where `<key-term>` is the record's primary identifier
+   (term, hostname, URL, paste ID, etc.).
+2. If a matching record already exists, do not submit a duplicate. Note the
+   overlap and link to the existing record instead.
+3. Dedup within the batch itself by key field before submitting.
+4. `seen_before` only catches byte-exact duplicates — it does not catch the
+   same entity with slightly different metadata. The manual check above does.
+
+This rule applies to all ingest work. Post-hoc dedup via retractions is a
+fallback, not the plan.
+
 ## Search
 
 ```text

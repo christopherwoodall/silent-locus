@@ -152,18 +152,24 @@ Use this pattern to move a legacy lane or a new collection into Factum:
 
 1. **Extract.** Pull observations from the legacy lane directory or the new
    capture.
-2. **Clean and enhance.** Normalize fields, fix obvious errors, and add
+2. **Pre-ingest dedup (standing rule).** Before submitting any record, run
+   `match --text "<key-term>" --mode fuzzy` for each candidate's primary
+   identifier. If it already exists in Factum, skip it and note the overlap.
+   Dedup within the batch by key field. `seen_before` only catches exact
+   dupes — the manual check catches near-dupes. Post-hoc retraction is a
+   fallback, not the plan.
+3. **Clean and enhance.** Normalize fields, fix obvious errors, and add
    provenance. Do not change raw observed values. Never redact.
-3. **Validate.** Submit through the Factum scripts so the installed schema
+4. **Validate.** Submit through the Factum scripts so the installed schema
    pack checks every record.
-4. **Move artifacts.** Place retained bytes under `data/lanes/<lane>/` for
+5. **Move artifacts.** Place retained bytes under `data/lanes/<lane>/` for
    lane documents, or `data/blobs/` for Git-kept artifact bytes. Choose
    `--storage local` or `--storage git` explicitly at submit time.
-5. **Rename the old lane.** Add the `remove-` prefix to the legacy
+6. **Rename the old lane.** Add the `remove-` prefix to the legacy
    directory, for example `remove-2026-05-12-webhook-deaddrops`. The prefix
    marks the directory as ingested and safe for later removal. Do not delete
    it yet.
-6. **Commit and push.** Run `export`, then `verify --blobs`, then review,
+7. **Commit and push.** Run `export`, then `verify --blobs`, then review,
    then commit, then push when authorized.
 
 ### Lane tagging
