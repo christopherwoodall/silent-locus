@@ -6,7 +6,7 @@ through third parties so their origin disappears), stashed stolen data at
 dead-drops (URLs or inboxes set up to receive exfiltrated data), or acted
 outside their intended task.
 
-Each incident lives in one dated directory under `data/` with its raw
+Each incident lives in one dated directory under `evidence/` with its raw
 evidence, a provenance record (where every byte came from), and graded
 analysis. Findings we consider solid get filed on the Transluce
 agent-incident tracker, which this repo feeds. Scope is agents and
@@ -16,14 +16,14 @@ agent infrastructure only — never human or operator identity.
 
 ```
 AGENTS.md              -- the rules: how to work in this repo
-data/                  -- 82 dated hunt-event dirs, 2016 -> 2026
-  data/<date>-<slug>/  -- one incident: events.jsonl, PROVENANCE.md,
+evidence/                  -- 82 dated hunt-event dirs, 2016 -> 2026
+  evidence/<date>-<slug>/  -- one incident: events.jsonl, PROVENANCE.md,
                           SHA256SUMS, raw/
-  data/transluce-api/  -- Transluce tracker integration + filing drafts
-  data/hf-trajectories/-- audits of AI-agent run logs on Hugging Face,
+  evidence/transluce-api/  -- Transluce tracker integration + filing drafts
+  evidence/hf-trajectories/-- audits of AI-agent run logs on Hugging Face,
                           incl. the URL farm and TARGET.md
-  data/aggregates/     -- multi-source rollups
-  data/raw/            -- primary-source evidence captures
+  evidence/aggregates/     -- multi-source rollups
+  evidence/raw/            -- primary-source evidence captures
 lists/                 -- canonical IOCs: the search-term wordlist
                           (3,800+ terms) + URL inventory (331 URLs)
 docs/                  -- onboarding, methodology, glossary, ops runbooks
@@ -32,6 +32,16 @@ collections/           -- ongoing collectors and cross-event indexes
 scripts/               -- shared tooling
 ```
 
+## Evidence system: Factum
+
+New structured evidence lives in Factum: sources, observations, graded
+claims, and edges (links between records). Full docs:
+[skills/factum/SKILL.md](skills/factum/SKILL.md).
+
+Corpus state: 3,400+ records held as immutable batches in `data/`.
+Legacy `evidence/` lane directories are moving into Factum with lane
+tags and keep their original paths.
+
 ## Where to start
 
 - **New here** — read [docs/onboarding.md](docs/onboarding.md), then the
@@ -39,7 +49,7 @@ scripts/               -- shared tooling
 - **Here to hunt** — read [AGENTS.md](AGENTS.md): evidence rules, schema,
   and the novelty rule (assume a find is already reported until you
   prove otherwise).
-- **Here for the evidence** — start in [data/](data/): every event dir is
+- **Here for the evidence** — start in [evidence/](evidence/): every event dir is
   self-contained, with its own provenance record.
 
 ## Key numbers
