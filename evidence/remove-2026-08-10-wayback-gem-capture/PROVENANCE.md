@@ -47,6 +47,24 @@ Queued for the `rubygems-goimport-campaign` index on resume: 1 doc from
 Read-only research; no submissions, logins, or payload execution.
 Agents/infrastructure scope only. No credentials handled.
 
+## Factum ingest corrections 2026-10-09 (lane `2026-08-10-wayback-gem-capture`)
+
+Two defects in the 2026-09-29 restore were fixed during Factum ingest:
+
+1. `SHA256SUMS` entry for `raw/run-logs/progress.log` was stale. The manifest
+   still carried the pre-move hash `475d366b...` of the LF-encoded original
+   (`84edfb3^:data/wayback-gem-capture/progress.log`), but the restored file
+   uses CRLF line endings (`8500c855...`). The entry now matches the actual
+   bytes on disk.
+2. The claim above that progress.log was restored "byte-identical" was wrong.
+   The restored file differs from the pre-move original: every line gained a
+   trailing CR (CRLF vs LF). Content is otherwise unchanged.
+
+Root cause: the 2026-09-29 restore ran through a path that converted LF to
+CRLF (likely a Windows editor or CRLF-normalizing checkout), and SHA256SUMS
+was never regenerated after the restore. Manifests must be regenerated
+whenever a restored file changes, even for whitespace-only differences.
+
 ## Schema backfill 2026-09-29
 
 Transformed by `temp/backfill_w3.py`.
