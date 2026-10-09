@@ -1,0 +1,2912 @@
+[?2004hroot@738eda08f1d3:/app# asciinema rec --stdin /logs/agent/recording.cast
+[?2004l[0;32masciinema: recording asciicast to /logs/agent/recording.cast[0m
+[0;32masciinema: press <ctrl-d> or type "exit" when you're done[0m
+[?2004hroot@738eda08f1d3:/app# clear
+[?2004l[H[J[?2004hroot@738eda08f1d3:/app# ls -la /app
+[?2004ltotal 980176
+drwxr-xr-x 1 root root       4096 Oct 22  2025 .
+drwxr-xr-x 1 root root       4096 Jul 14 18:45 ..
+-rw-r--r-- 1 root root     197120 Oct 22  2025 alpine-disk.qcow2
+-rw-r--r-- 1 root root 1003487232 Dec  7  2023 alpine.iso
+[?2004hroot@738eda08f1d3:/app# command -v qemu-system-x86_64 || true; command -v qemu-system-i386 || true; command -v socat || true; command -v expect || true
+[?2004l/usr/bin/qemu-system-x86_64
+/usr/bin/qemu-system-i386
+/usr/bin/expect
+[?2004hroot@738eda08f1d3:/app# qemu-system-x86_64 --version 2>/dev/null | head -3 || true
+[?2004lQEMU emulator version 5.2.0 (Debian 1:5.2+dfsg-11+deb11u5)
+Copyright (c) 2003-2020 Fabrice Bellard and the QEMU Project developers
+[?2004hroot@738eda08f1d3:/app# rm -f /tmp/alpine-serial /tmp/qemu-monitor /tmp/qemu.pid /tmp/qemu-stdout.log
+[?2004l[?2004hroot@738eda08f1d3:/app# qemu-system-x86_64 -accel tcg -cdrom /app/alpine.iso -boot d -m 1024 -display none -serial unix:/tmp/alpine-serial,server,nowait -monitor unix:/tmp/qemu-monitor,server,nowait -netdev user,id=net0,hostfwd=tcp::2222-:22 -device e1000 -pidfile /tmp/qemu.pid > /tmp/qemu-stdout.log 2>&1 &
+[?2004l[1] 206
+[?2004hroot@738eda08f1d3:/app# echo "qemu pid: $(cat /tmp/qemu.pid 2>/dev/null || echo none)"; ps -p "$(cat /tmp/qemu.pid 2>/dev/null)" -o pid,stat,cmd --no-headers 2>/dev/null || true; ls -la /tmp/alpine-serial /tmp/qemu-monitor 2>/dev/null || true; cat /tmp/qemu-stdout.log 2>/dev/null || true
+[?2004lqemu pid: 206
+srwxr-xr-x 1 root root 0 Jul 14 18:47 /tmp/alpine-serial
+srwxr-xr-x 1 root root 0 Jul 14 18:47 /tmp/qemu-monitor
+qemu-system-x86_64: warning: netdev net0 has no peer
+qemu-system-x86_64: warning: nic e1000.0 has no peer
+[?2004hroot@738eda08f1d3:/app# python3 - <<'PY'
+[?2004l[?2004h> import socket, time, sys
+[?2004l[?2004h> path='/tmp/alpine-serial'
+[?2004l[?2004h> try:
+[?2004l[?2004h>     s=socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+[?2004l[?2004h>     s.connect(path)
+[?2004l[?2004h> except Exception as e:
+[?2004l[?2004h>     print('CONNECT_ERROR:', e)
+[?2004l[?2004h>     sys.exit(0)
+[?2004l[?2004h> s.setblocking(False)
+[?2004l[?2004h> end=time.time()+15
+[?2004l[?2004h> while time.time()<end:
+[?2004l[?2004h>     try:
+[?2004l[?2004h>         chunk=s.recv(4096)
+[?2004l[?2004h>         if chunk:
+[?2004l[?2004h>             sys.stdout.write(chunk.decode('utf-8','replace'))
+[?2004l[?2004h>             sys.stdout.flush()
+[?2004l[?2004h>         else:
+[?2004l[?2004h>             time.sleep(0.1)
+[?2004l[?2004h>     except BlockingIOError:
+[?2004l[?2004h>         time.sleep(0.1)
+[?2004l[?2004h>     except Exception as e:
+[?2004l[?2004h>         print('READ_ERROR:', e)
+[?2004l[?2004h>         break
+[?2004l[?2004h> print('\n---END SERIAL READ---')
+[?2004l[?2004h> s.close()
+[?2004l[?2004h> PY
+[?2004l
+---END SERIAL READ---
+[?2004hroot@738eda08f1d3:/app# python3 - <<'PY'
+[?2004l[?2004h> import socket, time
+[?2004l[?2004h> path='/tmp/qemu-monitor'
+[?2004l[?2004h> try:
+[?2004l[?2004h>     s=socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+[?2004l[?2004h>     s.connect(path)
+[?2004l[?2004h>     s.setblocking(False)
+[?2004l[?2004h>     s.send(b'info status\n')
+[?2004l[?2004h>     time.sleep(0.5)
+[?2004l[?2004h>     end=time.time()+2
+[?2004l[?2004h>     while time.time()<end:
+[?2004l[?2004h>         try:
+[?2004l[?2004h>             print(s.recv(4096).decode('utf-8','replace'), end='')
+[?2004l[?2004h>         except BlockingIOError:
+[?2004l[?2004h>             time.sleep(0.1)
+[?2004l[?2004h>     s.close()
+[?2004l[?2004h> except Exception as e:
+[?2004l[?2004h>     print('MONITOR_ERROR:', e)
+[?2004l[?2004h> PY
+[?2004lmkdir -p /mnt/alpine-iso && mount -o loop,ro /app/alpine.iso /mnt/alpine-iso && echo MOUNT_OK || echo MOUNT_FAILED
+find /mnt/alpine-iso -maxdepth 3 -type f -o -type l | sort | sed -n '1,120p'
+for f in /mnt/alpine-iso/boot/syslinux/syslinux.cfg /mnt/alpine-iso/boot/grub/grub.cfg /mnt/alpine-iso/boot/grub/menu.lst /mnt/alpine-iso/isolinux/isolinux.cfg /mnt/alpine-iso/boot/syslinux.cfg /mnt/alpine-iso/syslinux.cfg; do [ -e "$f" ] && echo "===== $f =====" && sed -n '1,200p' "$f"; done
+QEMU 5.2.0 monitor - type 'help' for more information
+(qemu) i[K[Din[K[D[Dinf[K[D[D[Dinfo[K[D[D[D[Dinfo [K[D[D[D[D[Dinfo s[K[D[D[D[D[D[Dinfo st[K[D[D[D[D[D[D[Dinfo sta[K[D[D[D[D[D[D[D[Dinfo stat[K[D[D[D[D[D[D[D[D[Dinfo statu[K[D[D[D[D[D[D[D[D[D[Dinfo status[K
+VM status: running
+(qemu) [?2004hroot@738eda08f1d3:/app# mkdir -p /mnt/alpine-iso && mount -o loop,ro /app/alpine.iso /mnt/alpine-iso && echo MOUNT_OK || echo MOUNT_FAILED
+[?2004lmount: /mnt/alpine-iso: mount failed: Operation not permitted.
+MOUNT_FAILED
+[?2004hroot@738eda08f1d3:/app# find /mnt/alpine-iso -maxdepth 3 -type f -o -type l | sort | sed -n '1,120p'
+[?2004l[?2004hroot@738eda08f1d3:/app# for f in /mnt/alpine-iso/boot/syslinux/syslinux.cfg /mnt/alpine-iso/boot/grub/grub.cfg /mnt/alpine-iso/boot/grub/menu.lst /mnt/alpine-iso/isolinux/isolinux.cfg /mnt/alpine-iso/boot/syslinux.cfg /mnt/alpine-iso/syslinux.cfg; do [ -e "$f" ] && echo "===== $f =====" && sed -n '1,200p' "$f"; done
+[?2004l[?2004hroot@738eda08f1d3:/app# echo MARKER; mountpoint /mnt/alpine-iso 2>/dev/null || echo NOT_MOUNTED; ls -la /mnt/alpine-iso 2>/dev/null | head
+[?2004lMARKER
+/mnt/alpine-iso is not a mountpoint
+NOT_MOUNTED
+total 8
+drwxr-xr-x 2 root root 4096 Jul 14 18:48 .
+drwxr-xr-x 1 root root 4096 Jul 14 18:48 ..
+[?2004hroot@738eda08f1d3:/app# command -v isoinfo || true; command -v xorriso || true; command -v xorriso-dd-target || true; command -v 7z || true; command -v bsdtar || true; command -v cpio || true; command -v gzip || true; command -v zstd || true
+[?2004l/bin/gzip
+[?2004hroot@738eda08f1d3:/app# isoinfo -l -i /app/alpine.iso 2>/dev/null | sed -n '1,160p' || true
+[?2004l[?2004hroot@738eda08f1d3:/app# xorriso -indev /app/alpine.iso -ls / 2>/dev/null | sed -n '1,160p' || true
+[?2004l[?2004hroot@738eda08f1d3:/app# bsdtar -tf /app/alpine.iso 2>/dev/null | sed -n '1,160p' || true
+[?2004l[?2004hroot@738eda08f1d3:/app# python3 - <<'PY'
+[?2004l[?2004h> mods = ['pycdlib','iso9660','cdrom']
+[?2004l[?2004h> for m in mods:
+[?2004l[?2004h>     try:
+[?2004l[?2004h>         __import__(m)
+[?2004l[?2004h>         print(m, 'OK')
+[?2004l[?2004h>     except Exception as e:
+[?2004l[?2004h>         print(m, 'NO', e)
+[?2004l[?2004h> PY
+[?2004lcommand -v apt-get || true; command -v apk || true; command -v python3 || true; python3 --version
+pycdlib NO No module named 'pycdlib'
+iso9660 NO No module named 'iso9660'
+cdrom NO No module named 'cdrom'
+[?2004hroot@738eda08f1d3:/app# command -v apt-get || true; command -v apk || true; command -v python3 || true; python3 --version
+[?2004l/usr/bin/apt-get
+/usr/bin/python3
+Python 3.9.2
+[?2004hroot@738eda08f1d3:/app# python3 - <<'PY'
+[?2004l[?2004h> import struct
+[?2004l[?2004h> f=open('/app/alpine.iso','rb')
+[?2004l[?2004h> f.seek(16*2048)
+[?2004l[?2004h> for i in range(8):
+[?2004l[?2004h>     sec=f.read(2048)
+[?2004l[?2004h>     if not sec: break
+[?2004l[?2004h>     typ=sec[0]
+[?2004l[?2004h>     ver=sec[6]
+[?2004l[?2004h>     ident=sec[1:6].decode('ascii','replace')
+[?2004l[?2004h>     print('VD', i, typ, ver, repr(ident), sec[7:8])
+[?2004l[?2004h>     if typ==255:
+[?2004l[?2004h>         break
+[?2004l[?2004h> f.close()
+[?2004l[?2004h> PY
+[?2004lVD 0 1 1 'CD001' b'\x00'
+VD 1 0 1 'CD001' b'E'
+VD 2 2 1 'CD001' b'\x00'
+VD 3 255 1 'CD001' b'\x00'
+[?2004hroot@738eda08f1d3:/app# cat > /tmp/iso_list.py <<'PY'
+[?2004l[?2004h> #!/usr/bin/env python3
+[?2004l[?2004h> import sys, struct, os
+[?2004l[?2004h> 
+[?2004l[?2004h> ISO = '/app/alpine.iso'
+[?2004l[?2004h> SEC = 2048
+[?2004l[?2004h> 
+[?2004l[?2004h> def read_sec(f, lba, n=1):
+[?2004l[?2004h>     f.seek(lba*SEC)
+[?2004l[?2004h>     return f.read(n*SEC)
+[?2004l[?2004h> 
+[?2004l[?2004h> def parse_dr(data, off):
+[?2004l[?2004h>     if off >= len(data):
+[?2004l[?2004h>         return None, off
+[?2004l[?2004h>     dr_len = data[off]
+[?2004l[?2004h>     if dr_len == 0:
+[?2004l[?2004h>         # End of directory sector; advance to next 2048 boundary within data.
+[?2004l[?2004h>         next_off = ((off // SEC) + 1) * SEC
+[?2004l[?2004h>         return None, next_off
+[?2004l[?2004h>     ext_len = data[off+1]
+[?2004l[?2004h>     lba = struct.unpack_from('<I', data, off+2)[0]
+[?2004l[?2004h>     size = struct.unpack_from('<I', data, off+10)[0]
+[?2004l[?2004h>     flags = data[off+25]
+[?2004l[?2004h>     name_len = data[off+32]
+[?2004l[?2004h>     name = data[off+33:off+33+name_len]
+[?2004l[?2004h>     # Skip system use area after name + padding to even byte
+[?2004l[?2004h>     rec_end = off + dr_len
+[?2004l[?2004h>     return {'dr_len':dr_len,'ext_len':ext_len,'lba':lba,'size':size,'flags':flags,'name':name}, rec_end
+[?2004l[?2004h> 
+[?2004l[?2004h> def clean_name(raw):
+[?2004l[?2004h>     if not raw:
+[?2004l[?2004h>         return ''
+[?2004l[?2004h>     # Strip ISO9660 version ';1' and trailing dots for directories/files
+[?2004l[?2004h>     name = raw.decode('latin1', 'replace')
+[?2004l[?2004h>     if name in ('\x00', '.'):
+[?2004l[?2004h>         return ''
+[?2004l[?2004h>     if name == '\x01':
+[?2004l[?2004h>         return '..'
+[?2004l[?2004h>     if ';' in name:
+[?2004l[?2004h>         name = name.split(';',1)[0]
+[?2004l[?2004h>     return name.rstrip('.')
+[?2004l[?2004h> 
+[?2004l[?2004h> def list_dir(f, lba, size, path='', out=None, maxdepth=6):
+[?2004l[?2004h>     if out is None:
+[?2004l[?2004h>         out = []
+[?2004l[?2004h>     if maxdepth < 0:
+[?2004l[?2004h>         return out
+[?2004l[?2004h>     data = b''
+[?2004l[?2004h>     remaining = size
+[?2004l[?2004h>     lba_cur = lba
+[?2004l[?2004h>     # Directory records can span multiple sectors
+[?2004l[?2004h>     while remaining > 0:
+[?2004l[?2004h>         data += read_sec(f, lba_cur, 1)
+[?2004l[?2004h>         lba_cur += 1
+[?2004l[?2004h>         remaining -= SEC
+[?2004l[?2004h>     off = 0
+[?2004l[?2004h>     while off < len(data):
+[?2004l[?2004h>         rec, off = parse_dr(data, off)
+[?2004l[?2004h>         if rec is None:
+[?2004l[?2004h>             if off >= len(data):
+[?2004l[?2004h>                 break
+[?2004l[?2004h>             continue
+[?2004l[?2004h>         name = clean_name(rec['name'])
+[?2004l[?2004h>         if not name or name in ('.', '..'):
+[?2004l[?2004h>             continue
+[?2004l[?2004h>         full = path + '/' + name
+[?2004l[?2004h>         is_dir = rec['flags'] & 0x02
+[?2004l[?2004h>         out.append((full, rec['lba'], rec['size'], is_dir, rec['flags']))
+[?2004l[?2004h>         if is_dir:
+[?2004l[?2004h>             list_dir(f, rec['lba'], rec['size'], full, out, maxdepth-1)
+[?2004l[?2004h>     return out
+[?2004l[?2004h> 
+[?2004l[?2004h> def main():
+[?2004l[?2004h>     f = open(ISO, 'rb')
+[?2004l[?2004h>     # PVD at sector 16
+[?2004l[?2004h>     pvd = read_sec(f, 16, 1)
+[?2004l[?2004h>     root_dr = pvd[156:190]
+[?2004l[?2004h>     root_lba = struct.unpack_from('<I', root_dr, 2)[0]
+[?2004l[?2004h>     root_size = struct.unpack_from('<I', root_dr, 10)[0]
+[?2004l[?2004h>     entries = list_dir(f, root_lba, root_size)
+[?2004l[?2004h>     for full, lba, size, isdir, flags in entries:
+[?2004l[?2004h>         print(('DIR ' if isdir else 'FILE') + f'{full} lba={lba} size={size}')
+[?2004l[?2004h>     f.close()
+[?2004l[?2004h> 
+[?2004l[?2004h> if __name__ == '__main__':
+[?2004l[?2004h>     main()
+[?2004l[?2004h> PY
+[?2004l[?2004hroot@738eda08f1d3:/app# python3 /tmp/iso_list.py | sed -n '1,240p'
+[?2004lFILE/.ALPINE_RELEASE lba=859 size=30
+DIR /APKS lba=22 size=2048
+FILE/APKS/.BOOT_REPOSITORY lba=102 size=0
+DIR /APKS/X86_64 lba=23 size=79872
+FILE/APKS/X86_64/ACCT_6_6_4_R2.APK lba=984 size=59885
+FILE/APKS/X86_64/ACCT_OPENRC_6_6_4_R2.APK lba=845 size=1875
+FILE/APKS/X86_64/AGETTY_2_39_3_R0.APK lba=2652 size=21634
+FILE/APKS/X86_64/AGETTY_OPENRC_0_52_1_R0.APK lba=846 size=2540
+FILE/APKS/X86_64/ALPINE_BASELAYOUT_3_4_3_R2.APK lba=848 size=8911
+FILE/APKS/X86_64/ALPINE_BASELAYOUT_DATA_3_4_.APK lba=853 size=11533
+FILE/APKS/X86_64/ALPINE_BASE_3_19_0_R0.APK lba=3775 size=1515
+FILE/APKS/X86_64/ALPINE_CONF_3_17_0_R0.APK lba=860 size=60648
+FILE/APKS/X86_64/ALPINE_KEYS_2_4_R1.APK lba=890 size=13353
+FILE/APKS/X86_64/ALPINE_RELEASE_3_19_0_R0.APK lba=897 size=2063
+FILE/APKS/X86_64/APKINDEX_TAR.GZ lba=899 size=52827
+FILE/APKS/X86_64/APK_TOOLS_2_14_0_R5.APK lba=925 size=120789
+FILE/APKS/X86_64/ARGON2_LIBS_20190702_R5.APK lba=6284 size=18597
+FILE/APKS/X86_64/ARPON_3_0_R7.APK lba=1014 size=20824
+FILE/APKS/X86_64/ARPON_OPENRC_3_0_R7.APK lba=1025 size=1942
+FILE/APKS/X86_64/ARPWATCH_3_5_R0.APK lba=1026 size=29663
+FILE/APKS/X86_64/ARPWATCH_OPENRC_3_5_R0.APK lba=1041 size=2465
+FILE/APKS/X86_64/AWALL_1_12_2_R1.APK lba=1043 size=32491
+FILE/APKS/X86_64/BASH_5_2_21_R0.APK lba=1059 size=448728
+FILE/APKS/X86_64/BLKID_2_39_3_R0.APK lba=1279 size=18451
+FILE/APKS/X86_64/BONDING_2_6_R5.APK lba=1289 size=4361
+FILE/APKS/X86_64/BOTAN_LIBS_2_19_3_R5.APK lba=1292 size=2784229
+FILE/APKS/X86_64/BRIDGE_1_5_R5.APK lba=14267 size=2871
+FILE/APKS/X86_64/BRIDGE_UTILS_1_7_1_R2.APK lba=2663 size=12741
+FILE/APKS/X86_64/BROTLI_LIBS_1_1_0_R1.APK lba=2670 size=416208
+FILE/APKS/X86_64/BTRFS_PROGS_6_6_2_R0.APK lba=2874 size=807191
+FILE/APKS/X86_64/BTRFS_PROGS_OPENRC_6_6_2_R0.APK lba=3269 size=1678
+FILE/APKS/X86_64/BUSYBOX_1_36_1_R15.APK lba=3270 size=506796
+FILE/APKS/X86_64/BUSYBOX_BINSH_1_36_1_R15.APK lba=3518 size=1543
+FILE/APKS/X86_64/BUSYBOX_MDEV_OPENRC_1_36_1_.APK lba=3519 size=2047
+FILE/APKS/X86_64/BUSYBOX_OPENRC_1_36_1_R15.APK lba=3520 size=4192
+FILE/APKS/X86_64/BUSYBOX_SUID_1_36_1_R15.APK lba=3523 size=3959
+FILE/APKS/X86_64/BWM_NG_0_6_3_R3.APK lba=3525 size=20894
+FILE/APKS/X86_64/CA_CERTIFICATES_20230506_R0.APK lba=3536 size=156460
+FILE/APKS/X86_64/CA_CERTIFICATES_BUNDLE_2023.APK lba=3613 size=126293
+FILE/APKS/X86_64/CFDISK_2_39_3_R0.APK lba=3675 size=31388
+FILE/APKS/X86_64/CHRONY_4_5_R0.APK lba=3691 size=165952
+FILE/APKS/X86_64/CHRONY_OPENRC_4_5_R0.APK lba=3773 size=2561
+FILE/APKS/X86_64/CKSFV_1_3_15_R3.APK lba=19733 size=10406
+FILE/APKS/X86_64/CONNTRACK_TOOLS_1_4_8_R0.APK lba=3776 size=141325
+FILE/APKS/X86_64/CONNTRACK_TOOLS_OPENRC_1_4_.APK lba=3846 size=3069
+FILE/APKS/X86_64/COREUTILS_9_4_R1.APK lba=3848 size=508433
+FILE/APKS/X86_64/COREUTILS_ENV_9_4_R1.APK lba=4097 size=22394
+FILE/APKS/X86_64/COREUTILS_FMT_9_4_R1.APK lba=4108 size=20355
+FILE/APKS/X86_64/COREUTILS_SHA512SUM_9_4_R1.APK lba=4118 size=20516
+FILE/APKS/X86_64/CRYPTSETUP_2_6_1_R8.APK lba=4129 size=98429
+FILE/APKS/X86_64/CRYPTSETUP_LIBS_2_6_1_R8.APK lba=4178 size=198161
+FILE/APKS/X86_64/CRYPTSETUP_OPENRC_2_6_1_R8.APK lba=4275 size=6731
+FILE/APKS/X86_64/CURL_8_5_0_R0.APK lba=4279 size=147127
+FILE/APKS/X86_64/CUTTER_1_04_R5.APK lba=4351 size=7983
+FILE/APKS/X86_64/CYRUS_SASL_2_1_28_R5.APK lba=4355 size=44797
+FILE/APKS/X86_64/CYRUS_SASL_OPENRC_2_1_28_R5.APK lba=4377 size=1771
+FILE/APKS/X86_64/C_ARES_1_22_1_R0.APK lba=4378 size=59562
+FILE/APKS/X86_64/DBUS_LIBS_1_14_10_R0.APK lba=4408 size=124346
+FILE/APKS/X86_64/DEVICE_MAPPER_EVENT_LIBS_2_.APK lba=4469 size=10722
+FILE/APKS/X86_64/DEVICE_MAPPER_LIBS_2_03_23_.APK lba=4475 size=136551
+FILE/APKS/X86_64/DHCPCD_10_0_5_R0.APK lba=4542 size=166041
+FILE/APKS/X86_64/DHCPCD_OPENRC_10_0_5_R0.APK lba=4624 size=1814
+FILE/APKS/X86_64/DHCP_4_4_3_P1_R4.APK lba=4625 size=1018562
+FILE/APKS/X86_64/DHCP_OPENRC_4_4_3_P1_R4.APK lba=5123 size=3416
+FILE/APKS/X86_64/DHCP_SERVER_VANILLA_4_4_3_P.APK lba=5125 size=1182279
+FILE/APKS/X86_64/DHCRELAY_4_4_3_P1_R4.APK lba=5703 size=1018998
+FILE/APKS/X86_64/DHCRELAY_OPENRC_4_4_3_P1_R4.APK lba=6201 size=2479
+FILE/APKS/X86_64/DNSMASQ_2_89_R6.APK lba=6203 size=164430
+FILE/APKS/X86_64/DNSMASQ_COMMON_2_89_R6.APK lba=268811 size=12253
+FILE/APKS/X86_64/DNSMASQ_OPENRC_2_89_R6.APK lba=6294 size=3816
+FILE/APKS/X86_64/DNSSEC_ROOT_20190225_R2.APK lba=6296 size=1896
+FILE/APKS/X86_64/DOAS_6_8_2_R6.APK lba=6297 size=15872
+FILE/APKS/X86_64/DOSFSTOOLS_4_2_R2.APK lba=6305 size=71612
+FILE/APKS/X86_64/DRILL_1_8_3_R2.APK lba=6340 size=25297
+FILE/APKS/X86_64/E2FSPROGS_1_47_0_R5.APK lba=6353 size=178924
+FILE/APKS/X86_64/E2FSPROGS_EXTRA_1_47_0_R5.APK lba=6441 size=212246
+FILE/APKS/X86_64/E2FSPROGS_LIBS_1_47_0_R5.APK lba=6545 size=207380
+FILE/APKS/X86_64/EFIBOOTMGR_18_R2.APK lba=6647 size=23580
+FILE/APKS/X86_64/EFIVAR_LIBS_38_R4.APK lba=6659 size=110955
+FILE/APKS/X86_64/ETHTOOL_6_6_R0.APK lba=6714 size=177083
+FILE/APKS/X86_64/EUDEV_3_2_14_R0.APK lba=6801 size=264778
+FILE/APKS/X86_64/EUDEV_DEV_3_2_14_R0.APK lba=6931 size=881853
+FILE/APKS/X86_64/EUDEV_HWIDS_3_2_14_R0.APK lba=7362 size=1237581
+FILE/APKS/X86_64/EUDEV_LIBS_3_2_14_R0.APK lba=7967 size=26399
+FILE/APKS/X86_64/EUDEV_OPENRC_3_2_14_R0.APK lba=7980 size=2231
+FILE/APKS/X86_64/F2FS_TOOLS_1_16_0_R3.APK lba=7982 size=140852
+FILE/APKS/X86_64/F2FS_TOOLS_LIBS_1_16_0_R3.APK lba=8051 size=61180
+FILE/APKS/X86_64/FINDMNT_2_39_3_R0.APK lba=8081 size=20925
+FILE/APKS/X86_64/FLOCK_2_39_3_R0.APK lba=8092 size=6939
+FILE/APKS/X86_64/FPING_5_1_R5.APK lba=8096 size=19453
+FILE/APKS/X86_64/FPROBE_1_1_R13.APK lba=8106 size=14333
+FILE/APKS/X86_64/FPROBE_OPENRC_1_1_R13.APK lba=8113 size=3292
+FILE/APKS/X86_64/FSTRIM_2_39_3_R0.APK lba=8115 size=13374
+FILE/APKS/X86_64/GDBM_1_23_R1.APK lba=8122 size=30627
+FILE/APKS/X86_64/GMP_6_3_0_R0.APK lba=8137 size=221502
+FILE/APKS/X86_64/GNUTLS_3_8_1_R0.APK lba=8246 size=913051
+FILE/APKS/X86_64/GRUB_2_06_R17.APK lba=8692 size=5506410
+FILE/APKS/X86_64/GRUB_BIOS_2_06_R17.APK lba=11381 size=1117428
+FILE/APKS/X86_64/GRUB_EFI_2_06_R17.APK lba=11927 size=1228499
+FILE/APKS/X86_64/HEIMDAL_LIBS_7_8_0_R3.APK lba=12527 size=1067199
+FILE/APKS/X86_64/HEXDUMP_2_39_3_R0.APK lba=13049 size=16324
+FILE/APKS/X86_64/HTOP_3_2_2_R1.APK lba=13057 size=118158
+FILE/APKS/X86_64/HWDATA_0_377_2_R0.APK lba=13115 size=1546
+FILE/APKS/X86_64/HWDATA_NET_0_377_2_R0.APK lba=13116 size=1704079
+FILE/APKS/X86_64/HWDATA_PCI_0_377_2_R0.APK lba=13949 size=324760
+FILE/APKS/X86_64/HWDATA_PNP_0_377_2_R0.APK lba=14108 size=27923
+FILE/APKS/X86_64/HWDATA_USB_0_377_2_R0.APK lba=14122 size=254488
+FILE/APKS/X86_64/IFUPDOWN_NG_0_12_1_R3.APK lba=14247 size=30891
+FILE/APKS/X86_64/IFUPDOWN_NG_ETHTOOL_0_12_1_.APK lba=14263 size=2373
+FILE/APKS/X86_64/IFUPDOWN_NG_IPROUTE2_0_12_1.APK lba=14265 size=3989
+FILE/APKS/X86_64/IFUPDOWN_NG_OPENRC_0_12_1_R.APK lba=355229 size=2470
+FILE/APKS/X86_64/IFUPDOWN_NG_PPP_0_12_1_R3.APK lba=14269 size=1752
+FILE/APKS/X86_64/IFUPDOWN_NG_WIFI_0_12_1_R3.APK lba=14270 size=3105
+FILE/APKS/X86_64/IFUPDOWN_NG_WIREGUARD_0_12_.APK lba=14272 size=1836
+FILE/APKS/X86_64/IFUPDOWN_NG_WIREGUARD_QUICK.APK lba=14273 size=1767
+FILE/APKS/X86_64/IGMPPROXY_0_4_R1.APK lba=14274 size=20491
+FILE/APKS/X86_64/INIH_57_R1.APK lba=14285 size=4157
+FILE/APKS/X86_64/IPROUTE2_6_6_0_R0.APK lba=14288 size=152442
+FILE/APKS/X86_64/IPROUTE2_MINIMAL_6_6_0_R0.APK lba=14363 size=272442
+FILE/APKS/X86_64/IPROUTE2_QOS_0_5_R5.APK lba=14497 size=2417
+FILE/APKS/X86_64/IPROUTE2_QOS_OPENRC_0_5_R5.APK lba=14499 size=6728
+FILE/APKS/X86_64/IPROUTE2_SS_6_6_0_R0.APK lba=14503 size=46848
+FILE/APKS/X86_64/IPROUTE2_TC_6_6_0_R0.APK lba=14526 size=259686
+FILE/APKS/X86_64/IPSET_7_19_R2.APK lba=14653 size=94735
+FILE/APKS/X86_64/IPSET_OPENRC_7_19_R2.APK lba=14700 size=2481
+FILE/APKS/X86_64/IPTABLES_1_8_10_R1.APK lba=14702 size=326282
+FILE/APKS/X86_64/IPTABLES_OPENRC_1_8_10_R1.APK lba=14862 size=4231
+FILE/APKS/X86_64/IPUTILS_20221126_R2.APK lba=14865 size=1528
+FILE/APKS/X86_64/IPUTILS_ARPING_20221126_R2.APK lba=14866 size=10508
+FILE/APKS/X86_64/IPUTILS_CLOCKDIFF_20221126_.APK lba=14872 size=7425
+FILE/APKS/X86_64/IPUTILS_PING_20221126_R2.APK lba=14876 size=30925
+FILE/APKS/X86_64/IPUTILS_TRACEPATH_20221126_.APK lba=14892 size=8207
+FILE/APKS/X86_64/IW_5_19_R1.APK lba=14897 size=95442
+FILE/APKS/X86_64/JANSSON_2_14_R4.APK lba=14944 size=24863
+FILE/APKS/X86_64/JITTERENTROPY_LIBRARY_3_4_1.APK lba=14957 size=13345
+FILE/APKS/X86_64/JSON_C_0_17_R0.APK lba=14964 size=27967
+FILE/APKS/X86_64/KBD_BKEYMAPS_2_6_3_R0.APK lba=14978 size=761114
+FILE/APKS/X86_64/KEA_2_4_1_R0.APK lba=15350 size=1475
+FILE/APKS/X86_64/KEA_COMMON_2_4_1_R0.APK lba=15351 size=3342433
+FILE/APKS/X86_64/KEA_DHCP4_2_4_1_R0.APK lba=16984 size=341045
+FILE/APKS/X86_64/KEA_DHCP6_2_4_1_R0.APK lba=17151 size=341848
+FILE/APKS/X86_64/KEYUTILS_LIBS_1_6_3_R3.APK lba=17318 size=7699
+FILE/APKS/X86_64/KMOD_31_R2.APK lba=17322 size=64345
+FILE/APKS/X86_64/KMOD_LIBS_31_R2.APK lba=17354 size=39353
+FILE/APKS/X86_64/KMOD_OPENRC_31_R2.APK lba=17374 size=1967
+FILE/APKS/X86_64/KRB5_CONF_1_0_R2.APK lba=17375 size=1764
+FILE/APKS/X86_64/KRB5_LIBS_1_21_2_R0.APK lba=17376 size=765964
+FILE/APKS/X86_64/LDDTREE_1_27_R0.APK lba=17751 size=5466
+FILE/APKS/X86_64/LDNS_1_8_3_R2.APK lba=17754 size=150975
+FILE/APKS/X86_64/LDNS_TOOLS_1_8_3_R2.APK lba=17828 size=119258
+FILE/APKS/X86_64/LIBACL_2_3_1_R4.APK lba=17887 size=13921
+FILE/APKS/X86_64/LIBAIO_0_3_113_R2.APK lba=17894 size=4369
+FILE/APKS/X86_64/LIBATTR_2_5_1_R5.APK lba=17897 size=8026
+FILE/APKS/X86_64/LIBBLKID_2_39_3_R0.APK lba=17901 size=92591
+FILE/APKS/X86_64/LIBBZ2_1_0_8_R6.APK lba=17947 size=33088
+FILE/APKS/X86_64/LIBCAP2_2_69_R1.APK lba=17964 size=22021
+FILE/APKS/X86_64/LIBCAP_NG_0_8_3_R4.APK lba=17975 size=11376
+FILE/APKS/X86_64/LIBCOM_ERR_1_47_0_R5.APK lba=17981 size=6036
+FILE/APKS/X86_64/LIBCRYPTO3_3_1_4_R2.APK lba=17984 size=1743334
+FILE/APKS/X86_64/LIBCURL_8_5_0_R0.APK lba=18836 size=279767
+FILE/APKS/X86_64/LIBC_UTILS_0_7_2_R5.APK lba=18973 size=1476
+FILE/APKS/X86_64/LIBDNET_1_17_0_R0.APK lba=18974 size=34805
+FILE/APKS/X86_64/LIBDW_0_190_R1.APK lba=18991 size=219586
+FILE/APKS/X86_64/LIBECONF_0_5_2_R2.APK lba=19099 size=23560
+FILE/APKS/X86_64/LIBEDIT_20230828_3_1_R3.APK lba=19111 size=76818
+FILE/APKS/X86_64/LIBELF_0_190_R1.APK lba=19149 size=43639
+FILE/APKS/X86_64/LIBEVENT_2_1_12_R7.APK lba=19171 size=283154
+FILE/APKS/X86_64/LIBEV_4_33_R1.APK lba=19310 size=23331
+FILE/APKS/X86_64/LIBEXPAT_2_5_0_R2.APK lba=19322 size=57827
+FILE/APKS/X86_64/LIBFDISK_2_39_3_R0.APK lba=19351 size=123848
+FILE/APKS/X86_64/LIBFFI_3_4_4_R3.APK lba=19412 size=18115
+FILE/APKS/X86_64/LIBGCC_13_2_1_GIT20231014_R.APK lba=19421 size=64074
+FILE/APKS/X86_64/LIBGOMP_13_2_1_GIT20231014_.APK lba=19453 size=143121
+FILE/APKS/X86_64/LIBIDN2_2_3_4_R4.APK lba=19523 size=104332
+FILE/APKS/X86_64/LIBINTL_0_22_3_R0.APK lba=19574 size=31014
+FILE/APKS/X86_64/LIBMNL_1_0_5_R2.APK lba=19590 size=9003
+FILE/APKS/X86_64/LIBMOUNT_2_39_3_R0.APK lba=19595 size=121800
+FILE/APKS/X86_64/LIBNCURSESW_6_4_P20231125_R.APK lba=19655 size=158755
+FILE/APKS/X86_64/LIBNETFILTER_CONNTRACK_1_0_.APK lba=355231 size=39988
+FILE/APKS/X86_64/LIBNETFILTER_CTHELPER_1_0_1.APK lba=19739 size=6333
+FILE/APKS/X86_64/LIBNETFILTER_CTTIMEOUT_1_0_.APK lba=19743 size=6127
+FILE/APKS/X86_64/LIBNETFILTER_QUEUE_1_0_5_R2.APK lba=19746 size=12355
+FILE/APKS/X86_64/LIBNET_1_3_R0.APK lba=19753 size=40573
+FILE/APKS/X86_64/LIBNFNETLINK_1_0_2_R3.APK lba=19773 size=12393
+FILE/APKS/X86_64/LIBNFSIDMAP_2_6_4_R0.APK lba=19780 size=52157
+FILE/APKS/X86_64/LIBNFTNL_1_2_6_R0.APK lba=19806 size=67186
+FILE/APKS/X86_64/LIBNL3_3_9_0_R0.APK lba=19839 size=324827
+FILE/APKS/X86_64/LIBPANELW_6_4_P20231125_R0.APK lba=19998 size=5660
+FILE/APKS/X86_64/LIBPCAP_1_10_4_R1.APK lba=20001 size=106847
+FILE/APKS/X86_64/LIBPQ_16_1_R0.APK lba=20054 size=140459
+FILE/APKS/X86_64/LIBRETLS_3_7_0_R2.APK lba=20123 size=29326
+FILE/APKS/X86_64/LIBSASL_2_1_28_R5.APK lba=20138 size=65893
+FILE/APKS/X86_64/LIBSECCOMP_2_5_5_R0.APK lba=20171 size=46176
+FILE/APKS/X86_64/LIBSMARTCOLS_2_39_3_R0.APK lba=20194 size=39911
+FILE/APKS/X86_64/LIBSSL3_3_1_4_R2.APK lba=20214 size=234052
+FILE/APKS/X86_64/LIBSTDC___13_2_1_GIT2023101.APK lba=20329 size=917068
+FILE/APKS/X86_64/LIBTASN1_4_19_0_R2.APK lba=20777 size=33039
+FILE/APKS/X86_64/LIBTIRPC_1_3_4_R0.APK lba=20794 size=76319
+FILE/APKS/X86_64/LIBTIRPC_CONF_1_3_4_R0.APK lba=20832 size=2225
+FILE/APKS/X86_64/LIBUNISTRING_1_1_R2.APK lba=20834 size=649131
+FILE/APKS/X86_64/LIBUSB_1_0_26_R3.APK lba=21151 size=46043
+FILE/APKS/X86_64/LIBUSB_DEV_1_0_26_R3.APK lba=21174 size=79114
+FILE/APKS/X86_64/LIBUUID_2_39_3_R0.APK lba=21213 size=13326
+FILE/APKS/X86_64/LIBVERTO_0_3_2_R2.APK lba=21220 size=9274
+FILE/APKS/X86_64/LIBXTABLES_1_8_10_R1.APK lba=21225 size=24482
+FILE/APKS/X86_64/LIBXXHASH_0_8_2_R2.APK lba=21237 size=23562
+FILE/APKS/X86_64/LINKS_2_29_R1.APK lba=21249 size=615008
+FILE/APKS/X86_64/LINUX_FIRMWARE_20231111_R1.APK lba=21550 size=2017
+FILE/APKS/X86_64/LINUX_FIRMWARE_3COM_2023111.APK lba=21551 size=32172
+FILE/APKS/X86_64/LINUX_FIRMWARE_ACENIC_20231.APK lba=21567 size=52248
+FILE/APKS/X86_64/LINUX_FIRMWARE_ADAPTEC_2023.APK lba=21593 size=2115
+FILE/APKS/X86_64/LINUX_FIRMWARE_ADVANSYS_202.APK lba=21595 size=15528
+FILE/APKS/X86_64/LINUX_FIRMWARE_AMDGPU_20231.APK lba=21603 size=19445499
+FILE/APKS/X86_64/LINUX_FIRMWARE_AMDTEE_20231.APK lba=31098 size=7991
+FILE/APKS/X86_64/LINUX_FIRMWARE_AMD_20231111.APK lba=31102 size=175233
+FILE/APKS/X86_64/LINUX_FIRMWARE_AMD_UCODE_20.APK lba=31188 size=40106
+FILE/APKS/X86_64/LINUX_FIRMWARE_AMLOGIC_2023.APK lba=31208 size=265219
+FILE/APKS/X86_64/LINUX_FIRMWARE_AMPHION_2023.APK lba=31338 size=354314
+FILE/APKS/X86_64/LINUX_FIRMWARE_AR3K_2023111.APK lba=31512 size=285236
+FILE/APKS/X86_64/LINUX_FIRMWARE_ATH10K_20231.APK lba=31652 size=5997006
+FILE/APKS/X86_64/LINUX_FIRMWARE_ATH11K_20231.APK lba=34581 size=18102875
+FILE/APKS/X86_64/LINUX_FIRMWARE_ATH6K_202311.APK lba=43421 size=715468
+FILE/APKS/X86_64/LINUX_FIRMWARE_ATH9K_HTC_20.APK lba=43771 size=63665
+FILE/APKS/X86_64/LINUX_FIRMWARE_ATMEL_202311.APK lba=43803 size=401497
+FILE/APKS/X86_64/LINUX_FIRMWARE_ATUSB_202311.APK lba=44000 size=8056
+FILE/APKS/X86_64/LINUX_FIRMWARE_AV7110_20231.APK lba=44004 size=1834
+FILE/APKS/X86_64/LINUX_FIRMWARE_BNX2X_202311.APK lba=44005 size=2425251
+FILE/APKS/X86_64/LINUX_FIRMWARE_BNX2_2023111.APK lba=45190 size=106915
+FILE/APKS/X86_64/LINUX_FIRMWARE_BRCM_2023111.APK lba=45243 size=11982419
+FILE/APKS/X86_64/LINUX_FIRMWARE_CADENCE_2023.APK lba=51094 size=25233
+FILE/APKS/X86_64/LINUX_FIRMWARE_CAVIUM_20231.APK lba=51107 size=37186
+FILE/APKS/X86_64/LINUX_FIRMWARE_CIRRUS_20231.APK lba=51126 size=272804
+FILE/APKS/X86_64/LINUX_FIRMWARE_CIS_20231111.APK lba=51260 size=4156
+FILE/APKS/X86_64/LINUX_FIRMWARE_CNM_20231111.APK lba=51263 size=182075
+FILE/APKS/X86_64/LINUX_FIRMWARE_CPIA2_202311.APK lba=51352 size=2387
+FILE/APKS/X86_64/LINUX_FIRMWARE_CXGB3_202311.APK lba=51354 size=102408
+FILE/APKS/X86_64/LINUX_FIRMWARE_CXGB4_202311.APK lba=51405 size=3005179
+FILE/APKS/X86_64/LINUX_FIRMWARE_CYPRESS_2023.APK lba=52873 size=4073071
+FILE/APKS/X86_64/LINUX_FIRMWARE_DABUSB_20231.APK lba=54862 size=15176
+FILE/APKS/X86_64/LINUX_FIRMWARE_DPAA2_202311.APK lba=54870 size=6485031
+[?2004hroot@738eda08f1d3:/app# python3 /tmp/iso_list.py | grep -v '^FILE/APKS' | sed -n '1,240p'
+[?2004lFILE/.ALPINE_RELEASE lba=859 size=30
+DIR /APKS lba=22 size=2048
+DIR /APKS/X86_64 lba=23 size=79872
+DIR /BOOT lba=62 size=2048
+FILE/BOOT/AMD_UCODE.IMG lba=377338 size=61440
+FILE/BOOT/CONFIG_LTS lba=377368 size=261013
+DIR /BOOT/DTBS_LTS lba=63 size=2048
+DIR /BOOT/GRUB lba=64 size=2048
+FILE/BOOT/GRUB/EFI.IMG lba=125 size=1474560
+FILE/BOOT/GRUB/GRUB.CFG lba=387586 size=182
+FILE/BOOT/INITRAMFS_LTS lba=377583 size=20486092
+FILE/BOOT/INTEL_UCODE.IMG lba=475863 size=7367952
+FILE/BOOT/MODLOOP_LTS lba=387587 size=180789248
+DIR /BOOT/SYSLINUX lba=65 size=2048
+FILE/BOOT/SYSLINUX/BOOT.CAT lba=103 size=2048
+FILE/BOOT/SYSLINUX/ISOHDPFX.BIN lba=479461 size=432
+FILE/BOOT/SYSLINUX/ISOLINUX.BIN lba=104 size=43008
+FILE/BOOT/SYSLINUX/LDLINUX.C32 lba=480215 size=115468
+FILE/BOOT/SYSLINUX/LIBCOM32.C32 lba=480272 size=178532
+FILE/BOOT/SYSLINUX/LIBUTIL.C32 lba=480360 size=23636
+FILE/BOOT/SYSLINUX/MBOOT.C32 lba=480372 size=11712
+FILE/BOOT/SYSLINUX/SYSLINUX.CFG lba=480378 size=235
+FILE/BOOT/SYSTEM.MAP_LTS lba=480379 size=5751847
+FILE/BOOT/VMLINUZ_LTS lba=483188 size=11879168
+DIR /EFI lba=66 size=2048
+DIR /EFI/BOOT lba=67 size=2048
+FILE/EFI/BOOT/BOOTX64.EFI lba=488989 size=688128
+[?2004hroot@738eda08f1d3:/app# cat > /tmp/iso_extract.py <<'PY'
+[?2004l[?2004h> #!/usr/bin/env python3
+[?2004l[?2004h> import sys, struct, os
+[?2004l[?2004h> 
+[?2004l[?2004h> ISO = '/app/alpine.iso'
+[?2004l[?2004h> SEC = 2048
+[?2004l[?2004h> 
+[?2004l))
+            if len(chunk) > rem:
+                chunk = chunk[:rem]
+            o.write(chunk)
+            cur += len(chunk)//SEC if len(chunk)%SEC==0 else (len(chunk)//SEC)+1
+            rem -= len(chunk)
+
+def main():
+    targets = [p.strip() for p in sys.argv[1:] if p.strip()]
+    f=open(ISO,'rb')
+    pvd=read_sec(f,16,1)
+    root_dr=pvd[156:190]
+    root_lba=struct.unpack_from('<I', root_dr, 2)[0]
+    root_size=struct.unpack_from('<I', root_dr, 10)[0]
+    entries=list_dir(f, root_lba, root_size)
+    if not targets:
+        for full,lba,size,isdir,flags in entries:
+            if not full.startswith('/APKS'):
+                print(('DIR ' if isdir else 'FILE')+f'{full} lba={lba} size={size}')
+    else:
+        for full,lba,size,isdir,flags in entries:
+            if full in targets:
+                out='/tmp/iso_root'+full
+                print('extracting', full, 'to', out)
+                extract(f,lba,size,out)
+    f.close()
+
+if __name__=='__main__':
+    main()
+PY
+python3 /tmp/iso_extract.py | sed -n[?2004h> def read_sec(f, lba, n=1):
+[?2004l '1,260p'
+[?2004h>     f.seek(lba*SEC)
+[?2004l[?2004h>     return f.read(n*SEC)
+[?2004l[?2004h> 
+[?2004l[?2004h> def parse_dr(data, off):
+[?2004l[?2004h>     if off >= len(data):
+[?2004l[?2004h>         return None, off
+[?2004l[?2004h>     dr_len = data[off]
+[?2004l[?2004h>     if dr_len == 0:
+[?2004l[?2004h>         next_off = ((off // SEC) + 1) * SEC
+[?2004l[?2004h>         return None, next_off
+[?2004l[?2004h>     ext_len = data[off+1]
+[?2004l[?2004h>     lba = struct.unpack_from('<I', data, off+2)[0]
+[?2004l[?2004h>     size = struct.unpack_from('<I', data, off+10)[0]
+[?2004l[?2004h>     flags = data[off+25]
+[?2004l[?2004h>     name_len = data[off+32]
+[?2004l[?2004h>     name = data[off+33:off+33+name_len]
+[?2004l[?2004h>     return {'dr_len':dr_len,'ext_len':ext_len,'lba':lba,'size':size,'flags':flags,'name':name}, off+dr_len
+[?2004l[?2004h> 
+[?2004l[?2004h> def clean_name(raw):
+[?2004l[?2004h>     if not raw:
+[?2004l[?2004h>         return ''
+[?2004l[?2004h>     name = raw.decode('latin1','replace')
+[?2004l[?2004h>     if name in ('\x00','.'):
+[?2004l[?2004h>         return ''
+[?2004l[?2004h>     if name == '\x01':
+[?2004l[?2004h>         return '..'
+[?2004l[?2004h>     if ';' in name:
+[?2004l[?2004h>         name = name.split(';',1)[0]
+[?2004l[?2004h>     return name.rstrip('.')
+[?2004l[?2004h> 
+[?2004l[?2004h> def list_dir(f, lba, size, path='', out=None, maxdepth=8):
+[?2004l[?2004h>     if out is None:
+[?2004l[?2004h>         out = []
+[?2004l[?2004h>     if maxdepth < 0:
+[?2004l[?2004h>         return out
+[?2004l[?2004h>     data=b''
+[?2004l[?2004h>     rem=size
+[?2004l[?2004h>     cur=lba
+[?2004l[?2004h>     while rem > 0:
+[?2004l[?2004h>         data += read_sec(f, cur, 1)
+[?2004l[?2004h>         cur += 1
+[?2004l[?2004h>         rem -= SEC
+[?2004l[?2004h>     off=0
+[?2004l[?2004h>     while off < len(data):
+[?2004l[?2004h>         rec, off = parse_dr(data, off)
+[?2004l[?2004h>         if rec is None:
+[?2004l[?2004h>             if off >= len(data):
+[?2004l[?2004h>                 break
+[?2004l[?2004h>             continue
+[?2004l[?2004h>         name = clean_name(rec['name'])
+[?2004l[?2004h>         if not name or name in ('.','..'):
+[?2004l[?2004h>             continue
+[?2004l[?2004h>         full = path + '/' + name
+[?2004l[?2004h>         is_dir = rec['flags'] & 0x02
+[?2004l[?2004h>         out.append((full, rec['lba'], rec['size'], is_dir, rec['flags']))
+[?2004l[?2004h>         if is_dir:
+[?2004l[?2004h>             list_dir(f, rec['lba'], rec['size'], full, out, maxdepth-1)
+[?2004l[?2004h>     return out
+[?2004l[?2004h> 
+[?2004l[?2004h> def extract(f, lba, size, outpath):
+[?2004l[?2004h>     os.makedirs(os.path.dirname(outpath), exist_ok=True)
+[?2004l[?2004h>     with open(outpath,'wb') as o:
+[?2004l[?2004h>         rem=size
+[?2004l[?2004h>         cur=lba
+[?2004l[?2004h>         while rem > 0:
+[?2004l[?2004h>             chunk = read_sec(f, cur, max(1, min(rem//SEC + (1 if rem%SEC else 0), 256)))
+[?2004l[?2004h>             if len(chunk) > rem:
+[?2004l[?2004h>                 chunk = chunk[:rem]
+[?2004l[?2004h>             o.write(chunk)
+[?2004l[?2004h>             cur += len(chunk)//SEC if len(chunk)%SEC==0 else (len(chunk)//SEC)+1
+[?2004l[?2004h>             rem -= len(chunk)
+[?2004l[?2004h> 
+[?2004l[?2004h> def main():
+[?2004l[?2004h>     targets = [p.strip() for p in sys.argv[1:] if p.strip()]
+[?2004l[?2004h>     f=open(ISO,'rb')
+[?2004l[?2004h>     pvd=read_sec(f,16,1)
+[?2004l[?2004h>     root_dr=pvd[156:190]
+[?2004l[?2004h>     root_lba=struct.unpack_from('<I', root_dr, 2)[0]
+[?2004l[?2004h>     root_size=struct.unpack_from('<I', root_dr, 10)[0]
+[?2004l[?2004h>     entries=list_dir(f, root_lba, root_size)
+[?2004l[?2004h>     if not targets:
+[?2004l[?2004h>         for full,lba,size,isdir,flags in entries:
+[?2004l[?2004h>             if not full.startswith('/APKS'):
+[?2004l[?2004h>                 print(('DIR ' if isdir else 'FILE')+f'{full} lba={lba} size={size}')
+[?2004l[?2004h>     else:
+[?2004l[?2004h>         for full,lba,size,isdir,flags in entries:
+[?2004l[?2004h>             if full in targets:
+[?2004l[?2004h>                 out='/tmp/iso_root'+full
+[?2004l[?2004h>                 print('extracting', full, 'to', out)
+[?2004l[?2004h>                 extract(f,lba,size,out)
+[?2004l[?2004h>     f.close()
+[?2004l[?2004h> 
+[?2004l[?2004h> if __name__=='__main__':
+[?2004l[?2004h>     main()
+[?2004l[?2004h> PY
+[?2004l[?2004hroot@738eda08f1d3:/app# python3 /tmp/iso_extract.py | sed -n '1,260p'
+[?2004lFILE/.ALPINE_RELEASE lba=859 size=30
+DIR /BOOT lba=62 size=2048
+FILE/BOOT/AMD_UCODE.IMG lba=377338 size=61440
+FILE/BOOT/CONFIG_LTS lba=377368 size=261013
+DIR /BOOT/DTBS_LTS lba=63 size=2048
+DIR /BOOT/GRUB lba=64 size=2048
+FILE/BOOT/GRUB/EFI.IMG lba=125 size=1474560
+FILE/BOOT/GRUB/GRUB.CFG lba=387586 size=182
+FILE/BOOT/INITRAMFS_LTS lba=377583 size=20486092
+FILE/BOOT/INTEL_UCODE.IMG lba=475863 size=7367952
+FILE/BOOT/MODLOOP_LTS lba=387587 size=180789248
+DIR /BOOT/SYSLINUX lba=65 size=2048
+FILE/BOOT/SYSLINUX/BOOT.CAT lba=103 size=2048
+FILE/BOOT/SYSLINUX/ISOHDPFX.BIN lba=479461 size=432
+FILE/BOOT/SYSLINUX/ISOLINUX.BIN lba=104 size=43008
+FILE/BOOT/SYSLINUX/LDLINUX.C32 lba=480215 size=115468
+FILE/BOOT/SYSLINUX/LIBCOM32.C32 lba=480272 size=178532
+FILE/BOOT/SYSLINUX/LIBUTIL.C32 lba=480360 size=23636
+FILE/BOOT/SYSLINUX/MBOOT.C32 lba=480372 size=11712
+FILE/BOOT/SYSLINUX/SYSLINUX.CFG lba=480378 size=235
+FILE/BOOT/SYSTEM.MAP_LTS lba=480379 size=5751847
+FILE/BOOT/VMLINUZ_LTS lba=483188 size=11879168
+DIR /EFI lba=66 size=2048
+DIR /EFI/BOOT lba=67 size=2048
+FILE/EFI/BOOT/BOOTX64.EFI lba=488989 size=688128
+[?2004hroot@738eda08f1d3:/app# python3 /tmp/iso_extract.py /BOOT/SYSLINUX/SYSLINUX.CFG /BOOT/GRUB/GRUB.CFG
+[?2004lextracting /BOOT/GRUB/GRUB.CFG to /tmp/iso_root/BOOT/GRUB/GRUB.CFG
+extracting /BOOT/SYSLINUX/SYSLINUX.CFG to /tmp/iso_root/BOOT/SYSLINUX/SYSLINUX.CFG
+[?2004hroot@738eda08f1d3:/app# echo '===== SYSLINUX.CFG ====='; cat /tmp/iso_root/BOOT/SYSLINUX/SYSLINUX.CFG; echo; echo '===== GRUB.CFG ====='; cat /tmp/iso_root/BOOT/GRUB/GRUB.CFG
+[?2004l===== SYSLINUX.CFG =====
+TIMEOUT 10
+PROMPT 1
+DEFAULT lts
+
+LABEL lts
+MENU LABEL Linux lts
+KERNEL /boot/vmlinuz-lts
+INITRD /boot/intel-ucode.img,/boot/amd-ucode.img,/boot/initramfs-lts
+FDTDIR /boot/dtbs-lts
+APPEND modules=loop,squashfs,sd-mod,usb-storage quiet 
+
+===== GRUB.CFG =====
+set timeout=1
+
+menuentry "Linux lts" {
+linux	/boot/vmlinuz-lts modules=loop,squashfs,sd-mod,usb-storage quiet 
+initrd	/boot/intel-ucode.img /boot/amd-ucode.img /boot/initramfs-lts
+}
+[?2004hroot@738eda08f1d3:/app# python3 /tmp/iso_extract.py /BOOT/VMLINUZ_LTS /BOOT/INITRAMFS_LTS
+[?2004lextracting /BOOT/INITRAMFS_LTS to /tmp/iso_root/BOOT/INITRAMFS_LTS
+extracting /BOOT/VMLINUZ_LTS to /tmp/iso_root/BOOT/VMLINUZ_LTS
+[?2004hroot@738eda08f1d3:/app# ls -lh /tmp/iso_root/BOOT/VMLINUZ_LTS /tmp/iso_root/BOOT/INITRAMFS_LTS /tmp/iso_root/BOOT/SYSLINUX/SYSLINUX.CFG /tmp/iso_root/BOOT/GRUB/GRUB.CFG
+[?2004l-rw-r--r-- 1 root root 182 Jul 14 18:53 /tmp/iso_root/BOOT/GRUB/GRUB.CFG
+-rw-r--r-- 1 root root 20M Jul 14 18:53 /tmp/iso_root/BOOT/INITRAMFS_LTS
+-rw-r--r-- 1 root root 235 Jul 14 18:53 /tmp/iso_root/BOOT/SYSLINUX/SYSLINUX.CFG
+-rw-r--r-- 1 root root 12M Jul 14 18:53 /tmp/iso_root/BOOT/VMLINUZ_LTS
+[?2004hroot@738eda08f1d3:/app# if [ -s /tmp/qemu.pid ]; then kill "$(cat /tmp/qemu.pid)" 2>/dev/null || true; fi; sleep 0.5; pkill -f 'qemu-system-x86_64 -accel tcg' 2>/dev/null || true; rm -f /tmp/alpine-serial /tmp/qemu-monitor /tmp/qemu.pid /tmp/qemu-stdout.log
+[?2004lqemu-system-x86_64 -accel tcg -m 1024 -display none -kernel /tmp/iso_root/BOOT/VMLINUZ_LTS -initrd /tmp/iso_root/BOOT/INITRAMFS_LTS -append "modules=loop,squashfs,sd-mod,usb-storage quiet console=ttyS0" -cdrom /app/alpine.iso -serial unix:/tmp/alpine-serial,server,nowait -monitor unix:/tmp/qemu-monitor,server,nowait -netdev user,id=net0,hostfwd=tcp::2222-:22 -device e1000,netdev=net0 -pidfile /tmp/qemu.pid > /tmp/qemu-stdout.log 2>&1 &
+[1]+  Done                    qemu-system-x86_64 -accel tcg -cdrom /app/alpine.iso -boot d -m 1024 -display none -serial unix:/tmp/alpine-serial,server,nowait -monitor unix:/tmp/qemu-monitor,server,nowait -netdev user,id=net0,hostfwd=tcp::2222-:22 -device e1000 -pidfile /tmp/qemu.pid > /tmp/qemu-stdout.log 2>&1
+[?2004hroot@738eda08f1d3:/app# qemu-system-x86_64 -accel tcg -m 1024 -display none -kernel /tmp/iso_root/BOOT/VMLINUZ_LTS -initrd /tmp/iso_root/BOOT/INITRAMFS_LTS -append "modules=loop,squashfs,sd-mod,usb-storage quiet console=ttyS0" -cdrom /app/alpine.iso -serial unix:/tmp/alpine-serial,server,nowait -monitor unix:/tmp/qemu-monitor,server,nowait -netdev user,id=net0,hostfwd=tcp::2222-:22 -device e1000,netdev=net0 -pidfile /tmp/qemu.pid > /tmp/qemu-stdout.log 2>&1 &
+[?2004l[1] 651
+[?2004hroot@738eda08f1d3:/app# echo "qemu pid: $(cat /tmp/qemu.pid 2>/dev/null || echo none)"; ps -p "$(cat /tmp/qemu.pid 2>/dev/null)" -o pid,stat,cmd --no-headers 2>/dev/null || true; cat /tmp/qemu-stdout.log 2>/dev/null || true; ls -la /tmp/alpine-serial /tmp/qemu-monitor 2>/dev/null || true
+[?2004lqemu pid: 651
+srwxr-xr-x 1 root root 0 Jul 14 18:53 /tmp/alpine-serial
+srwxr-xr-x 1 root root 0 Jul 14 18:53 /tmp/qemu-monitor
+[?2004hroot@738eda08f1d3:/app# python3 - <<'PY'
+[?2004l[?2004h> import socket, time, sys
+[?2004l[?2004h> path='/tmp/alpine-serial'
+[?2004l[?2004h> try:
+[?2004l[?2004h>     s=socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+[?2004l[?2004h>     s.connect(path)
+[?2004l[?2004h> except Exception as e:
+[?2004l[?2004h>     print('CONNECT_ERROR:', e)
+[?2004l[?2004h>     sys.exit(0)
+[?2004l[?2004h> s.setblocking(False)
+[?2004l[?2004h> end=time.time()+25
+[?2004l[?2004h> while time.time()<end:
+[?2004l[?2004h>     try:
+[?2004l[?2004h>         chunk=s.recv(4096)
+[?2004l[?2004h>         if chunk:
+[?2004l[?2004h>             sys.stdout.write(chunk.decode('utf-8','replace'))
+[?2004l[?2004h>             sys.stdout.flush()
+[?2004l[?2004h>         else:
+[?2004l[?2004h>             time.sleep(0.1)
+[?2004l[?2004h>     except BlockingIOError:
+[?2004l[?2004h>         time.sleep(0.1)
+[?2004l[?2004h>     except Exception as e:
+[?2004l[?2004h>         print('READ_ERROR:', e)
+[?2004l[?2004h>         break
+[?2004l[?2004h> print('\n---END SERIAL READ---')
+[?2004l[?2004h> s.close()
+[?2004l[?2004h> PY
+[?2004l
+---END SERIAL READ---
+[?2004hroot@738eda08f1d3:/app# python3 - <<'PY'
+[?2004l[?2004h> import socket, time
+[?2004l[?2004h> try:
+[?2004l[?2004h>     s=socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+[?2004l[?2004h>     s.connect('/tmp/qemu-monitor')
+[?2004l[?2004h>     s.setblocking(False)
+[?2004l[?2004h>     s.send(b'info status\n')
+[?2004l[?2004h>     time.sleep(0.5)
+[?2004l[?2004h>     end=time.time()+2
+[?2004l[?2004h>     while time.time()<end:
+[?2004l[?2004h>         try:
+[?2004l[?2004h>             print(s.recv(4096).decode('utf-8','replace'), end='')
+[?2004l[?2004h>         except BlockingIOError:
+[?2004l[?2004h>             time.sleep(0.1)
+[?2004l[?2004h>     s.close()
+[?2004l[?2004h> except Exception as e:
+[?2004l[?2004h>     print('MONITOR_ERROR:', e)
+[?2004l[?2004h> PY
+[?2004lpython3 - <<'PY'
+import socket, time, sys
+path='/tmp/alpine-serial'
+try:
+    s=socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+    s.connect(path)
+except Exception as e:
+    print('CONNECT_ERROR:', e)
+    sys.exit(0)
+s.setblocking(False)
+s.send(b'\n')
+end=time.time()+8
+while time.time()<end:
+    try:
+        chunk=s.recv(4096)
+        if chunk:
+            sys.stdout.write(chunk.decode('utf-8','replace'))
+            sys.stdout.flush()
+        else:
+            time.sleep(0.1)
+    except BlockingIOError:
+        time.sleep(0.1)
+    except Exception as e:
+        print('READ_ERROR:', e)
+        break
+print('\n---END SERIAL READ---')
+s.close()
+PY
+QEMU 5.2.0 monitor - type 'help' for more information
+(qemu) i[K[Din[K[D[Dinf[K[D[D[Dinfo[K[D[D[D[Dinfo [K[D[D[D[D[Dinfo s[K[D[D[D[D[D[Dinfo st[K[D[D[D[D[D[D[Dinfo sta[K[D[D[D[D[D[D[D[Dinfo stat[K[D[D[D[D[D[D[D[D[Dinfo statu[K[D[D[D[D[D[D[D[D[D[Dinfo status[K
+VM status: running
+(qemu) [?2004hroot@738eda08f1d3:/app# python3 - <<'PY'
+[?2004l[?2004h> import socket, time, sys
+[?2004l[?2004h> path='/tmp/alpine-serial'
+[?2004l[?2004h> try:
+[?2004l[?2004h>     s=socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+[?2004l[?2004h>     s.connect(path)
+[?2004l[?2004h> except Exception as e:
+[?2004l[?2004h>     print('CONNECT_ERROR:', e)
+[?2004l[?2004h>     sys.exit(0)
+[?2004l[?2004h> s.setblocking(False)
+[?2004l[?2004h> s.send(b'\n')
+[?2004l[?2004h> end=time.time()+8
+[?2004l[?2004h> while time.time()<end:
+[?2004l[?2004h>     try:
+[?2004l[?2004h>         chunk=s.recv(4096)
+[?2004l[?2004h>         if chunk:
+[?2004l[?2004h>             sys.stdout.write(chunk.decode('utf-8','replace'))
+[?2004l[?2004h>             sys.stdout.flush()
+[?2004l[?2004h>         else:
+[?2004l[?2004h>             time.sleep(0.1)
+[?2004l[?2004h>     except BlockingIOError:
+[?2004l[?2004h>         time.sleep(0.1)
+[?2004l[?2004h>     except Exception as e:
+[?2004l[?2004h>         print('READ_ERROR:', e)
+[?2004l[?2004h>         break
+[?2004l[?2004h> print('\n---END SERIAL READ---')
+[?2004l[?2004h> s.close()
+[?2004l[?2004h> PY
+[?2004l
+
+---END SERIAL READ---
+[?2004hroot@738eda08f1d3:/app# if [ -s /tmp/qemu.pid ]; then kill "$(cat /tmp/qemu.pid)" 2>/dev/null || true; fi; sleep 0.5; pkill -f 'qemu-system-x86_64 -accel tcg' 2>/dev/null || true; rm -f /tmp/alpine-serial /tmp/qemu-monitor /tmp/qemu.pid /tmp/qemu-stdout.log
+[?2004lqemu-system-x86_64 -accel tcg -m 1024 -display none -kernel /tmp/iso_root/BOOT/VMLINUZ_LTS -initrd /tmp/iso_root/BOOT/INITRAMFS_LTS -append "modules=loop,squashfs,sd-mod,usb-storage console=ttyS0,115200" -cdrom /app/alpine.iso -serial unix:/tmp/alpine-serial,server,wait=on -monitor unix:/tmp/qemu-monitor,server,nowait -netdev user,id=net0,hostfwd=tcp::2222-:22 -device e1000,netdev=net0 -pidfile /tmp/qemu.pid > /tmp/qemu-stdout.log 2>&1 &
+[1]+  Done                    qemu-system-x86_64 -accel tcg -m 1024 -display none -kernel /tmp/iso_root/BOOT/VMLINUZ_LTS -initrd /tmp/iso_root/BOOT/INITRAMFS_LTS -append "modules=loop,squashfs,sd-mod,usb-storage quiet console=ttyS0" -cdrom /app/alpine.iso -serial unix:/tmp/alpine-serial,server,nowait -monitor unix:/tmp/qemu-monitor,server,nowait -netdev user,id=net0,hostfwd=tcp::2222-:22 -device e1000,netdev=net0 -pidfile /tmp/qemu.pid > /tmp/qemu-stdout.log 2>&1
+[?2004hroot@738eda08f1d3:/app# qemu-system-x86_64 -accel tcg -m 1024 -display none -kernel /tmp/iso_root/BOOT/VMLINUZ_LTS -initrd /tmp/iso_root/BOOT/INITRAMFS_LTS -append "modules=loop,squashfs,sd-mod,usb-storage console=ttyS0,115200" -cdrom /app/alpine.iso -serial unix:/tmp/alpine-serial,server,wait=on -monitor unix:/tmp/qemu-monitor,server,nowait -netdev user,id=net0,hostfwd=tcp::2222-:22 -device e1000,netdev=net0 -pidfile /tmp/qemu.pid > /tmp/qemu-stdout.log 2>&1 &
+[?2004l[1] 775
+[?2004hroot@738eda08f1d3:/app# python3 - <<'PY'
+[?2004l[?2004h> import socket, time, sys
+[?2004l[?2004h> path='/tmp/alpine-serial'
+[?2004l[?2004h> try:
+[?2004l[?2004h>     s=socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+[?2004l[?2004h>     s.connect(path)
+[?2004l[?2004h> except Exception as e:
+[?2004l[?2004h>     print('CONNECT_ERROR:', e)
+[?2004l[?2004h>     sys.exit(0)
+[?2004l[?2004h> s.setblocking(False)
+[?2004l[?2004h> end=time.time()+35
+[?2004l[?2004h> last_nl=0
+[?2004l[?2004h> while time.time()<end:
+[?2004l[?2004h>     try:
+[?2004l[?2004h>         chunk=s.recv(4096)
+[?2004l[?2004h>         if chunk:
+[?2004l[?2004h>             sys.stdout.write(chunk.decode('utf-8','replace'))
+[?2004l[?2004h>             sys.stdout.flush()
+[?2004l[?2004h>         else:
+[?2004l[?2004h>             time.sleep(0.1)
+[?2004l[?2004h>     except BlockingIOError:
+[?2004l[?2004h>         time.sleep(0.1)
+[?2004l[?2004h>     except Exception as e:
+[?2004l[?2004h>         print('READ_ERROR:', e)
+[?2004l[?2004h>         break
+[?2004l[?2004h>     if time.time()-last_nl > 5:
+[?2004l[?2004h>         s.send(b'\n')
+[?2004l[?2004h>         last_nl=time.time()
+[?2004l[?2004h> print('\n---END SERIAL READ---')
+[?2004l[?2004h> s.close()
+[?2004l[?2004h> PY
+[?2004l[    0.000000] Linux version 6.6.4-1-lts (buildozer@build-3-19-x86_64) (gcc (Alpine 13.2.1_git20231014) 13.2.1 20231014, GNU ld (GNU Binutils) 2.41) #2-Alpine SMP PREEMPT_DYNAMIC Tue, 05 Dec 2023 20:25:50 +0000
+[    0.000000] Command line: modules=loop,squashfs,sd-mod,usb-storae console=ttyS0,115200
+[    0.000000] BIOS-provided physical RAM map:
+[    0.000000] BIOS-e820: [mem 0x0000000000000000-0x000000000009fbff] usable
+[    0.000000] BIOS-e820: [mem 0x000000000009fc00-0x000000000009ffff] reserved
+[    0.000000] BIOS-e820: [mem 0x00000000000f0000-0x00000000000fffff] reserved
+[    0.000000] BIOS-e820: [mem 0x000000000000-0x000000003ffdffff] usable
+[    0.000000] BIOS-e820: [mem 0x000000003ffe0000-0x000000003fffffff] reserved
+[    0.000000] BIOS-e820: [mem 0x00000000fffc0000-0x00000000ffffffff] reserved
+[    0.000000] NX (Execute Disable) protection: active
+[    0.000000] APIC: Static calitialized
+[    0.000000] SMBIOS 2.8 present.
+[    0.000000] DMI: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.14.0-2 04/01/2014
+[    0.000000] tsc: Fast TSC calibration failed
+[    0.000000] last_pfn = 0x3ffe0 max_arch_pfn = 0x400000000
+[    0.000000] MTRR map: 4 entries (ed + 1 variable; max 19), built from 8 variable MTRRs
+[    0.000000] x86/PAT: Configuration [0-7]: WB  WC  UC- UC  WB  WP  UC- WT  
+[    0.000000] found SMP MP-table at [mem 0x000f5ce0-0x000f5cef]
+[    0.000000] RAMDISK: [mem 0x3ec56000-0x3ffdffff]
+[    0.000000] ACPI: Early  checksum verification disabled
+[    0.000000] ACPI: RSDP 0x00000000000F5B20 000014 (v00 BOCHS )
+[    0.000000] ACPI: RSDT 0x000000003FFE1550 000034 (v01 BOCHS  BXPCRSDT 00000001 BXPC 00000001)
+[    0.000000] ACPI: FACP 0x000000003FFE1404 000074 (v01 BOCHS  BXPCFACP 00000001 BXPC 00000001)
+[    0.000000] ACSDT 0x000000003FFE0040 0013C4 (v01 BOCHS  BXPCDSDT 00000001 BXPC 00000001)
+[    0.000000] ACPI: FACS 0x000000003FFE0000 000040
+[    0.000000] ACPI: APIC 0x000000003FFE1478 000078 (v01 BOCHS  BXPCAPIC 00000001 BXPC 00000001)
+[    0.000000] ACPI: HPET 0x000000003FFE14F0 000038 (OCHS  BXPCHPET 00000001 BXPC 00000001)
+[    0.000000] ACPI: WAET 0x000000003FFE1528 000028 (v01 BOCHS  BXPCWAET 00000001 BXPC 00000001)
+[    0.000000] ACPI: Reserving FACP table memory at [mem 0x3ffe1404-0x3ffe1477]
+[    0.000000] ACPI: Reserving DSDT table memory at [mem 0x3f0-0x3ffe1403]
+[    0.000000] ACPI: Reserving FACS table memory at [mem 0x3ffe0000-0x3ffe003f]
+[    0.000000] ACPI: Reserving APIC table memory at [mem 0x3ffe1478-0x3ffe14ef]
+[    0.000000] ACPI: Reserving HPET table memory at [mem 0x3ffe14f0-0x3ffe1527]
+[    0.000000] ACPI: Ring WAET table memory at [mem 0x3ffe1528-0x3ffe154f]
+[    0.000000] No NUMA configuration found
+[    0.000000] Faking a node at [mem 0x0000000000000000-0x000000003ffdffff]
+[    0.000000] NODE_DATA(0) allocated [mem 0x3ec50000-0x3ec55fff]
+[    0.000000] Zone ranges:
+[    0.000000]   DMA      [mem 0x0000000000001000-0x0000000000f]
+[    0.000000]   DMA32    [mem 0x0000000001000000-0x000000003ffdffff]
+[    0.000000]   Normal   empty
+[    0.000000]   Device   empty
+[    0.000000] Movable zone start for each node
+[    0.000000] Early memory node ranges
+[    0.000000]   node   0: [mem 0x00000000000010000000000009efff]
+[    0.000000]   node   0: [mem 0x0000000000100000-0x000000003ffdffff]
+[    0.000000] Initmem setup node 0 [mem 0x0000000000001000-0x000000003ffdffff]
+[    0.000000] On node 0, zone DMA: 1 pages in unavailable ranges
+[    0.000000] On node 0, zone DMA: 97 pages in unavailablees
+[    0.000000] On node 0, zone DMA32: 32 pages in unavailable ranges
+[    0.000000] ACPI: PM-Timer IO Port: 0x608
+[    0.000000] ACPI: LAPIC_NMI (acpi_id[0xff] dfl dfl lint[0x1])
+[    0.000000] IOAPIC[0]: apic_id 0, version 32, address 0xfec00000, GSI 0-23
+[    0.000000]  INT_SRC_OVR (bus 0 bus_irq 0 global_irq 2 dfl dfl)
+[    0.000000] ACPI: INT_SRC_OVR (bus 0 bus_irq 5 global_irq 5 high level)
+[    0.000000] ACPI: INT_SRC_OVR (bus 0 bus_irq 9 global_irq 9 high level)
+[    0.000000] ACPI: INT_SRC_OVR (bus 0 bus_irq 10 global_irq 10 high level    0.000000] ACPI: INT_SRC_OVR (bus 0 bus_irq 11 global_irq 11 high level)
+[    0.000000] ACPI: Using ACPI (MADT) for SMP configuration information
+[    0.000000] ACPI: HPET id: 0x8086a201 base: 0xfed00000
+[    0.000000] smpboot: Allowing 1 CPUs, 0 hotplug CPUs
+[    0.000000] PM: hibernation: Registered nosave memory: [mem 0x00000000-0x00000fff]
+[ 000000] PM: hibernation: Registered nosave memory: [mem 0x0009f000-0x0009ffff]
+[    0.000000] PM: hibernation: Registered nosave memory: [mem 0x000a0000-0x000effff]
+[    0.000000] PM: hibernation: Registered nosave memory: [mem 0x000f0000-0x000fffff]
+[    0.000000] [mem 0x40000000-0xfffbffff] available for PCI devices
+[    0.000000] Booting paravirtualiernel on bare hardware
+[    0.000000] clocksource: refined-jiffies: mask: 0xffffffff max_cycles: 0xffffffff, max_idle_ns: 6370452778343963 ns
+[    0.000000] setup_percpu: NR_CPUS:256 nr_cpumask_bits:1 nr_cpu_ids:1 nr_node_ids:1
+[    0.000000] percpu: Embedded 58 pages/cpu s197864 r8192 d31512 u20971[    0.000000] Kernel command line: modules=loop,squashfs,sd-mod,usb-storage console=ttyS0,115200
+[    0.000000] Unknown kernel command line parameters "modules=loop,squashfs,sd-mod,usb-storage", will be passed to user space.
+[    0.000000] Dentry cache hash table entries: 131072 (order: 8, 1048576 bytes, linear)
+[    0.000000] Inode-cache hash table entries: 65536 (order:24288 bytes, linear)
+[    0.000000] Fallback order for Node 0: 0 
+[    0.000000] Built 1 zonelists, mobility grouping on.  Total pages: 257760
+[    0.000000] Policy zone: DMA32
+[    0.000000] mem auto-init: stack:all(zero), heap alloc:on, heap free:off
+[    0.000000] Memory:28K/1048056K available (14336K kernel code, 1900K rwdata, 9072K rodata, 3404K init, 5052K bss, 80168K reserved, 0K cma-reserved)
+[    0.000000] SLUB: HWalign=64, Order=0-3, MinObjects=0, CPUs=1, Nodes=1
+[    0.000000] kmemleak: Kernel memory leak detector disabled
+[    0.00000race: allocating 39524 entries in 155 pages
+[    0.000000] ftrace: allocated 155 pages with 5 groups
+[    0.000000] Dynamic Preempt: voluntary
+[    0.000000] rcu: Preemptible hierarchical RCU implementation.
+[    0.000000] rcu: 	RCU restricting CPUs from NR_CPUS=256 to nr_cpu1.
+[    0.000000] 	Trampoline variant of Tasks RCU enabled.
+[    0.000000] 	Rude variant of Tasks RCU enabled.
+[    0.000000] 	Tracing variant of Tasks RCU enabled.
+[    0.000000] rcu: RCU calculated value of scheduler-enlistment delay is 30 jiffies.
+[    0.000000] rcu: Adju geometry for rcu_fanout_leaf=16, nr_cpu_ids=1
+[    0.000000] NR_IRQS: 16640, nr_irqs: 256, preallocated irqs: 16
+[    0.000000] rcu: srcu_init: Setting srcu_struct sizes based on contention.
+[    0.000000] kfence: initialized - using 2097152 bytes for 255 objects at 0x(____pt___)-0x(____ptrval____)
+[    0.000000] Console: colour VGA+ 80x25
+[    0.000000] printk: console [ttyS0] enabled
+[    0.000000] ACPI: Core revision 20230628
+[    0.000000] clocksource: hpet: mask: 0xffffffff max_cycles: 0xffffffff, max_idle_ns: 19112604467 ns
+[    0.033333] APIC: Switch to symmetric I/O mode setup
+[    0.093333] ..TIMER: vector=0x30 apic1=0 pin1=2 apic2=-1 pin2=-1
+[    0.123333] tsc: Unable to calibrate against PIT
+[    0.126666] tsc: using HPET reference calibration
+[    0.126666] tsc: Detected 999.997 MHz processor
+[    0.006356] clocksource: tsc-early: mask: 0xffffffffffffffff max_cycles: 0x1cd4289f935, max_idle_ns: 881590538292 ns
+[    0.018956] Calibrating delay loop (skipped), value calculated using timer frequency.. 2000.32 BogoMIPS (lpj=3333323)
+[    0.071058] Last level iTLB entries: 4KB 0, 2MB 0, 4MB 0
+[    0.074287] Last level dTLB entries: 4KB 0, 2MB 0, 4MB 0, 1GB 0
+[    0.080455] Spectre V1 : Mitigation: usercopy/swapgs barriers and __user pointer sanitization
+[    0.082031] Spectre V2 : Mitigation: Retpolines
+[    0.082529] Spectre V2 : Spectre v2 / SpectreRSB mitigatio: Filling RSB on context switch
+[    0.087996] Spectre V2 : Spectre v2 / SpectreRSB : Filling RSB on VMEXIT
+[    0.089964] Speculative Store Bypass: Vulnerable
+[    0.119522] x86/fpu: x87 FPU will use FXSAVE
+[    0.547275] clocksource: timekeeping watchdog on CPU0: hpet wd-wd read-back delay of 138500ns
+[    0.561910] clocksource: wd-tsc-early-wd read-back delay of 534750ns, clock-skew test skipped!
+[    3.457854] Freeing SMP alternatives memory: 32K
+[    3.486701] pid_max: default: 32768 minimum: 301
+[    3.606681] LSM: initializing lsm=capability,landlock,yama
+[    3.698750] landlock: Up and running.
+[    3.700844] Yama: becoming mindful.
+[    3.769328] Mount-cache hash table entries: 2048 (order: 2, 16384 bytes, linear)
+[    3.774002] Mountpoint-cache hash table entries: 2048 (order: 2, 16384 bytes, linear)
+[    4.381880] smpboot: CPU0: AMD QEMU Virtual CPU version 2.5+ (family: 0x6, model: 0x6, stepping: 0x3)
+[    4.575439] RCU Tasks: Setting shift to 0 and lim to 1 rcu_task_cb_adjust=1.
+[    4.579554] RCU Tasks Rude: Setting shift to 0 and lim to 1 rcu_task_cb_adjust=1.
+[    4.588838] RCU Tasks Trace: Setting shift to 0 and lim to 1 rcu_task_cb_adjust=1.
+[    4.595933] Performance Events: PMU not available due to virtualization, using software events only.
+[    4.618989] signal: max sigframe size: 1440
+[    4.637576] rcu: Hierarchical SRCU implementation.
+[    4.638454] rcu: 	Max phase no-delay instances is 1000.
+[    4.791647] NMI watchdog: Perf NMI watchdog permanently disabled
+[    4.826057] smp: Bringing up secondary CPUs ...
+[    4.865141] smp: Brought up 1 node, 1 CPU
+[    4.866264] smpboot: Max logical packages: 1
+[    4.869483] ----------------
+[    4.871277] | NMI testsuite:
+[    4.874468] --------------------
+[    4.874924]   remote IPI:  ok  |
+[    4.879310]    local IPI:  ok  |
+[    4.896104] --------------------
+[    4.896477] Good, all   2 testcases passed! |
+[    4.897275] ---------------------------------
+[    4.898217] smpboot: Total o 1 processors activated (2000.32 BogoMIPS)
+[    5.106007] devtmpfs: initialized
+[    5.174354] x86/mm: Memory block size: 128MB
+[    5.288224] clocksource: jiffies: mask: 0xffffffff max_cycles: 0xffffffff, max_idle_ns: 6370867519511994 ns
+[    5.297536] futex hash table entries: 256 (order: 2, 16384 bytes, linear)
+[    5.347754] pinctrl core: initialized pinctrl subsystem
+[    5.658954] NET: Registered PF_NETLINK/PF_ROUTE protocol family
+[    5.709435] audit: initializing netlink subsys (disabled)
+[    5.740947] audit: type=2000 audit(1784055365.859:1): state=initialized audit_enabled=0 res=1
+[    5.828627] thermal_sys: Registered thermal governor 'fair_share'
+[    5.829751] thermal_sys: Registered thermal governor 'bang_bang'
+[    5.831526] thermal_sys: Registered thermal governor 'step_wise'
+[    5.832264] thermal_sys: Registered thermal governor 'user_space'
+[    5.839891] cpuidle: using governor ladder
+[    5.850740] cpuidle: using governor menu
+[    5.874890] acpiphp: ACPI Hot Plug PCI Controller Driver version: 0.5
+[    5.921382] PCI: Using configuration type 1 for base access
+[    5.979829] kprobes: kprobe jump-optimization is enabled. All kprobes are optimized if possible.
+[    6.887275] HugeTLB: registered 2.00 MiB page size, pre-allocated 0 pages
+[    6.888175] HugeTLB: 28 KiB vmemmap can be freed for a 2.00 MiB page
+[    7.042858] ACPI: Added _OSI(Module Device)
+[    7.044546] ACPI: Added _OSI(Processor Device)
+[    7.044982] ACPI: Added _OSI(3.0 _SCP Extensions)
+[    7.045339] ACPI: Added _OSI(Processor Aggregator Device)
+[    7.285271] ACPI: 1 ACPI AML tables successfully acquired and loaded
+[    7.495243] ACPI: _OSC evaluation for CPUs failed, trying _PDC
+[    7.531226] ACPI: Interpreter enabled
+[    7.549667] ACPI: PM: (supports S0 S3 S4 S5)
+[    7.550608] ACPI: Using IOAPIC for interrupt routing
+[    7.558607] PCI: Using host bridge windows from ACPI; if necessary, use "pci=nocrs" and report a bug
+[    7.559755] PCI: Using 820 reservations for host bridge windows
+[    7.587275] ACPI: Enabled 2 GPEs in block 00 to 0F
+[    8.206213] ACPI: PCI Root Bridge [PCI0] (domain 0000 [bus 00-ff])
+[    8.224709] acpi PNP0A03:00: _OSC: OS supports [ASPM ClockPM Segments MSI HPX-Type3]
+[    8.232889] acpi PNP0A03:00: _OSC: not requesting OS control; OS requires [ExtendedConfig ASPM ClockPM MSI]
+[    8.53391] acpi PNP0A03:00: fail to add MMCONFIG information, can't access extended configuration space under this bridge
+[    8.349585] acpiphp: Slot [3] registered
+[    8.353665] acpiphp: Slot [4] registered
+[    8.355157] acpiphp: Slot [5] registered
+[    8.356444] acpiphp: Slot [6] registered
+[    8.357275] acpiphp: Slot [7] registered
+[    8.361234] acpiphp: Slot [8] registered
+[    8.364095] acpiphp: Slot [9] registered
+[    8.365092] acpiphp: Slot [10] registered
+[    8.35970] acpiphp: Slot [11] registered
+[    8.369002] acpiphp: Slot [12] registered
+[    8.370534] acpiphp: Slot [13] registered
+[    8.374022] acpiphp: Slot [14] registered
+[    8.375034] acpiphp: Slot [15] registered
+[    8.375895] acpiphp: Slot [16] registered
+[    8.3767] acpiphp: Slot [17] registered
+[    8.378311] acpiphp: Slot [18] registered
+[    8.379297] acpiphp: Slot [19] registered
+[    8.380140] acpiphp: Slot [20] registered
+[    8.381615] acpiphp: Slot [21] registered
+[    8.384816] acpiphp: Slot [22] registered
+[    8.385913] acphp: Slot [23] registered
+[    8.388504] acpiphp: Slot [24] registered
+[    8.391365] acpiphp: Slot [25] registered
+[    8.393720] acpiphp: Slot [26] registered
+[    8.394918] acpiphp: Slot [27] registered
+[    8.395783] acpiphp: Slot [28] registered
+[    8.396954] acpiphp:lot [29] registered
+[    8.398721] acpiphp: Slot [30] registered
+[    8.399774] acpiphp: Slot [31] registered
+[    8.405392] PCI host bridge to bus 0000:00
+[    8.410953] pci_bus 0000:00: root bus resource [io  0x0000-0x0cf7 window]
+[    8.415215] pci_bus 0000:00: root bus rsource [io  0x0d00-0xffff window]
+[    8.417603] pci_bus 0000:00: root bus resource [mem 0x000a0000-0x000bffff window]
+[    8.419324] pci_bus 0000:00: root bus resource [mem 0x40000000-0xfebfffff window]
+[    8.419874] pci_bus 0000:00: root bus resource [mem 0x100000000-0x17fffffff window]
+[    8.422635] pci_s 0000:00: root bus resource [bus 00-ff]
+[    8.445723] pci 0000:00:00.0: [8086:1237] type 00 class 0x060000
+[    8.511416] pci 0000:00:01.0: [8086:7000] type 00 class 0x060100
+[    8.535270] pci 0000:00:01.1: [8086:7010] type 00 class 0x010180
+[    8.556324] pci 0000:00:01.1: reg 0x20: [io  0xc040-0xc04f]
+[    8.567383] pci 0000:00:01.1: legacy IDE quirk: reg 0x10: [io  0x01f0-0x01f7]
+[    8.568483] pci 0000:00:01.1: legacy IDE quirk: reg 0x14: [io 0x03f6]
+[    8.571159] pci 0000:00:01.1: legacy IDE quirk: reg 0x18: [io  0x0170-0x0177]
+[    8.572075] pci 0000:00:01.1: legacy IDE quirk: reg 0x1c: [io  0x0376]
+[    8.582993] pci 0000:00:01.3: [8086:7113] type 00 class 0x068000
+[    8.589091] pci 0000:00:01.3: quirk: [io  0x0600-0063f] claimed by PIIX4 ACPI
+[    8.592245] pci 0000:00:01.3: quirk: [io  0x0700-0x070f] claimed by PIIX4 SMB
+[    8.599165] pci 0000:00:02.0: [1234:1111] type 00 class 0x030000
+[    8.604784] pci 0000:00:02.0: reg 0x10: [mem 0xfd000000-0xfdffffff pref]
+[    8.617903] pci 000000:02.0: reg 0x18: [mem 0xfebf0000-0xfebf0fff]
+[    8.644177] pci 0000:00:02.0: reg 0x30: [mem 0xfebe0000-0xfebeffff pref]
+[    8.648744] pci 0000:00:02.0: Video device with shadowed ROM at [mem 0x000c0000-0x000dffff]
+[    8.658173] pci 0000:00:03.0: [8086:100e] type 00 class 0x020000
+[    8.664201] pci 0000:00:03.0: reg x10: [mem 0xfebc0000-0xfebdffff]
+[    8.674322] pci 0000:00:03.0: reg 0x14: [io  0xc000-0xc03f]
+[    8.704125] pci 0000:00:03.0: reg 0x30: [mem 0xfeb80000-0xfebbffff pref]
+[    8.784932] ACPI: PCI: Interrupt link LNKA configured for IRQ 10
+[    8.792916] ACPI: PCI: Interrupt link LNKB configured for IRQ 10
+[    8.797090] ACPI: PCI: Interrupt link LNKC configured for IRQ 11
+[    8.800206] ACPI: PCI: Interrupt link LNKD configured for IRQ 11
+[   8.802156] ACPI: PCI: Interrupt link LNKS configured for IRQ 9
+[    8.884147] iommu: Default domain type: Translated
+[    8.885275] iommu: DMA domain TLB invalidation policy: lazy mode
+[    8.934109] pps_core: LinuxPPS API ver. 1 registered
+[    8.934740] pps_core: Software ver. 5.3.6 - Copyright 2005-2007 Rodolfo Giometti <giometti@linux.it>
+[    8.936451] PTP clock support registered
+[    8.987840] EDAC MC: Ver: 3.0.0
+[    9.144243] PCI: Using ACPI for IRQ routing
+[    9.217275] pci 0000:00:02.0: vgaarb: setting as boot VGA device
+[    9.217275] pci 0000:00:02.0: vgaarb: bridge control possible
+[    9.217275] pci 0000:00:02.0: vgaarb: VGA device added: decodes=io+mem,owns=io+mem,locks=none
+[    9.217793] vgaarb: loaded
+[    9.265813] hpet: 3 channels of 0 reserved for per-cpu timers
+[    9.271357] hpet0: at MMIO 0xfed00000, IRQs 2, 8, 0
+[    9.275265] hpet0: 3 comparators, 64-bit 100.000000 MHz counter
+[    9.304243] clocksource: Switched to clocksource tsc-early
+[    9.626348] VFS: Disk quotas dquot_6.6.0
+[    9.630534] VFS: Dquot-cache hash table entries: 512 (order 0, 4096 bytes)
+[    9.658253] pnp: PnP ACPI init
+[    9.718194] pnp: PnP ACPI: found 6 devices
+[    9.902501] clocksource: acpi_pm: mask: 0xffffff max_cycles: 0xffffff, max_idle_ns: 2085701024 ns
+[    9.926122] NET: Registered PF_INET protocol family
+[    9.950578] IP idents hash table entries: 16384 (order: 5, 131072 bytes, linear)
+[   10.054301] tcp_listen_portaddr_hash hash table entries: 512 (order: 1, 8192 bytes, linear)
+[   10.057647] Table-perturb hash table entries: 65536 (order: 6, 262144 bytes, linear)
+[   10.059761] TCP established hash table entries: 8192 (order: 4, 65536 bytes, linear)
+[   10.063343] TCP bind hash table entries: 8192 (order: 6, 262144 bytes, linear)
+[   10.075146] TCP: Hash tables configured (established 8192 bind 8192)
+[   10.090489] UDP hash table entries: 512 (order: 2, 16384 bytes, linear)
+[   10.094282] UDP-Lite hash table entries: 512 (order: 2, 16384 bytes, linear)
+[   10.118316] NET: Registered PF_UNIX/PF_LOCAL potocol family
+[   10.181792] NET: Registered PF_XDP protocol family
+[   10.195764] pci_bus 0000:00: resource 4 [io  0x0000-0x0cf7 window]
+[   10.196193] pci_bus 0000:00: resource 5 [io  0x0d00-0xffff window]
+[   10.197466] pci_bus 0000:00: resource 6 [mem 0x000a0000-0x000bffff window]
+[  10.198031] pci_bus 0000:00: resource 7 [mem 0x40000000-0xfebfffff window]
+[   10.277244] pci_bus 0000:00: resource 8 [mem 0x100000000-0x17fffffff window]
+[   10.285193] pci 0000:00:01.0: PIIX3: Enabling Passive Release
+[   10.287897] pci 0000:00:00.0: Limiting direct PCI/PCI tnsfers
+[   10.378541] pci 0000:00:00.0: quirk_natoma+0x0/0x40 took 88578 usecs
+[   10.387044] PCI: CLS 0 bytes, default 64
+[   10.479204] Trying to unpack rootfs image as initramfs...
+[   10.726108] Initialise system trusted keyrings
+[   10.816116] workingset: timestamp_bits=40 max_order=18 bucket_order=0
+[   10.818479] zbud: loaded
+[   11.637076] tsc: Refined TSC clocksource calibration: 1000.000 MHz
+[   11.646119] clocksource: tsc: mask: 0xffffffffffffffff max_cycles: 0x1cd42e4dffb, max_idle_ns: 881590591483 ns
+[   11.666719] clocksource: Switched to clocksource tsc
+[   12.105040] Key type asymmetric registered
+[   12.111190] Asymmetric key parser 'x509' registered
+[   12.129841] Block layer SCSI generic (bsg) driver version 0.4 loaded (major 246)
+[   12.148917] io scheduler mq-deadline registered
+[   12.151807] io scheduler kyber registered
+[   12.169315] io scheduler bfq registerd
+[   12.446096] shpchp: Standard Hot Plug PCI Controller Driver version: 0.4
+[   12.490746] ERST DBG: ERST support is disabled.
+[   12.573206] Serial: 8250/16550 driver, 4 ports, IRQ sharing enabled
+[   12.741080] 00:04: ttyS0 at I/O 0x3f8 (irq = 4, base_baud = 115200) is a 16550A
+[   13.917729] brd: module loaded
+[   13.983056] i8042: PNP: PS/2 Controller [PNP0303:KBD,PNP0f13:MOU] at 0x60,0x64 irq 1,12
+[   14.115731] serio: i8042 KBD port at 0x60,0x64 irq 1
+[   14.129443] serio: i8042 AUX port at 0x60,0x64 irq 12
+[   14.168581] rtc_cmos 00:05: RTC can wake from S4
+[   14.286064] input: AT Translated Set 2 keyboard as /devices/platform/i8042/serio0/input/input0
+[   14.327630] rtc_cmos 00:05: registered as rtc0
+[   14.387011] rtc_cmos 00:05: setting system clock to 2026-07-14T18:56:19 UTC (1784055379)
+[   14.427925] rtc_cmos 00:05: alarms up to one day, y3k, 242 bytes nvram, hpet irqs
+[   14.452782] amd_pstate: the _CPC object is not present in SBIOS or ACPI disabled
+[   14.496683] gre: GRE over IPv4 demultiplexor driver
+[   15.362306] can: controller area network core
+[   15.371878] NET: Registered PF_CAN protocol family
+[   15.385637] Key type dns_resolver registered
+[   15.449207] IPI shorthand broadcast: enabled
+[   16.092300] sched_clock: Marking stable (16220836810, -129391207)->(17823666567, -1732220964)
+[   16.509402] registered taskstats version 1
+[   16.642738] Loading compiled-in X.509 certificates
+[   21.436274] Freeing initrd memory: 20008K
+
+---END SERIAL READ---
+[?2004hroot@738eda08f1d3:/app# python3 - <<'PY'
+[?2004l[?2004h> import socket, time, sys
+[?2004l[?2004h> path='/tmp/alpine-serial'
+[?2004l[?2004h> try:
+[?2004l[?2004h>     s=socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+[?2004l[?2004h>     s.connect(path)
+[?2004l[?2004h> except Exception as e:
+[?2004l[?2004h>     print('CONNECT_ERROR:', e)
+[?2004l[?2004h>     sys.exit(0)
+[?2004l[?2004h> s.setblocking(False)
+[?2004l[?2004h> s.send(b'\n')
+[?2004l[?2004h> end=time.time()+20
+[?2004l[?2004h> last_nl=0
+[?2004l[?2004h> while time.time()<end:
+[?2004l[?2004h>     try:
+[?2004l[?2004h>         chunk=s.recv(4096)
+[?2004l[?2004h>         if chunk:
+[?2004l[?2004h>             sys.stdout.write(chunk.decode('utf-8','replace'))
+[?2004l[?2004h>             sys.stdout.flush()
+[?2004l[?2004h>         else:
+[?2004l[?2004h>             time.sleep(0.1)
+[?2004l[?2004h>     except BlockingIOError:
+[?2004l[?2004h>         time.sleep(0.1)
+[?2004l[?2004h>     except Exception as e:
+[?2004l[?2004h>         print('READ_ERROR:', e)
+[?2004l[?2004h>         break
+[?2004l[?2004h>     if time.time()-last_nl > 5:
+[?2004l[?2004h>         s.send(b'\n')
+[?2004l[?2004h>         last_nl=time.time()
+[?2004l[?2004h> print('\n---END SERIAL READ---')
+[?2004l[?2004h> s.close()
+[?2004l[?2004h> PY
+[?2004l
+
+[   47.035191] scsi host0: ata_piix
+[   47.093400] scsi host1: ata_piix
+[   47.122962] ata1: PATA max MWDMA2 cmd 0x1f0 ctl 0x3f6 bmdma 0xc040 irq 14
+[   47.124942] ata2: PATA max MWDMA2 cmd 0x170 ctl 0x376 bmdma 0xc048 irq 15
+[   47.370577] ata2: found unknown device (class 0)
+[   47.426696] ata2.00: ATAPI: QEMU DVD-ROM, 2.5+, max UDMA/100
+[   47.608536] scsi 1:0:0:0: CD-ROM            QEMU     QEMU DVD-ROM     2.5+ PQ: 0 ANSI: 5
+[   48.755370] sr 1:0:0:0: [sr0] scsi3-mmc drive: 4x/4x cd/rw xa/form2 tray
+[   48.770936] cdrom: Uniform CD-ROM driver Revision: 3.20
+
+
+
+
+---END SERIAL READ---
+[?2004hroot@738eda08f1d3:/app# python3 - <<'PY'
+[?2004l[?2004h> import socket, time, sys
+[?2004l[?2004h> path='/tmp/alpine-serial'
+[?2004l[?2004h> try:
+[?2004l[?2004h>     s=socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+[?2004l[?2004h>     s.connect(path)
+[?2004l[?2004h> except Exception as e:
+[?2004l[?2004h>     print('CONNECT_ERROR:', e)
+[?2004l[?2004h>     sys.exit(0)
+[?2004l[?2004h> s.setblocking(False)
+[?2004l[?2004h> s.send(b'\n')
+[?2004l[?2004h> end=time.time()+30
+[?2004l[?2004h> last_nl=0
+[?2004l[?2004h> while time.time()<end:
+[?2004l[?2004h>     try:
+[?2004l[?2004h>         chunk=s.recv(4096)
+[?2004l[?2004h>         if chunk:
+[?2004l[?2004h>             sys.stdout.write(chunk.decode('utf-8','replace'))
+[?2004l[?2004h>             sys.stdout.flush()
+[?2004l[?2004h>         else:
+[?2004l[?2004h>             time.sleep(0.1)
+[?2004l[?2004h>     except BlockingIOError:
+[?2004l[?2004h>         time.sleep(0.1)
+[?2004l[?2004h>     except Exception as e:
+[?2004l[?2004h>         print('READ_ERROR:', e)
+[?2004l[?2004h>         break
+[?2004l[?2004h>     if time.time()-last_nl > 5:
+[?2004l[?2004h>         s.send(b'\n')
+[?2004l[?2004h>         last_nl=time.time()
+[?2004l[?2004h> print('\n---END SERIAL READ---')
+[?2004l[?2004h> s.close()
+[?2004l[?2004h> PY
+[?2004l
+
+
+
+
+
+
+
+---END SERIAL READ---
+[?2004hroot@738eda08f1d3:/app# python3 - <<'PY'
+[?2004l[?2004h> import socket, time, sys
+[?2004l[?2004h> path='/tmp/alpine-serial'
+[?2004l[?2004h> try:
+[?2004l[?2004h>     s=socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+[?2004l[?2004h>     s.connect(path)
+[?2004l[?2004h> except Exception as e:
+[?2004l[?2004h>     print('CONNECT_ERROR:', e)
+[?2004l[?2004h>     sys.exit(0)
+[?2004l[?2004h> s.setblocking(False)
+[?2004l[?2004h> s.send(b'\n')
+[?2004l[?2004h> end=time.time()+60
+[?2004l[?2004h> last_nl=0
+[?2004l[?2004h> while time.time()<end:
+[?2004l[?2004h>     try:
+[?2004l[?2004h>         chunk=s.recv(4096)
+[?2004l[?2004h>         if chunk:
+[?2004l[?2004h>             sys.stdout.write(chunk.decode('utf-8','replace'))
+[?2004l[?2004h>             sys.stdout.flush()
+[?2004l[?2004h>         else:
+[?2004l[?2004h>             time.sleep(0.1)
+[?2004l[?2004h>     except BlockingIOError:
+[?2004l[?2004h>         time.sleep(0.1)
+[?2004l[?2004h>     except Exception as e:
+[?2004l[?2004h>         print('READ_ERROR:', e)
+[?2004l[?2004h>         break
+[?2004l[?2004h>     if time.time()-last_nl > 5:
+[?2004l[?2004h>         s.send(b'\n')
+[?2004l[?2004h>         last_nl=time.time()
+[?2004l[?2004h> print('\n---END SERIAL READ---')
+[?2004l[?2004h> s.close()
+[?2004l[?2004h> PY
+[?2004l[  153.385442] Mounting boot media: ok.
+
+ok.
+
+
+
+[  168.126367] Installing packages to root filesystem...
+ * Installing packages to root filesystem: 
+(1/27) Installing alpine-baselayout-data (3.4.3-r2)
+7  0%                                             
+8[0K(2/27) Installing musl (1.2.4_git20230717-r4)
+7  0%                                             8[0K(3/27) Installing busybox (1.36.1-r15)
+7  6% ##                                          8[0K7 13% #####                                       8[0K7 13% ######                                      8[0KExecuting busybox-1.36.1-r15.post-install
+(4/27) Installing busybox-binsh (1.36.1-r15)
+7 14% ######                                      8[0K(5/27) Installing alpine-baselayout (3.4.3-r2)
+7 14% ######                                      8[0KExecuting alpine-baselayout-3.4.3-r2.pre-install
+7 14% ######                                      8[0K7 15% ######                                      8[0KExecuting alpine-baselayout-3.4.3-r2.post-install
+(6/27) Installing ifupdown-ng (0.12.1-r3)
+7 17% #######                                     8[0K7 18% ########                                    8[0K(7/27) Installing ifupdown-ng-openrc (0.12.1-r3)
+7 18% ########                                    8[0K(8/27) Installing libcap2 (2.69-r1)
+7 19% ########                                    8[0K(9/27) Installing openrc (0.52.1-r0)
+7 19% ########                                    
+8[0K7 20% ########                                    8[0K7 20% #########                                   8[0K7 21% #########                                   8[0K7 22% #########                                   8[0K7 22% ##########                                  8[0K7 23% ##########                                  8[0K7 24% ##########                                  8[0K7 25% ###########                                 8[0K7 26% ###########                                 8[0K7 27% ###########                                 8[0K7 27% ############                                8[0K7 28% ############                                8[0K7 29% ############                                8[0K7 29% #############                               8[0K7 30% #############                               8[0K7 31% #############                               8[0K7 31% ##############                              8[0K7 32% ##############                              8[0K7 33% ##############                              8[0K7 34% ##############                              8[0KExecuting openrc-0.52.1-r0.post-install
+(10/27) Installing mdev-conf (4.6-r0)
+7 35% ###############                             8[0K(11/27) Installing busybox-mdev-openrc (1.36.1-r15)
+7 35% ###############                             8[0K(12/27) Installing alpine-conf (3.17.0-r0)
+7 35% ###############                             8[0K7 36% ###############                             8[0K7 36% ################                            8[0K7 37% ################                            8[0K(13/27) Installing alpine-keys (2.4-r1)
+7 37% ################                            8[0K7 38% ################                            8[0K7 38% #################                           8[0K(14/27) Installing alpine-release (3.19.0-r0)
+7 39% #################                           8[0K(15/27) Installing ca-certificates-bundle (20230506-r0)
+7 39% #################                           8[0K(16/27) Installing libcrypto3 (3.1.4-r2)
+7 41% ##################                          8[0K7 42% ##################                          8[0K7 60% ##########################                  8[0K7 78% ##################################          8[0K7 79% ###################################         8[0K7 80% ###################################         8[0K(17/27) Installing libssl3 (3.1.4-r2)
+7 81% ###################################         8[0K(18/27) Installing ssl_client (1.36.1-r15)
+7 86% ######################################      8[0K(19/27) Installing zlib (1.3-r2)
+7 86% ######################################      8[0K(20/27) Installing apk-tools (2.14.0-r5)
+7 87% ######################################      8[0K7 89% #######################################     8[0K(21/27) Installing busybox-openrc (1.36.1-r15)
+7 90% #######################################     8[0K7 90% ########################################    8[0K7 91% ########################################    8[0K(22/27) Installing busybox-suid (1.36.1-r15)
+7 91% ########################################    8[0K(23/27) Installing scanelf (1.3.7-r2)
+7 91% ########################################    8[0K(24/27) Installing musl-utils (1.2.4_git20230717-r4)
+7 92% ########################################    8[0K7 93% ########################################    8[0K7 93% #########################################   8[0K(25/27) Installing libc-utils (0.7.2-r5)
+7 93% #########################################   8[0K(26/27) Installing alpine-base (3.19.0-r0)
+7 93% #########################################   8[0K(27/27) Installing openssl (3.1.4-r2)
+7 93% #########################################   8[0K7100% ############################################8[0KExecuting busybox-1.36.1-r15.trigger
+
+OK: 10 MiB in 27 packages
+[  185.592582] Installing packages to root filesystem: ok.
+ok.
+
+
+
+
+
+   OpenRC 0.52.1 is starting up Linux 6.6.4-1-lts (x86_64)
+
+
+ * /proc is already mounted
+
+
+---END SERIAL READ---
+[?2004hroot@738eda08f1d3:/app# python3 - <<'PY'
+[?2004l[?2004h> import socket, time, sys
+[?2004l[?2004h> path='/tmp/alpine-serial'
+[?2004l[?2004h> try:
+[?2004l[?2004h>     s=socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+[?2004l[?2004h>     s.connect(path)
+[?2004l[?2004h> except Exception as e:
+[?2004l[?2004h>     print('CONNECT_ERROR:', e)
+[?2004l[?2004h>     sys.exit(0)
+[?2004l[?2004h> s.setblocking(False)
+[?2004l[?2004h> s.send(b'\n')
+[?2004l[?2004h> end=time.time()+60
+[?2004l[?2004h> last_nl=0
+[?2004l[?2004h> while time.time()<end:
+[?2004l[?2004h>     try:
+[?2004l[?2004h>         chunk=s.recv(4096)
+[?2004l[?2004h>         if chunk:
+[?2004l[?2004h>             sys.stdout.write(chunk.decode('utf-8','replace'))
+[?2004l[?2004h>             sys.stdout.flush()
+[?2004l[?2004h>         else:
+[?2004l[?2004h>             time.sleep(0.1)
+[?2004l[?2004h>     except BlockingIOError:
+[?2004l[?2004h>         time.sleep(0.1)
+[?2004l[?2004h>     except Exception as e:
+[?2004l[?2004h>         print('READ_ERROR:', e)
+[?2004l[?2004h>         break
+[?2004l[?2004h>     if time.time()-last_nl > 5:
+[?2004l[?2004h>         s.send(b'\n')
+[?2004l[?2004h>         last_nl=time.time()
+[?2004l[?2004h> print('\n---END SERIAL READ---')
+[?2004l[?2004h> s.close()
+[?2004l[?2004h> PY
+[?2004l
+
+
+
+
+
+
+
+ * Caching service dependencies ... [ ok ]
+
+
+
+ * Remounting devtmpfs on /dev ...
+ [ ok ]
+ * Mounting /dev/mqueue ... [ ok ]
+
+
+---END SERIAL READ---
+[?2004hroot@738eda08f1d3:/app# python3 - <<'PY'
+[?2004l[?2004h> import socket, time, sys
+[?2004l[?2004h> path='/tmp/alpine-serial'
+[?2004l[?2004h> try:
+[?2004l[?2004h>     s=socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+[?2004l[?2004h>     s.connect(path)
+[?2004l[?2004h> except Exception as e:
+[?2004l[?2004h>     print('CONNECT_ERROR:', e)
+[?2004l[?2004h>     sys.exit(0)
+[?2004l[?2004h> s.setblocking(False)
+[?2004l[?2004h> s.send(b'\n')
+[?2004l[?2004h> end=time.time()+60
+[?2004l[?2004h> last_nl=0
+[?2004l[?2004h> while time.time()<end:
+[?2004l[?2004h>     try:
+[?2004l[?2004h>         chunk=s.recv(4096)
+[?2004l[?2004h>         if chunk:
+[?2004l[?2004h>             sys.stdout.write(chunk.decode('utf-8','replace'))
+[?2004l[?2004h>             sys.stdout.flush()
+[?2004l[?2004h>         else:
+[?2004l[?2004h>             time.sleep(0.1)
+[?2004l[?2004h>     except BlockingIOError:
+[?2004l[?2004h>         time.sleep(0.1)
+[?2004l[?2004h>     except Exception as e:
+[?2004l[?2004h>         print('READ_ERROR:', e)
+[?2004l[?2004h>         break
+[?2004l[?2004h>     if time.time()-last_nl > 5:
+[?2004l[?2004h>         s.send(b'\n')
+[?2004l[?2004h>         last_nl=time.time()
+[?2004l[?2004h> print('\n---END SERIAL READ---')
+[?2004l[?2004h> s.close()
+[?2004l[?2004h> PY
+[?2004l
+
+ * Mounting modloop  ...
+ * Verifying modloop
+
+
+
+
+
+
+
+
+ [ ok ]
+
+ * Mounting security filesystem ...
+ [ ok ]
+ * Mounting debug filesystem ... [ ok ]
+ * Mounting persistent storage (pstore) filesystem ...
+---END SERIAL READ---
+[?2004hroot@738eda08f1d3:/app# python3 - <<'PY'
+[?2004l[?2004h> import socket, time, sys
+[?2004l[?2004h> path='/tmp/alpine-serial'
+[?2004l[?2004h> try:
+[?2004l[?2004h>     s=socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+[?2004l[?2004h>     s.connect(path)
+[?2004l[?2004h> except Exception as e:
+[?2004l[?2004h>     print('CONNECT_ERROR:', e)
+[?2004l[?2004h>     sys.exit(0)
+[?2004l[?2004h> s.setblocking(False)
+[?2004l[?2004h> s.send(b'\n')
+[?2004l[?2004h> end=time.time()+60
+[?2004l[?2004h> last_nl=0
+[?2004l[?2004h> while time.time()<end:
+[?2004l[?2004h>     try:
+[?2004l[?2004h>         chunk=s.recv(4096)
+[?2004l[?2004h>         if chunk:
+[?2004l[?2004h>             sys.stdout.write(chunk.decode('utf-8','replace'))
+[?2004l[?2004h>             sys.stdout.flush()
+[?2004l[?2004h>         else:
+[?2004l[?2004h>             time.sleep(0.1)
+[?2004l[?2004h>     except BlockingIOError:
+[?2004l[?2004h>         time.sleep(0.1)
+[?2004l[?2004h>     except Exception as e:
+[?2004l[?2004h>         print('READ_ERROR:', e)
+[?2004l[?2004h>         break
+[?2004l[?2004h>     if time.time()-last_nl > 5:
+[?2004l[?2004h>         s.send(b'\n')
+[?2004l[?2004h>         last_nl=time.time()
+[?2004l[?2004h> print('\n---END SERIAL READ---')
+[?2004l[?2004h> s.close()
+[?2004l[?2004h> PY
+[?2004l
+
+
+
+ [ ok ]
+
+ * Loading hardware drivers ...
+
+
+
+
+
+
+
+
+---END SERIAL READ---
+[?2004hroot@738eda08f1d3:/app# python3 - <<'PY'
+[?2004l[?2004h> import socket, time, sys
+[?2004l[?2004h> path='/tmp/alpine-serial'
+[?2004l[?2004h> try:
+[?2004l[?2004h>     s=socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+[?2004l[?2004h>     s.connect(path)
+[?2004l[?2004h> except Exception as e:
+[?2004l[?2004h>     print('CONNECT_ERROR:', e)
+[?2004l[?2004h>     sys.exit(0)
+[?2004l[?2004h> s.setblocking(False)
+[?2004l[?2004h> s.send(b'\n')
+[?2004l[?2004h> end=time.time()+60
+[?2004l[?2004h> last_nl=0
+[?2004l[?2004h> while time.time()<end:
+[?2004l[?2004h>     try:
+[?2004l[?2004h>         chunk=s.recv(4096)
+[?2004l[?2004h>         if chunk:
+[?2004l[?2004h>             sys.stdout.write(chunk.decode('utf-8','replace'))
+[?2004l[?2004h>             sys.stdout.flush()
+[?2004l[?2004h>         else:
+[?2004l[?2004h>             time.sleep(0.1)
+[?2004l[?2004h>     except BlockingIOError:
+[?2004l[?2004h>         time.sleep(0.1)
+[?2004l[?2004h>     except Exception as e:
+[?2004l[?2004h>         print('READ_ERROR:', e)
+[?2004l[?2004h>         break
+[?2004l[?2004h>     if time.time()-last_nl > 5:
+[?2004l[?2004h>         s.send(b'\n')
+[?2004l[?2004h>         last_nl=time.time()
+[?2004l[?2004h> print('\n---END SERIAL READ---')
+[?2004l[?2004h> s.close()
+[?2004l[?2004h> PY
+[?2004l
+
+
+
+
+
+
+
+
+
+
+
+
+
+---END SERIAL READ---
+[?2004hroot@738eda08f1d3:/app# python3 - <<'PY'
+[?2004l[?2004h> import socket, time, sys
+[?2004l[?2004h> path='/tmp/alpine-serial'
+[?2004l[?2004h> try:
+[?2004l[?2004h>     s=socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+[?2004l[?2004h>     s.connect(path)
+[?2004l[?2004h> except Exception as e:
+[?2004l[?2004h>     print('CONNECT_ERROR:', e)
+[?2004l[?2004h>     sys.exit(0)
+[?2004l[?2004h> s.setblocking(False)
+[?2004l[?2004h> s.send(b'\n')
+[?2004l[?2004h> end=time.time()+60
+[?2004l[?2004h> last_nl=0
+[?2004l[?2004h> while time.time()<end:
+[?2004l[?2004h>     try:
+[?2004l[?2004h>         chunk=s.recv(4096)
+[?2004l[?2004h>         if chunk:
+[?2004l[?2004h>             sys.stdout.write(chunk.decode('utf-8','replace'))
+[?2004l[?2004h>             sys.stdout.flush()
+[?2004l[?2004h>         else:
+[?2004l[?2004h>             time.sleep(0.1)
+[?2004l[?2004h>     except BlockingIOError:
+[?2004l[?2004h>         time.sleep(0.1)
+[?2004l[?2004h>     except Exception as e:
+[?2004l[?2004h>         print('READ_ERROR:', e)
+[?2004l[?2004h>         break
+[?2004l[?2004h>     if time.time()-last_nl > 5:
+[?2004l[?2004h>         s.send(b'\n')
+[?2004l[?2004h>         last_nl=time.time()
+[?2004l[?2004h> print('\n---END SERIAL READ---')
+[?2004l[?2004h> s.close()
+[?2004l[?2004h> PY
+[?2004l
+
+
+
+
+
+
+
+
+
+
+
+
+
+---END SERIAL READ---
+[?2004hroot@738eda08f1d3:/app# python3 - <<'PY'
+[?2004l[?2004h> import socket, time
+[?2004l[?2004h> try:
+[?2004l[?2004h>     s=socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+[?2004l[?2004h>     s.connect('/tmp/qemu-monitor')
+[?2004l[?2004h>     s.setblocking(False)
+[?2004l[?2004h>     for cmd in (b'info status\n', b'info cpus\n'):
+[?2004l[?2004h>         s.send(cmd)
+[?2004l[?2004h>         time.sleep(0.5)
+[?2004l[?2004h>     end=time.time()+3
+[?2004l[?2004h>     while time.time()<end:
+[?2004l[?2004h>         try:
+[?2004l[?2004h>             print(s.recv(4096).decode('utf-8','replace'), end='')
+[?2004l[?2004h>         except BlockingIOError:
+[?2004l[?2004h>             time.sleep(0.1)
+[?2004l[?2004h>     s.close()
+[?2004l[?2004h> except Exception as e:
+[?2004l[?2004h>     print('MONITOR_ERROR:', e)
+[?2004l[?2004h> PY
+[?2004lecho '===== qemu stdout ====='; cat /tmp/qemu-stdout.log 2>/dev/null || true
+python3 - <<'PY'
+import socket, time, sys
+path='/tmp/alpine-serial'
+try:
+    s=socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+    s.connect(path)
+except Exception as e:
+    print('CONNECT_ERROR:', e)
+    sys.exit(0)
+s.setblocking(False)
+s.send(b'\n')
+end=time.time()+30
+last_nl=0
+while time.time()<end:
+    try:
+        chunk=s.recv(4096)
+        if chunk:
+            sys.stdout.write(chunk.decode('utf-8','replace'))
+            sys.stdout.flush()
+        else:
+            time.sleep(0.1)
+    except BlockingIOError:
+        time.sleep(0.1)
+    except Exception as e:
+        print('READ_ERROR:', e)
+        break
+    if time.time()-last_nl > 5:
+        s.send(b'\n')
+        last_nl=time.time()
+print('\n---END SERIAL READ---')
+s.close()
+PY
+QEMU 5.2.0 monitor - type 'help' for more information
+(qemu) i[K[Din[K[D[Dinf[K[D[D[Dinfo[K[D[D[D[Dinfo [K[D[D[D[D[Dinfo s[K[D[D[D[D[D[Dinfo st[K[D[D[D[D[D[D[Dinfo sta[K[D[D[D[D[D[D[D[Dinfo stat[K[D[D[D[D[D[D[D[D[Dinfo statu[K[D[D[D[D[D[D[D[D[D[Dinfo status[K
+VM status: running
+(qemu) i[K[Din[K[D[Dinf[K[D[D[Dinfo[K[D[D[D[Dinfo [K[D[D[D[D[Dinfo c[K[D[D[D[D[D[Dinfo cp[K[D[D[D[D[D[D[Dinfo cpu[K[D[D[D[D[D[D[D[Dinfo cpus[K
+* CPU #0: thread_id=791
+(qemu) [?2004hroot@738eda08f1d3:/app# echo '===== qemu stdout ====='; cat /tmp/qemu-stdout.log 2>/dev/null || true
+[?2004l===== qemu stdout =====
+qemu-system-x86_64: -serial unix:/tmp/alpine-serial,server,wait=on: info: QEMU waiting for connection on: disconnected:unix:/tmp/alpine-serial,server
+[?2004hroot@738eda08f1d3:/app# python3 - <<'PY'
+[?2004l[?2004h> import socket, time, sys
+[?2004l[?2004h> path='/tmp/alpine-serial'
+[?2004l[?2004h> try:
+[?2004l[?2004h>     s=socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+[?2004l[?2004h>     s.connect(path)
+[?2004l[?2004h> except Exception as e:
+[?2004l[?2004h>     print('CONNECT_ERROR:', e)
+[?2004l[?2004h>     sys.exit(0)
+[?2004l[?2004h> s.setblocking(False)
+[?2004l[?2004h> s.send(b'\n')
+[?2004l[?2004h> end=time.time()+30
+[?2004l[?2004h> last_nl=0
+[?2004l[?2004h> while time.time()<end:
+[?2004l[?2004h>     try:
+[?2004l[?2004h>         chunk=s.recv(4096)
+[?2004l[?2004h>         if chunk:
+[?2004l[?2004h>             sys.stdout.write(chunk.decode('utf-8','replace'))
+[?2004l[?2004h>             sys.stdout.flush()
+[?2004l[?2004h>         else:
+[?2004l[?2004h>             time.sleep(0.1)
+[?2004l[?2004h>     except BlockingIOError:
+[?2004l[?2004h>         time.sleep(0.1)
+[?2004l[?2004h>     except Exception as e:
+[?2004l[?2004h>         print('READ_ERROR:', e)
+[?2004l[?2004h>         break
+[?2004l[?2004h>     if time.time()-last_nl > 5:
+[?2004l[?2004h>         s.send(b'\n')
+[?2004l[?2004h>         last_nl=time.time()
+[?2004l[?2004h> print('\n---END SERIAL READ---')
+[?2004l[?2004h> s.close()
+[?2004l[?2004h> PY
+[?2004l
+
+ [ ok ]
+
+ * Loading modules ...
+
+ [ ok ]
+
+
+ * Setting system clock using the hardware clock [UTC] ... [ ok ]
+
+---END SERIAL READ---
+[?2004hroot@738eda08f1d3:/app# python3 - <<'PY'
+[?2004l[?2004h> import socket, time, sys
+[?2004l[?2004h> path='/tmp/alpine-serial'
+[?2004l[?2004h> try:
+[?2004l[?2004h>     s=socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+[?2004l[?2004h>     s.connect(path)
+[?2004l[?2004h> except Exception as e:
+[?2004l[?2004h>     print('CONNECT_ERROR:', e)
+[?2004l[?2004h>     sys.exit(0)
+[?2004l[?2004h> s.setblocking(False)
+[?2004l[?2004h> s.send(b'\n')
+[?2004l[?2004h> end=time.time()+60
+[?2004l[?2004h> last_nl=0
+[?2004l[?2004h> while time.time()<end:
+[?2004l[?2004h>     try:
+[?2004l[?2004h>         chunk=s.recv(4096)
+[?2004l[?2004h>         if chunk:
+[?2004l[?2004h>             sys.stdout.write(chunk.decode('utf-8','replace'))
+[?2004l[?2004h>             sys.stdout.flush()
+[?2004l[?2004h>         else:
+[?2004l[?2004h>             time.sleep(0.1)
+[?2004l[?2004h>     except BlockingIOError:
+[?2004l[?2004h>         time.sleep(0.1)
+[?2004l[?2004h>     except Exception as e:
+[?2004l[?2004h>         print('READ_ERROR:', e)
+[?2004l[?2004h>         break
+[?2004l[?2004h>     if time.time()-last_nl > 5:
+[?2004l[?2004h>         s.send(b'\n')
+[?2004l[?2004h>         last_nl=time.time()
+[?2004l[?2004h> print('\n---END SERIAL READ---')
+[?2004l[?2004h> s.close()
+[?2004l[?2004h> PY
+[?2004l
+
+ [ ok ]
+
+ * Remounting filesystems ... [ ok ]
+
+
+ * Mounting local filesystems ... [ ok ]
+
+ * Configuring kernel parameters ... [ ok ]
+
+ * Migrating /var/lock to /run/lock ... [ ok ]
+
+ * Creating user login records ... [ ok ]
+
+ * Cleaning /tmp directory ... [ ok ]
+
+ * Setting hostname ... [ ok ]
+
+ * Starting busybox syslog ...
+ [ ok ]
+
+ * Starting firstboot ... [ ok ]
+
+---END SERIAL READ---
+[?2004hroot@738eda08f1d3:/app# python3 - <<'PY'
+[?2004l[?2004h> import socket, time, sys
+[?2004l[?2004h> path='/tmp/alpine-serial'
+[?2004l[?2004h> try:
+[?2004l[?2004h>     s=socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+[?2004l[?2004h>     s.connect(path)
+[?2004l[?2004h> except Exception as e:
+[?2004l[?2004h>     print('CONNECT_ERROR:', e)
+[?2004l[?2004h>     sys.exit(0)
+[?2004l[?2004h> s.setblocking(False)
+[?2004l[?2004h> s.send(b'\n')
+[?2004l[?2004h> end=time.time()+60
+[?2004l[?2004h> last_nl=0
+[?2004l[?2004h> while time.time()<end:
+[?2004l[?2004h>     try:
+[?2004l[?2004h>         chunk=s.recv(4096)
+[?2004l[?2004h>         if chunk:
+[?2004l[?2004h>             sys.stdout.write(chunk.decode('utf-8','replace'))
+[?2004l[?2004h>             sys.stdout.flush()
+[?2004l[?2004h>         else:
+[?2004l[?2004h>             time.sleep(0.1)
+[?2004l[?2004h>     except BlockingIOError:
+[?2004l[?2004h>         time.sleep(0.1)
+[?2004l[?2004h>     except Exception as e:
+[?2004l[?2004h>         print('READ_ERROR:', e)
+[?2004l[?2004h>         break
+[?2004l[?2004h>     if time.time()-last_nl > 5:
+[?2004l[?2004h>         s.send(b'\n')
+[?2004l[?2004h>         last_nl=time.time()
+[?2004l[?2004h> print('\n---END SERIAL READ---')
+[?2004l[?2004h> s.close()
+[?2004l[?2004h> PY
+[?2004l
+
+
+Welcome to Alpine Linux 3.19
+Kernel 6.6.4-1-lts on an x86_64 (/dev/ttyS0)
+
+localhost login: 
+Welcome to Alpine Linux 3.19
+Kernel 6.6.4-1-lts on an x86_64 (/dev/ttyS0)
+
+localhost login: 
+Welcome to Alpine Linux 3.19
+Kernel 6.6.4-1-lts on an x86_64 (/dev/ttyS0)
+
+localhost login: 
+Welcome to Alpine Linux 3.19
+Kernel 6.6.4-1-lts on an x86_64 (/dev/ttyS0)
+
+localhost login: 
+Welcome to Alpine Linux 3.19
+Kernel 6.6.4-1-lts on an x86_64 (/dev/ttyS0)
+
+localhost login: 
+Welcome to Alpine Linux 3.19
+Kernel 6.6.4-1-lts on an x86_64 (/dev/ttyS0)
+
+localhost login: 
+Welcome to Alpine Linux 3.19
+Kernel 6.6.4-1-lts on an x86_64 (/dev/ttyS0)
+
+localhost login: 
+Welcome to Alpine Linux 3.19
+Kernel 6.6.4-1-lts on an x86_64 (/dev/ttyS0)
+
+localhost login: 
+Welcome to Alpine Linux 3.19
+Kernel 6.6.4-1-lts on an x86_64 (/dev/ttyS0)
+
+localhost login: 
+Welcome to Alpine Linux 3.19
+Kernel 6.6.4-1-lts on an x86_64 (/dev/ttyS0)
+
+localhost login: 
+Welcome to Alpine Linux 3.19
+Kernel 6.6.4-1-lts on an x86_64 (/dev/ttyS0)
+
+localhost login: 
+Welcome to Alpine Linux 3.19
+Kernel 6.6.4-1-lts on an x86_64 (/dev/ttyS0)
+
+localhost login: 
+---END SERIAL READ---
+[?2004hroot@738eda08f1d3:/app# python3 - <<'PY'
+[?2004l[?2004h> import socket, time, sys
+[?2004l[?2004h> path='/tmp/alpine-serial'
+[?2004l[?2004h> s=socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+[?2004l[?2004h> s.connect(path)
+[?2004l[?2004h> s.setblocking(False)
+[?2004l[?2004h> 
+[?2004l[?2004h> def send(line):
+[?2004l[?2004h>     s.send((line + '\n').encode())
+[?2004l[?2004h>     time.sleep(0.2)
+[?2004l[?2004h> 
+[?2004l[?2004h> def read_for(secs):
+[?2004l[?2004h>     end=time.time()+secs
+[?2004l[?2004h>     while time.time()<end:
+[?2004l[?2004h>         try:
+[?2004l[?2004h>             chunk=s.recv(4096)
+[?2004l[?2004h>             if chunk:
+[?2004l[?2004h>                 sys.stdout.write(chunk.decode('utf-8','replace'))
+[?2004l[?2004h>                 sys.stdout.flush()
+[?2004l[?2004h>             else:
+[?2004l[?2004h>                 time.sleep(0.1)
+[?2004l[?2004h>         except BlockingIOError:
+[?2004l[?2004h>             time.sleep(0.1)
+[?2004l[?2004h>         except Exception as e:
+[?2004l[?2004h>             print('READ_ERROR:', e)
+[?2004l[?2004h>             break
+[?2004l[?2004h> 
+[?2004l[?2004h> send('')
+[?2004l[?2004h> time.sleep(0.5)
+[?2004l[?2004h> send('root')
+[?2004l[?2004h> read_for(2)
+[?2004l[?2004h> cmds = [
+[?2004l[?2004h>     'echo MARKER_LOGIN_OK',
+[?2004l[?2004h>     'cat /etc/apk/repositories',
+[?2004l[?2004h>     'ls -la /media || true',
+[?2004l[?2004h>     'ip addr',
+[?2004l[?2004h>     'ifup eth0 || true',
+[?2004l[?2004h>     'udhcpc -i eth0 || true',
+[?2004l[?2004h>     'ip addr',
+[?2004l[?2004h> ]
+[?2004l[?2004h> for c in cmds:
+[?2004l[?2004h>     send(c)
+[?2004l[?2004h>     read_for(1.5)
+[?2004l[?2004h> read_for(3)
+[?2004l[?2004h> print('\n---END SERIAL INTERACT---')
+[?2004l[?2004h> s.close()
+[?2004l[?2004h> PY
+[?2004l
+Welcome to Alpine Linux 3.19
+Kernel 6.6.4-1-lts on an x86_64 (/dev/ttyS0)
+
+localhost login: root
+Welcome to Alpine!
+
+The Alpine Wiki contains a large amount of how-to guides and general
+information about administrating Alpine systems.
+See <https://wiki.alpinelinux.org/>.
+
+You can setup the system with the command: setup-alpine
+
+You may change this message by editing /etc/motd.
+
+localhost:~# [6n^[[40;14Recho MARKER_LOGIN_OK
+MARKER_LOGIN_OK
+localhost:~# [6n^[[40;14Rcat /etc/apk/repositories
+/media/cdrom/apks
+localhost:~# [6n^[[40;14Rls -la /media || true
+total 2
+drwxr-xr-x    5 root     root           100 Jul 14 18:59 [1;34m.[m
+drwxr-xr-x   20 root     root           400 Jul 14 19:06 [1;34m..[m
+dr-xr-xr-x    1 root     root          2048 Dec  7  2023 [1;34mcdrom[m
+drwxr-xr-x    2 root     root            40 Jul 14 18:59 [1;34mfloppy[m
+drwxr-xr-x    2 root     root            40 Jul 14 18:59 [1;34musb[m
+localhost:~# [6n^[[40;14Rip addr
+1: lo: <LOOPBACK> mtu 65536 qdisc noop state DOWN qlen 1000
+    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+2: eth0: <BROADCAST,MULTICAST> mtu 1500 qdisc noop state DOWN qlen 1000
+    link/ether 52:54:00:12:34:56 brd ff:ff:ff:ff:ff:ff
+localhost:~# [6n^[[40;14Rifup eth0 || true
+ifup: could not parse /etc/network/interfaces
+localhost:~# [6n^[[40;14Rudhcpc -i eth0 || true
+udhcpc: started, v1.36.1
+udhcpc: broadcasting discover
+udhcpc: sendto: Network is down
+ip addr
+udhcpc: read error: Network is down, reopening socket
+udhcpc: read error: Network is down, reopening socket
+
+---END SERIAL INTERACT---
+[?2004hroot@738eda08f1d3:/app# ;14R;14R;14R;14R;14R;14Rpython3 - <<'PY'
+[?2004lbash: syntax error near unexpected token `;'
+[?2004hroot@738eda08f1d3:/app# import socket, time, sys
+[?2004lbash: import: command not found
+[?2004hroot@738eda08f1d3:/app# path='/tmp/alpine-serial'
+[?2004l[?2004hroot@738eda08f1d3:/app# s=socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+[?2004lbash: syntax error near unexpected token `('
+[?2004hroot@738eda08f1d3:/app# s.connect(path)
+[?2004lbash: syntax error near unexpected token `path'
+[?2004hroot@738eda08f1d3:/app# s.setblocking(False)
+[?2004lbash: syntax error near unexpected token `False'
+[?2004hroot@738eda08f1d3:/app# 
+[?2004l[?2004hroot@738eda08f1d3:/app# def send(line):
+[?2004lbash: syntax error near unexpected token `('
+[?2004hroot@738eda08f1d3:/app#     s.send((line + '\n').encode())
+[?2004lbash: syntax error near unexpected token `('
+[?2004hroot@738eda08f1d3:/app#     time.sleep(0.2)
+[?2004lbash: syntax error near unexpected token `0.2'
+[?2004hroot@738eda08f1d3:/app# 
+[?2004l[?2004hroot@738eda08f1d3:/app# def read_for(secs):
+[?2004lbash: syntax error near unexpected token `('
+[?2004hroot@738eda08f1d3:/app#     end=time.time()+secs
+[?2004lbash: syntax error near unexpected token `('
+[?2004hroot@738eda08f1d3:/app#     while time.time()<end:
+[?2004lbash: syntax error near unexpected token `<'
+[?2004hroot@738eda08f1d3:/app#         try:
+[?2004lbash: try:: command not found
+[?2004hroot@738eda08f1d3:/app#             chunk=s.recv(4096)
+[?2004lbash: syntax error near unexpected token `('
+[?2004hroot@738eda08f1d3:/app#             if chunk:
+[?2004l[?2004h>                 sys.stdout.write(chunk.decode('utf-8','replace'))
+[?2004lbash: syntax error near unexpected token `chunk.decode'
+[?2004hroot@738eda08f1d3:/app#                 sys.stdout.flush()
+[?2004l[?2004h>             else:
+[?2004lbash: syntax error near unexpected token `else:'
+[?2004hroot@738eda08f1d3:/app#                 time.sleep(0.1)
+[?2004lbash: syntax error near unexpected token `0.1'
+[?2004hroot@738eda08f1d3:/app#         except BlockingIOError:
+[?2004lbash: except: command not found
+[?2004hroot@738eda08f1d3:/app#             time.sleep(0.1)
+[?2004lbash: syntax error near unexpected token `0.1'
+[?2004hroot@738eda08f1d3:/app#         except Exception as e:
+[?2004lbash: except: command not found
+[?2004hroot@738eda08f1d3:/app#             print('READ_ERROR:', e)
+[?2004lbash: syntax error near unexpected token `'READ_ERROR:','
+[?2004hroot@738eda08f1d3:/app#             break
+[?2004lbash: break: only meaningful in a `for', `while', or `until' loop
+[?2004hroot@738eda08f1d3:/app# 
+[?2004l[?2004hroot@738eda08f1d3:/app# # Check current network state first
+[?2004l[?2004hroot@738eda08f1d3:/app# send('ip addr')
+[?2004lbash: syntax error near unexpected token `'ip addr''
+[?2004hroot@738eda08f1d3:/app# read_for(3)
+[?2004lbash: syntax error near unexpected token `3'
+[?2004hroot@738eda08f1d3:/app# # Bring up loopback and eth0 with DHCP if needed
+[?2004l[?2004hroot@738eda08f1d3:/app# send('ip link set lo up || true')
+[?2004lbash: syntax error near unexpected token `'ip link set lo up || true''
+[?2004hroot@738eda08f1d3:/app# read_for(1)
+[?2004lbash: syntax error near unexpected token `1'
+[?2004hroot@738eda08f1d3:/app# send('ip link set eth0 up || true')
+[?2004lbash: syntax error near unexpected token `'ip link set eth0 up || true''
+[?2004hroot@738eda08f1d3:/app# read_for(1)
+[?2004lbash: syntax error near unexpected token `1'
+[?2004hroot@738eda08f1d3:/app# send('udhcpc -i eth0 -n -q || true')
+[?2004lbash: syntax error near unexpected token `'udhcpc -i eth0 -n -q || true''
+[?2004hroot@738eda08f1d3:/app# read_for(10)
+[?2004lbash: syntax error near unexpected token `10'
+[?2004hroot@738eda08f1d3:/app# send('ip addr')
+[?2004lbash: syntax error near unexpected token `'ip addr''
+[?2004hroot@738eda08f1d3:/app# read_for(3)
+[?2004lbash: syntax error near unexpected token `3'
+[?2004hroot@738eda08f1d3:/app# print('\n---END NETWORK PHASE---')
+[?2004lbash: syntax error near unexpected token `'\n---END NETWORK PHASE---''
+[?2004hroot@738eda08f1d3:/app# s.close()
+[?2004l[?2004h> PY
+[?2004lbash: syntax error near unexpected token `PY'
+[?2004hroot@738eda08f1d3:/app# python3 - <<'PY'
+[?2004l[?2004h> import socket, time, sys
+[?2004l[?2004h> path='/tmp/alpine-serial'
+[?2004l[?2004h> s=socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+[?2004l[?2004h> s.connect(path)
+[?2004l[?2004h> s.setblocking(False)
+[?2004l[?2004h> 
+[?2004l[?2004h> def send(line):
+[?2004l[?2004h>     s.send((line + '\n').encode())
+[?2004l[?2004h>     time.sleep(0.2)
+[?2004l[?2004h> 
+[?2004l[?2004h> def read_for(secs):
+[?2004l[?2004h>     end=time.time()+secs
+[?2004l[?2004h>     while time.time()<end:
+[?2004l[?2004h>         try:
+[?2004l[?2004h>             chunk=s.recv(4096)
+[?2004l[?2004h>             if chunk:
+[?2004l[?2004h>                 sys.stdout.write(chunk.decode('utf-8','replace'))
+[?2004l[?2004h>                 sys.stdout.flush()
+[?2004l[?2004h>             else:
+[?2004l[?2004h>                 time.sleep(0.1)
+[?2004l[?2004h>         except BlockingIOError:
+[?2004l[?2004h>             time.sleep(0.1)
+[?2004l[?2004h>         except Exception as e:
+[?2004l[?2004h>             print('READ_ERROR:', e)
+[?2004l[?2004h>             break
+[?2004l[?2004h> 
+[?2004l[?2004h> cmds = [
+[?2004l[?2004h>     'echo MARKER_SSH_PHASE',
+[?2004l[?2004h>     'apk add openssh',
+[?2004l[?2004h>     "echo 'root:password123' | chpasswd",
+[?2004l[?2004h>     "sed -i 's/^#\\?PermitRootLogin.*/PermitRootLogin yes/' /etc/ssh/sshd_config",
+[?2004l[?2004h>     "sed -i 's/^#\\?PasswordAuthentication.*/PasswordAuthentication yes/' /etc/ssh/sshd_config",
+[?2004l[?2004h>     'grep -E "PermitRootLogin|PasswordAuthentication" /etc/ssh/sshd_config',
+[?2004l[?2004h>     'ssh-keygen -A',
+[?2004l[?2004h>     'rc-service sshd start || /usr/sbin/sshd',
+[?2004l[?2004h>     'rc-service sshd status || true',
+[?2004l[?2004h>     'netstat -tlnp 2>/dev/null || ss -tlnp 2>/dev/null || true',
+[?2004l[?2004h> ]
+[?2004l[?2004h> for c in cmds:
+[?2004l[?2004h>     send(c)
+[?2004l[?2004h>     read_for(3)
+[?2004l[?2004h> read_for(5)
+[?2004l[?2004h> print('\n---END SSH PHASE---')
+[?2004l[?2004h> s.close()
+[?2004l[?2004h> PY
+[?2004lecho MARKER_SSH_PHASE
+udhcpc: read error: Network is down, reopening socket
+apk add openssh
+udhcpc: read error: Network is down, reopening socket
+echo 'root:password123' | chpasswd
+udhcpc: read error: Network is down, reopening socket
+sed -i 's/^#\?PermitRootLogin.*/PermitRootLogin yes/' /etc/ssh/sshd_config
+udhcpc: read error: Network is down, reopening socket
+udhcpc: read error: Network is down, reopening socket
+sed -i 's/^#\?PasswordAuthentication.*/PasswordAuthentication yes/' /etc/ssh/sshd_config
+udhcpc: read error: Network is down, reopening socket
+grep -E "PermitRootLogin|PasswordAuthentication" /etc/ssh/sshd_config
+udhcpc: read error: Network is down, reopening socket
+ssh-keygen -A
+udhcpc: read error: Network is down, reopening socket
+rc-service sshd start || /usr/sbin/sshd
+udhcpc: read error: Network is down, reopening socket
+rc-service sshd status || true
+udhcpc: read error: Network is down, reopening socket
+netstat -tlnp 2>/dev/null || ss -tlnp 2>/dev/null || true
+python3 - <<'PY'
+import socket, time
+try:
+    s=socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.settimeout(3)
+    s.connect(('127.0.0.1',2222))
+    banner=s.recv(256)
+    print('PORT_2222_OK', banner.decode('utf-8','replace').strip())
+    s.close()
+except Exception as e:
+    print('PORT_2222_ERROR', e)
+PY
+udhcpc: read error: Network is down, reopening socket
+udhcpc: read error: Network is down, reopening socket
+udhcpc: read error: Network is down, reopening socket
+
+---END SSH PHASE---
+[?2004hroot@738eda08f1d3:/app# python3 - <<'PY'
+[?2004l[?2004h> import socket, time
+[?2004l[?2004h> try:
+[?2004l[?2004h>     s=socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+[?2004l[?2004h>     s.settimeout(3)
+[?2004l[?2004h>     s.connect(('127.0.0.1',2222))
+[?2004l[?2004h>     banner=s.recv(256)
+[?2004l[?2004h>     print('PORT_2222_OK', banner.decode('utf-8','replace').strip())
+[?2004l[?2004h>     s.close()
+[?2004l[?2004h> except Exception as e:
+[?2004l[?2004h>     print('PORT_2222_ERROR', e)
+[?2004l[?2004h> PY
+[?2004lPORT_2222_ERROR timed out
+[?2004hroot@738eda08f1d3:/app# 
+[?2004l[?2004hroot@738eda08f1d3:/app# python3 - <<'PY'
+[?2004l[?2004h> import socket, time, sys
+[?2004l[?2004h> path='/tmp/alpine-serial'
+[?2004l[?2004h> s=socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+[?2004l[?2004h> s.connect(path)
+[?2004l[?2004h> s.setblocking(False)
+[?2004l[?2004h> 
+[?2004l[?2004h> # Send Ctrl-C to stop any foreground process, then get a clean prompt.
+[?2004l[?2004h> s.send(b'\x03')
+[?2004l[?2004h> time.sleep(0.5)
+[?2004l[?2004h> s.send(b'\n')
+[?2004l[?2004h> time.sleep(0.3)
+[?2004l[?2004h> 
+[?2004l[?2004h> def send(line):
+[?2004l[?2004h>     s.send((line + '\n').encode())
+[?2004l[?2004h>     time.sleep(0.2)
+[?2004l[?2004h> 
+[?2004l[?2004h> def read_for(secs):
+[?2004l[?2004h>     end=time.time()+secs
+[?2004l[?2004h>     while time.time()<end:
+[?2004l[?2004h>         try:
+[?2004l[?2004h>             chunk=s.recv(4096)
+[?2004l[?2004h>             if chunk:
+[?2004l[?2004h>                 sys.stdout.write(chunk.decode('utf-8','replace'))
+[?2004l[?2004h>                 sys.stdout.flush()
+[?2004l[?2004h>             else:
+[?2004l[?2004h>                 time.sleep(0.1)
+[?2004l[?2004h>         except BlockingIOError:
+[?2004l[?2004h>             time.sleep(0.1)
+[?2004l[?2004h>         except Exception as e:
+[?2004l[?2004h>             print('READ_ERROR:', e)
+[?2004l[?2004h>             break
+[?2004l[?2004h> 
+[?2004l[?2004h> send('export PS1=ALPINE# ')
+[?2004l[?2004h> read_for(1)
+[?2004l[?2004h> send('stty -echo')
+[?2004l[?2004h> read_for(1)
+[?2004l[?2004h> cmds = [
+[?2004l[?2004h>     'echo MARKER_NET_START',
+[?2004l[?2004h>     'ip link set lo up || true',
+[?2004l[?2004h>     'ip link set eth0 up || true',
+[?2004l[?2004h>     'ip addr add 10.0.2.15/24 dev eth0 || true',
+[?2004l[?2004h>     'ip route add default via 10.0.2.2 || true',
+[?2004l[?2004h>     'ip addr',
+[?2004l[?2004h>     'ip route',
+[?2004l[?2004h>     'echo MARKER_NET_DONE',
+[?2004l[?2004h> ]
+[?2004l[?2004h> for c in cmds:
+[?2004l[?2004h>     send(c)
+[?2004l[?2004h>     read_for(1.5)
+[?2004l[?2004h> read_for(3)
+[?2004l[?2004h> print('\n---END NET CONFIG---')
+[?2004l[?2004h> s.close()
+[?2004l[?2004h> PY
+[?2004l^C
+localhost:~# [6n
+localhost:~# [6nexport PS1=ALPINE# 
+ALPINE#[6n^[[40;14R^[[40;14R^[[40;8Rstty -echo
+ALPINE#MARKER_NET_START
+ALPINE#ALPINE#ALPINE#ALPINE#ALPINE#1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN qlen 1000
+    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+    inet 127.0.0.1/8 scope host lo
+       valid_lft forever preferred_lft forever
+    inet6 ::1/128 scope host 
+       valid_lft forever preferred_lft forever
+2: eth0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc pfifo_fast state UP qlen 1000
+    link/ether 52:54:00:12:34:56 brd ff:ff:ff:ff:ff:ff
+    inet 10.0.2.15/24 scope global eth0
+       valid_lft forever preferred_lft forever
+    inet6 fec0::5054:ff:fe12:3456/64 scope site dynamic flags 100 
+       valid_lft 86397sec preferred_lft 14397sec
+    inet6 fe80::5054:ff:fe12:3456/64 scope link 
+       valid_lft forever preferred_lft forever
+ALPINE#default via 10.0.2.2 dev eth0 
+10.0.2.0/24 dev eth0 scope link  src 10.0.2.15 
+ALPINE#MARKER_NET_DONE
+ALPINE#
+---END NET CONFIG---
+[?2004hroot@738eda08f1d3:/app# ;14R;14R;8Rpython3 - <<'PY'
+[?2004lbash: syntax error near unexpected token `;'
+'\n').encode())
+    time.sleep(0.1)
+    read_until_prompt(wait)
+    print(f'\n--- DONE: {cmd} ---')
+
+# Get a clean shell
+s.send(b'\x03')
+time.sleep(0.5)
+s.send(b'\n')
+time.sleep(0.3)
+read_until_prompt(3)
+
+send('export PS1=ALPINE# ', 3)
+send('echo MARKER_START', 3)
+send('ip link set lo up || true', 3)
+send('ip link set eth0 up || true', 3)
+send('ip addr flush dev eth0 || true', 3)
+send('ip addr add 10.0.2.15/24 dev eth0 || true', 3)
+send('ip route add default via 10.0.2.2 || true', 3)
+send('ip addr', 3)
+send('ip route', 3)
+send('apk add openssh', 45)
+send("echo 'root:password123' | chpasswd", 5)
+send("sed -i 's/^#*PermitRootLogin.*/PermitRootLogin yes/' /etc/ssh/sshd_config", 5)
+send("sed -i 's/^#*PasswordAuthentication.*/PasswordAuthentication yes/' /etc/ssh/sshd_config", 5)
+send('grep -E "PermitRootLogin|PasswordAuthentication" /etc/ssh/sshd_config', 5)
+send('ssh-keygen -A', 10)
+send('pkill sshd || true', 3)
+send('/usr/sbin/sshd', 5)
+send('sleep 1', 3)
+send('netstat -tlnp || true', 5)
+send('echo MARKER_DONE'[?2004hroot@738eda08f1d3:/app# import socket, time, sys, re
+[?2004l, 3)
+
+s.close()
+PY
+bash: import: command not found
+[?2004hroot@738eda08f1d3:/app# 
+[?2004l[?2004hroot@738eda08f1d3:/app# path='/tmp/alpine-serial'
+[?2004l[?2004hroot@738eda08f1d3:/app# s=socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+[?2004lbash: syntax error near unexpected token `('
+[?2004hroot@738eda08f1d3:/app# s.connect(path)
+[?2004lbash: syntax error near unexpected token `path'
+[?2004hroot@738eda08f1d3:/app# s.setblocking(False)
+[?2004lbash: syntax error near unexpected token `False'
+[?2004hroot@738eda08f1d3:/app# 
+[?2004l[?2004hroot@738eda08f1d3:/app# buf = ''
+[?2004lbash: buf: command not found
+[?2004hroot@738eda08f1d3:/app# 
+[?2004l[?2004hroot@738eda08f1d3:/app# def read_until_prompt(timeout=20, prompt='ALPINE#'):
+[?2004lbash: syntax error near unexpected token `('
+[?2004hroot@738eda08f1d3:/app#     global buf
+[?2004lbash: global: command not found
+[?2004hroot@738eda08f1d3:/app#     end=time.time()+timeout
+[?2004lbash: syntax error near unexpected token `('
+[?2004hroot@738eda08f1d3:/app#     while time.time()<end:
+[?2004lbash: syntax error near unexpected token `<'
+[?2004hroot@738eda08f1d3:/app#         try:
+[?2004lbash: try:: command not found
+[?2004hroot@738eda08f1d3:/app#             chunk=s.recv(4096)
+[?2004lbash: syntax error near unexpected token `('
+[?2004hroot@738eda08f1d3:/app#             if chunk:
+[?2004l[?2004h>                 txt=chunk.decode('utf-8','replace')
+[?2004lbash: syntax error near unexpected token `('
+[?2004hroot@738eda08f1d3:/app#                 buf += txt
+[?2004lbash: buf: command not found
+[?2004hroot@738eda08f1d3:/app#                 sys.stdout.write(txt)
+[?2004lbash: syntax error near unexpected token `txt'
+[?2004hroot@738eda08f1d3:/app#                 sys.stdout.flush()
+[?2004l[?2004h>                 # Strip ANSI/escape sequences for prompt detection
+[?2004l[?2004h>                 clean = re.sub(r'\x1b\[[0-9;?]*[A-Za-z]', '', buf)
+[?2004lbash: syntax error near unexpected token `clean'
+[?2004hroot@738eda08f1d3:/app#                 if clean.rstrip().endswith(prompt):
+[?2004lbash: syntax error near unexpected token `.endswith'
+[?2004hroot@738eda08f1d3:/app#                     return True
+[?2004lbash: return: True: numeric argument required
+bash: return: can only `return' from a function or sourced script
+[?2004hroot@738eda08f1d3:/app#             else:
+[?2004lbash: else:: command not found
+[?2004hroot@738eda08f1d3:/app#                 time.sleep(0.05)
+[?2004lbash: syntax error near unexpected token `0.05'
+[?2004hroot@738eda08f1d3:/app#         except BlockingIOError:
+[?2004lbash: except: command not found
+[?2004hroot@738eda08f1d3:/app#             time.sleep(0.05)
+[?2004lbash: syntax error near unexpected token `0.05'
+[?2004hroot@738eda08f1d3:/app#         except Exception as e:
+[?2004lbash: except: command not found
+[?2004hroot@738eda08f1d3:/app#             print('READ_ERROR:', e)
+[?2004lbash: syntax error near unexpected token `'READ_ERROR:','
+[?2004hroot@738eda08f1d3:/app#             return False
+[?2004lbash: return: False: numeric argument required
+bash: return: can only `return' from a function or sourced script
+[?2004hroot@738eda08f1d3:/app#     return False
+[?2004lbash: return: False: numeric argument required
+bash: return: can only `return' from a function or sourced script
+[?2004hroot@738eda08f1d3:/app# 
+[?2004l[?2004hroot@738eda08f1d3:/app# def send(cmd, wait=20):
+[?2004lbash: syntax error near unexpected token `('
+[?2004hroot@738eda08f1d3:/app#     global buf
+[?2004lbash: global: command not found
+[?2004hroot@738eda08f1d3:/app#     buf = ''
+[?2004lbash: buf: command not found
+[?2004hroot@738eda08f1d3:/app#     s.send((cmd + '\n').encode())
+[?2004lbash: syntax error near unexpected token `('
+[?2004hroot@738eda08f1d3:/app#     time.sleep(0.1)
+[?2004lbash: syntax error near unexpected token `0.1'
+[?2004hroot@738eda08f1d3:/app#     read_until_prompt(wait)
+[?2004lbash: syntax error near unexpected token `wait'
+[?2004hroot@738eda08f1d3:/app#     print(f'\n--- DONE: {cmd} ---')
+[?2004lbash: syntax error near unexpected token `f'\n--- DONE: {cmd} ---''
+[?2004hroot@738eda08f1d3:/app# 
+[?2004l[?2004hroot@738eda08f1d3:/app# # Get a clean shell
+[?2004l[?2004hroot@738eda08f1d3:/app# s.send(b'\x03')
+[?2004lbash: syntax error near unexpected token `b'\x03''
+[?2004hroot@738eda08f1d3:/app# time.sleep(0.5)
+[?2004lbash: syntax error near unexpected token `0.5'
+[?2004hroot@738eda08f1d3:/app# s.send(b'\n')
+[?2004lbash: syntax error near unexpected token `b'\n''
+[?2004hroot@738eda08f1d3:/app# time.sleep(0.3)
+[?2004lbash: syntax error near unexpected token `0.3'
+[?2004hroot@738eda08f1d3:/app# read_until_prompt(3)
+[?2004lbash: syntax error near unexpected token `3'
+[?2004hroot@738eda08f1d3:/app# 
+[?2004l[?2004hroot@738eda08f1d3:/app# send('export PS1=ALPINE# ', 3)
+[?2004lbash: syntax error near unexpected token `'export PS1=ALPINE# ','
+[?2004hroot@738eda08f1d3:/app# send('echo MARKER_START', 3)
+[?2004lbash: syntax error near unexpected token `'echo MARKER_START','
+[?2004hroot@738eda08f1d3:/app# send('ip link set lo up || true', 3)
+[?2004lbash: syntax error near unexpected token `'ip link set lo up || true','
+[?2004hroot@738eda08f1d3:/app# send('ip link set eth0 up || true', 3)
+[?2004lbash: syntax error near unexpected token `'ip link set eth0 up || true','
+[?2004hroot@738eda08f1d3:/app# send('ip addr flush dev eth0 || true', 3)
+[?2004lbash: syntax error near unexpected token `'ip addr flush dev eth0 || true','
+[?2004hroot@738eda08f1d3:/app# send('ip addr add 10.0.2.15/24 dev eth0 || true', 3)
+[?2004lbash: syntax error near unexpected token `'ip addr add 10.0.2.15/24 dev eth0 || true','
+[?2004hroot@738eda08f1d3:/app# send('ip route add default via 10.0.2.2 || true', 3)
+[?2004lbash: syntax error near unexpected token `'ip route add default via 10.0.2.2 || true','
+[?2004hroot@738eda08f1d3:/app# send('ip addr', 3)
+[?2004lbash: syntax error near unexpected token `'ip addr','
+[?2004hroot@738eda08f1d3:/app# send('ip route', 3)
+[?2004lbash: syntax error near unexpected token `'ip route','
+[?2004hroot@738eda08f1d3:/app# send('apk add openssh', 45)
+[?2004lbash: syntax error near unexpected token `'apk add openssh','
+[?2004hroot@738eda08f1d3:/app# send("echo 'root:password123' | chpasswd", 5)
+[?2004lbash: syntax error near unexpected token `"echo 'root:password123' | chpasswd",'
+[?2004hroot@738eda08f1d3:/app# send("sed -i 's/^#*PermitRootLogin.*/PermitRootLogin yes/' /etc/ssh/sshd_config", 5)
+[?2004lbash: syntax error near unexpected token `"sed -i 's/^#*PermitRootLogin.*/PermitRootLogin yes/' /etc/ssh/sshd_config",'
+[?2004hroot@738eda08f1d3:/app# send("sed -i 's/^#*PasswordAuthentication.*/PasswordAuthentication yes/' /etc/ssh/sshd_config", 5)
+[?2004lbash: syntax error near unexpected token `"sed -i 's/^#*PasswordAuthentication.*/PasswordAuthentication yes/' /etc/ssh/sshd_config",'
+[?2004hroot@738eda08f1d3:/app# send('grep -E "PermitRootLogin|PasswordAuthentication" /etc/ssh/sshd_config', 5)
+[?2004lbash: syntax error near unexpected token `'grep -E "PermitRootLogin|PasswordAuthentication" /etc/ssh/sshd_config','
+[?2004hroot@738eda08f1d3:/app# send('ssh-keygen -A', 10)
+[?2004lbash: syntax error near unexpected token `'ssh-keygen -A','
+[?2004hroot@738eda08f1d3:/app# send('pkill sshd || true', 3)
+[?2004lbash: syntax error near unexpected token `'pkill sshd || true','
+[?2004hroot@738eda08f1d3:/app# send('/usr/sbin/sshd', 5)
+[?2004lbash: syntax error near unexpected token `'/usr/sbin/sshd','
+[?2004hroot@738eda08f1d3:/app# send('sleep 1', 3)
+[?2004lbash: syntax error near unexpected token `'sleep 1','
+[?2004hroot@738eda08f1d3:/app# send('netstat -tlnp || true', 5)
+[?2004lbash: syntax error near unexpected token `'netstat -tlnp || true','
+[?2004hroot@738eda08f1d3:/app# send('echo MARKER_DONE', 3)
+[?2004lbash: syntax error near unexpected token `'echo MARKER_DONE','
+[?2004hroot@738eda08f1d3:/app# 
+[?2004l[?2004hroot@738eda08f1d3:/app# s.close()
+[?2004l[?2004h> PY
+[?2004lbash: syntax error near unexpected token `PY'
+[?2004hroot@738eda08f1d3:/app# python3 - <<'PY'
+[?2004l[?2004h> import socket, time
+[?2004l[?2004h> try:
+[?2004l[?2004h>     s=socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+[?2004l[?2004h>     s.settimeout(3)
+[?2004l[?2004h>     s.connect(('127.0.0.1',2222))
+[?2004l[?2004h>     banner=s.recv(256)
+[?2004l[?2004h>     print('PORT_2222_OK', banner.decode('utf-8','replace').strip())
+[?2004l[?2004h>     s.close()
+[?2004l[?2004h> except Exception as e:
+[?2004l[?2004h>     print('PORT_2222_ERROR', e)
+[?2004l[?2004h> PY
+[?2004lPORT_2222_OK 
+[?2004hroot@738eda08f1d3:/app# command -v ssh || true; command -v sshpass || true; command -v expect || true; command -v nc || true
+[?2004l/usr/bin/ssh
+/usr/bin/expect
+/bin/nc
+[?2004hroot@738eda08f1d3:/app# python3 - <<'PY'
+[?2004l[?2004h> import socket, time
+[?2004l[?2004h> try:
+[?2004l[?2004h>     s=socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+[?2004l[?2004h>     s.settimeout(5)
+[?2004l[?2004h>     s.connect(('127.0.0.1',2222))
+[?2004l[?2004h>     s.settimeout(5)
+[?2004l[?2004h>     data=b''
+[?2004l[?2004h>     end=time.time()+5
+[?2004l[?2004h>     while time.time()<end:
+[?2004l[?2004h>         try:
+[?2004l[?2004h>             chunk=s.recv(256)
+[?2004l[?2004h>             if not chunk:
+[?2004l[?2004h>                 break
+[?2004l[?2004h>             data += chunk
+[?2004l[?2004h>             if b'\n' in data:
+[?2004l[?2004h>                 break
+[?2004l[?2004h>         except socket.timeout:
+[?2004l[?2004h>             break
+[?2004l[?2004h>     print('BANNER:', data.decode('utf-8','replace').strip())
+[?2004l[?2004h>     s.close()
+[?2004l[?2004h> except Exception as e:
+[?2004l[?2004h>     print('CONNECT_ERROR:', e)
+[?2004l[?2004h> PY
+[?2004lBANNER: 
+[?2004hroot@738eda08f1d3:/app# cat > /tmp/ssh_test.exp <<'EXP'
+[?2004l[?2004h> #!/usr/bin/expect -f
+[?2004l[?2004h> set timeout 20
+[?2004l[?2004h> spawn ssh -p 2222 -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null root@localhost echo SSH_LOGIN_OK
+[?2004l[?2004h> expect {
+[?2004l[?2004h>     -re "password:" {
+[?2004l[?2004h>         send "password123\r"
+[?2004l[?2004h>         exp_continue
+[?2004l[?2004h>     }
+[?2004l[?2004h>     "SSH_LOGIN_OK" {
+[?2004l[?2004h>         puts "\nSSH_TEST_SUCCESS"
+[?2004l[?2004h>     }
+[?2004l[?2004h>     timeout {
+[?2004l[?2004h>         puts "\nSSH_TEST_TIMEOUT"
+[?2004l[?2004h>         exit 1
+[?2004l[?2004h>     }
+[?2004l[?2004h>     eof {
+[?2004l[?2004h>         puts "\nSSH_TEST_EOF"
+[?2004l[?2004h>     }
+[?2004l[?2004h> }
+[?2004l[?2004h> EXP
+[?2004l[?2004hroot@738eda08f1d3:/app# expect /tmp/ssh_test.exp
+[?2004lspawn ssh -p 2222 -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null root@localhost echo SSH_LOGIN_OK
+kex_exchange_identification: read: Connection reset by peer
+Connection reset by 127.0.0.1 port 2222
+
+SSH_TEST_EOF
+[?2004hroot@738eda08f1d3:/app# cat > /tmp/serial_cmd.py <<'PY'
+[?2004l[?2004h> #!/usr/bin/env python3
+[?2004l        time.sleep(0.05)
+        except Exception as e:
+            print('READ_ERROR:', e)
+            break
+print('\n---END SERIAL COMMANDS---')
+s.close()
+PY
+[?2004h> import socket, time, sys, re
+[?2004l[?2004h> 
+[?2004l[?2004h> path='/tmp/alpine-serial'
+[?2004l[?2004h> s=socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+[?2004l[?2004h> s.connect(path)
+[?2004l[?2004h> s.setblocking(False)
+[?2004l[?2004h> 
+[?2004l[?2004h> def clean(txt):
+[?2004l[?2004h>     return re.sub(r'\x1b\[[0-9;?]*[A-Za-z]', '', txt)
+[?2004l[?2004h> 
+[?2004l[?2004h> # Stop any foreground process and get prompt
+[?2004l[?2004h> s.send(b'\x03')
+[?2004l[?2004h> time.sleep(0.5)
+[?2004l[?2004h> s.send(b'\n')
+[?2004l[?2004h> time.sleep(0.3)
+[?2004l[?2004h> 
+[?2004l[?2004h> # Set a simple prompt
+[?2004l[?2004h> s.send(b'export PS1=ALPINE# \n')
+[?2004l[?2004h> time.sleep(0.5)
+[?2004l[?2004h> 
+[?2004l[?2004h> # Drain initial output
+[?2004l[?2004h> end=time.time()+1
+[?2004l[?2004h> while time.time()<end:
+[?2004l[?2004h>     try:
+[?2004l[?2004h>         s.recv(4096)
+[?2004l[?2004h>     except BlockingIOError:
+[?2004l[?2004h>         time.sleep(0.05)
+[?2004l[?2004h> 
+[?2004l[?2004h> commands = sys.argv[1:]
+[?2004l[?2004h> for cmd in commands:
+[?2004l[?2004h>     print(f'>>> {cmd}', flush=True)
+[?2004l[?2004h>     s.send((cmd + '\n').encode())
+[?2004l[?2004h>     time.sleep(0.2)
+[?2004l[?2004h>     end=time.time()+float(os.environ.get('SERIAL_WAIT','3'))
+[?2004l[?2004h>     while time.time()<end:
+[?2004l[?2004h>         try:
+[?2004l[?2004h>             chunk=s.recv(4096)
+[?2004l[?2004h>             if chunk:
+[?2004l[?2004h>                 txt=chunk.decode('utf-8','replace')
+[?2004l[?2004h>                 print(txt, end='', flush=True)
+[?2004l[?2004h>         except BlockingIOError:
+[?2004l[?2004h>             time.sleep(0.05)
+[?2004l[?2004h>         except Exception as e:
+[?2004l[?2004h>             print('READ_ERROR:', e)
+[?2004l[?2004h>             break
+[?2004l[?2004h> print('\n---END SERIAL COMMANDS---')
+[?2004l[?2004h> s.close()
+[?2004l[?2004h> PY
+[?2004l[?2004hroot@738eda08f1d3:/app# python3 /tmp/serial_cmd.py 'echo MARKER_STATE' 'ip addr' 'ip route' 'apk info openssh || true' 'pgrep -a sshd || true' 'netstat -tlnp 2>/dev/null || true' 'ls -la /etc/ssh 2>/dev/null || true'
+[?2004l>>> echo MARKER_STATE
+Traceback (most recent call last):
+  File "/tmp/serial_cmd.py", line 35, in <module>
+    end=time.time()+float(os.environ.get('SERIAL_WAIT','3'))
+NameError: name 'os' is not defined
+[?2004hroot@738eda08f1d3:/app# sed -i 's/^import socket, time, sys, re$/import socket, time, sys, re, os/' /tmp/serial_cmd.py
+[?2004l[?2004hroot@738eda08f1d3:/app# SERIAL_WAIT=5 python3 /tmp/serial_cmd.py 'echo MARKER_STATE' 'ip addr' 'ip route' 'apk info openssh || true' 'pgrep -a sshd || true' 'netstat -tlnp 2>/dev/null || true' 'ls -la /etc/ssh 2>/dev/null || true'
+[?2004l>>> echo MARKER_STATE
+MARKER_STATE
+ALPINE#>>> ip addr
+1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN qlen 1000
+    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+    inet 127.0.0.1/8 scope host lo
+       valid_lft forever preferred_lft forever
+    inet6 ::1/128 scope host 
+       valid_lft forever preferred_lft forever
+2: eth0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc pfifo_fast state UP qlen 1000
+    link/ether 52:54:00:12:34:56 brd ff:ff:ff:ff:ff:ff
+    inet 10.0.2.15/24 scope global eth0
+       valid_lft forever preferred_lft forever
+    inet6 fec0::5054:ff:fe12:3456/64 scope site dynamic flags 100 
+       valid_lft 86367sec preferred_lft 14367sec
+    inet6 fe80::5054:ff:fe12:3456/64 scope link 
+       valid_lft forever preferred_lft forever
+ALPINE#>>> ip route
+default via 10.0.2.2 dev eth0 
+10.0.2.0/24 dev eth0 scope link  src 10.0.2.15 
+ALPINE#>>> apk info openssh || true
+openssh-9.5_p1-r0 description:
+Port of OpenBSD's free SSH release
+
+openssh-9.5_p1-r0 webpage:
+https://www.openssh.com/portable.html
+
+openssh-9.5_p1-r0 installed size:
+416 KiB
+
+ALPINE#>>> pgrep -a sshd || true
+ALPINE#>>> netstat -tlnp 2>/dev/null || true
+Active Internet connections (only servers)
+Proto Recv-Q Send-Q Local Address           Foreign Address         State       PID/Program name    
+ALPINE#>>> ls -la /etc/ssh 2>/dev/null || true
+ALPINE#
+---END SERIAL COMMANDS---
+[?2004hroot@738eda08f1d3:/app# SERIAL_WAIT=8 python3 /tmp/serial_cmd.py 'echo MARKER_SSH_CONFIG' "echo 'root:password123' | chpasswd" "sed -i 's/^#*PermitRootLogin.*/PermitRootLogin yes/' /etc/ssh/sshd_config" "sed -i 's/^#*PasswordAuthentication.*/PasswordAuthentication yes/' /etc/ssh/sshd_config" 'grep -E "PermitRootLogin|PasswordAuthentication" /etc/ssh/sshd_config' 'ssh-keygen -A' 'rc-service sshd start || /usr/sbin/sshd' 'pgrep -a sshd || true' 'netstat -tlnp 2>/dev/null || true'
+[?2004l>>> echo MARKER_SSH_CONFIG
+MARKER_SSH_CONFIG
+ALPINE#>>> echo 'root:password123' | chpasswd
+chpasswd: password for 'root' changed
+ALPINE#>>> sed -i 's/^#*PermitRootLogin.*/PermitRootLogin yes/' /etc/ssh/sshd_config
+sed: /etc/ssh/sshd_config: No such file or directory
+ALPINE#>>> sed -i 's/^#*PasswordAuthentication.*/PasswordAuthentication yes/' /etc/ssh/sshd_config
+sed: /etc/ssh/sshd_config: No such file or directory
+ALPINE#>>> grep -E "PermitRootLogin|PasswordAuthentication" /etc/ssh/sshd_config
+grep: /etc/ssh/sshd_config: No such file or directory
+ALPINE#>>> ssh-keygen -A
+-ash: ssh-keygen: not found
+ALPINE#python3 - <<'PY'
+import socket, time
+try:
+    s=socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.settimeout(5)
+    s.connect(('127.0.0.1',2222))
+    data=b''
+    end=time.time()+5
+    while time.time()<end:
+        try:
+            chunk=s.recv(256)
+            if not chunk:
+                break
+            data += chunk
+            if b'\n' in data:
+                break
+        except socket.timeout:
+            break
+    print('BANNER:', data.decode('utf-8','replace').strip())
+    s.close()
+except Exception as e:
+    print('CONNECT_ERROR:', e)
+PY
+expect /tmp/ssh_test.exp
+>>> rc-service sshd start || /usr/sbin/sshd
+ [1m[31m*[m rc-service: service `sshd' does not exist[K
+-ash: /usr/sbin/sshd: not found
+ALPINE#>>> pgrep -a sshd || true
+ALPINE#>>> netstat -tlnp 2>/dev/null || true
+Active Internet connections (only servers)
+Proto Recv-Q Send-Q Local Address           Foreign Address         State       PID/Program name    
+ALPINE#
+---END SERIAL COMMANDS---
+[?2004hroot@738eda08f1d3:/app# python3 - <<'PY'
+[?2004l[?2004h> import socket, time
+[?2004l[?2004h> try:
+[?2004l[?2004h>     s=socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+[?2004l[?2004h>     s.settimeout(5)
+[?2004l[?2004h>     s.connect(('127.0.0.1',2222))
+[?2004l[?2004h>     data=b''
+[?2004l[?2004h>     end=time.time()+5
+[?2004l[?2004h>     while time.time()<end:
+[?2004l[?2004h>         try:
+[?2004l[?2004h>             chunk=s.recv(256)
+[?2004l[?2004h>             if not chunk:
+[?2004l[?2004h>                 break
+[?2004l[?2004h>             data += chunk
+[?2004l[?2004h>             if b'\n' in data:
+[?2004l[?2004h>                 break
+[?2004l[?2004h>         except socket.timeout:
+[?2004l[?2004h>             break
+[?2004l[?2004h>     print('BANNER:', data.decode('utf-8','replace').strip())
+[?2004l[?2004h>     s.close()
+[?2004l[?2004h> except Exception as e:
+[?2004l[?2004h>     print('CONNECT_ERROR:', e)
+[?2004l[?2004h> PY
+[?2004lBANNER: 
+[?2004hroot@738eda08f1d3:/app# expect /tmp/ssh_test.exp
+[?2004lspawn ssh -p 2222 -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null root@localhost echo SSH_LOGIN_OK
+kex_exchange_identification: read: Connection reset by peer
+Connection reset by 127.0.0.1 port 2222
+
+SSH_TEST_EOF
+[?2004hroot@738eda08f1d3:/app# SERIAL_WAIT=60 python3 /tmp/serial_cmd.py 'apk add openssh' 'apk info -e openssh || true' 'command -v sshd || true' 'command -v ssh-keygen || true' 'ls -la /etc/ssh || true'
+[?2004l>>> apk add openssh
+(1/11) Installing openssh-keygen (9.5_p1-r0)
+7  0%                                             8[0K(2/11) Installing ncurses-terminfo-base (6.4_p20231125-r0)
+7  8% ███                                         8[0K7  9% ███                                         8[0K7  9% ████                                        8[0K7 10% ████                                        8[0K(3/11) Installing libncursesw (6.4_p20231125-r0)
+7 11% █████                                       8[0K(4/11) Installing libedit (20230828.3.1-r3)
+7 16% ███████                                     8[0K(5/11) Installing openssh-client-common (9.5_p1-r0)
+7 19% ████████                                    8[0K7 28% ████████████                                8[0K7 31% █████████████                               8[0K7 35% ███████████████                             8[0K7 41% ██████████████████                          8[0K7 47% █████████████████████                       8[0K7 48% █████████████████████                       8[0K7 55% ████████████████████████                    8[0K(6/11) Installing openssh-client-default (9.5_p1-r0)
+7 62% ███████████████████████████                 8[0K(7/11) Installing openssh-sftp-server (9.5_p1-r0)
+7 75% █████████████████████████████████           8[0K(8/11) Installing openssh-server-common (9.5_p1-r0)
+7 78% ██████████████████████████████████          8[0K(9/11) Installing openssh-server-common-openrc (9.5_p1-r0)
+7 78% ██████████████████████████████████          8[0K(10/11) Installing openssh-server (9.5_p1-r0)
+7 79% ██████████████████████████████████          8[0K(11/11) Installing openssh (9.5_p1-r0)
+7 93% █████████████████████████████████████████   8[0K7100% ████████████████████████████████████████████8[0KExecuting busybox-1.36.1-r15.trigger
+OK: 17 MiB in 38 packages
+ALPINE#>>> apk info -e openssh || true
+openssh
+ALPINE#SERIAL_WAIT=10 python3 /tmp/serial_cmd.py 'apk info -e openssh || true' 'command -v sshd || true' 'command -v ssh-keygen || true' 'ls -la /etc/ssh || true'
+SERIAL_WAIT=10 python3 /tmp/serial_cmd.py 'echo MARKER_SSH_CONFIG' "echo 'root:password123' | chpasswd" "sed -i 's/^#*PermitRootLogin.*/PermitRootLogin yes/' /etc/ssh/sshd_config" "sed -i 's/^#*PasswordAuthentication.*/PasswordAuthentication yes/' /etc/ssh/sshd_config" 'grep -E "PermitRootLogin|PasswordAuthentication" /etc/ssh/sshd_config' 'ssh-keygen -A' 'rc-service sshd start || /usr/sbin/sshd' 'pgrep -a sshd || true' 'netstat -tlnp 2>/dev/null || true'
+>>> command -v sshd || true
+/usr/sbin/sshd
+ALPINE#python3 - <<'PY'
+import socket, time
+try:
+    s=socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.settimeout(5)
+    s.connect(('127.0.0.1',2222))
+    data=b''
+    end=time.time()+5
+    while time.time()<end:
+        try:
+            chunk=s.recv(256)
+            if not chunk:
+                break
+            data += chunk
+            if b'\n' in data:
+                break
+        except socket.timeout:
+            break
+    print('BANNER:', data.decode('utf-8','replace').strip())
+    s.close()
+except Exception as e:
+    print('CONNECT_ERROR:', e)
+PY
+expect /tmp/ssh_test.exp
+>>> command -v ssh-keygen || true
+/usr/bin/ssh-keygen
+ALPINE#
+
+>>> ls -la /etc/ssh || true
+total 584
+drwxr-xr-x    4 root     root           140 Jul 14 19:21 [1;34m.[m
+drwxr-xr-x   25 root     root          1000 Jul 14 19:20 [1;34m..[m
+-rw-r--r--    1 root     root        587027 Oct  4  2023 [0;0mmoduli[m
+-rw-r--r--    1 root     root          1690 Oct  4  2023 [0;0mssh_config[m
+drwxr-xr-x    2 root     root            40 Jul 14 19:20 [1;34mssh_config.d[m
+-rw-r--r--    1 root     root          3356 Oct  4  2023 [0;0msshd_config[m
+drwxr-xr-x    2 root     root            40 Jul 14 19:21 [1;34msshd_config.d[m
+ALPINE#SERIAL_WAIT=12 python3 /tmp/serial_cmd.py 'echo MARKER_SSH_SETUP' "echo 'root:password123' | chpasswd" "sed -i 's/^#*PermitRootLogin.*/PermitRootLogin yes/' /etc/ssh/sshd_config" "sed -i 's/^#*PasswordAuthentication.*/PasswordAuthentication yes/' /etc/ssh/sshd_config" 'grep -E "PermitRootLogin|PasswordAuthentication" /etc/ssh/sshd_config' 'ssh-keygen -A' 'rc-service sshd start || /usr/sbin/sshd' 'sleep 1' 'pgrep -a sshd || true' 'netstat -tlnp 2>/dev/null || true'
+
+---END SERIAL COMMANDS---
+[?2004hroot@738eda08f1d3:/app# SERIAL_WAIT=10 python3 /tmp/serial_cmd.py 'apk info -e openssh || true' 'command -v sshd || true' 'command -v ssh-keygen || true' 'ls -la /etc/ssh || true'
+[?2004l>>> apk info -e openssh || true
+python3 - <<'PY'
+import socket, time
+try:
+    s=socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.settimeout(5)
+    s.connect(('127.0.0.1',2222))
+    data=b''
+    end=time.time()+5
+    while time.time()<end:
+        try:
+            chunk=s.recv(256)
+            if not chunk:
+                break
+            data += chunk
+            if b'\n' in data:
+                break
+        except socket.timeout:
+            break
+    print('BANNER:', data.decode('utf-8','replace').strip())
+    s.close()
+except Exception as e:
+    print('CONNECT_ERROR:', e)
+PY
+expect /tmp/ssh_test.exp
+openssh
+ALPINE#>>> command -v sshd || true
+/usr/sbin/sshd
+ALPINE#>>> command -v ssh-keygen || true
+/usr/bin/ssh-keygen
+ALPINE#
+>>> ls -la /etc/ssh || true
+total 584
+drwxr-xr-x    4 root     root           140 Jul 14 19:21 [1;34m.[m
+drwxr-xr-x   25 root     root          1000 Jul 14 19:20 [1;34m..[m
+-rw-r--r--    1 root     root        587027 Oct  4  2023 [0;0mmoduli[m
+-rw-r--r--    1 root     root          1690 Oct  4  2023 [0;0mssh_config[m
+drwxr-xr-x    2 root     root            40 Jul 14 19:20 [1;34mssh_config.d[m
+-rw-r--r--    1 root     root          3356 Oct  4  2023 [0;0msshd_config[m
+drwxr-xr-x    2 root     root            40 Jul 14 19:21 [1;34msshd_config.d[m
+ALPINE#
+---END SERIAL COMMANDS---
+[?2004hroot@738eda08f1d3:/app# SERIAL_WAIT=10 python3 /tmp/serial_cmd.py 'echo MARKER_SSH_CONFIG' "echo 'root:password123' | chpasswd" "sed -i 's/^#*PermitRootLogin.*/PermitRootLogin yes/' /etc/ssh/sshd_config" "sed -i 's/^#*PasswordAuthentication.*/PasswordAuthentication yes/' /etc/ssh/sshd_config" 'grep -E "PermitRootLogin|PasswordAuthentication" /etc/ssh/sshd_config' 'ssh-keygen -A' 'rc-service sshd start || /usr/sbin/sshd' 'pgrep -a sshd || true' 'netstat -tlnp 2>/dev/null || true'
+[?2004l>>> echo MARKER_SSH_CONFIG
+MARKER_SSH_CONFIG
+ALPINE#
+>>> echo 'root:password123' | chpasswd
+chpasswd: password for 'root' changed
+ALPINE#>>> sed -i 's/^#*PermitRootLogin.*/PermitRootLogin yes/' /etc/ssh/sshd_config
+ALPINE#>>> sed -i 's/^#*PasswordAuthentication.*/PasswordAuthentication yes/' /etc/ssh/sshd_config
+ALPINE#
+>>> grep -E "PermitRootLogin|PasswordAuthentication" /etc/ssh/sshd_config
+PermitRootLogin yes
+PasswordAuthentication yes
+# PasswordAuthentication.  Depending on your PAM configuration,
+# the setting of "PermitRootLogin prohibit-password".
+# PAM authentication, then enable this but set PasswordAuthentication
+ALPINE#>>> ssh-keygen -A
+ssh-keygen: generating new host keys: RSA >>> rc-service sshd start || /usr/sbin/sshd
+>>> pgrep -a sshd || true
+
+ECDSA ED25519 
+ALPINE# [1m[32m*[m Caching service dependencies[K ...
+>>> netstat -tlnp 2>/dev/null || true
+
+---END SERIAL COMMANDS---
+[?2004hroot@738eda08f1d3:/app# python3 - <<'PY'
+[?2004l[?2004h> import socket, time
+[?2004l[?2004h> try:
+[?2004l[?2004h>     s=socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+[?2004l[?2004h>     s.settimeout(5)
+[?2004l[?2004h>     s.connect(('127.0.0.1',2222))
+[?2004l[?2004h>     data=b''
+[?2004l[?2004h>     end=time.time()+5
+[?2004l[?2004h>     while time.time()<end:
+[?2004l[?2004h>         try:
+[?2004l[?2004h>             chunk=s.recv(256)
+[?2004l[?2004h>             if not chunk:
+[?2004l[?2004h>                 break
+[?2004l[?2004h>             data += chunk
+[?2004l[?2004h>             if b'\n' in data:
+[?2004l[?2004h>                 break
+[?2004l[?2004h>         except socket.timeout:
+[?2004l[?2004h>             break
+[?2004l[?2004h>     print('BANNER:', data.decode('utf-8','replace').strip())
+[?2004l[?2004h>     s.close()
+[?2004l[?2004h> except Exception as e:
+[?2004l[?2004h>     print('CONNECT_ERROR:', e)
+[?2004l[?2004h> PY
+[?2004lBANNER: 
+[?2004hroot@738eda08f1d3:/app# expect /tmp/ssh_test.exp
+[?2004lspawn ssh -p 2222 -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null root@localhost echo SSH_LOGIN_OK
+kex_exchange_identification: read: Connection reset by peer
+Connection reset by 127.0.0.1 port 2222
+
+SSH_TEST_EOF
+[?2004hroot@738eda08f1d3:/app# 
+[?2004l[?2004hroot@738eda08f1d3:/app# 
+[?2004l[?2004hroot@738eda08f1d3:/app# SERIAL_WAIT=12 python3 /tmp/serial_cmd.py 'echo MARKER_SSH_SETUP' "echo 'root:password123' | chpasswd" "sed -i 's/^#*PermitRootLogin.*/PermitRootLogin yes/' /etc/ssh/sshd_config" "sed -i 's/^#*PasswordAuthentication.*/PasswordAuthentication yes/' /etc/ssh/sshd_config" 'grep -E "PermitRootLogin|PasswordAuthentication" /etc/ssh/sshd_config' 'ssh-keygen -A' 'rc-service sshd start || /usr/sbin/sshd' 'sleep 1' 'pgrep -a sshd || true' 'netstat -tlnp 2>/dev/null || true'
+[?2004l>>> echo MARKER_SSH_SETUP
+ALPINE#ALPINE#ALPINE#MARKER_SSH_SETUP
+ALPINE#>>> echo 'root:password123' | chpasswd
+chpasswd: password for 'root' changed
+ALPINE#
+>>> sed -i 's/^#*PermitRootLogin.*/PermitRootLogin yes/' /etc/ssh/sshd_config
+ALPINE#>>> sed -i 's/^#*PasswordAuthentication.*/PasswordAuthentication yes/' /etc/ssh/sshd_config
+ALPINE#>>> grep -E "PermitRootLogin|PasswordAuthentication" /etc/ssh/sshd_config
+PermitRootLogin yes
+PasswordAuthentication yes
+# PasswordAuthentication.  Depending on your PAM configuration,
+# the setting of "PermitRootLogin prohibit-password".
+# PAM authentication, then enable this but set PasswordAuthentication
+ALPINE#>>> ssh-keygen -A
+ALPINE#
+>>> rc-service sshd start || /usr/sbin/sshd
+ [1m[32m*[m Caching service dependencies[K ...
+>>> sleep 1
+ [ ok ]
+>>> pgrep -a sshd || true
+ [1m[32m*[m Starting sshd[K ...
+ [1m[31m*[m start-stop-daemon: /usr/sbin/sshd is already running[K
+ [1m[31m*[m Failed to start sshd[K
+ [ !! ]
+ [1m[31m*[m ERROR: sshd failed to start[K
+ALPINE#ALPINE#>>> netstat -tlnp 2>/dev/null || true
+2071 sshd: /usr/sbin/sshd [listener] 0 of 10-100 startups
+ALPINE#Active Internet connections (only servers)
+Proto Recv-Q Send-Q Local Address           Foreign Address         State       PID/Program name    
+tcp        0      0 0.0.0.0:22              0.0.0.0:*               LISTEN      2071/sshd [listener
+tcp        0      0 :::22                   :::*                    LISTEN      2071/sshd [listener
+ALPINE#
+---END SERIAL COMMANDS---
+[?2004hroot@738eda08f1d3:/app# python3 - <<'PY'
+[?2004l[?2004h> import socket, time
+[?2004l[?2004h> try:
+[?2004l[?2004h>     s=socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+[?2004l[?2004h>     s.settimeout(5)
+[?2004l[?2004h>     s.connect(('127.0.0.1',2222))
+[?2004l[?2004h>     data=b''
+[?2004l[?2004h>     end=time.time()+5
+[?2004l[?2004h>     while time.time()<end:
+[?2004l[?2004h>         try:
+[?2004l[?2004h>             chunk=s.recv(256)
+[?2004l[?2004h>             if not chunk:
+[?2004l[?2004h>                 break
+[?2004l[?2004h>             data += chunk
+[?2004l[?2004h>             if b'\n' in data:
+[?2004l[?2004h>                 break
+[?2004l[?2004h>         except socket.timeout:
+[?2004l[?2004h>             break
+[?2004l[?2004h>     print('BANNER:', data.decode('utf-8','replace').strip())
+[?2004l[?2004h>     s.close()
+[?2004l[?2004h> except Exception as e:
+[?2004l[?2004h>     print('CONNECT_ERROR:', e)
+[?2004l[?2004h> PY
+[?2004lpython3 - <<'PY'
+import socket, time
+try:
+    s=socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.settimeout(5)
+    s.connect(('127.0.0.1',2222))
+    data=b''
+    end=time.time()+5
+    while time.time()<end:
+        try:
+            chunk=s.recv(256)
+            if not chunk:
+                break
+            data += chunk
+            if b'\n' in data:
+                break
+        except socket.timeout:
+            break
+    print('BANNER:', data.decode('utf-8','replace').strip())
+    s.close()
+except Exception as e:
+    print('CONNECT_ERROR:', e)
+PY
+expect /tmp/ssh_test.exp
+BANNER: 
+[?2004hroot@738eda08f1d3:/app# expect /tmp/ssh_test.exp
+[?2004lspawn ssh -p 2222 -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null root@localhost echo SSH_LOGIN_OK
+Warning: Permanently added '[localhost]:2222' (ECDSA) to the list of known hosts.
+root@localhost's password: 
+SSH_LOGIN_OK
+
+SSH_TEST_SUCCESS
+[?2004hroot@738eda08f1d3:/app# 
+[?2004l[?2004hroot@738eda08f1d3:/app# 
+[?2004l[?2004hroot@738eda08f1d3:/app# 
+[?2004l[?2004hroot@738eda08f1d3:/app# 
+[?2004l[?2004hroot@738eda08f1d3:/app# 
+[?2004l[?2004hroot@738eda08f1d3:/app# 
+[?2004l[?2004hroot@738eda08f1d3:/app# python3 - <<'PY'
+[?2004l[?2004h> import socket, time
+[?2004l[?2004h> try:
+[?2004l[?2004h>     s=socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+[?2004l[?2004h>     s.settimeout(5)
+[?2004l[?2004h>     s.connect(('127.0.0.1',2222))
+[?2004l[?2004h>     data=b''
+[?2004l[?2004h>     end=time.time()+5
+[?2004l[?2004h>     while time.time()<end:
+[?2004l[?2004h>         try:
+[?2004l[?2004h>             chunk=s.recv(256)
+[?2004l[?2004h>             if not chunk:
+[?2004l[?2004h>                 break
+[?2004l[?2004h>             data += chunk
+[?2004l[?2004h>             if b'\n' in data:
+[?2004l[?2004h>                 break
+[?2004l[?2004h>         except socket.timeout:
+[?2004l[?2004h>             break
+[?2004l[?2004h>     print('BANNER:', data.decode('utf-8','replace').strip())
+[?2004l[?2004h>     s.close()
+[?2004l[?2004h> except Exception as e:
+[?2004l[?2004h>     print('CONNECT_ERROR:', e)
+[?2004l[?2004h> PY
+[?2004lBANNER: SSH-2.0-OpenSSH_9.5
+[?2004hroot@738eda08f1d3:/app# expect /tmp/ssh_test.exp
+[?2004lspawn ssh -p 2222 -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null root@localhost echo SSH_LOGIN_OK
+Warning: Permanently added '[localhost]:2222' (ECDSA) to the list of known hosts.
+SERIAL_WAIT=10 python3 /tmp/serial_cmd.py 'echo MARKER_SSH_DEBUG' 'pgrep -a sshd || true' 'ss -tlnp 2>/dev/null || true' 'netstat -tlnp 2>/dev/null || true' 'grep -nE "^Port|^ListenAddress|^PermitRootLogin|^PasswordAuthentication" /etc/ssh/sshd_config || true' 'ls -la /etc/ssh/ssh_host_* || true' 'cat /var/log/messages 2>/dev/null | tail -50 || true'
+root@localhost's password: 
+SSH_LOGIN_OK
+
+SSH_TEST_SUCCESS
+[?2004hroot@738eda08f1d3:/app# SERIAL_WAIT=10 python3 /tmp/serial_cmd.py 'echo MARKER_SSH_DEBUG' 'pgrep -a sshd || true' 'ss -tlnp 2>/dev/null || true' 'netstat -tlnp 2>/dev/null || true' 'grep -nE "^Port|^ListenAddress|^PermitRootLogin|^PasswordAuthentication" /etc/ssh/sshd_config || true' 'ls -la /etc/ssh/ssh_host_* || true' 'cat /var/log/messages 2>/dev/null | tail -50 || true'
+[?2004l>>> echo MARKER_SSH_DEBUG
+MARKER_SSH_DEBUG
+ALPINE#>>> pgrep -a sshd || true
+2071 sshd: /usr/sbin/sshd [listener] 0 of 10-100 startups
+ALPINE#>>> ss -tlnp 2>/dev/null || true
+ALPINE#>>> netstat -tlnp 2>/dev/null || true
+Active Internet connections (only servers)
+Proto Recv-Q Send-Q Local Address           Foreign Address         State       PID/Program name    
+tcp        0      0 0.0.0.0:22              0.0.0.0:*               LISTEN      2071/sshd [listener
+tcp        0      0 :::22                   :::*                    LISTEN      2071/sshd [listener
+ALPINE#>>> grep -nE "^Port|^ListenAddress|^PermitRootLogin|^PasswordAuthentication" /etc/ssh/sshd_config || true
+36:PermitRootLogin yes
+61:PasswordAuthentication yes
+ALPINE#>>> ls -la /etc/ssh/ssh_host_* || true
+-rw-------    1 root     root           505 Jul 14 19:27 [0;0m/etc/ssh/ssh_host_ecdsa_key[m
+-rw-r--r--    1 root     root           176 Jul 14 19:27 [0;0m/etc/ssh/ssh_host_ecdsa_key.pub[m
+-rw-------    1 root     root           411 Jul 14 19:27 [0;0m/etc/ssh/ssh_host_ed25519_key[m
+-rw-r--r--    1 root     root            96 Jul 14 19:27 [0;0m/etc/ssh/ssh_host_ed25519_key.pub[m
+-rw-------    1 root     root          2602 Jul 14 19:27 [0;0m/etc/ssh/ssh_host_rsa_key[m
+-rw-r--r--    1 root     root           568 Jul 14 19:27 [0;0m/etc/ssh/ssh_host_rsa_key.pub[m
+ALPINE#>>> cat /var/log/messages 2>/dev/null | tail -50 || true
+Jul 14 19:07:44 localhost syslog.info syslogd started: BusyBox v1.36.1
+Jul 14 19:07:45 localhost daemon.info init: starting pid 1894, tty '': '/sbin/openrc default'
+Jul 14 19:07:54 localhost daemon.info init: starting pid 1921, tty '/dev/tty1': '/sbin/getty 38400 tty1'
+Jul 14 19:07:54 localhost daemon.info init: starting pid 1922, tty '/dev/tty2': '/sbin/getty 38400 tty2'
+Jul 14 19:07:54 localhost daemon.info init: starting pid 1926, tty '/dev/tty3': '/sbin/getty 38400 tty3'
+Jul 14 19:07:55 localhost daemon.info init: starting pid 1930, tty '/dev/tty4': '/sbin/getty 38400 tty4'
+Jul 14 19:07:55 localhost daemon.info init: starting pid 1934, tty '/dev/tty5': '/sbin/getty 38400 tty5'
+Jul 14 19:07:55 localhost daemon.info init: starting pid 1938, tty '/dev/tty6': '/sbin/getty 38400 tty6'
+Jul 14 19:07:56 localhost daemon.info init: starting pid 1942, tty '/dev/ttyS0': '/sbin/getty -L 0 ttyS0 vt100'
+Jul 14 19:09:42 localhost auth.info login[1943]: root login on 'ttyS0'
+Jul 14 19:18:58 localhost user.info : password for 'root' changed
+Jul 14 19:26:53 localhost user.info : password for 'root' changed
+Jul 14 19:28:15 localhost daemon.err /etc/init.d/sshd[1988]: sshd: caught SIGINT, aborting
+Jul 14 19:28:19 localhost auth.info sshd[2071]: Server listening on 0.0.0.0 port 22.
+Jul 14 19:28:19 localhost auth.info sshd[2071]: Server listening on :: port 22.
+Jul 14 19:28:31 localhost user.info : password for 'root' changed
+Jul 14 19:30:01 localhost daemon.err /etc/init.d/sshd[2210]: start-stop-daemon: /usr/sbin/sshd is already running
+Jul 14 19:30:02 localhost daemon.err /etc/init.d/sshd[2078]: ERROR: sshd failed to start
+Jul 14 19:30:05 localhost auth.err sshd[2214]: error: Bind to port 22 on 0.0.0.0 failed: Address in use.
+Jul 14 19:30:05 localhost auth.err sshd[2214]: error: Bind to port 22 on :: failed: Address in use.
+Jul 14 19:30:06 localhost auth.crit sshd[2214]: fatal: Cannot bind any address.
+Jul 14 19:30:29 localhost auth.info sshd[2218]: Connection closed by 10.0.2.2 port 56128
+Jul 14 19:30:35 localhost auth.info sshd[2219]: Accepted password for root from 10.0.2.2 port 58698 ssh2
+Jul 14 19:30:37 localhost auth.info sshd[2219]: Received disconnect from 10.0.2.2 port 58698:11: disconnected by user
+Jul 14 19:30:37 localhost auth.info sshd[2219]: Disconnected from user root 10.0.2.2 port 58698
+Jul 14 19:30:40 localhost auth.info sshd[2222]: Connection closed by 10.0.2.2 port 41034
+Jul 14 19:30:46 localhost auth.info sshd[2223]: Accepted password for root from 10.0.2.2 port 41042 ssh2
+Jul 14 19:30:48 localhost auth.info sshd[2223]: Received disconnect from 10.0.2.2 port 41042:11: disconnected by user
+Jul 14 19:30:48 localhost auth.info sshd[2223]: Disconnected from user root 10.0.2.2 port 41042
+ALPINE#
+---END SERIAL COMMANDS---
+[?2004hroot@738eda08f1d3:/app# 

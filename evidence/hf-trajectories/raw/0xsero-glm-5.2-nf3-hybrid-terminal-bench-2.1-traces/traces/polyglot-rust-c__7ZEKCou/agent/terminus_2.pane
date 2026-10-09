@@ -1,0 +1,70 @@
+[?2004hroot@695df843f993:/app# asciinema rec --stdin /logs/agent/recording.cast
+[?2004l[0;32masciinema: recording asciicast to /logs/agent/recording.cast[0m
+[0;32masciinema: press <ctrl-d> or type "exit" when you're done[0m
+[?2004hroot@695df843f993:/app# clear
+[?2004l[H[J[3J[?2004hroot@695df843f993:/app# mkdir -p /app/polyglot
+[?2004l[?2004hroot@695df843f993:/app# cat > /app/polyglot/main.rs <<'EOF'
+[?2004l[?2004h> // \
+[?2004l[?2004h> fn main(){let n=std::env::args().nth(1).unwrap().parse::<u64>().unwrap();let mut a=1u128;let mut b=1u128;for _ in 0..n{let c=a+b;a=b;b=c;}println!("{}",a);}
+[?2004l[?2004h> /* /* */
+[?2004l[?2004h> #include <cstdio>
+[?2004l[?2004h> #include <cstdlib>
+[?2004l[?2004h> 
+[?2004l[?2004h> static void put_u128(unsigned __int128 v) {
+[?2004l[?2004h>     char buf[40];
+[?2004l[?2004h>     int i = 0;
+[?2004l[?2004h>     if (v == 0) { putchar('0'); return; }
+[?2004l[?2004h>     while (v > 0) { buf[i++] = char('0' + (unsigned)(v % 10)); v /= 10; }
+[?2004l[?2004h>     while (i > 0) putchar(buf[--i]);
+[?2004l[?2004h> }
+[?2004l[?2004h> 
+[?2004l[?2004h> int main(int argc, char** argv) {
+[?2004l[?2004h>     if (argc < 2) return 1;
+[?2004l[?2004h>     long long n = atoll(argv[1]);
+[?2004l[?2004h>     unsigned __int128 a = 1, b = 1;
+[?2004l[?2004h>     for (long long i = 0; i < n; i++) {
+[?2004l[?2004h>         unsigned __int128 c = a + b;
+[?2004l[?2004h>         a = b;
+[?2004l[?2004h>         b = c;
+[?2004l[?2004h>     }
+[?2004l[?2004h>     put_u128(a);
+[?2004l[?2004h>     putchar('\n');
+[?2004l[?2004h>     return 0;
+[?2004l[?2004h> }
+[?2004l[?2004h> // */
+[?2004l[?2004h> EOF
+[?2004l[?2004hroot@695df843f993:/app# rustc /app/polyglot/main.rs -o /app/polyglot/rustmain && /app/polyglot/rustmain 10
+[?2004lg++ -x c++ /app/polyglot/main.rs -o /app/polyglot/cmain && /app/polyglot/cmain 10
+89
+[?2004hroot@695df843f993:/app# g++ -x c++ /app/polyglot/main.rs -o /app/polyglot/cmain && /app/polyglot/cmain 10
+[?2004l89
+[?2004hroot@695df843f993:/app# rustc /app/polyglot/main.rs && /app/polyglot/main 10
+[?2004lg++ -x c++ /app/polyglot/main.rs -o /app/polyglot/cmain && /app/polyglot/cmain 10
+rustc /app/polyglot/main.rs && /app/polyglot/main 0 && /app/polyglot/main 1 && /app/polyglot/main 2
+bash: /app/polyglot/main: No such file or directory
+[?2004hroot@695df843f993:/app# g++ -x c++ /app/polyglot/main.rs -o /app/polyglot/cmain && /app/polyglot/cmain 10
+[?2004lg++ -x c++ /app/polyglot/main.rs -o /app/polyglot/cmain && /app/polyglot/cmain 0 && /app/polyglot/cmain 1 && /app/polyglot/cmain 2
+89
+[?2004hroot@695df843f993:/app# rustc /app/polyglot/main.rs && /app/polyglot/main 0 && /app/polyglot/main 1 && /app/polyglot/main 2
+[?2004lbash: /app/polyglot/main: No such file or directory
+[?2004hroot@695df843f993:/app# g++ -x c++ /app/polyglot/main.rs -o /app/polyglot/cmain && /app/polyglot/cmain 0 && /app/polyglot/cmain 1 && /app/polyglot/cmain 2
+[?2004l1
+1
+2
+[?2004hroot@695df843f993:/app# pwd && rustc /app/polyglot/main.rs && ls -l main /app/polyglot/main 2>&1
+[?2004l/app
+cd /app/polyglot && rustc /app/polyglot/main.rs && /app/polyglot/main 0 && /app/polyglot/main 1 && /app/polyglot/main 2 && /app/polyglot/main 10
+cd /app/polyglot && g++ -x c++ /app/polyglot/main.rs -o /app/polyglot/cmain && /app/polyglot/cmain 0 && /app/polyglot/cmain 1 && /app/polyglot/cmain 2 && /app/polyglot/cmain 10
+ls: cannot access '/app/polyglot/main': No such file or directory
+-rwxr-xr-x 1 root root 13290456 Jul 18 22:14 [0m[01;32mmain[0m
+[?2004hroot@695df843f993:/app# cd /app/polyglot && rustc /app/polyglot/main.rs && /app/polyglot/main 0 && /app/polyglot/main 1 && /app/polyglot/main 2 && /app/polyglot/main 10
+[?2004l1
+1
+2
+89
+[?2004hroot@695df843f993:/app/polyglot# cd /app/polyglot && g++ -x c++ /app/polyglot/main.rs -o /app/polyglot/cmain && /app/polyglot/cmain 0 && /app/polyglot/cmain 1 && /app/polyglot/cmain 2 && /app/polyglot/cmain 10
+[?2004l1
+1
+2
+89
+[?2004hroot@695df843f993:/app/polyglot# 

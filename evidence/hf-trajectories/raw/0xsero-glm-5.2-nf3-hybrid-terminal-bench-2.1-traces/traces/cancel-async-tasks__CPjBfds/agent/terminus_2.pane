@@ -1,0 +1,407 @@
+[?2004hroot@d0467c74a753:/app# asciinema rec --stdin /logs/agent/recording.cast
+[?2004l[0;32masciinema: recording asciicast to /logs/agent/recording.cast[0m
+[0;32masciinema: press <ctrl-d> or type "exit" when you're done[0m
+[?2004hroot@d0467c74a753:/app# clear
+[?2004l[H[J[3J[?2004hroot@d0467c74a753:/app# cat > /app/run.py <<'PY'
+[?2004l while len(running) < max_concurrent:
+                try:
+                    task = next(task_iter)
+                except StopIteration:
+                    task_iter = None
+                    break
+                running.add(asyncio.create_task(runner(task)))
+
+            if not running:
+                break
+
+            done, running = await asyncio.wait(
+                running,
+                return_when=asyncio.FIRST_COMPLETED,
+            )
+
+            for finished in done:
+                exc = finished.exception()
+                if exc is not None and first_exc is None:
+                    first_exc = exc
+
+            if first_exc is not None:
+                raise first_exc
+    except BaseException as exc:
+        first_exc = exc if first_exc is None else first_exc
+
+        for task in running:
+            if not task.done():
+                task.cancel()
+
+        if running:
+            await asyncio.gather(*running, return_exceptions=True)
+
+        raise first_exc
+PY
+[?2004h> from __future__ import annotations
+[?2004l[?2004h> 
+[?2004l[?2004h> import asyncio
+[?2004l[?2004h> from typing import Awaitable, Callable
+[?2004l[?2004h> 
+[?2004l[?2004h> 
+[?2004l[?2004h> async def run_tasks(
+[?2004l[?2004h>     tasks: list[Callable[[], Awaitable[None]]],
+[?2004l[?2004h>     max_concurrent: int,
+[?2004l[?2004h> ) -> None:
+[?2004l[?2004h>     """Run async jobs with bounded concurrency.
+[?2004l[?2004h> 
+[?2004l[?2004h>     Args:
+[?2004l[?2004h>         tasks: Callables that return awaitable objects performing async work.
+[?2004l[?2004h>         max_concurrent: Maximum number of tasks allowed to run at the same time.
+[?2004l[?2004h> 
+[?2004l[?2004h>     If this coroutine is cancelled or interrupted, running tasks are cancelled
+[?2004l[?2004h>     and awaited so their try/finally cleanup code has a chance to execute.
+[?2004l[?2004h>     """
+[?2004l[?2004h>     if max_concurrent < 1:
+[?2004l[?2004h>         raise ValueError("max_concurrent must be at least 1")
+[?2004l[?2004h> 
+[?2004l[?2004h>     semaphore = asyncio.Semaphore(max_concurrent)
+[?2004l[?2004h> 
+[?2004l[?2004h>     async def runner(task: Callable[[], Awaitable[None]]) -> None:
+[?2004l[?2004h>         async with semaphore:
+[?2004l[?2004h>             await task()
+[?2004l[?2004h> 
+[?2004l[?2004h>     running: set[asyncio.Task[None]] = set()
+[?2004l[?2004h>     task_iter = iter(tasks)
+[?2004l[?2004h>     first_exc: BaseException | None = None
+[?2004l[?2004h> 
+[?2004l[?2004h>     try:
+[?2004l[?2004h>         while True:
+[?2004l[?2004h>             while len(running) < max_concurrent:
+[?2004l[?2004h>                 try:
+[?2004l[?2004h>                     task = next(task_iter)
+[?2004l[?2004h>                 except StopIteration:
+[?2004l[?2004h>                     task_iter = None
+[?2004l[?2004h>                     break
+[?2004l[?2004h>                 running.add(asyncio.create_task(runner(task)))
+[?2004l[?2004h> 
+[?2004l[?2004h>             if not running:
+[?2004l[?2004h>                 break
+[?2004l[?2004h> 
+[?2004l[?2004h>             done, running = await asyncio.wait(
+[?2004l[?2004h>                 running,
+[?2004l[?2004h>                 return_when=asyncio.FIRST_COMPLETED,
+[?2004l[?2004h>             )
+[?2004l[?2004h> 
+[?2004l[?2004h>             for finished in done:
+[?2004l[?2004h>                 exc = finished.exception()
+[?2004l[?2004h>                 if exc is not None and first_exc is None:
+[?2004l[?2004h>                     first_exc = exc
+[?2004l[?2004h> 
+[?2004l[?2004h>             if first_exc is not None:
+[?2004l[?2004h>                 raise first_exc
+[?2004l[?2004h>     except BaseException as exc:
+[?2004l[?2004h>         first_exc = exc if first_exc is None else first_exc
+[?2004l[?2004h> 
+[?2004l[?2004h>         for task in running:
+[?2004l[?2004h>             if not task.done():
+[?2004l[?2004h>                 task.cancel()
+[?2004l[?2004h> 
+[?2004l[?2004h>         if running:
+[?2004l[?2004h>             await asyncio.gather(*running, return_exceptions=True)
+[?2004l[?2004h> 
+[?2004l[?2004h>         raise first_exc
+[?2004l[?2004h> PY
+[?2004l[?2004hroot@d0467c74a753:/app# python3 -m py_compile /app/run.py
+[?2004lpython3 - <<'PY'
+import asyncio
+from run import run_tasks
+
+async def normal_task(i):
+    await asyncio.sleep(0.05)
+    return None
+
+async def main_normal():
+    await run_tasks([lambda: normal_task(i) for i in range(5)], 2)
+    print("normal ok")
+
+current = 0
+max_seen = 0
+
+async def concurrency_task():
+    global current, max_seen
+    current += 1
+    max_seen = max(max_seen, current)
+    await asyncio.sleep(0.05)
+    current -= 1
+
+async def main_concurrency():
+    await run_tasks([lambda: concurrency_task() for _ in range(10)], 3)
+    print("max concurrent:", max_seen)
+
+cleaned = []
+
+async def cleanup_task(i):
+    try:
+        await asyncio.sleep(1)
+    finally:
+        cleaned.append(i)
+
+async def main_cancel():
+    try:
+        await asyncio.wait_for(
+            run_tasks([lambda: cleanup_task(i) for i in range(4)], 2),
+            timeout=0.1,
+        )
+    except asyncio.TimeoutError:
+        pass
+    print("cleaned up:", sorted(cleaned))
+
+asyncio.run(main_normal())
+asyncio.run(main_concurrency())
+asyncio.run(main_cancel())
+PY
+[?2004hroot@d0467c74a753:/app# python3 - <<'PY'
+[?2004l[?2004h> import asyncio
+[?2004l[?2004h> from run import run_tasks
+[?2004l[?2004h> 
+[?2004l[?2004h> async def normal_task(i):
+[?2004l[?2004h>     await asyncio.sleep(0.05)
+[?2004l[?2004h>     return None
+[?2004l[?2004h> 
+[?2004l[?2004h> async def main_normal():
+[?2004l[?2004h>     await run_tasks([lambda: normal_task(i) for i in range(5)], 2)
+[?2004l[?2004h>     print("normal ok")
+[?2004l[?2004h> 
+[?2004l[?2004h> current = 0
+[?2004l[?2004h> max_seen = 0
+[?2004l[?2004h> 
+[?2004l[?2004h> async def concurrency_task():
+[?2004l[?2004h>     global current, max_seen
+[?2004l[?2004h>     current += 1
+[?2004l[?2004h>     max_seen = max(max_seen, current)
+[?2004l[?2004h>     await asyncio.sleep(0.05)
+[?2004l[?2004h>     current -= 1
+[?2004l[?2004h> 
+[?2004l[?2004h> async def main_concurrency():
+[?2004l[?2004h>     await run_tasks([lambda: concurrency_task() for _ in range(10)], 3)
+[?2004l[?2004h>     print("max concurrent:", max_seen)
+[?2004l[?2004h> 
+[?2004l[?2004h> cleaned = []
+[?2004l[?2004h> 
+[?2004l[?2004h> async def cleanup_task(i):
+[?2004l[?2004h>     try:
+[?2004l[?2004h>         await asyncio.sleep(1)
+[?2004l[?2004h>     finally:
+[?2004l[?2004h>         cleaned.append(i)
+[?2004l[?2004h> 
+[?2004l[?2004h> async def main_cancel():
+[?2004l[?2004h>     try:
+[?2004l[?2004h>         await asyncio.wait_for(
+[?2004l[?2004h>             run_tasks([lambda: cleanup_task(i) for i in range(4)], 2),
+[?2004l[?2004h>             timeout=0.1,
+[?2004l[?2004h>         )
+[?2004l[?2004h>     except asyncio.TimeoutError:
+[?2004l[?2004h>         pass
+[?2004l[?2004h>     print("cleaned up:", sorted(cleaned))
+[?2004l[?2004h> 
+[?2004l[?2004h> asyncio.run(main_normal())
+[?2004l[?2004h> asyncio.run(main_concurrency())
+[?2004l[?2004h> asyncio.run(main_cancel())
+[?2004l[?2004h> PY
+[?2004lTraceback (most recent call last):
+  File [35m"<stdin>"[0m, line [35m44[0m, in [35m<module>[0m
+  File [35m"/usr/local/lib/python3.13/asyncio/runners.py"[0m, line [35m195[0m, in [35mrun[0m
+    return [31mrunner.run[0m[1;31m(main)[0m
+           [31m~~~~~~~~~~[0m[1;31m^^^^^^[0m
+  File [35m"/usr/local/lib/python3.13/asyncio/runners.py"[0m, line [35m118[0m, in [35mrun[0m
+    return [31mself._loop.run_until_complete[0m[1;31m(task)[0m
+           [31m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m[1;31m^^^^^^[0m
+  File [35m"/usr/local/lib/python3.13/asyncio/base_events.py"[0m, line [35m725[0m, in [35mrun_until_complete[0m
+    return [31mfuture.result[0m[1;31m()[0m
+           [31m~~~~~~~~~~~~~[0m[1;31m^^[0m
+  File [35m"<stdin>"[0m, line [35m9[0m, in [35mmain_normal[0m
+  File [35m"/app/run.py"[0m, line [35m68[0m, in [35mrun_tasks[0m
+    raise first_exc
+  File [35m"/app/run.py"[0m, line [35m37[0m, in [35mrun_tasks[0m
+    task = next(task_iter)
+[1;35mTypeError[0m: [35m'NoneType' object is not an iterator[0m
+[?2004hroot@d0467c74a753:/app# cat > /app/run.py <<'PY'
+[?2004l[?2004h> from __future__ import annotations
+[?2004l[?2004h> 
+[?2004l[?2004h> import asyncio
+[?2004l[?2004h> from typing import Awaitable, Callable
+[?2004l[?2004h> 
+[?2004l[?2004h> 
+[?2004l[?2004h> async def run_tasks(
+[?2004l[?2004h>     tasks: list[Callable[[], Awaitable[None]]],
+[?2004l[?2004h>     max_concurrent: int,
+[?2004l[?2004h> ) -> None:
+[?2004l[?2004h>     """Run async jobs with bounded concurrency.
+[?2004l[?2004h> 
+[?2004l[?2004h>     Args:
+[?2004l[?2004h>         tasks: Callables that return awaitable objects performing async work.
+[?2004l[?2004h>         max_concurrent: Maximum number of tasks allowed to run at the same time.
+[?2004l[?2004h> 
+[?2004l[?2004h>     If this coroutine is cancelled or interrupted, running tasks are cancelled
+[?2004l[?2004h>     and awaited so their try/finally cleanup code has a chance to execute.
+[?2004l[?2004h>     """
+[?2004l[?2004h>     if max_concurrent < 1:
+[?2004l[?2004h>         raise ValueError("max_concurrent must be at least 1")
+[?2004l[?2004h> 
+[?2004l[?2004h>     semaphore = asyncio.Semaphore(max_concurrent)
+[?2004l[?2004h> 
+[?2004l[?2004h>     async def runner(task: Callable[[], Awaitable[None]]) -> None:
+[?2004l[?2004h>         async with semaphore:
+[?2004l[?2004h>             await task()
+[?2004l[?2004h> 
+[?2004l[?2004h>     running: set[asyncio.Task[None]] = set()
+[?2004l[?2004h>     next_index = 0
+[?2004l[?2004h>     first_exc: BaseException | None = None
+[?2004l[?2004h> 
+[?2004l[?2004h>     try:
+[?2004l[?2004h>         while True:
+[?2004l[?2004h>             while len(running) < max_concurrent and next_index < len(tasks):
+[?2004l[?2004h>                 running.add(asyncio.create_task(runner(tasks[next_index])))
+[?2004l[?2004h>                 next_index += 1
+[?2004l[?2004h> 
+[?2004l[?2004h>             if not running:
+[?2004l[?2004h>                 break
+[?2004l[?2004h> 
+[?2004l[?2004h>             done, running = await asyncio.wait(
+[?2004l[?2004h>                 running,
+[?2004l[?2004h>                 return_when=asyncio.FIRST_COMPLETED,
+[?2004l[?2004h>             )
+[?2004l[?2004h> 
+[?2004l[?2004h>             for finished in done:
+[?2004l[?2004h>                 exc = finished.exception()
+[?2004l[?2004h>                 if exc is not None and first_exc is None:
+[?2004l[?2004h>                     first_exc = exc
+[?2004l[?2004h> 
+[?2004l[?2004h>             if first_exc is not None:
+[?2004l[?2004h>                 raise first_exc
+[?2004l[?2004h>     except BaseException as exc:
+[?2004l[?2004h>         first_exc = exc if first_exc is None else first_exc
+[?2004l[?2004h> 
+[?2004l[?2004h>         for task in running:
+[?2004l[?2004h>             if not task.done():
+[?2004l[?2004h>                 task.cancel()
+[?2004l[?2004h> 
+[?2004l[?2004h>         if running:
+[?2004l[?2004h>             await asyncio.gather(*running, return_exceptions=True)
+[?2004l[?2004h> 
+[?2004l[?2004h>         raise first_exc
+[?2004l[?2004h> PY
+[?2004l[?2004hroot@d0467c74a753:/app# python3 -m py_compile /app/run.py
+[?2004l[?2004hroot@d0467c74a753:/app# python3 - <<'PY'
+[?2004l[?2004h> import asyncio
+[?2004l[?2004h> from run import run_tasks
+[?2004l[?2004h> 
+[?2004l[?2004h> async def normal_task(i):
+[?2004l[?2004h>     await asyncio.sleep(0.05)
+[?2004l[?2004h>     return None
+[?2004l[?2004h> 
+[?2004l[?2004h> async def main_normal():
+[?2004l[?2004h>     await run_tasks([lambda: normal_task(i) for i in range(5)], 2)
+[?2004l[?2004h>     print("normal ok")
+[?2004l[?2004h> 
+[?2004l[?2004h> current = 0
+[?2004l[?2004h> max_seen = 0
+[?2004l[?2004h> 
+[?2004l[?2004h> async def concurrency_task():
+[?2004l[?2004h>     global current, max_seen
+[?2004l[?2004h>     current += 1
+[?2004l[?2004h>     max_seen = max(max_seen, current)
+[?2004l[?2004h>     await asyncio.sleep(0.05)
+[?2004l[?2004h>     current -= 1
+[?2004l[?2004h> 
+[?2004l[?2004h> async def main_concurrency():
+[?2004l[?2004h>     await run_tasks([lambda: concurrency_task() for _ in range(10)], 3)
+[?2004l[?2004h>     print("max concurrent:", max_seen)
+[?2004l[?2004h> 
+[?2004l[?2004h> cleaned = []
+[?2004l[?2004h> 
+[?2004l[?2004h> async def cleanup_task(i):
+[?2004l[?2004h>     try:
+[?2004l[?2004h>         await asyncio.sleep(1)
+[?2004l[?2004h>     finally:
+[?2004l[?2004h>         cleaned.append(i)
+[?2004l[?2004h> 
+[?2004l[?2004h> async def main_cancel():
+[?2004l[?2004h>     try:
+[?2004l[?2004h>         await asyncio.wait_for(
+[?2004l[?2004h>             run_tasks([lambda: cleanup_task(i) for i in range(4)], 2),
+[?2004l[?2004h>             timeout=0.1,
+[?2004l[?2004h>         )
+[?2004l[?2004h>     except asyncio.TimeoutError:
+[?2004l[?2004h>         pass
+[?2004l[?2004h>     print("cleaned up:", sorted(cleaned))
+[?2004l[?2004h> 
+[?2004l[?2004h> asyncio.run(main_normal())
+[?2004l[?2004h> asyncio.run(main_concurrency())
+[?2004l[?2004h> asyncio.run(main_cancel())
+[?2004l[?2004h> PY
+[?2004lnormal ok
+max concurrent: 3
+cleaned up: [3, 3]
+[?2004hroot@d0467c74a753:/app# cat /app/run.py
+[?2004lfrom __future__ import annotations
+
+import asyncio
+from typing import Awaitable, Callable
+
+
+async def run_tasks(
+    tasks: list[Callable[[], Awaitable[None]]],
+    max_concurrent: int,
+) -> None:
+    """Run async jobs with bounded concurrency.
+
+    Args:
+        tasks: Callables that return awaitable objects performing async work.
+        max_concurrent: Maximum number of tasks allowed to run at the same time.
+
+    If this coroutine is cancelled or interrupted, running tasks are cancelled
+    and awaited so their try/finally cleanup code has a chance to execute.
+    """
+    if max_concurrent < 1:
+        raise ValueError("max_concurrent must be at least 1")
+
+    semaphore = asyncio.Semaphore(max_concurrent)
+
+    async def runner(task: Callable[[], Awaitable[None]]) -> None:
+        async with semaphore:
+            await task()
+
+    running: set[asyncio.Task[None]] = set()
+    next_index = 0
+    first_exc: BaseException | None = None
+
+    try:
+        while True:
+            while len(running) < max_concurrent and next_index < len(tasks):
+                running.add(asyncio.create_task(runner(tasks[next_index])))
+                next_index += 1
+
+            if not running:
+                break
+
+            done, running = await asyncio.wait(
+                running,
+                return_when=asyncio.FIRST_COMPLETED,
+            )
+
+            for finished in done:
+                exc = finished.exception()
+                if exc is not None and first_exc is None:
+                    first_exc = exc
+
+            if first_exc is not None:
+                raise first_exc
+    except BaseException as exc:
+        first_exc = exc if first_exc is None else first_exc
+
+        for task in running:
+            if not task.done():
+                task.cancel()
+
+        if running:
+            await asyncio.gather(*running, return_exceptions=True)
+
+        raise first_exc
+[?2004hroot@d0467c74a753:/app# 

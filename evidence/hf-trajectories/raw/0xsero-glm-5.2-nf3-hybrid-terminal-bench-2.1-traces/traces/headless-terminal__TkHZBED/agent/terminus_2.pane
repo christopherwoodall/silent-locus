@@ -1,0 +1,440 @@
+[?2004hroot@e6a5dc7d1a3f:/app# asciinema rec --stdin /logs/agent/recording.cast
+[?2004l[0;32masciinema: recording asciicast to /logs/agent/recording.cast[0m
+[0;32masciinema: press <ctrl-d> or type "exit" when you're done[0m
+[?2004hroot@e6a5dc7d1a3f:/app# clear
+[?2004l[H[J[3J[?2004hroot@e6a5dc7d1a3f:/app# ls -la /app
+[?2004ltotal 12
+drwxr-xr-x 1 root root 4096 Oct 28  2025 .
+drwxr-xr-x 1 root root 4096 Jul 19 05:22 ..
+-rw-r--r-- 1 root root  401 Oct 27  2025 base_terminal.py
+[?2004hroot@e6a5dc7d1a3f:/app# find /app -maxdepth 2 -type f -print
+[?2004l/app/base_terminal.py
+[?2004hroot@e6a5dc7d1a3f:/app# cat /app/base_terminal.py
+[?2004lfrom abc import ABC, abstractmethod
+
+
+class BaseTerminal(ABC):
+    @abstractmethod
+    def send_keystrokes(self, keystrokes: str, wait_sec: float = 0.0) -> None:
+        """
+        Sends keystrokes to the terminal.
+
+        Args:
+            keystrokes: The keystrokes to send to the terminal.
+            wait_sec: The number of seconds to wait for the command to complete.
+        """
+        pass
+[?2004hroot@e6a5dc7d1a3f:/app# python3 - <<'PY'
+[?2004l[?2004h> import sys, importlib.util
+[?2004l[?2004h> mods = ['pty','pexpect','ptyprocess','winpty','pywinpty']
+[?2004l[?2004h> print(sys.version)
+[?2004l[?2004h> for m in mods:
+[?2004l[?2004h>     print(m, importlib.util.find_spec(m))
+[?2004l[?2004h> PY
+[?2004l3.13.7 (main, Aug 15 2025, 22:13:55) [GCC 12.2.0]
+pty ModuleSpec(name='pty', loader=<_frozen_importlib_external.SourceFileLoader object at 0x2aaaabd6c9e0>, origin='/usr/local/lib/python3.13/pty.py')
+pexpect None
+ptyprocess None
+winpty None
+pywinpty None
+[?2004hroot@e6a5dc7d1a3f:/app# cat > /app/headless_terminal.py <<'PY'
+[?2004lOptional[Dict[str, str]] = None,
+        cols: int = 80,
+        rows: int = 24,
+        encoding: str = "utf-8",
+    ) -> None:
+        self._command = self._parse_command(command)
+        self._cwd = cwd
+        self._env = dict(env or {})
+        self._cols = int(cols)
+        self._rows = int(rows)
+        self._encoding = encoding
+
+        self._master_fd: Optional[int] = None
+        self._pid: Optional[int] = None
+        self._output_buffer = bytearray()
+        self._closed = False
+
+        self._spawn()
+        self._set_winsize()
+        # Drain any startup output/prompt without blocking for long.
+        self._read_available(timeout=0.2)
+
+    @staticmethod
+    def _parse_command(command: Optional[Union[str, Sequence[str]]]) -> List[str]:
+        if command is None:
+            return ["/bin/bash", "-i"]
+        if isinstance(command, str):
+            return shlex.split(command)
+        return [str(part) for part in command]
+
+    def _spawn(self) -> None:
+        pid, master_fd = pty.fork()
+      [?2004h> """Headless terminal implementation using Python's built-in pty module."""
+[?2004l[?2004h> 
+[?2004l[?2004h> from __future__ import annotations
+[?2004l[?2004h> 
+[?2004l[?2004h> import fcntl
+[?2004l[?2004h> import os
+[?2004l  if pid == 0:
+            # Child process.
+            try:
+                if self._cwd:
+                    os.chdir(self._cwd)
+
+                child_env = os.environ.copy()
+                child_env.setdefault("TERM", "xterm")
+                child_env.setdefault("HOME", os.path.expanduser("~"))
+                child_env.update(self._env)
+
+                os.execvpe(self._command[0], self._command, child_env)
+            except Exception:
+                os._exit(127)
+        else:
+            # Parent process.
+            self._pid = pid
+            self._master_fd = master_fd
+
+    def _set_winsize(self) -> None:
+        if self._master_fd is None:
+            return
+        try:
+            winsize = struct.pack("HHHH", self._rows, self._cols, 0, 0)
+            fcntl.ioctl(self._master_fd, termios.TIOCSWINSZ, winsize)
+        except OSError:
+            # Window size is useful but not required for basic operation.
+            pass
+
+    @staticmethod
+    def _normalize_keystrokes(keystrokes: str) -> str:
+        # A real Enter key sends carriage return. Convert common newline forms
+        # so callers can pass either "\n" or "\r".
+        return keystrokes.replace("\r\n", "\r").replace("\n", "\r")
+
+    def _read_available(self, timeout: float = 0.0) -> bytes:
+        if self._master_fd is None:
+            return b""
+
+        end = time.monotonic() + max(0.0, timeout)
+        data = bytearray()
+
+        while True:
+            remaining = end - time.monotonic()
+            if remaining <= 0:
+                wait = 0.0
+            else:
+                wait = remaining
+
+            try:
+                readable, _, _ = select.select([self._master_fd], [], [], wait)
+            except (OSError, ValueError):
+                self._closed = True
+                break
+
+            if not readable:
+                break
+
+            try:
+                chunk = os.read(self._master_fd, 4096)
+            except OSError:
+                self._closed = True
+                break
+
+            if not chunk:
+          [?2004h> import pty
+[?2004l[?2004h> import select
+[?2004l[?2004h> import shlex
+[?2004l[?2004h> import signal
+[?2004l[?2004h> import struct
+[?2004l[?2004h> import termios
+[?2004l[?2004h> import time
+[?2004l      self._closed = True
+                break
+
+            data.extend(chunk)
+            self._output_buffer.extend(chunk)
+
+            # If a timeout was given, keep reading until the time has elapsed.
+            # If no timeout was given, drain immediately ava[?2004h> from typing import Dict, List, Optional, Sequence, Union
+[?2004l[?2004h> 
+[?2004l[?2004h> try:
+[?2004l[?2004h>     from base_terminal import BaseTerminal
+[?2004l[?2004h> except ImportError:  # pragma: no cover - fallback for package-style imports
+[?2004l[?2004h>     from .base_terminal import BaseTerminal
+[?2004l[?2004h> 
+[?2004l [?2004h> 
+[?2004lA[?2004h> class HeadlessTerminal(BaseTerminal):
+[?2004l[?2004h>     """A simple headless terminal backed by a pseudo-terminal.
+[?2004l[?2004h> 
+[?2004l[?2004h>     The terminal starts an interactive bash shell by default. Because the shell
+[?2004l[?2004h>     is run with ``-i`` using a real PTY, it sources interactive startup files
+[?2004l[?2004h>     such as ``~/.bashrc`` and supports interactive programs and control
+[?2004l[?2004h>     characters such as ``"\x03"`` for Ctrl-C.
+[?2004l[?2004h>     """
+[?2004l[?2004h> 
+[?2004l_[?2004h>     def __init__(
+[?2004l[?2004h>         self,
+[?2004les(keystrokes)[?2004h>         command: Optional[Union[str, Sequence[str]]] = None,
+[?2004l[?2004h>         cwd: Optional[str] = None,
+[?2004l[?2004h>         env: Optional[Dict[str, str]] = None,
+[?2004l[?2004h>         cols: int = 80,
+[?2004l[?2004h>         rows: int = 24,
+[?2004las [?2004h>         encoding: str = "utf-8",
+[?2004losed[?2004h>     ) -> None:
+[?2004l[?2004h>         self._command = self._parse_command(command)
+[?2004lrite keystrok[?2004h>         self._cwd = cwd
+[?2004l[?2004h>         self._env = dict(env or {})
+[?2004l[?2004h>         self._cols = int(cols)
+[?2004l[?2004h>         self._rows = int(rows)
+[?2004l[?2004h>         self._encoding = encoding
+[?2004l[?2004h> 
+[?2004lw[?2004h>         self._master_fd: Optional[int] = None
+[?2004l[?2004h>         self._pid: Optional[int] = None
+[?2004l[?2004h>         self._output_buffer = bytearray()
+[?2004l[?2004h>         self._closed = False
+[?2004l[?2004h> 
+[?2004l [?2004h>         self._spawn()
+[?2004l[?2004h>         self._set_winsize()
+[?2004l[?2004h>         # Drain any startup output/prompt without blocking for long.
+[?2004l[?2004h>         self._read_available(timeout=0.2)
+[?2004l[?2004h> 
+[?2004l [?2004h>     @staticmethod
+[?2004l[?2004h>     def _parse_command(command: Optional[Union[str, Sequence[str]]]) -> List[str]:
+[?2004l[?2004h>         if command is None:
+[?2004l[?2004h>             return ["/bin/bash", "-i"]
+[?2004l[?2004h>         if isinstance(command, str):
+[?2004l[?2004h>             return shlex.split(command)
+[?2004l[?2004h>         return [str(part) for part in command]
+[?2004l[?2004h> 
+[?2004l[?2004h>     def _spawn(self) -> None:
+[?2004l[?2004h>         pid, master_fd = pty.fork()
+[?2004l[?2004h>         if pid == 0:
+[?2004lt [?2004h>             # Child process.
+[?2004l[?2004h>             try:
+[?2004l[?2004h>                 if self._cwd:
+[?2004l[?2004h>                     os.chdir(self._cwd)
+[?2004l[?2004h> 
+[?2004l[?2004h>                 child_env = os.environ.copy()
+[?2004l[?2004h>                 child_env.setdefault("TERM", "xterm")
+[?2004l[?2004h>                 child_env.setdefault("HOME", os.path.expanduser("~"))
+[?2004l[?2004h>                 child_env.update(self._env)
+[?2004l[?2004h> 
+[?2004lb[?2004h>                 os.execvpe(self._command[0], self._command, child_env)
+[?2004l[?2004h>             except Exception:
+[?2004l[?2004h>                 os._exit(127)
+[?2004l[?2004h>         else:
+[?2004l[?2004h>             # Parent process.
+[?2004l[?2004h>             self._pid = pid
+[?2004l[?2004h>             self._master_fd = master_fd
+[?2004l[?2004h> 
+[?2004l[?2004h>     def _set_winsize(self) -> None:
+[?2004l[?2004h>         if self._master_fd is None:
+[?2004l[?2004h>             return
+[?2004l[?2004h>         try:
+[?2004l[?2004h>             winsize = struct.pack("HHHH", self._rows, self._cols, 0, 0)
+[?2004l[?2004h>             fcntl.ioctl(self._master_fd, termios.TIOCSWINSZ, winsize)
+[?2004l[?2004h>         except OSError:
+[?2004l[?2004h>             # Window size is useful but not required for basic operation.
+[?2004l[?2004h>             pass
+[?2004l[?2004h> 
+[?2004ln[?2004h>     @staticmethod
+[?2004l.""[?2004h>     def _normalize_keystrokes(keystrokes: str) -> str:
+[?2004l[?2004h>         # A real Enter key sends carriage return. Convert common newline forms
+[?2004l[?2004h>         # so callers can pass either "\n" or "\r".
+[?2004l[?2004h>         return keystrokes.replace("\r\n", "\r").replace("\n", "\r")
+[?2004l[?2004h> 
+[?2004l([?2004h>     def _read_available(self, timeout: float = 0.0) -> bytes:
+[?2004l[?2004h>         if self._master_fd is None:
+[?2004l[?2004h>             return b""
+[?2004l[?2004h> 
+[?2004l.[?2004h>         end = time.monotonic() + max(0.0, timeout)
+[?2004l[?2004h>         data = bytearray()
+[?2004l[?2004h> 
+[?2004l [?2004h>         while True:
+[?2004l[?2004h>             remaining = end - time.monotonic()
+[?2004l[?2004h>             if remaining <= 0:
+[?2004l[?2004h>                 wait = 0.0
+[?2004l    [?2004h>             else:
+[?2004l[?2004h>                 wait = remaining
+[?2004l[?2004h> 
+[?2004l[?2004h>             try:
+[?2004l[?2004h>                 readable, _, _ = select.select([self._master_fd], [], [], wait)
+[?2004l[?2004h>             except (OSError, ValueError):
+[?2004l[?2004h>                 self._closed = True
+[?2004l[?2004h>                 break
+[?2004l[?2004h> 
+[?2004l [?2004h>             if not readable:
+[?2004l[?2004h>                 break
+[?2004l[?2004h> 
+[?2004l[?2004h>             try:
+[?2004l[?2004h>                 chunk = os.read(self._master_fd, 4096)
+[?2004l[?2004h>             except OSError:
+[?2004l[?2004h>                 self._closed = True
+[?2004l[?2004h>                 break
+[?2004l[?2004h> 
+[?2004l [?2004h>             if not chunk:
+[?2004l[?2004h>                 self._closed = True
+[?2004l[?2004h>                 break
+[?2004l[?2004h> 
+[?2004l[?2004h>             data.extend(chunk)
+[?2004l[?2004h>             self._output_buffer.extend(chunk)
+[?2004l[?2004h> 
+[?2004l [?2004h>             # If a timeout was given, keep reading until the time has elapsed.
+[?2004l[?2004h>             # If no timeout was given, drain immediately available data.
+[?2004lTrue
+
+  [?2004h>             if timeout <= 0:
+[?2004l[?2004h>                 continue
+[?2004l[?2004h> 
+[?2004le[?2004h>         return bytes(data)
+[?2004l[?2004h> 
+[?2004l([?2004h>     def send_keystrokes(self, keystrokes: str, wait_sec: float = 0.0) -> None:
+[?2004l[?2004h>         """Send keystrokes to the terminal.
+[?2004l[?2004h> 
+[?2004l [?2004h>         Args:
+[?2004l[?2004h>             keystrokes: Characters/control codes to send to the terminal.
+[?2004l[?2004h>             wait_sec: Seconds to spend waiting for and collecting output.
+[?2004l[?2004h>         """
+[?2004l[?2004h>         if self._master_fd is None:
+[?2004l[?2004h>             raise RuntimeError("Terminal has not been started")
+[?2004l[?2004h>         if self._closed:
+[?2004l[?2004h>             raise RuntimeError("Terminal is closed or process has exited")
+[?2004l[?2004h> 
+[?2004l[?2004h>         data = self._normalize_keystrokes(keystrokes).encode(
+[?2004l[?2004h>             self._encoding, errors="replace"
+[?2004l[?2004h>         )
+[?2004l[?2004h> 
+[?2004l[?2004h>         while data:
+[?2004l[?2004h>             try:
+[?2004l[?2004h>                 written = os.write(self._master_fd, data)
+[?2004l[?2004h>             except OSError as exc:
+[?2004l[?2004h>                 self._closed = True
+[?2004l[?2004h>                 raise RuntimeError("Failed to write keystrokes to terminal") from exc
+[?2004l[?2004h>             if written <= 0:
+[?2004l[?2004h>                 raise RuntimeError("Failed to write keystrokes to terminal")
+[?2004l[?2004h>             data = data[written:]
+[?2004l[?2004h> 
+[?2004l[?2004h>         # Collect output produced during the requested wait period. Even when
+[?2004l[?2004h>         # wait_sec is 0, drain any immediately available output.
+[?2004l[?2004h>         self._read_available(timeout=max(0.0, wait_sec))
+[?2004l[?2004h> 
+[?2004l[?2004h>     @property
+[?2004l[?2004h>     def output(self) -> str:
+[?2004l[?2004h>         """All terminal output collected so far, without clearing it."""
+[?2004l[?2004h>         return bytes(self._output_buffer).decode(self._encoding, errors="replace")
+[?2004l[?2004h> 
+[?2004l[?2004h>     def get_output(self) -> str:
+[?2004l[?2004h>         """Return all collected output without clearing."""
+[?2004l[?2004h>         return self.output
+[?2004l[?2004h> 
+[?2004l[?2004h>     def read_output(self, size: int = -1) -> str:
+[?2004l[?2004h>         """Read and return collected output, clearing it from the buffer.
+[?2004l[?2004h> 
+[?2004l[?2004h>         If size is -1, all buffered output is returned. Otherwise the first
+[?2004l[?2004h>         ``size`` characters are returned.
+[?2004l[?2004h>         """
+[?2004l[?2004h>         self._read_available(timeout=0.0)
+[?2004l[?2004h>         if size < 0:
+[?2004l[?2004h>             data = bytes(self._output_buffer)
+[?2004l[?2004h>             self._output_buffer.clear()
+[?2004l[?2004h>         else:
+[?2004l[?2004h>             raw = bytes(self._output_buffer[:size])
+[?2004l[?2004h>             del self._output_buffer[:size]
+[?2004l[?2004h>             data = raw
+[?2004l[?2004h>         return data.decode(self._encoding, errors="replace")
+[?2004l[?2004h> 
+[?2004l[?2004h>     def is_alive(self) -> bool:
+[?2004l[?2004h>         """Return True if the child process is still running."""
+[?2004l[?2004h>         if self._pid is None:
+[?2004l[?2004h>             return False
+[?2004l[?2004h>         try:
+[?2004l[?2004h>             pid, _ = os.waitpid(self._pid, os.WNOHANG)
+[?2004l[?2004h>         except ChildProcessError:
+[?2004l[?2004h>             self._pid = None
+[?2004l[?2004h>             return False
+[?2004l[?2004h>         if pid == self._pid:
+[?2004l[?2004h>             self._pid = None
+[?2004l[?2004h>             return False
+[?2004l[?2004h>         return True
+[?2004l[?2004h> 
+[?2004l[?2004h>     def terminate(self, timeout: float = 1.0) -> None:
+[?2004l[?2004h>         """Terminate the child process and close the PTY."""
+[?2004l[?2004h>         if self._pid is not None:
+[?2004l[?2004h>             try:
+[?2004l[?2004h>                 os.kill(self._pid, signal.SIGHUP)
+[?2004l[?2004h>             except ProcessLookupError:
+[?2004l[?2004h>                 pass
+[?2004l[?2004h>             except OSError:
+[?2004l[?2004h>                 pass
+[?2004l[?2004h> 
+[?2004l[?2004h>             end = time.monotonic() + max(0.0, timeout)
+[?2004l[?2004h>             while time.monotonic() < end:
+[?2004l[?2004h>                 try:
+[?2004l[?2004h>                     pid, _ = os.waitpid(self._pid, os.WNOHANG)
+[?2004l[?2004h>                 except ChildProcessError:
+[?2004l[?2004h>                     self._pid = None
+[?2004l[?2004h>                     break
+[?2004l[?2004h>                 if pid == self._pid:
+[?2004l[?2004h>                     self._pid = None
+[?2004l[?2004h>                     break
+[?2004l[?2004h>                 time.sleep(0.05)
+[?2004l[?2004h> 
+[?2004l[?2004h>             if self._pid is not None:
+[?2004l[?2004h>                 try:
+[?2004l[?2004h>                     os.kill(self._pid, signal.SIGKILL)
+[?2004l[?2004h>                 except ProcessLookupError:
+[?2004l[?2004h>                     pass
+[?2004l[?2004h>                 except OSError:
+[?2004l[?2004h>                     pass
+[?2004l[?2004h>                 try:
+[?2004l[?2004h>                     os.waitpid(self._pid, 0)
+[?2004l[?2004h>                 except ChildProcessError:
+[?2004l[?2004h>                     pass
+[?2004l[?2004h>                 self._pid = None
+[?2004l[?2004h> 
+[?2004l[?2004h>         self.close()
+[?2004l[?2004h> 
+[?2004l[?2004h>     def close(self) -> None:
+[?2004l[?2004h>         """Close the master PTY file descriptor."""
+[?2004l[?2004h>         if self._master_fd is not None:
+[?2004l[?2004h>             try:
+[?2004l[?2004h>                 os.close(self._master_fd)
+[?2004l[?2004h>             except OSError:
+[?2004l[?2004h>                 pass
+[?2004l[?2004h>             self._master_fd = None
+[?2004l[?2004h>         self._closed = True
+[?2004l[?2004h> 
+[?2004l[?2004h>     def __enter__(self) -> "HeadlessTerminal":
+[?2004l[?2004h>         return self
+[?2004l[?2004h> 
+[?2004l[?2004h>     def __exit__(self, exc_type, exc, tb) -> None:
+[?2004l[?2004h>         self.terminate(timeout=1.0)
+[?2004l[?2004h> 
+[?2004l[?2004h>     def __del__(self) -> None:
+[?2004l[?2004h>         try:
+[?2004l[?2004h>             self.terminate(timeout=0.1)
+[?2004l[?2004h>         except Exception:
+[?2004l[?2004h>             pass
+[?2004l[?2004h> PY
+[?2004l[?2004hroot@e6a5dc7d1a3f:/app# python3 - <<'PY'
+[?2004l[?2004h> from headless_terminal import HeadlessTerminal
+[?2004l[?2004h> 
+[?2004l[?2004h> t = HeadlessTerminal()
+[?2004l[?2004h> t.send_keystrokes("echo hello_headless\n", wait_sec=0.5)
+[?2004l[?2004h> print("OUTPUT:", repr(t.output))
+[?2004l[?2004h> t.send_keystrokes("exit\n", wait_sec=0.5)
+[?2004l[?2004h> print("ALIVE:", t.is_alive())
+[?2004l[?2004h> t.close()
+[?2004l[?2004h> print("OK")
+[?2004l[?2004h> PY
+[?2004lOUTPUT: '\x1b[?2004hroot@e6a5dc7d1a3f:/app# echo hello_headless\r\n\x1b[?2004l\rhello_headless\r\n\x1b[?2004hroot@e6a5dc7d1a3f:/app# '
+ALIVE: False
+OK
+[?2004hroot@e6a5dc7d1a3f:/app# python3 -m py_compile /app/headless_terminal.py && python3 - <<'PY'
+[?2004l[?2004h> from headless_terminal import HeadlessTerminal
+[?2004l[?2004h> from base_terminal import BaseTerminal
+[?2004l[?2004h> assert issubclass(HeadlessTerminal, BaseTerminal)
+[?2004l[?2004h> print("import and subclass check OK")
+[?2004l[?2004h> PY
+[?2004limport and subclass check OK
+[?2004hroot@e6a5dc7d1a3f:/app# 

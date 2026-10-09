@@ -1,0 +1,308 @@
+[?2004hroot@6a1ab31ca272:/app# asciinema rec --stdin /logs/agent/recording.cast
+[?2004l[0;32masciinema: recording asciicast to /logs/agent/recording.cast[0m
+[0;32masciinema: press <ctrl-d> or type "exit" when you're done[0m
+[?2004hroot@6a1ab31ca272:/app# clear
+[?2004l[H[J[3J[?2004hroot@6a1ab31ca272:/app# cat /etc/os-release
+[?2004lPRETTY_NAME="Ubuntu 24.04.3 LTS"
+NAME="Ubuntu"
+VERSION_ID="24.04"
+VERSION="24.04.3 LTS (Noble Numbat)"
+VERSION_CODENAME=noble
+ID=ubuntu
+ID_LIKE=debian
+HOME_URL="https://www.ubuntu.com/"
+SUPPORT_URL="https://help.ubuntu.com/"
+BUG_REPORT_URL="https://bugs.launchpad.net/ubuntu/"
+PRIVACY_POLICY_URL="https://www.ubuntu.com/legal/terms-and-policies/privacy-policy"
+UBUNTU_CODENAME=noble
+LOGO=ubuntu-logo
+[?2004hroot@6a1ab31ca272:/app# command -v git sshd nginx openssl || true
+[?2004l/usr/bin/git
+/usr/sbin/sshd
+/usr/sbin/nginx
+/usr/bin/openssl
+[?2004hroot@6a1ab31ca272:/app# ls -la /app
+[?2004ltotal 8
+drwxr-xr-x 2 root root 4096 Oct 31  2025 [0m[01;34m.[0m
+drwxr-xr-x 1 root root 4096 Jul 18 21:26 [01;34m..[0m
+[?2004hroot@6a1ab31ca272:/app# cat > /setup-git-server.sh <<'EOF'
+[?2004l[?2004h> #!/usr/bin/env bash
+[?2004l[?2004h> set -euo pipefail
+[?2004l[?2004h> 
+[?2004l[?2004h> # Create git user with password authentication
+[?2004l[?2004h> if ! id git >/dev/null 2>&1; then
+[?2004l[?2004h>   useradd -m -s /bin/bash git
+[?2004l[?2004h> fi
+[?2004l[?2004h> echo 'git:password' | chpasswd
+[?2004l[?2004h> 
+[?2004l[?2004h> # Configure sshd for password auth and start it
+[?2004l[?2004h> mkdir -p /run/sshd /etc/ssh/sshd_config.d
+[?2004l[?2004h> cat > /etc/ssh/sshd_config.d/99-git.conf <<'EOF_SSH'
+[?2004l[?2004h> PasswordAuthentication yes
+[?2004l[?2004h> KbdInteractiveAuthentication yes
+[?2004l[?2004h> PubkeyAuthentication yes
+[?2004l[?2004h> PermitRootLogin no
+[?2004l[?2004h> UsePAM yes
+[?2004l[?2004h> EOF_SSH
+[?2004l[?2004h> ssh-keygen -A >/dev/null 2>&1 || true
+[?2004l[?2004h> if pgrep -x sshd >/dev/null 2>&1; then
+[?2004l[?2004h>   pkill -x sshd || true
+[?2004l[?2004h>   sleep 0.2
+[?2004l[?2004h> fi
+[?2004l[?2004h> /usr/sbin/sshd -t
+[?2004l[?2004h> /usr/sbin/sshd
+[?2004l[?2004h> 
+[?2004l[?2004h> # Make localhost host keys trusted globally for non-interactive clients
+[?2004l[?2004h> touch /etc/ssh/ssh_known_hosts
+[?2004l[?2004h> ssh-keygen -H -f /etc/ssh/ssh_known_hosts -R localhost >/dev/null 2>&1 || true
+[?2004l[?2004h> ssh-keygen -H -f /etc/ssh/ssh_known_hosts -R 127.0.0.1 >/dev/null 2>&1 || true
+[?2004l[?2004h> ssh-keyscan -H localhost 127.0.0.1 >> /etc/ssh/ssh_known_hosts 2>/dev/null || true
+[?2004l[?2004h> 
+[?2004l[?2004h> # Create web roots
+[?2004l[?2004h> mkdir -p /var/www/main /var/www/dev
+[?2004l[?2004h> chown -R git:git /var/www/main /var/www/dev
+[?2004l[?2004h> chmod 755 /var/www /var/www/main /var/www/dev
+[?2004l[?2004h> 
+[?2004l[?2004h> # Create bare Git repository
+[?2004l[?2004h> mkdir -p /git
+[?2004l[?2004h> if [ ! -d /git/project ]; then
+[?2004l[?2004h>   git init --bare /git/project
+[?2004l[?2004h> fi
+[?2004l[?2004h> git --git-dir=/git/project symbolic-ref HEAD refs/heads/main || true
+[?2004l[?2004h> chown -R git:git /git
+[?2004l[?2004h> 
+[?2004l[?2004h> # Install post-receive deployment hook
+[?2004l[?2004h> cat > /git/project/hooks/post-receive <<'EOF_HOOK'
+[?2004l[?2004h> #!/usr/bin/env bash
+[?2004l[?2004h> set -euo pipefail
+[?2004l[?2004h> export PATH=/usr/bin:/bin
+[?2004l[?2004h> 
+[?2004l[?2004h> repo="/git/project"
+[?2004l[?2004h> zero="0000000000000000000000000000000000000000"
+[?2004l[?2004h> 
+[?2004l[?2004h> deploy_branch() {
+[?2004l[?2004h>   local branch="$1"
+[?2004l[?2004h>   local target="$2"
+[?2004l[?2004h>   mkdir -p "$target"
+[?2004l[?2004h>   find "$target" -mindepth 1 -maxdepth 1 -exec rm -rf {} +
+[?2004l[?2004h>   git --git-dir="$repo" archive "$branch" | tar -x -C "$target"
+[?2004l[?2004h> }
+[?2004l[?2004h> 
+[?2004l[?2004h> while read -r oldrev newrev refname; do
+[?2004l[?2004h>   if [ "$newrev" = "$zero" ]; then
+[?2004l[?2004h>     continue
+[?2004l[?2004h>   fi
+[?2004l[?2004h>   case "$refname" in
+[?2004l[?2004h>     refs/heads/main)
+[?2004l[?2004h>       deploy_branch main /var/www/main
+[?2004l[?2004h>       ;;
+[?2004l[?2004h>     refs/heads/dev)
+[?2004l[?2004h>       deploy_branch dev /var/www/dev
+[?2004l[?2004h>       ;;
+[?2004l[?2004h>   esac
+[?2004l[?2004h> done
+[?2004l[?2004h> EOF_HOOK
+[?2004l[?2004h> chmod +x /git/project/hooks/post-receive
+[?2004l[?2004h> chown git:git /git/project/hooks/post-receive
+[?2004l[?2004h> 
+[?2004l[?2004h> # Create self-signed HTTPS certificate
+[?2004l[?2004h> mkdir -p /etc/nginx/ssl
+[?2004l[?2004h> if [ ! -f /etc/nginx/ssl/selfsigned.crt ] || [ ! -f /etc/nginx/ssl/selfsigned.key ]; then
+[?2004l[?2004h>   openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
+[?2004l[?2004h>     -keyout /etc/nginx/ssl/selfsigned.key \
+[?2004l[?2004h>     -out /etc/nginx/ssl/selfsigned.crt \
+[?2004l[?2004h>     -subj "/CN=localhost" >/dev/null 2>&1
+[?2004l[?2004h> fi
+[?2004l[?2004h> chmod 600 /etc/nginx/ssl/selfsigned.key
+[?2004l[?2004h> chmod 644 /etc/nginx/ssl/selfsigned.crt
+[?2004l[?2004h> 
+[?2004l[?2004h> # Configure Nginx HTTPS endpoints
+[?2004l[?2004h> cat > /etc/nginx/conf.d/git-deploy.conf <<'EOF_NGINX'
+[?2004l[?2004h> server {
+[?2004l[?2004h>     listen 8443 ssl;
+[?2004l[?2004h>     server_name localhost;
+[?2004l[?2004h>     ssl_certificate /etc/nginx/ssl/selfsigned.crt;
+[?2004l[?2004h>     ssl_certificate_key /etc/nginx/ssl/selfsigned.key;
+[?2004l[?2004h>     root /var/www/main;
+[?2004l[?2004h>     index index.html;
+[?2004l[?2004h>     location / {
+[?2004l[?2004h>         try_files $uri $uri/ =404;
+[?2004l[?2004h>     }
+[?2004l[?2004h>     location /dev/ {
+[?2004l[?2004h>         alias /var/www/dev/;
+[?2004l[?2004h>         index index.html;
+[?2004l[?2004h>     }
+[?2004l[?2004h> }
+[?2004l[?2004h> EOF_NGINX
+[?2004l[?2004h> nginx -t
+[?2004l[?2004h> if pgrep -x nginx >/dev/null 2>&1; then
+[?2004l[?2004h>   nginx -s reload
+[?2004l[?2004h> else
+[?2004l[?2004h>   nginx
+[?2004l[?2004h> fi
+[?2004l[?2004h> 
+[?2004l[?2004h> echo "setup complete"
+[?2004l[?2004h> EOF
+[?2004l[?2004hroot@6a1ab31ca272:/app# bash /setup-git-server.sh
+[?2004l[33mhint: Using 'master' as the name for the initial branch. This default branch name[m
+[33mhint: is subject to change. To configure the initial branch name to use in all[m
+[33mhint: of your new repositories, which will suppress this warning, call:[m
+[33mhint: [m
+[33mhint: 	git config --global init.defaultBranch <name>[m
+[33mhint: [m
+[33mhint: Names commonly chosen instead of 'master' are 'main', 'trunk' and[m
+[33mhint: 'development'. The just-created branch can be renamed via this command:[m
+[33mhint: [m
+[33mhint: 	git branch -m <name>[m
+Initialized empty Git repository in /git/project/
+2026/07/18 21:31:36 [warn] 1146#1146: conflicting server name "localhost" on 0.0.0.0:8443, ignored
+nginx: the configuration file /etc/nginx/nginx.conf syntax is ok
+nginx: configuration file /etc/nginx/nginx.conf test is successful
+2026/07/18 21:31:36 [warn] 1152#1152: conflicting server name "localhost" on 0.0.0.0:8443, ignored
+setup complete
+[?2004hroot@6a1ab31ca272:/app# ps -ef | grep -E 'sshd|nginx' | grep -v grep
+[?2004lroot      1005     1  0 21:31 ?        00:00:00 /usr/bin/qemu-x86_64 /usr/sbin/sshd /usr/sbin/sshd
+root      1155     1  0 21:31 ?        00:00:00 /usr/bin/qemu-x86_64 /usr/sbin/nginx nginx
+www-data  1157  1155  0 21:31 ?        00:00:00 /usr/bin/qemu-x86_64 /usr/sbin/nginx nginx
+www-data  1159  1155  0 21:31 ?        00:00:00 /usr/bin/qemu-x86_64 /usr/sbin/nginx nginx
+www-data  1161  1155  0 21:31 ?        00:00:00 /usr/bin/qemu-x86_64 /usr/sbin/nginx nginx
+www-data  1163  1155  0 21:31 ?        00:00:00 /usr/bin/qemu-x86_64 /usr/sbin/nginx nginx
+www-data  1165  1155  0 21:31 ?        00:00:00 /usr/bin/qemu-x86_64 /usr/sbin/nginx nginx
+www-data  1167  1155  0 21:31 ?        00:00:00 /usr/bin/qemu-x86_64 /usr/sbin/nginx nginx
+www-data  1169  1155  0 21:31 ?        00:00:00 /usr/bin/qemu-x86_64 /usr/sbin/nginx nginx
+www-data  1170  1155  0 21:31 ?        00:00:00 /usr/bin/qemu-x86_64 /usr/sbin/nginx nginx
+www-data  1172  1155  0 21:31 ?        00:00:00 /usr/bin/qemu-x86_64 /usr/sbin/nginx nginx
+www-data  1173  1155  0 21:31 ?        00:00:00 /usr/bin/qemu-x86_64 /usr/sbin/nginx nginx
+[?2004hroot@6a1ab31ca272:/app# ss -ltnp | grep -E ':22|:8443' || true
+[?2004lCannot open netlink socket: Protocol not supported
+LISTEN 0      0            0.0.0.0[01;31m[K:8443[m[K       0.0.0.0:*    users:(("nginx",pid=1155,fd=5))
+LISTEN 0      0            0.0.0.0[01;31m[K:22[m[K         0.0.0.0:*    users:(("sshd",pid=1005,fd=3)) 
+LISTEN 0      0                  *[01;31m[K:22[m[K               *:*    users:(("sshd",pid=1005,fd=4)) 
+[?2004hroot@6a1ab31ca272:/app# nginx -T 2>/dev/null | grep -n -E 'listen 8443|server_name|root|alias|conf.d|sites-enabled' || true
+[?2004l[32m[K24[m[K[36m[K:[m[K	# [01;31m[Kserver_name[m[Ks_hash_bucket_size 64;
+[32m[K25[m[K[36m[K:[m[K	# [01;31m[Kserver_name[m[K_in_redirect off;
+[32m[K60[m[K[36m[K:[m[K	include /etc/nginx/[01;31m[Kconf.d[m[K/*.conf;
+[32m[K61[m[K[36m[K:[m[K	include /etc/nginx/[01;31m[Ksites-enabled[m[K/*;
+[32m[K189[m[K[36m[K:[m[K# configuration file /etc/nginx/[01;31m[Kconf.d[m[K/git-deploy.conf:
+[32m[K191[m[K[36m[K:[m[K    [01;31m[Klisten 8443[m[K ssl;
+[32m[K192[m[K[36m[K:[m[K    [01;31m[Kserver_name[m[K localhost;
+[32m[K195[m[K[36m[K:[m[K    [01;31m[Kroot[m[K /var/www/main;
+[32m[K201[m[K[36m[K:[m[K        [01;31m[Kalias[m[K /var/www/dev/;
+[32m[K206[m[K[36m[K:[m[K# configuration file /etc/nginx/[01;31m[Ksites-enabled[m[K/default:
+[32m[K208[m[K[36m[K:[m[K    [01;31m[Klisten 8443[m[K ssl;
+[32m[K209[m[K[36m[K:[m[K    [01;31m[Kserver_name[m[K localhost;
+[32m[K215[m[K[36m[K:[m[K        [01;31m[Kroot[m[K /var/www/html;
+[32m[K220[m[K[36m[K:[m[K        [01;31m[Kroot[m[K /var/www;
+[?2004hroot@6a1ab31ca272:/app# command -v sshpass || apt-get update && apt-get install -y sshpass
+[?2004l0% [Working]            Hit:1 http://security.ubuntu.com/ubuntu noble-security InRelease
+0% [Waiting for headers]                        Hit:2 http://archive.ubuntu.com/ubuntu noble InRelease
+0% [Waiting for headers]                        Hit:3 http://archive.ubuntu.com/ubuntu noble-updates InRelease
+                        0% [Working]            Hit:4 http://archive.ubuntu.com/ubuntu noble-backports InRelease
+0% [Working]0% [Working]0% [Working]0% [Working]0% [Working]0% [Working]0% [Working]0% [Working]20% [Working]             Reading package lists... 0%Reading package lists... 0%Reading package lists... 0%Reading package lists... 5%Reading package lists... 5%Reading package lists... 7%Reading package lists... 22%Reading package lists... 38%Reading package lists... 51%Reading package lists... 63%Reading package lists... 63%Reading package lists... 63%Reading package lists... 63%Reading package lists... 64%Reading package lists... 64%Reading package lists... 64%Reading package lists... 69%Reading package lists... 69%Reading package lists... 77%Reading package lists... 77%Reading package lists... 78%Reading package lists... 83%Reading package lists... 83%Reading package lists... 84%Reading package lists... 84%Reading package lists... 84%Reading package lists... 84%Reading package lists... 84%Reading package lists... 84%Reading package lists... 84%Reading package lists... 84%Reading package lists... 88%Reading package lists... 88%Reading package lists... 93%Reading package lists... 93%Reading package lists... 99%Reading package lists... 99%Reading package lists... 99%Reading package lists... 99%Reading package lists... Done
+Reading package lists... 0%Reading package lists... 0%Reading package lists... 0%Reading package lists... 5%Reading package lists... 5%Reading package lists... 7%Reading package lists... 23%Reading package lists... 39%Reading package lists... 53%Reading package lists... 63%Reading package lists... 63%Reading package lists... 63%Reading package lists... 63%Reading package lists... 64%Reading package lists... 64%Reading package lists... 67%Reading package lists... 69%Reading package lists... 69%Reading package lists... 77%Reading package lists... 77%Reading package lists... 78%Reading package lists... 83%Reading package lists... 83%Reading package lists... 84%Reading package lists... 84%Reading package lists... 84%Reading package lists... 84%Reading package lists... 84%Reading package lists... 84%Reading package lists... 84%Reading package lists... 84%Reading package lists... 88%Reading package lists... 88%Reading package lists... 93%Reading package lists... 93%Reading package lists... 95%Reading package lists... 99%Reading package lists... 99%Reading package lists... 99%Reading package lists... 99%Reading package lists... Done
+Building dependency tree... 0%Building dependency tree... 0%Building dependency tree... 50%Building dependency tree... 50%Building dependency tree... 68%Building dependency tree... Done
+Reading state information... 0% Reading state information... 0%Reading state information... Done
+The following NEW packages will be installed:
+  sshpass
+0 upgraded, 1 newly installed, 0 to remove and 139 not upgraded.
+Need to get 11.7 kB of archives.
+After this operation, 35.8 kB of additional disk space will be used.
+0% [Working]            Get:1 http://archive.ubuntu.com/ubuntu noble/universe amd64 sshpass amd64 1.09-1 [11.7 kB]
+8% [1 sshpass 1158 B/11.7 kB 10%]                                 100% [Working]              Fetched 11.7 kB in 0s (42.3 kB/s)
+debconf: delaying package configuration, since apt-utils is not installed
+Selecting previously unselected package sshpass.
+(Reading database ... (Reading database ... 5%(Reading database ... 10%(Reading database ... 15%(Reading database ... 20%(Reading database ... 25%(Reading database ... 30%(Reading database ... 35%(Reading database ... 40%(Reading database ... 45%(Reading database ... 50%(Reading database ... 55%(Reading database ... 60%(Reading database ... 65%(Reading database ... 70%(Reading database ... 75%(Reading database ... 80%(Reading database ... 85%(Reading database ... 90%(Reading database ... 95%(Reading database ... 100%(Reading database ... 23658 files and directories currently installed.)
+Preparing to unpack .../sshpass_1.09-1_amd64.deb ...
+Unpacking sshpass (1.09-1) ...
+Setting up sshpass (1.09-1) ...
+[?2004hroot@6a1ab31ca272:/app# rm -f /etc/nginx/sites-enabled/default
+[?2004l[?2004hroot@6a1ab31ca272:/app# nginx -t && nginx -s reload
+[?2004lnginx: the configuration file /etc/nginx/nginx.conf syntax is ok
+nginx: configuration file /etc/nginx/nginx.conf test is successful
+cat > /app/test-git-server.sh <<'EOF'
+#!/usr/bin/env bash
+set -euo pipefail
+
+export GIT_SSH_COMMAND='sshpass -p password ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o LogLevel=ERROR'
+rm -rf /app/project-clone
+git clone git@localhost:/git/project /app/project-clone
+cd /app/project-clone
+
+git checkout -b main
+echo -n 'main branch content' > index.html
+git add index.html
+git -c user.email=test@example.com -c user.name=Test commit -m 'main content'
+git push -u origin main
+
+git checkout -b dev
+echo -n 'dev branch content' > index.html
+git add index.html
+git -c user.email=test@example.com -c user.name=Test commit -m 'dev content'
+git push -u origin dev
+
+echo "main endpoint:"
+curl -k https://localhost:8443/index.html
+echo
+echo "dev endpoint:"
+curl -k https://localhost:8443/dev/index.html
+echo
+EOF
+bash /app/test-git-server.sh
+2026/07/18 21:34:09 [notice] 1843#1843: signal process started
+[?2004hroot@6a1ab31ca272:/app# cat > /app/test-git-server.sh <<'EOF'
+[?2004l[?2004h> #!/usr/bin/env bash
+[?2004l[?2004h> set -euo pipefail
+[?2004l[?2004h> 
+[?2004l[?2004h> export GIT_SSH_COMMAND='sshpass -p password ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o LogLevel=ERROR'
+[?2004l[?2004h> rm -rf /app/project-clone
+[?2004l[?2004h> git clone git@localhost:/git/project /app/project-clone
+[?2004l[?2004h> cd /app/project-clone
+[?2004l[?2004h> 
+[?2004l[?2004h> git checkout -b main
+[?2004l[?2004h> echo -n 'main branch content' > index.html
+[?2004l[?2004h> git add index.html
+[?2004l[?2004h> git -c user.email=test@example.com -c user.name=Test commit -m 'main content'
+[?2004l[?2004h> git push -u origin main
+[?2004l[?2004h> 
+[?2004l[?2004h> git checkout -b dev
+[?2004l[?2004h> echo -n 'dev branch content' > index.html
+[?2004l[?2004h> git add index.html
+[?2004l[?2004h> git -c user.email=test@example.com -c user.name=Test commit -m 'dev content'
+[?2004l[?2004h> git push -u origin dev
+[?2004l[?2004h> 
+[?2004l[?2004h> echo "main endpoint:"
+[?2004l[?2004h> curl -k https://localhost:8443/index.html
+[?2004l[?2004h> echo
+[?2004l[?2004h> echo "dev endpoint:"
+[?2004l[?2004h> curl -k https://localhost:8443/dev/index.html
+[?2004l[?2004h> echo
+[?2004l[?2004h> EOF
+[?2004l[?2004hroot@6a1ab31ca272:/app# bash /app/test-git-server.sh
+[?2004lCloning into '/app/project-clone'...
+warning: You appear to have cloned an empty repository.
+Switched to a new branch 'main'
+[main (root-commit) 72d61bd] main content
+ 1 file changed, 1 insertion(+)
+ create mode 100644 index.html
+Enumerating objects: 3, done.
+Counting objects:  33% (1/3)Counting objects:  66% (2/3)Counting objects: 100% (3/3)Counting objects: 100% (3/3), done.
+Writing objects:  33% (1/3)Writing objects:  66% (2/3)Writing objects: 100% (3/3)Writing objects: 100% (3/3), 227 bytes | 37.00 KiB/s, done.
+Total 3 (delta 0), reused 0 (delta 0), pack-reused 0
+To localhost:/git/project
+ * [new branch]      main -> main
+branch 'main' set up to track 'origin/main'.
+Switched to a new branch 'dev'
+[dev 399bee2] dev content
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+Enumerating objects: 5, done.
+Counting objects:  20% (1/5)Counting objects:  40% (2/5)Counting objects:  60% (3/5)Counting objects:  80% (4/5)Counting objects: 100% (5/5)Counting objects: 100% (5/5), done.
+Writing objects:  33% (1/3)Writing objects:  66% (2/3)Writing objects: 100% (3/3)Writing objects: 100% (3/3), 256 bytes | 42.00 KiB/s, done.
+Total 3 (delta 0), reused 0 (delta 0), pack-reused 0
+To localhost:/git/project
+ * [new branch]      dev -> dev
+branch 'dev' set up to track 'origin/dev'.
+main endpoint:
+main branch content
+dev endpoint:
+dev branch content
+[?2004hroot@6a1ab31ca272:/app# 

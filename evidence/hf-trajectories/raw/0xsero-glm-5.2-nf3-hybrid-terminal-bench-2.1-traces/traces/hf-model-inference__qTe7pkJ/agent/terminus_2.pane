@@ -1,0 +1,312 @@
+[?2004hroot@02179c7e7c70:/app# asciinema rec --stdin /logs/agent/recording.cast
+[?2004l[0;32masciinema: recording asciicast to /logs/agent/recording.cast[0m
+[0;32masciinema: press <ctrl-d> or type "exit" when you're done[0m
+[?2004hroot@02179c7e7c70:/app# clear
+[?2004l[H[J[3J[?2004hroot@02179c7e7c70:/app# pwd && ls -la
+[?2004l/app
+total 8
+drwxr-xr-x 2 root root 4096 Apr 30 04:14 .
+drwxr-xr-x 1 root root 4096 Jul 18 04:12 ..
+[?2004hroot@02179c7e7c70:/app# python3 --version && pip3 --version
+[?2004lPython 3.13.12
+python3 - <<'PY'
+import importlib.util
+for pkg in ["flask", "transformers", "torch"]:
+    print(pkg, "installed" if importlib.util.find_spec(pkg) else "missing")
+PY
+pip 25.3 from /usr/local/lib/python3.13/site-packages/pip (python 3.13)
+[?2004hroot@02179c7e7c70:/app# python3 - <<'PY'
+[?2004l[?2004h> import importlib.util
+[?2004l[?2004h> for pkg in ["flask", "transformers", "torch"]:
+[?2004l[?2004h>     print(pkg, "installed" if importlib.util.find_spec(pkg) else "missing")
+[?2004l[?2004h> PY
+[?2004lflask installed
+transformers installed
+torch installed
+[?2004hroot@02179c7e7c70:/app# python3 - <<'PY'
+[?2004l[?2004h> import os
+[?2004l[?2004h> from transformers import AutoTokenizer, AutoModelForSequenceClassification
+[?2004l[?2004h> 
+[?2004l[?2004h> model_name = "distilbert-base-uncased-finetuned-sst-2-english"
+[?2004l[?2004h> save_dir = "/app/model_cache/sentiment_model"
+[?2004l[?2004h> os.makedirs(save_dir, exist_ok=True)
+[?2004l[?2004h> 
+[?2004l[?2004h> print("Downloading and saving model...")
+[?2004l[?2004h> tokenizer = AutoTokenizer.from_pretrained(model_name)
+[?2004l[?2004h> model = AutoModelForSequenceClassification.from_pretrained(model_name)
+[?2004l[?2004h> 
+[?2004l[?2004h> tokenizer.save_pretrained(save_dir)
+[?2004l[?2004h> model.save_pretrained(save_dir)
+[?2004l[?2004h> print("Model saved to:", save_dir)
+[?2004l[?2004h> PY
+[?2004lDownloading and saving model...
+tokenizer_config.json:   0%|                                                                                                         | 0.00/48.0 [00:00<?, ?B/s]tokenizer_config.json: 100%|██████████████████████████████████████████████████████████████████████████████████████████████████| 48.0/48.0 [00:00<00:00, 256kB/s]
+config.json:   0%|                                                                                                                    | 0.00/629 [00:00<?, ?B/s]config.json: 100%|█████████████████████████████████████████████████████████████████████████████████████████████████████████████| 629/629 [00:00<00:00, 2.29MB/s]
+vocab.txt: 0.00B [00:00, ?B/s]vocab.txt: 232kB [00:00, 13.4MB/s]
+model.safetensors:   0%|                                                                                                             | 0.00/268M [00:00<?, ?B/s]model.safetensors:   0%|                                                                                                             | 0.00/268M [00:00<?, ?B/s]model.safetensors:   0%|                                                                                                             | 0.00/268M [00:00<?, ?B/s]model.safetensors:   0%|                                                                                                             | 0.00/268M [00:00<?, ?B/s]model.safetensors:   0%|                                                                                                             | 0.00/268M [00:00<?, ?B/s]model.safetensors:   0%|                                                                                                             | 0.00/268M [00:01<?, ?B/s]model.safetensors:   0%|                                                                                                             | 0.00/268M [00:01<?, ?B/s]model.safetensors:   0%|                                                                                                             | 0.00/268M [00:01<?, ?B/s]model.safetensors:   0%|                                                                                                             | 0.00/268M [00:01<?, ?B/s]model.safetensors:   0%|                                                                                                             | 0.00/268M [00:01<?, ?B/s]model.safetensors:  25%|█████████████████████████▎                                                                           | 67.0M/268M [00:02<00:00, 336MB/s]model.safetensors:  75%|████████████████████████████████████████████████████████████████████████████▌                         | 201M/268M [00:03<00:00, 104MB/s]model.safetensors: 100%|██████████████████████████████████████████████████████████████████████████████████████████████████████| 268M/268M [00:04<00:00, 119MB/s]model.safetensors: 100%|█████████████████████████████████████████████████████████████████████████████████████████████████████| 268M/268M [00:04<00:00, 66.2MB/s]
+Model saved to: /app/model_cache/sentiment_model
+[?2004hroot@02179c7e7c70:/app# cat > /app/app.py <<'PY'
+[?2004lf = {}
+        for idx, score in enumerate(probs):
+            label = model.config.id2label.get(idx, str(idx)).lower()
+            conf[label] = float(score)
+
+        positive = conf.get("positive", 0.0)
+        negative = conf.get("negative", 0.0)
+        sentiment = "positive" if positive >= negative else "negative"
+
+        return jsonify({
+            "sentiment": sentiment,
+            "confidence": {
+                "positive": positive,
+                "negative": negative
+            }
+        })
+    except Exception as e:
+        return jsonify({"error": f"Inference failed: {str(e)}"}), 500
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=5000)
+PY
+
+nohup python3 /app/app.py > /app/sentiment_service.log 2>&1 &
+sleep 5
+ps aux | grep '[a]pp.py'
+cat /app/sentiment_service.log
+
+printf '\nPositive test:\n'
+curl -s -X POST http://127.0.0.1:5000/sentiment -H 'Content-Type: application/json' -d '{"text": "I really love this!"}'
+printf '\nNegative test:\n'
+curl -s -X POST http://127.0.0.1:5000/sen[?2004h> import os
+[?2004l[?2004h> from flask import Flask, request, jsonify
+[?2004l[?2004h> import torch
+[?2004l[?2004h> from transformers import AutoTokenizer, AutoModelForSequenceClassification
+[?2004l[?2004h> 
+[?2004l[?2004h> MODEL_DIR = "/app/model_cache/sentiment_model"
+[?2004l[?2004h> 
+[?2004l[?2004h> app = Flask(__name__)
+[?2004l[?2004h> 
+[?2004l[?2004h> tokenizer = AutoTokenizer.from_pretrained(MODEL_DIR, local_files_only=True)
+[?2004l[?2004h> model = AutoModelForSequenceClassification.from_pretrained(MODEL_DIR, local_files_only=True)
+[?2004l[?2004h> model.eval()
+[?2004l[?2004h> 
+[?2004l[?2004h> @app.route("/sentiment", methods=["POST"])
+[?2004l[?2004h> def sentiment():
+[?2004l[?2004h>     data = request.get_json(silent=True)
+[?2004l[?2004h>     if not isinstance(data, dict) or "text" not in data:
+[?2004l[?2004h>         return jsonify({"error": "Request body must be JSON with a 'text' field."}), 400
+[?2004l[?2004h> 
+[?2004l[?2004h>     text = data["text"]
+[?2004l[?2004h>     if not isinstance(text, str):
+[?2004l[?2004h>         return jsonify({"error": "'text' must be a string."}), 400
+[?2004l[?2004h> 
+[?2004l[?2004h>     try:
+[?2004l[?2004h>         inputs = tokenizer(text, return_tensors="pt", truncation=True, max_length=512)
+[?2004l[?2004h>         with torch.no_grad():
+[?2004l[?2004h>             logits = model(**inputs).logits
+[?2004l[?2004h> 
+[?2004l[?2004h>         probs = torch.softmax(logits, dim=1)[0]
+[?2004l[?2004h>         conf = {}
+[?2004l[?2004h>         for idx, score in enumerate(probs):
+[?2004l[?2004h>             label = model.config.id2label.get(idx, str(idx)).lower()
+[?2004l[?2004h>             conf[label] = float(score)
+[?2004l[?2004h> 
+[?2004l[?2004h>         positive = conf.get("positive", 0.0)
+[?2004l[?2004h>         negative = conf.get("negative", 0.0)
+[?2004l[?2004h>         sentiment = "positive" if positive >= negative else "negative"
+[?2004l[?2004h> 
+[?2004l[?2004h>         return jsonify({
+[?2004l[?2004h>             "sentiment": sentiment,
+[?2004l[?2004h>             "confidence": {
+[?2004l[?2004h>                 "positive": positive,
+[?2004l[?2004h>                 "negative": negative
+[?2004l[?2004h>             }
+[?2004l[?2004h>         })
+[?2004l[?2004h>     except Exception as e:
+[?2004l[?2004h>         return jsonify({"error": f"Inference failed: {str(e)}"}), 500
+[?2004l[?2004h> 
+[?2004l[?2004h> if __name__ == "__main__":
+[?2004l[?2004h>     app.run(host="0.0.0.0", port=5000)
+[?2004l[?2004h> PY
+[?2004l[?2004hroot@02179c7e7c70:/app# 
+[?2004l[?2004hroot@02179c7e7c70:/app# nohup python3 /app/app.py > /app/sentiment_service.log 2>&1 &
+[?2004l[1] 636
+[?2004hroot@02179c7e7c70:/app# sleep 5
+[?2004l[?2004hroot@02179c7e7c70:/app# ps aux | grep '[a]pp.py'
+[?2004lbash: ps: command not found
+[?2004hroot@02179c7e7c70:/app# cat /app/sentiment_service.log
+[?2004lnohup: ignoring input
+ * Serving Flask app 'app'
+ * Debug mode: off
+[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://192.168.16.2:5000
+[33mPress CTRL+C to quit[0m
+[?2004hroot@02179c7e7c70:/app# 
+[?2004l[?2004hroot@02179c7e7c70:/app# printf '\nPositive test:\n'
+[?2004l
+Positive test:
+[?2004hroot@02179c7e7c70:/app# curl -s -X POST http://127.0.0.1:5000/sentiment -H 'Content-Type: application/json' -d '{"text": "I really love this!"}'
+[?2004lbash: curl: command not found
+[?2004hroot@02179c7e7c70:/app# printf '\nNegative test:\n'
+[?2004l
+Negative test:
+[?2004hroot@02179c7e7c70:/app# curl -s -X POST http://127.0.0.1:5000/sentiment -H 'Content-Type: application/json' -d '{"text": "This is terrible and awful."}'
+[?2004lbash: curl: command not found
+[?2004hroot@02179c7e7c70:/app# printf '\nError test:\n'
+[?2004l
+Error test:
+[?2004hroot@02179c7e7c70:/app# curl -s -X POST http://127.0.0.1:5000/sentiment -H 'Content-Type: application/json' -d '{"wrong": "missing text"}'
+[?2004lbash: curl: command not found
+[?2004hroot@02179c7e7c70:/app# printf '\n'
+[?2004l
+[?2004hroot@02179c7e7c70:/app# sed -n '1,120p' /app/app.py
+[?2004limport os
+from flask import Flask, request, jsonify
+import torch
+from transformers import AutoTokenizer, AutoModelForSequenceClassification
+
+MODEL_DIR = "/app/model_cache/sentiment_model"
+
+app = Flask(__name__)
+
+tokenizer = AutoTokenizer.from_pretrained(MODEL_DIR, local_files_only=True)
+model = AutoModelForSequenceClassification.from_pretrained(MODEL_DIR, local_files_only=True)
+model.eval()
+
+@app.route("/sentiment", methods=["POST"])
+def sentiment():
+    data = request.get_json(silent=True)
+    if not isinstance(data, dict) or "text" not in data:
+        return jsonify({"error": "Request body must be JSON with a 'text' field."}), 400
+
+    text = data["text"]
+    if not isinstance(text, str):
+        return jsonify({"error": "'text' must be a string."}), 400
+
+    try:
+        inputs = tokenizer(text, return_tensors="pt", truncation=True, max_length=512)
+        with torch.no_grad():
+            logits = model(**inputs).logits
+
+        probs = torch.softmax(logits, dim=1)[0]
+        conf = {}
+        for idx, score in enumerate(probs):
+            label = model.config.id2label.get(idx, str(idx)).lower()
+            conf[label] = float(score)
+
+        positive = conf.get("positive", 0.0)
+        negative = conf.get("negative", 0.0)
+        sentiment = "positive" if positive >= negative else "negative"
+
+        return jsonify({
+            "sentiment": sentiment,
+            "confidence": {
+                "positive": positive,
+                "negative": negative
+            }
+        })
+    except Exception as e:
+        return jsonify({"error": f"Inference failed: {str(e)}"}), 500
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=5000)
+[?2004hroot@02179c7e7c70:/app# python3 - <<'PY'
+[?2004l[?2004h> import json
+[?2004l[?2004h> import urllib.request
+[?2004l[?2004h> import urllib.error
+[?2004l[?2004h> import os
+[?2004l[?2004h> import signal
+[?2004l[?2004h> 
+[?2004l[?2004h> # Check known background PID if still alive
+[?2004l[?2004h> pid = 636
+[?2004l[?2004h> alive = False
+[?2004l[?2004h> try:
+[?2004l[?2004h>     os.kill(pid, 0)
+[?2004l[?2004h>     alive = True
+[?2004l[?2004h> except ProcessLookupError:
+[?2004l[?2004h>     alive = False
+[?2004l[?2004h> except PermissionError:
+[?2004l[?2004h>     alive = True
+[?2004l[?2004h> print("Service PID", pid, "alive:", alive)
+[?2004l[?2004h> 
+[?2004l[?2004h> # Fallback: scan /proc for app.py
+[?2004l[?2004h> found_pids = []
+[?2004l[?2004h> for p in os.listdir("/proc"):
+[?2004l[?2004h>     if p.isdigit():
+[?2004l[?2004h>         try:
+[?2004l[?2004h>             with open(f"/proc/{p}/cmdline", "r", encoding="utf-8", errors="ignore") as f:
+[?2004l[?2004h>                 cmd = f.read().replace("\x00", " ")
+[?2004l[?2004h>             if "app.py" in cmd:
+[?2004l[?2004h>                 found_pids.append(p)
+[?2004l[?2004h>         except Exception:
+[?2004l[?2004h>             pass
+[?2004l[?2004h> print("Processes containing app.py:", found_pids)
+[?2004l[?2004h> 
+[?2004l[?2004h> def post_sentiment(payload):
+[?2004l[?2004h>     url = "http://127.0.0.1:5000/sentiment"
+[?2004l[?2004h>     data = json.dumps(payload).encode("utf-8")
+[?2004l[?2004h>     req = urllib.request.Request(url, data=data, headers={"Content-Type": "application/json"}, method="POST")
+[?2004l[?2004h>     try:
+[?2004l[?2004h>         with urllib.request.urlopen(req, timeout=10) as resp:
+[?2004l[?2004h>             body = resp.read().decode("utf-8")
+[?2004l[?2004h>             print("Status:", resp.status)
+[?2004l[?2004h>             print("Response:", body)
+[?2004l[?2004h>             try:
+[?2004l[?2004h>                 print("JSON:", json.dumps(json.loads(body), indent=2))
+[?2004l[?2004h>             except Exception:
+[?2004l[?2004h>                 pass
+[?2004l[?2004h>     except urllib.error.HTTPError as e:
+[?2004l[?2004h>         body = e.read().decode("utf-8")
+[?2004l[?2004h>         print("Status:", e.code)
+[?2004l[?2004h>         print("Response:", body)
+[?2004l[?2004h>         try:
+[?2004l[?2004h>             print("JSON:", json.dumps(json.loads(body), indent=2))
+[?2004l[?2004h>         except Exception:
+[?2004l[?2004h>             pass
+[?2004l[?2004h> 
+[?2004l[?2004h> cases = [
+[?2004l[?2004h>     ("Positive test", {"text": "I really love this!"}),
+[?2004l[?2004h>     ("Negative test", {"text": "This is terrible and awful."}),
+[?2004l[?2004h>     ("Error test", {"wrong": "missing text"}),
+[?2004l[?2004h> ]
+[?2004l[?2004h> for name, payload in cases:
+[?2004l[?2004h>     print("\n" + name)
+[?2004l[?2004h>     post_sentiment(payload)
+[?2004l[?2004h> PY
+[?2004lService PID 636 alive: True
+Processes containing app.py: ['636']
+
+Positive test
+Status: 200
+Response: {"confidence":{"negative":0.00011871368769789115,"positive":0.9998812675476074},"sentiment":"positive"}
+
+JSON: {
+  "confidence": {
+    "negative": 0.00011871368769789115,
+    "positive": 0.9998812675476074
+  },
+  "sentiment": "positive"
+}
+
+Negative test
+Status: 200
+Response: {"confidence":{"negative":0.9997420907020569,"positive":0.00025792207452468574},"sentiment":"negative"}
+
+JSON: {
+  "confidence": {
+    "negative": 0.9997420907020569,
+    "positive": 0.00025792207452468574
+  },
+  "sentiment": "negative"
+}
+
+Error test
+Status: 400
+Response: {"error":"Request body must be JSON with a 'text' field."}
+
+JSON: {
+  "error": "Request body must be JSON with a 'text' field."
+}
+[?2004hroot@02179c7e7c70:/app# 

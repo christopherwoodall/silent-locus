@@ -1,0 +1,203 @@
+[?2004hroot@146ab7466b4e:/app# asciinema rec --stdin /logs/agent/recording.cast
+[?2004l[0;32masciinema: recording asciicast to /logs/agent/recording.cast[0m
+[0;32masciinema: press <ctrl-d> or type "exit" when you're done[0m
+[?2004hroot@146ab7466b4e:/app# clear
+[?2004l[H[J[3J[?2004hroot@146ab7466b4e:/app# mkdir -p /app/ssl
+[?2004lit(1)
+
+    try:
+        cert = ssl._ssl._test_decode_cert(CERT)
+    except Exception as exc:
+        print(f"Failed to load certificate: {exc}", file=sys.stderr)
+        sys.exit(1)
+
+    common_name = None
+    for rdn in cert.get("subject", ()):
+        for key, value in rdn:
+            if key == "commonName":
+                common_name = value
+
+    not_after = cert.get("notAfter")
+    expiration_date = "Unknown"
+    if not_after:
+        if not_after.endswith(" GMT"):
+            not_after = not_after[:-4]
+        normalized = not_after.replace("  ", " ")
+        expiration_date = datetime.strptime(normalized, "%b %d %H:%M:%S %Y").strftime("%Y-%m-%d")
+
+    print(f"Common Name: {common_name}")
+    print(f"Expiration Date: {expiration_date}")
+    print("Certificate verification successful")
+
+if __name__ == "__main__":
+    main()
+PY
+chmod +x /app/check_cert.py
+ls -l /app/ssl /app/check_cert.py
+python3 /app/check_cert.py
+cat /app/ssl/verification.txt
+[?2004hroot@146ab7466b4e:/app# openssl req -x509 -newkey rsa:2048 -nodes -keyout /app/ssl/server.key -out /app/ssl/server.crt -days 365 -subj "/O=DevOps Team/CN=dev-internal.company.local"
+[?2004l.+......+...+......+...+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*.+..+...+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*.....+...+...+.........+.+.........+.....+.............+.....+.......+.....................+.....+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+.+.+.....+.+.........+...........+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*..+........+.+...+...+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*....+...........+.+..+................+.....+....+...+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+-----
+[?2004hroot@146ab7466b4e:/app# chmod 600 /app/ssl/server.key
+[?2004l[?2004hroot@146ab7466b4e:/app# cat /app/ssl/server.key /app/ssl/server.crt > /app/ssl/server.pem
+[?2004l[?2004hroot@146ab7466b4e:/app# chmod 600 /app/ssl/server.pem
+[?2004l[?2004hroot@146ab7466b4e:/app# {
+[?2004l[?2004h>   echo "Certificate Subject:"
+[?2004l[?2004h>   openssl x509 -in /app/ssl/server.crt -noout -subject
+[?2004l[?2004h>   echo
+[?2004l[?2004h>   echo "Validity Dates:"
+[?2004l[?2004h>   openssl x509 -in /app/ssl/server.crt -noout -dates
+[?2004l[?2004h>   echo
+[?2004l[?2004h>   echo "SHA-256 Fingerprint:"
+[?2004l[?2004h>   openssl x509 -in /app/ssl/server.crt -noout -fingerprint -sha256
+[?2004l[?2004h> } > /app/ssl/verification.txt
+[?2004l[?2004hroot@146ab7466b4e:/app# cat > /app/check_cert.py <<'PY'
+[?2004l[?2004h> #!/usr/bin/env python3
+[?2004l[?2004h> import os
+[?2004l[?2004h> import ssl
+[?2004l[?2004h> import sys
+[?2004l[?2004h> from datetime import datetime
+[?2004l[?2004h> 
+[?2004l[?2004h> CERT = "/app/ssl/server.crt"
+[?2004l[?2004h> KEY = "/app/ssl/server.key"
+[?2004l[?2004h> 
+[?2004l[?2004h> def main():
+[?2004l[?2004h>     if not os.path.exists(CERT):
+[?2004l[?2004h>         print(f"Certificate not found: {CERT}", file=sys.stderr)
+[?2004l[?2004h>         sys.exit(1)
+[?2004l[?2004h>     if not os.path.exists(KEY):
+[?2004l[?2004h>         print(f"Private key not found: {KEY}", file=sys.stderr)
+[?2004l[?2004h>         sys.exit(1)
+[?2004l[?2004h> 
+[?2004l[?2004h>     try:
+[?2004l[?2004h>         cert = ssl._ssl._test_decode_cert(CERT)
+[?2004l[?2004h>     except Exception as exc:
+[?2004l[?2004h>         print(f"Failed to load certificate: {exc}", file=sys.stderr)
+[?2004l[?2004h>         sys.exit(1)
+[?2004l[?2004h> 
+[?2004l[?2004h>     common_name = None
+[?2004l[?2004h>     for rdn in cert.get("subject", ()):
+[?2004l[?2004h>         for key, value in rdn:
+[?2004l[?2004h>             if key == "commonName":
+[?2004l[?2004h>                 common_name = value
+[?2004l[?2004h> 
+[?2004l[?2004h>     not_after = cert.get("notAfter")
+[?2004l[?2004h>     expiration_date = "Unknown"
+[?2004l[?2004h>     if not_after:
+[?2004l[?2004h>         if not_after.endswith(" GMT"):
+[?2004l[?2004h>             not_after = not_after[:-4]
+[?2004l[?2004h>         normalized = not_after.replace("  ", " ")
+[?2004l[?2004h>         expiration_date = datetime.strptime(normalized, "%b %d %H:%M:%S %Y").strftime("%Y-%m-%d")
+[?2004l[?2004h> 
+[?2004l[?2004h>     print(f"Common Name: {common_name}")
+[?2004l[?2004h>     print(f"Expiration Date: {expiration_date}")
+[?2004l[?2004h>     print("Certificate verification successful")
+[?2004l[?2004h> 
+[?2004l[?2004h> if __name__ == "__main__":
+[?2004l[?2004h>     main()
+[?2004l[?2004h> PY
+[?2004l[?2004hroot@146ab7466b4e:/app# chmod +x /app/check_cert.py
+[?2004l[?2004hroot@146ab7466b4e:/app# ls -l /app/ssl /app/check_cert.py
+[?2004l-rwxr-xr-x 1 root root 1226 Jul 14 19:34 /app/check_cert.py
+
+/app/ssl:
+total 16
+-rw-r--r-- 1 root root 1220 Jul 14 19:34 server.crt
+-rw------- 1 root root 1704 Jul 14 19:34 server.key
+-rw------- 1 root root 2924 Jul 14 19:34 server.pem
+-rw-r--r-- 1 root root  301 Jul 14 19:34 verification.txt
+[?2004hroot@146ab7466b4e:/app# python3 /app/check_cert.py
+[?2004lCommon Name: dev-internal.company.local
+Expiration Date: 2027-07-14
+Certificate verification successful
+[?2004hroot@146ab7466b4e:/app# cat /app/ssl/verification.txt
+[?2004lCertificate Subject:
+subject=O = DevOps Team, CN = dev-internal.company.local
+
+Validity Dates:
+notBefore=Jul 14 19:34:44 2026 GMT
+notAfter=Jul 14 19:34:44 2027 GMT
+
+SHA-256 Fingerprint:
+sha256 Fingerprint=AB:98:9D:5D:75:64:04:3A:FC:37:6C:2D:72:D1:A2:27:D5:A6:21:A1:BB:B4:96:FA:5D:AA:5D:62:C7:41:C4:81
+[?2004hroot@146ab7466b4e:/app# cat > /app/check_cert.py <<'PY'
+[?2004l[?2004h> #!/usr/bin/env python3
+[?2004l[?2004h> import os
+[?2004l[?2004h> import ssl
+[?2004l[?2004h> import sys
+[?2004l[?2004h> from datetime import datetime
+[?2004l[?2004h> 
+[?2004l[?2004h> CERT = "/app/ssl/server.crt"
+[?2004l[?2004h> KEY = "/app/ssl/server.key"
+[?2004l[?2004h> 
+[?2004l[?2004h> def main():
+[?2004l[?2004h>     if not os.path.exists(CERT):
+[?2004l[?2004h>         print(f"Certificate not found: {CERT}", file=sys.stderr)
+[?2004l[?2004h>         sys.exit(1)
+[?2004l[?2004h>     if not os.path.exists(KEY):
+[?2004l[?2004h>         print(f"Private key not found: {KEY}", file=sys.stderr)
+[?2004l[?2004h>         sys.exit(1)
+[?2004l[?2004h> 
+[?2004l[?2004h>     try:
+[?2004l[?2004h>         context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+[?2004l[?2004h>         context.load_cert_chain(CERT, KEY)
+[?2004l[?2004h>     except Exception as exc:
+[?2004l[?2004h>         print(f"Failed to load certificate/key pair: {exc}", file=sys.stderr)
+[?2004l[?2004h>         sys.exit(1)
+[?2004l[?2004h> 
+[?2004l[?2004h>     try:
+[?2004l[?2004h>         cert = ssl._ssl._test_decode_cert(CERT)
+[?2004l[?2004h>     except Exception as exc:
+[?2004l[?2004h>         print(f"Failed to decode certificate: {exc}", file=sys.stderr)
+[?2004l[?2004h>         sys.exit(1)
+[?2004l[?2004h> 
+[?2004l[?2004h>     common_name = None
+[?2004l[?2004h>     for rdn in cert.get("subject", ()):
+[?2004l[?2004h>         for key, value in rdn:
+[?2004l[?2004h>             if key == "commonName":
+[?2004l[?2004h>                 common_name = value
+[?2004l[?2004h> 
+[?2004l[?2004h>     not_after = cert.get("notAfter")
+[?2004l[?2004h>     expiration_date = "Unknown"
+[?2004l[?2004h>     if not_after:
+[?2004l[?2004h>         if not_after.endswith(" GMT"):
+[?2004l[?2004h>             not_after = not_after[:-4]
+[?2004l[?2004h>         normalized = not_after.replace("  ", " ")
+[?2004l[?2004h>         expiration_date = datetime.strptime(normalized, "%b %d %H:%M:%S %Y").strftime("%Y-%m-%d")
+[?2004l[?2004h> 
+[?2004l[?2004h>     print(f"Common Name: {common_name}")
+[?2004l[?2004h>     print(f"Expiration Date: {expiration_date}")
+[?2004l[?2004h>     print("Certificate verification successful")
+[?2004l[?2004h> 
+[?2004l[?2004h> if __name__ == "__main__":
+[?2004l[?2004h>     main()
+[?2004l[?2004h> PY
+[?2004l[?2004hroot@146ab7466b4e:/app# chmod +x /app/check_cert.py
+[?2004l[?2004hroot@146ab7466b4e:/app# chmod 600 /app/ssl/server.key /app/ssl/server.pem
+[?2004l[?2004hroot@146ab7466b4e:/app# chmod 644 /app/ssl/server.crt /app/ssl/verification.txt
+[?2004l[?2004hroot@146ab7466b4e:/app# ls -l /app/ssl /app/check_cert.py
+[?2004l-rwxr-xr-x 1 root root 1466 Jul 14 19:36 /app/check_cert.py
+
+/app/ssl:
+total 16
+-rw-r--r-- 1 root root 1220 Jul 14 19:34 server.crt
+-rw------- 1 root root 1704 Jul 14 19:34 server.key
+-rw------- 1 root root 2924 Jul 14 19:34 server.pem
+-rw-r--r-- 1 root root  301 Jul 14 19:34 verification.txt
+[?2004hroot@146ab7466b4e:/app# python3 /app/check_cert.py
+[?2004lCommon Name: dev-internal.company.local
+Expiration Date: 2027-07-14
+Certificate verification successful
+[?2004hroot@146ab7466b4e:/app# cat /app/ssl/verification.txt
+[?2004lCertificate Subject:
+subject=O = DevOps Team, CN = dev-internal.company.local
+
+Validity Dates:
+notBefore=Jul 14 19:34:44 2026 GMT
+notAfter=Jul 14 19:34:44 2027 GMT
+
+SHA-256 Fingerprint:
+sha256 Fingerprint=AB:98:9D:5D:75:64:04:3A:FC:37:6C:2D:72:D1:A2:27:D5:A6:21:A1:BB:B4:96:FA:5D:AA:5D:62:C7:41:C4:81
+[?2004hroot@146ab7466b4e:/app# 

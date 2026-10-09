@@ -10,9 +10,9 @@ Paths are relative to the repo root. `docs/`-relative links use `../`.
   2020-12), `collections.md` + `collections.json` (naming taxonomy and
   registry), `README.md` (human-readable rules: timestamps, labels,
   fingerprints, `record_kind` registry).
-- [`data/`](../data/) — one directory per collection,
+- [`evidence/`](../evidence/) — one directory per collection,
   `YYYY-MM-DD-<subject>[-<activity>]`, each with `events.jsonl`,
-  `PROVENANCE.md`, `SHA256SUMS`, `raw/`. Plus `data/aggregates/`
+  `PROVENANCE.md`, `SHA256SUMS`, `raw/`. Plus `evidence/aggregates/`
   (multi-source conglomerates).
 - [`scripts/`](../scripts/) — loaders and validators at root,
   cross-collection transforms in `builders/`, reusable tools in
@@ -33,28 +33,28 @@ Paths are relative to the repo root. `docs/`-relative links use `../`.
 
 ## The hunt workspace
 
-`data/2026-09-28-chinese-amap-fleet/` — the active hunt. Key files:
+`evidence/2026-09-28-chinese-amap-fleet/` — the active hunt. Key files:
 
-- [`METHODOLOGY.md`](../data/2026-09-28-chinese-amap-fleet/METHODOLOGY.md) —
+- [`METHODOLOGY.md`](../evidence/2026-09-28-chinese-amap-fleet/METHODOLOGY.md) —
   the hunt manual (principles, collection, detection, verification,
   OPSEC, anti-patterns). Living file.
-- [`LESSONS.md`](../data/2026-09-28-chinese-amap-fleet/LESSONS.md) — the
+- [`LESSONS.md`](../evidence/2026-09-28-chinese-amap-fleet/LESSONS.md) — the
   findings log: agent shapes, null results, fingerprint bank, open
   threads. Living file.
-- [`PERSONA_MANIFEST.md`](../data/2026-09-28-chinese-amap-fleet/PERSONA_MANIFEST.md) —
+- [`PERSONA_MANIFEST.md`](../evidence/2026-09-28-chinese-amap-fleet/PERSONA_MANIFEST.md) —
   the lane registry.
-- [`IP_LOG.md`](../data/2026-09-28-chinese-amap-fleet/IP_LOG.md) —
+- [`IP_LOG.md`](../evidence/2026-09-28-chinese-amap-fleet/IP_LOG.md) —
   infrastructure observations log.
-- [`SSLIP-REPORT.md`](../data/2026-09-28-chinese-amap-fleet/SSLIP-REPORT.md) —
+- [`SSLIP-REPORT.md`](../evidence/2026-09-28-chinese-amap-fleet/SSLIP-REPORT.md) —
   the sslip.io dead-drop investigation (OBSERVED vs INFERENCE labeled).
 
 Key directories:
 
-- [`personas/`](../data/2026-09-28-chinese-amap-fleet/personas/) — 69
+- [`personas/`](../evidence/2026-09-28-chinese-amap-fleet/personas/) — 69
   analyst lanes, each with `FINDINGS.md`/`CHASE.md` + `raw/`.
-- [`raw/lanes/`](../data/2026-09-28-chinese-amap-fleet/raw/lanes/) — 9
+- [`raw/lanes/`](../evidence/2026-09-28-chinese-amap-fleet/raw/lanes/) — 9
   sweep lanes with `FINDINGS.md`.
-- [`studies/`](../data/2026-09-28-chinese-amap-fleet/studies/) — deep
+- [`studies/`](../evidence/2026-09-28-chinese-amap-fleet/studies/) — deep
   studies:
   - `skill-egress-top500/` — the original egress study (EGRESS_MAP.md,
     SKILLS.md).
@@ -66,17 +66,17 @@ Key directories:
     `linkhunt-deep/LINKHUNT-DEEP.md`).
   - `eu-hunt/`, `wiki-hunt-2/`, `msgboard-hunt-2/`,
     `shodan-chat-transcripts/` — other completed studies.
-- [`german-french-swarm-hunt/`](../data/2026-09-28-chinese-amap-fleet/german-french-swarm-hunt/) —
+- [`german-french-swarm-hunt/`](../evidence/2026-09-28-chinese-amap-fleet/german-french-swarm-hunt/) —
   EUROSWARM assessment (verdict: not found) + `clipboard-followup/`
   (CLIPBOARD-REPORT.md).
-- [`village-join/`](../data/2026-09-28-chinese-amap-fleet/village-join/) —
+- [`village-join/`](../evidence/2026-09-28-chinese-amap-fleet/village-join/) —
   AI Village cross-dataset join: VILLAGE-JOIN-2.md (results),
   matches-2025.jsonl, WORKLOG.md.
-- [`live-monitor/`](../data/2026-09-28-chinese-amap-fleet/live-monitor/) —
+- [`live-monitor/`](../evidence/2026-09-28-chinese-amap-fleet/live-monitor/) —
   monitor logs (LOG.md).
-- [`infra-watchlist/`](../data/2026-09-28-chinese-amap-fleet/infra-watchlist/) —
+- [`infra-watchlist/`](../evidence/2026-09-28-chinese-amap-fleet/infra-watchlist/) —
   INFRASTRUCTURE-WATCHLIST.md, the living infrastructure list.
-- [`counsel/`](../data/2026-09-28-chinese-amap-fleet/counsel/) — red-team
+- [`counsel/`](../evidence/2026-09-28-chinese-amap-fleet/counsel/) — red-team
   review rounds and grades.
 - `slug-hunt.py` — cross-archive slug presence sweep (urlquery + urlscan
   + Wayback CDX). See [`toolchain.md`](toolchain.md).
@@ -103,7 +103,7 @@ Key directories:
 | Understand the hunt | `docs/onboarding.md`, `docs/methodology.md` |
 | Cite the evidence contract | `docs/evidence-rules.md` |
 | Look up jargon | `docs/glossary.md` |
-| Run a hunt lane | `data/2026-09-28-chinese-amap-fleet/personas/<lane>/` |
+| Run a hunt lane | `evidence/2026-09-28-chinese-amap-fleet/personas/<lane>/` |
 | Read current findings | `…/LESSONS.md`, `…/studies/skill-egress-top1000/INVESTIGATION-REPORT.md` |
 | Hunt eval fingerprints | `collections/eval-questions/HUNT-QUERIES.md` |
 | Check a slug across archives | `…/slug-hunt.py` (see `docs/toolchain.md`) |

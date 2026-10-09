@@ -1,0 +1,249 @@
+[?2004hroot@3dc64a228097:/app# asciinema rec --stdin /logs/agent/recording.cast
+[?2004l[0;32masciinema: recording asciicast to /logs/agent/recording.cast[0m
+[0;32masciinema: press <ctrl-d> or type "exit" when you're done[0m
+[?2004hroot@3dc64a228097:/app# clear
+[?2004l[H[J[3J[?2004hroot@3dc64a228097:/app# mkdir -p /app/polyglot
+[?2004l[?2004hroot@3dc64a228097:/app# cat > /app/polyglot/main.py.c <<'EOF'
+[?2004l[?2004h> #if 0
+[?2004l[?2004h> r"""
+[?2004l[?2004h> #endif
+[?2004l[?2004h> #include <stdio.h>
+[?2004l[?2004h> #include <stdlib.h>
+[?2004l[?2004h> #include <string.h>
+[?2004l[?2004h> 
+[?2004l[?2004h> static char *dup_str(const char *s) {
+[?2004l[?2004h>     size_t n = strlen(s) + 1;
+[?2004l[?2004h>     char *p = malloc(n);
+[?2004l[?2004h>     if (p == NULL) {
+[?2004l[?2004h>         abort();
+[?2004l[?2004h>     }
+[?2004l[?2004h>     memcpy(p, s, n);
+[?2004l[?2004h>     return p;
+[?2004l[?2004h> }
+[?2004l[?2004h> 
+[?2004l[?2004h> static char *fib(long n) {
+[?2004l[?2004h>     if (n == 0) {
+[?2004l[?2004h>         return dup_str("0");
+[?2004l[?2004h>     }
+[?2004l[?2004h>     if (n == 1) {
+[?2004l[?2004h>         return dup_str("1");
+[?2004l[?2004h>     }
+[?2004l[?2004h> 
+[?2004l[?2004h>     char *a = dup_str("0");
+[?2004l[?2004h>     char *b = dup_str("1");
+[?2004l[?2004h> 
+[?2004l[?2004h>     for (long i = 2; i <= n; i++) {
+[?2004l[?2004h>         size_t la = strlen(a);
+[?2004l[?2004h>         size_t lb = strlen(b);
+[?2004l[?2004h>         size_t len = (la > lb ? la : lb) + 1;
+[?2004l[?2004h>         char *tmp = malloc(len + 1);
+[?2004l[?2004h>         if (tmp == NULL) {
+[?2004l[?2004h>             free(a);
+[?2004l[?2004h>             free(b);
+[?2004l[?2004h>             abort();
+[?2004l[?2004h>         }
+[?2004l[?2004h> 
+[?2004l[?2004h>         size_t k = len;
+[?2004l[?2004h>         tmp[k] = '\0';
+[?2004l[?2004h>         size_t ia = la;
+[?2004l[?2004h>         size_t ib = lb;
+[?2004l[?2004h>         int carry = 0;
+[?2004l[?2004h> 
+[?2004l[?2004h>         while (ia > 0 || ib > 0 || carry) {
+[?2004l[?2004h>             int da = ia > 0 ? a[--ia] - '0' : 0;
+[?2004l[?2004h>             int db = ib > 0 ? b[--ib] - '0' : 0;
+[?2004l[?2004h>             int sum = da + db + carry;
+[?2004l[?2004h>             carry = sum / 10;
+[?2004l[?2004h>             tmp[--k] = (char)('0' + sum % 10);
+[?2004l[?2004h>         }
+[?2004l[?2004h> 
+[?2004l[?2004h>         char *res = dup_str(tmp + k);
+[?2004l[?2004h>         free(tmp);
+[?2004l[?2004h> 
+[?2004l[?2004h>         char *old_a = a;
+[?2004l[?2004h>         a = b;
+[?2004l[?2004h>         b = res;
+[?2004l[?2004h>         free(old_a);
+[?2004l[?2004h>     }
+[?2004l[?2004h> 
+[?2004l[?2004h>     free(a);
+[?2004l[?2004h>     return b;
+[?2004l[?2004h> }
+[?2004l[?2004h> 
+[?2004l[?2004h> int main(int argc, char **argv) {
+[?2004l[?2004h>     if (argc < 2) {
+[?2004l[?2004h>         fprintf(stderr, "usage: %s N\n", argv[0]);
+[?2004l[?2004h>         return 1;
+[?2004l[?2004h>     }
+[?2004l[?2004h> 
+[?2004l[?2004h>     char *end;
+[?2004l[?2004h>     long n = strtol(argv[1], &end, 10);
+[?2004l[?2004h>     if (*argv[1] == '\0' || *end != '\0' || n < 0) {
+[?2004l[?2004h>         fprintf(stderr, "N must be a non-negative integer\n");
+[?2004l[?2004h>         return 1;
+[?2004l[?2004h>     }
+[?2004l[?2004h> 
+[?2004l[?2004h>     char *s = fib(n);
+[?2004l[?2004h>     if (s == NULL) {
+[?2004l[?2004h>         return 1;
+[?2004l[?2004h>     }
+[?2004l[?2004h> 
+[?2004l[?2004h>     printf("%s\n", s);
+[?2004l[?2004h>     free(s);
+[?2004l[?2004h>     return 0;
+[?2004l[?2004h> }
+[?2004l[?2004h> #if 0
+[?2004l[?2004h> """
+[?2004l[?2004h> import sys
+[?2004l[?2004h> 
+[?2004l[?2004h> 
+[?2004l[?2004h> def fib(n: int) -> int:
+[?2004l[?2004h>     a, b = 0, 1
+[?2004l[?2004h>     for _ in range(n):
+[?2004l[?2004h>         a, b = b, a + b
+[?2004l[?2004h>     return a
+[?2004l[?2004h> 
+[?2004l[?2004h> 
+[?2004l[?2004h> if __name__ == "__main__":
+[?2004l[?2004h>     if len(sys.argv) < 2:
+[?2004l[?2004h>         raise SystemExit(1)
+[?2004l[?2004h>     print(fib(int(sys.argv[1])))
+[?2004l[?2004h> #endif
+[?2004l[?2004h> EOF
+[?2004l[?2004hroot@3dc64a228097:/app# python3 /app/polyglot/main.py.c 0 && python3 /app/polyglot/main.py.c 1 && python3 /app/polyglot/main.py.c 10 && python3 /app/polyglot/main.py.c 20
+[?2004l0
+1
+55
+6765
+[?2004hroot@3dc64a228097:/app# gcc /app/polyglot/main.py.c -o /app/polyglot/cmain && /app/polyglot/cmain 0 && /app/polyglot/cmain 1 && /app/polyglot/cmain 10 && /app/polyglot/cmain 20
+[?2004l[01m[K/app/polyglot/main.py.c:2:4:[m[K [01;35m[Kwarning: [m[Kmissing terminating " character
+    2 | r""[01;35m[K"[m[K
+      |    [01;35m[K^[m[K
+[01m[K/app/polyglot/main.py.c:90:3:[m[K [01;35m[Kwarning: [m[Kmissing terminating " character
+   90 | ""[01;35m[K"[m[K
+      |   [01;35m[K^[m[K
+0
+1
+55
+6765
+[?2004hroot@3dc64a228097:/app# cat > /app/polyglot/main.py.c <<'EOF'
+[?2004l[?2004h> #/*
+[?2004l[?2004h> """
+[?2004l[?2004h> */
+[?2004l[?2004h> #include <stdio.h>
+[?2004l[?2004h> #include <stdlib.h>
+[?2004l[?2004h> #include <string.h>
+[?2004l[?2004h> 
+[?2004l[?2004h> static char *dup_str(const char *s) {
+[?2004l[?2004h>     size_t n = strlen(s) + 1;
+[?2004l[?2004h>     char *p = malloc(n);
+[?2004l[?2004h>     if (p == NULL) {
+[?2004l[?2004h>         abort();
+[?2004l[?2004h>     }
+[?2004l[?2004h>     memcpy(p, s, n);
+[?2004l[?2004h>     return p;
+[?2004l[?2004h> }
+[?2004l[?2004h> 
+[?2004l[?2004h> static char *fib(long n) {
+[?2004l[?2004h>     if (n == 0) {
+[?2004l[?2004h>         return dup_str("0");
+[?2004l[?2004h>     }
+[?2004l[?2004h>     if (n == 1) {
+[?2004l[?2004h>         return dup_str("1");
+[?2004l[?2004h>     }
+[?2004l[?2004h> 
+[?2004l[?2004h>     char *a = dup_str("0");
+[?2004l[?2004h>     char *b = dup_str("1");
+[?2004l[?2004h> 
+[?2004l[?2004h>     for (long i = 2; i <= n; i++) {
+[?2004l[?2004h>         size_t la = strlen(a);
+[?2004l[?2004h>         size_t lb = strlen(b);
+[?2004l[?2004h>         size_t len = (la > lb ? la : lb) + 1;
+[?2004l[?2004h>         char *tmp = malloc(len + 1);
+[?2004l[?2004h>         if (tmp == NULL) {
+[?2004l[?2004h>             free(a);
+[?2004l[?2004h>             free(b);
+[?2004l[?2004h>             abort();
+[?2004l[?2004h>         }
+[?2004l[?2004h> 
+[?2004l[?2004h>         size_t k = len;
+[?2004l[?2004h>         tmp[k] = '\0';
+[?2004l[?2004h>         size_t ia = la;
+[?2004l[?2004h>         size_t ib = lb;
+[?2004l[?2004h>         int carry = 0;
+[?2004l[?2004h> 
+[?2004l[?2004h>         while (ia > 0 || ib > 0 || carry) {
+[?2004l[?2004h>             int da = ia > 0 ? a[--ia] - '0' : 0;
+[?2004l[?2004h>             int db = ib > 0 ? b[--ib] - '0' : 0;
+[?2004l[?2004h>             int sum = da + db + carry;
+[?2004l[?2004h>             carry = sum / 10;
+[?2004l[?2004h>             tmp[--k] = (char)('0' + sum % 10);
+[?2004l[?2004h>         }
+[?2004l[?2004h> 
+[?2004l[?2004h>         char *res = dup_str(tmp + k);
+[?2004l[?2004h>         free(tmp);
+[?2004l[?2004h> 
+[?2004l[?2004h>         char *old_a = a;
+[?2004l[?2004h>         a = b;
+[?2004l[?2004h>         b = res;
+[?2004l[?2004h>         free(old_a);
+[?2004l[?2004h>     }
+[?2004l[?2004h> 
+[?2004l[?2004h>     free(a);
+[?2004l[?2004h>     return b;
+[?2004l[?2004h> }
+[?2004l[?2004h> 
+[?2004l[?2004h> int main(int argc, char **argv) {
+[?2004l[?2004h>     if (argc < 2) {
+[?2004l[?2004h>         fprintf(stderr, "usage: %s N\n", argv[0]);
+[?2004l[?2004h>         return 1;
+[?2004l[?2004h>     }
+[?2004l[?2004h> 
+[?2004l[?2004h>     char *end;
+[?2004l[?2004h>     long n = strtol(argv[1], &end, 10);
+[?2004l[?2004h>     if (*argv[1] == '\0' || *end != '\0' || n < 0) {
+[?2004l[?2004h>         fprintf(stderr, "N must be a non-negative integer\n");
+[?2004l[?2004h>         return 1;
+[?2004l[?2004h>     }
+[?2004l[?2004h> 
+[?2004l[?2004h>     char *s = fib(n);
+[?2004l[?2004h>     if (s == NULL) {
+[?2004l[?2004h>         return 1;
+[?2004l[?2004h>     }
+[?2004l[?2004h> 
+[?2004l[?2004h>     printf("%s\n", s);
+[?2004l[?2004h>     free(s);
+[?2004l[?2004h>     return 0;
+[?2004l[?2004h> }
+[?2004l[?2004h> #/*
+[?2004l[?2004h> """
+[?2004l[?2004h> #*/
+[?2004l[?2004h> #if 0
+[?2004l[?2004h> import sys
+[?2004l[?2004h> 
+[?2004l[?2004h> 
+[?2004l[?2004h> def fib(n: int) -> int:
+[?2004l[?2004h>     a, b = 0, 1
+[?2004l[?2004h>     for _ in range(n):
+[?2004l[?2004h>         a, b = b, a + b
+[?2004l[?2004h>     return a
+[?2004l[?2004h> 
+[?2004l[?2004h> 
+[?2004l[?2004h> if __name__ == "__main__":
+[?2004l[?2004h>     if len(sys.argv) < 2:
+[?2004l[?2004h>         raise SystemExit(1)
+[?2004l[?2004h>     print(fib(int(sys.argv[1])))
+[?2004l[?2004h> #endif
+[?2004l[?2004h> EOF
+[?2004l[?2004hroot@3dc64a228097:/app# python3 /app/polyglot/main.py.c 0 && python3 /app/polyglot/main.py.c 1 && python3 /app/polyglot/main.py.c 10 && python3 /app/polyglot/main.py.c 20
+[?2004l0
+1
+55
+gcc /app/polyglot/main.py.c -o /app/polyglot/cmain && /app/polyglot/cmain 0 && /app/polyglot/cmain 1 && /app/polyglot/cmain 10 && /app/polyglot/cmain 20
+6765
+[?2004hroot@3dc64a228097:/app# gcc /app/polyglot/main.py.c -o /app/polyglot/cmain && /app/polyglot/cmain 0 && /app/polyglot/cmain 1 && /app/polyglot/cmain 10 && /app/polyglot/cmain 20
+[?2004l0
+1
+55
+6765
+[?2004hroot@3dc64a228097:/app# 

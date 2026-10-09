@@ -1,0 +1,1642 @@
+[?2004hroot@962c9b935c0a:/app# asciinema rec --stdin /logs/agent/recording.cast
+[?2004l[0;32masciinema: recording asciicast to /logs/agent/recording.cast[0m
+[0;32masciinema: press <ctrl-d> or type "exit" when you're done[0m
+[?2004hroot@962c9b935c0a:/app# clear
+[?2004l[H[J[3J[?2004hroot@962c9b935c0a:/app# ls -la /app
+[?2004ltotal 8
+drwxr-xr-x 2 root root 4096 Sep 13  2025 .
+drwxr-xr-x 1 root root 4096 Jul 16 06:02 ..
+[?2004hroot@962c9b935c0a:/app# python3 - <<'PY'
+[?2004l[?2004h> try:
+[?2004l[?2004h>     import bs4
+[?2004l[?2004h>     print('bs4 available')
+[?2004l[?2004h> except Exception as e:
+[?2004l[?2004h>     print('bs4 not available:', e)
+[?2004l[?2004h> try:
+[?2004l[?2004h>     import lxml
+[?2004l[?2004h>     print('lxml available')
+[?2004l[?2004h> except Exception as e:
+[?2004l[?2004h>     print('lxml not available:', e)
+[?2004l[?2004h> PY
+[?2004lbs4 available
+lxml not available: No module named 'lxml'
+[?2004hroot@962c9b935c0a:/app# cat > /app/filter.py <<'PY'
+[?2004l[?2004h> #!/usr/bin/env python3
+[?2004l[?2004h> import re
+[?2004l[?2004h> import sys
+[?2004l[?2004h> 
+[?2004ll"):
+        return True
+    return False
+
+
+def is_dangerous_style(value):
+    v = str(value).lower()
+    return any(s in v for s in ("javascript:", "vbscript:", "expression("))
+
+
+def sanitize_srcset(value):
+    # Preserve non-dangerous srcset entries; drop entries using JS schemes.
+    parts = str(value).split(",")
+    safe = []
+    for part in parts:
+        if not is_dangerous_url(part.strip()):
+            safe.append(part)
+    return ",".join(safe)
+
+
+def clean_tag(tag):
+    for name, value in list(tag.attrs.items()):
+        lname = name.lower()
+
+        # Inline event handlers are JavaScript.
+        if lname.startswith("on"):
+            del tag.attrs[name]
+            continue
+
+        # CSS expressions and javascript: in style are dangerous in legacy/quirky contexts.
+        if lname == "style":
+            if is_dangerous_style(value):
+                del tag.attrs[name]
+            continue
+
+        # srcdoc contains HTML that may include scripts; sanitize it recursively.
+        if lname == "srcdo[?2004h> from bs4 import BeautifulSoup
+[?2004l[?2004h> 
+[?2004l[?2004h> 
+[?2004l[?2004h> JS_URL_SCHEMES = (
+[?2004l[?2004h>     "javascript:",
+[?2004l[?2004h>     "vbscript:",
+[?2004l[?2004h>     "livescript:
+[?2004l[?2004h>     "mocha:",
+[?2004l[?2004h> )
+[?2004lturn str(soup)
+
+
+def main():
+    if len(sys.argv) != 2:
+        print("Usage: filter.py <html-file>", file=sys.stderr)
+        sys.exit(1)
+
+    path = sys.argv[1]
+    with open(path, "r", encoding="utf-8") as f:
+        html = f.read()
+
+    cleaned = sanitize_html(html)
+
+    with open(path, "w", encoding="utf-8") as f:
+        f.write(cleaned)
+
+
+if __name__ == "__main__":
+    main()
+PY
+chmod +x /app/filter.py
+[?2004h> 
+[?2004l[?2004h> URL_ATTRS = {
+[?2004l[?2004h>     "href",
+[?2004l[?2004h>     "src",
+[?2004l[?2004h>     "action",
+[?2004l[?2004h>     "formaction",
+[?2004l[?2004h>     "data",
+[?2004l[?2004h>     "xlink:href",
+[?2004l[?2004h>     "poster",
+[?2004l[?2004h>     "background",
+[?2004l[?2004h>     "cite",
+[?2004l[?2004h>     "longdesc",
+[?2004l[?2004h>     "usemap",
+[?2004l[?2004h>     "manifest",
+[?2004l[?2004h>     "codebase",
+[?2004l[?2004h>     "archive",
+[?2004l[?2004h>     "classid",
+[?2004l[?2004h>     "profile",
+[?2004l[?2004h>     "srcset",
+[?2004l[?2004h> }
+[?2004l[?2004h> 
+[?2004l[?2004h> 
+[?2004l[?2004h> def normalize_for_check(value):
+[?2004l[?2004h>     if value is None:
+[?2004l[?2004h>         return ""
+[?2004l[?2004h>     # HTML parsing already decodes entities; remove whitespace/control chars so
+[?2004l[?2004h>     # attempts like "java\tscript:" are caught.
+[?2004l[?2004h>     return re.sub(r"[\s\x00-\x20]+", "", str(value)).lower()
+[?2004l[?2004h> 
+[?2004l[?2004h> 
+[?2004l[?2004h> def is_dangerous_url(value):
+[?2004l[?2004h>     v = normalize_for_check(value)
+[?2004l[?2004h>     if any(v.startswith(scheme) for scheme in JS_URL_SCHEMES):
+[?2004l[?2004h>         return True
+[?2004l[?2004h>     # data: URLs carrying active HTML/XHTML can contain script content.
+[?2004l[?2004h>     if v.startswith("data:text/html") or v.startswith("data:application/xhtml+xml"):
+[?2004l[?2004h>         return True
+[?2004l[?2004h>     return False
+[?2004l[?2004h> 
+[?2004l[?2004h> 
+[?2004l[?2004h> def is_dangerous_style(value):
+[?2004l[?2004h>     v = str(value).lower()
+[?2004l[?2004h>     return any(s in v for s in ("javascript:", "vbscript:", "expression("))
+[?2004l[?2004h> 
+[?2004l[?2004h> 
+[?2004l[?2004h> def sanitize_srcset(value):
+[?2004l[?2004h>     # Preserve non-dangerous srcset entries; drop entries using JS schemes.
+[?2004l[?2004h>     parts = str(value).split(",")
+[?2004l[?2004h>     safe = []
+[?2004l[?2004h>     for part in parts:
+[?2004l[?2004h>         if not is_dangerous_url(part.strip()):
+[?2004l[?2004h>             safe.append(part)
+[?2004l[?2004h>     return ",".join(safe)
+[?2004l[?2004h> 
+[?2004l[?2004h> 
+[?2004l[?2004h> def clean_tag(tag):
+[?2004l[?2004h>     for name, value in list(tag.attrs.items()):
+[?2004l[?2004h>         lname = name.lower()
+[?2004l[?2004h> 
+[?2004l[?2004h>         # Inline event handlers are JavaScript.
+[?2004l[?2004h>         if lname.startswith("on"):
+[?2004l[?2004h>             del tag.attrs[name]
+[?2004l[?2004h>             continue
+[?2004l[?2004h> 
+[?2004l[?2004h>         # CSS expressions and javascript: in style are dangerous in legacy/quirky contexts.
+[?2004l[?2004h>         if lname == "style":
+[?2004l[?2004h>             if is_dangerous_style(value):
+[?2004l[?2004h>                 del tag.attrs[name]
+[?2004l[?2004h>             continue
+[?2004l[?2004h> 
+[?2004l[?2004h>         # srcdoc contains HTML that may include scripts; sanitize it recursively.
+[?2004l[?2004h>         if lname == "srcdoc":
+[?2004l[?2004h>             if value:
+[?2004l[?2004h>                 tag.attrs[name] = sanitize_html(str(value))
+[?2004l[?2004h>             continue
+[?2004l[?2004h> 
+[?2004l[?2004h>         if lname == "srcset":
+[?2004l[?2004h>             cleaned = sanitize_srcset(value)
+[?2004l[?2004h>             if cleaned:
+[?2004l[?2004h>                 tag.attrs[name] = cleaned
+[?2004l[?2004h>             else:
+[?2004l[?2004h>                 del tag.attrs[name]
+[?2004l[?2004h>             continue
+[?2004l[?2004h> 
+[?2004l[?2004h>         # Meta refresh content can attempt javascript: navigation.
+[?2004l[?2004h>         if tag.name.lower() == "meta" and lname == "content":
+[?2004l[?2004h>             if "javascript:" in str(value).lower() or "vbscript:" in str(value).lower():
+[?2004l[?2004h>                 del tag.attrs[name]
+[?2004l[?2004h>             continue
+[?2004l[?2004h> 
+[?2004l[?2004h>         if lname in URL_ATTRS:
+[?2004l[?2004h>             if is_dangerous_url(value):
+[?2004l[?2004h>                 del tag.attrs[name]
+[?2004l[?2004h>             continue
+[?2004l[?2004h> 
+[?2004l[?2004h> 
+[?2004l[?2004h> def sanitize_html(html):
+[?2004l[?2004h>     soup = BeautifulSoup(html, "html.parser")
+[?2004l[?2004h> 
+[?2004l[?2004h>     # Remove all script elements, including those inside SVG/template-like content.
+[?2004l[?2004h>     for script in soup.find_all("script"):
+[?2004l[?2004h>         script.decompose()
+[?2004l[?2004h> 
+[?2004l[?2004h>     for tag in soup.find_all(True):
+[?2004l[?2004h>         clean_tag(tag)
+[?2004l[?2004h> 
+[?2004l[?2004h>     return str(soup)
+[?2004l[?2004h> 
+[?2004l[?2004h> 
+[?2004l[?2004h> def main():
+[?2004l[?2004h>     if len(sys.argv) != 2:
+[?2004l[?2004h>         print("Usage: filter.py <html-file>", file=sys.stderr)
+[?2004l[?2004h>         sys.exit(1)
+[?2004l[?2004h> 
+[?2004l[?2004h>     path = sys.argv[1]
+[?2004l[?2004h>     with open(path, "r", encoding="utf-8") as f:
+[?2004l[?2004h>         html = f.read()
+[?2004l[?2004h> 
+[?2004l[?2004h>     cleaned = sanitize_html(html)
+[?2004l[?2004h> 
+[?2004l[?2004h>     with open(path, "w", encoding="utf-8") as f:
+[?2004l[?2004h>         f.write(cleaned)
+[?2004l[?2004h> 
+[?2004l[?2004h> 
+[?2004l[?2004h> if __name__ == "__main__":
+[?2004l[?2004h>     main()
+[?2004l[?2004h> PY
+[?2004l[?2004hroot@962c9b935c0a:/app# chmod +x /app/filter.py
+[?2004l[?2004hroot@962c9b935c0a:/app# cat > /tmp/test.html <<'HTML'
+[?2004l[?2004h> <!DOCTYPE html>
+[?2004l[?2004h> <html>
+[?2004l[?2004h>   <head>
+[?2004l[?2004h>     <title>Test</title>
+[?2004l[?2004h>     <script>alert(1)</script>
+[?2004l[?2004h>   </head>
+[?2004l[?2004h>   <body>
+[?2004l[?2004h>     <h1 onclick="evil()">Hello</h1>
+[?2004l[?2004h>     <a href="javascript:alert(2)">link</a>
+[?2004l[?2004h>     <a href="https://example.com">safe</a>
+[?2004l[?2004h>     <img src="x" onerror="evil()" alt="img">
+[?2004l[?2004h>     <iframe srcdoc="<script>alert(3)</script><p>ok</p>"></iframe>
+[?2004l[?2004h>     <table>
+[?2004l[?2004h>       <tr><td>cell</td></tr>
+[?2004l[?2004h>     </table>
+[?2004l[?2004h>   </body>
+[?2004l[?2004h> </html>
+[?2004l[?2004h> HTML
+[?2004l[?2004hroot@962c9b935c0a:/app# cp /tmp/test.html /tmp/test_filtered.html
+[?2004l[?2004hroot@962c9b935c0a:/app# python3 /app/filter.py /tmp/test_filtered.html
+[?2004l  File [35m"/app/filter.py"[0m, line [35m11[0m
+    [1;31m"[0mlivescript:
+    [1;31m^[0m
+[1;35mSyntaxError[0m: [35munterminated string literal (detected at line 11)[0m
+[?2004hroot@962c9b935c0a:/app# cat /tmp/test_filtered.html
+[?2004l<!DOCTYPE html>
+<html>
+  <head>
+    <title>Test</title>
+    <script>alert(1)</script>
+  </head>
+  <body>
+    <h1 onclick="evil()">Hello</h1>
+    <a href="javascript:alert(2)">link</a>
+    <a href="https://example.com">safe</a>
+    <img src="x" onerror="evil()" alt="img">
+    <iframe srcdoc="<script>alert(3)</script><p>ok</p>"></iframe>
+    <table>
+      <tr><td>cell</td></tr>
+    </table>
+  </body>
+</html>
+[?2004hroot@962c9b935c0a:/app# python3 - <<'PY'
+[?2004l[?2004h> content = r'''#!/usr/bin/env python3
+[?2004lsrcdoc":
+            if value:
+                tag.attrs[name] = sanitize_html(str(value))
+            continue
+
+        if lname == "srcset":
+            cleaned = sanitize_srcset(value)
+            if cleaned:
+                tag.attrs[name] = cleaned
+            else:
+                del tag.attrs[name]
+            continue
+
+        # Meta refresh content can attempt javascript: navigation.
+        if tag.name.lower() == "meta" and lname == "content":
+            if "javascript:" in str(value).lower() or "vbscript:" in str(value).lower():
+                del tag.attrs[name]
+            continue
+
+        if lname in URL_ATTRS:
+            if is_dangerous_url(value):
+                del tag.attrs[name]
+            continue
+
+
+def sanitize_html(html):
+    soup = BeautifulSoup(html, "html.parser")
+
+    # Remove all script elements, including those inside SVG/template-like content.
+    for script in soup.find_all("script"):
+        script.decompose()
+
+    for tag in soup.find_all(True):
+        clean_tag(tag)
+
+ [?2004h> import re
+[?2004l[?2004h> import sys
+[?2004l[?2004h> 
+[?2004l[?2004h> from bs4 import BeautifulSoup
+[?2004l[?2004h> 
+[?2004l[?2004h> 
+[?2004l[?2004h> JS_URL_SCHEMES = (
+[?2004l[?2004h>     "javascript:",
+[?2004l[?2004h>     "vbscript:",
+[?2004l[?2004h>     "livescript:",
+[?2004l[?2004h>     "mocha:",
+[?2004l[?2004h> )
+[?2004l[?2004h> 
+[?2004l[?2004h> URL_ATTRS = {
+[?2004l[?2004h>     "href",
+[?2004l[?2004h>     "src",
+[?2004l[?2004h>     "action",
+[?2004l[?2004h>     "formaction",
+[?2004l[?2004h>     "data",
+[?2004l[?2004h>     "xlink:href",
+[?2004l[?2004h>     "poster",
+[?2004l[?2004h>     "background",
+[?2004l[?2004h>     "cite",
+[?2004l[?2004h>     "longdesc",
+[?2004l[?2004h>     "usemap",
+[?2004l[?2004h>     "manifest",
+[?2004l[?2004h>     "codebase",
+[?2004l[?2004h>     "archive",
+[?2004l[?2004h>     "classid",
+[?2004l[?2004h>     "profile",
+[?2004l[?2004h>     "srcset",
+[?2004l[?2004h> }
+[?2004l[?2004h> 
+[?2004l[?2004h> 
+[?2004l[?2004h> def normalize_for_check(value):
+[?2004l[?2004h>     if value is None:
+[?2004l[?2004h>         return ""
+[?2004l[?2004h>     # HTML parsing already decodes entities; remove whitespace/control chars so
+[?2004l[?2004h>     # attempts like "java\tscript:" are caught.
+[?2004l[?2004h>     return re.sub(r"[\s\x00-\x20]+", "", str(value)).lower()
+[?2004l[?2004h> 
+[?2004l[?2004h> 
+[?2004l[?2004h> def is_dangerous_url(value):
+[?2004l[?2004h>     v = normalize_for_check(value)
+[?2004l[?2004h>     if any(v.startswith(scheme) for scheme in JS_URL_SCHEMES):
+[?2004l[?2004h>         return True
+[?2004l[?2004h>     # data: URLs carrying active HTML/XHTML can contain script content.
+[?2004l[?2004h>     if v.startswith("data:text/html") or v.startswith("data:application/xhtml+xml"):
+[?2004l[?2004h>         return True
+[?2004l[?2004h>     return False
+[?2004l[?2004h> 
+[?2004l[?2004h> 
+[?2004l[?2004h> def is_dangerous_style(value):
+[?2004l[?2004h>     v = str(value).lower()
+[?2004l[?2004h>     return any(s in v for s in ("javascript:", "vbscript:", "expression("))
+[?2004l[?2004h> 
+[?2004l[?2004h> 
+[?2004l[?2004h> def sanitize_srcset(value):
+[?2004l[?2004h>     # Preserve non-dangerous srcset entries; drop entries using JS schemes.
+[?2004l[?2004h>     parts = str(value).split(",")
+[?2004l[?2004h>     safe = []
+[?2004l[?2004h>     for part in parts:
+[?2004l[?2004h>         if not is_dangerous_url(part.strip()):
+[?2004l[?2004h>             safe.append(part)
+[?2004l[?2004h>     return ",".join(safe)
+[?2004l[?2004h> 
+[?2004l[?2004h> 
+[?2004l[?2004h> def clean_tag(tag):
+[?2004l[?2004h>     for name, value in list(tag.attrs.items()):
+[?2004l[?2004h>         lname = name.lower()
+[?2004l[?2004h> 
+[?2004l[?2004h>         # Inline event handlers are JavaScript.
+[?2004l[?2004h>         if lname.startswith("on"):
+[?2004l[?2004h>             del tag.attrs[name]
+[?2004l[?2004h>             continue
+[?2004l[?2004h> 
+[?2004l[?2004h>         # CSS expressions and javascript: in style are dangerous in legacy/quirky contexts.
+[?2004l[?2004h>         if lname == "style":
+[?2004l[?2004h>             if is_dangerous_style(value):
+[?2004l[?2004h>                 del tag.attrs[name]
+[?2004l[?2004h>             continue
+[?2004l[?2004h> 
+[?2004l[?2004h>         # srcdoc contains HTML that may include scripts; sanitize it recursively.
+[?2004l[?2004h>         if lname == "srcdoc":
+[?2004l[?2004h>             if value:
+[?2004l[?2004h>                 tag.attrs[name] = sanitize_html(str(value))
+[?2004l[?2004h>             continue
+[?2004l[?2004h> 
+[?2004l[?2004h>         if lname == "srcset":
+[?2004l[?2004h>             cleaned = sanitize_srcset(value)
+[?2004l[?2004h>             if cleaned:
+[?2004l[?2004h>                 tag.attrs[name] = cleaned
+[?2004l[?2004h>             else:
+[?2004l[?2004h>                 del tag.attrs[name]
+[?2004l[?2004h>             continue
+[?2004l[?2004h> 
+[?2004l[?2004h>         # Meta refresh content can attempt javascript: navigation.
+[?2004l[?2004h>         if tag.name.lower() == "meta" and lname == "content":
+[?2004l[?2004h>             if "javascript:" in str(value).lower() or "vbscript:" in str(value).lower():
+[?2004l[?2004h>                 del tag.attrs[name]
+[?2004l[?2004h>             continue
+[?2004l[?2004h> 
+[?2004l[?2004h>         if lname in URL_ATTRS:
+[?2004l[?2004h>             if is_dangerous_url(value):
+[?2004l[?2004h>                 del tag.attrs[name]
+[?2004l[?2004h>             continue
+[?2004l[?2004h> 
+[?2004l[?2004h> 
+[?2004l[?2004h> def sanitize_html(html):
+[?2004l[?2004h>     soup = BeautifulSoup(html, "html.parser")
+[?2004l[?2004h> 
+[?2004l[?2004h>     # Remove all script elements, including those inside SVG/template-like content.
+[?2004l[?2004h>     for script in soup.find_all("script"):
+[?2004l[?2004h>         script.decompose()
+[?2004l[?2004h> 
+[?2004l[?2004h>     for tag in soup.find_all(True):
+[?2004l[?2004h>         clean_tag(tag)
+[?2004l[?2004h> 
+[?2004l[?2004h>     return str(soup)
+[?2004l[?2004h> 
+[?2004l[?2004h> 
+[?2004l[?2004h> def main():
+[?2004l[?2004h>     if len(sys.argv) != 2:
+[?2004l[?2004h>         print("Usage: filter.py <html-file>", file=sys.stderr)
+[?2004l[?2004h>         sys.exit(1)
+[?2004l[?2004h> 
+[?2004l[?2004h>     path = sys.argv[1]
+[?2004l[?2004h>     with open(path, "r", encoding="utf-8") as f:
+[?2004l[?2004h>         html = f.read()
+[?2004l[?2004h> 
+[?2004l[?2004h>     cleaned = sanitize_html(html)
+[?2004l[?2004h> 
+[?2004l[?2004h>     with open(path, "w", encoding="utf-8") as f:
+[?2004l[?2004h>         f.write(cleaned)
+[?2004l[?2004h> 
+[?2004l[?2004h> 
+[?2004l[?2004h> if __name__ == "__main__":
+[?2004l[?2004h>     main()
+[?2004l[?2004h> '''
+[?2004l[?2004h> with open('/app/filter.py', 'w', encoding='utf-8') as f:
+[?2004l[?2004h>     f.write(content)
+[?2004l[?2004h> PY
+[?2004l[?2004hroot@962c9b935c0a:/app# chmod +x /app/filter.py
+[?2004l[?2004hroot@962c9b935c0a:/app# python3 -m py_compile /app/filter.py
+[?2004l[?2004hroot@962c9b935c0a:/app# cp /tmp/test.html /tmp/test_filtered.html
+[?2004l[?2004hroot@962c9b935c0a:/app# python3 /app/filter.py /tmp/test_filtered.html
+[?2004l[?2004hroot@962c9b935c0a:/app# cat /tmp/test_filtered.html
+[?2004l<!DOCTYPE html>
+
+<html>
+<head>
+<title>Test</title>
+
+</head>
+<body>
+<h1>Hello</h1>
+<a>link</a>
+<a href="https://example.com">safe</a>
+<img alt="img" src="x"/>
+<iframe srcdoc="&lt;p&gt;ok&lt;/p&gt;"></iframe>
+<table>
+<tr><td>cell</td></tr>
+</table>
+</body>
+</html>
+[?2004hroot@962c9b935c0a:/app# sed -n '1,220p' /app/filter.py
+[?2004l#!/usr/bin/env python3
+import re
+import sys
+
+from bs4 import BeautifulSoup
+
+
+JS_URL_SCHEMES = (
+    "javascript:",
+    "vbscript:",
+    "livescript:",
+    "mocha:",
+)
+
+URL_ATTRS = {
+    "href",
+    "src",
+    "action",
+    "formaction",
+    "data",
+    "xlink:href",
+    "poster",
+    "background",
+    "cite",
+    "longdesc",
+    "usemap",
+    "manifest",
+    "codebase",
+    "archive",
+    "classid",
+    "profile",
+    "srcset",
+}
+
+
+def normalize_for_check(value):
+    if value is None:
+        return ""
+    # HTML parsing already decodes entities; remove whitespace/control chars so
+    # attempts like "java\tscript:" are caught.
+    return re.sub(r"[\s\x00-\x20]+", "", str(value)).lower()
+
+
+def is_dangerous_url(value):
+    v = normalize_for_check(value)
+    if any(v.startswith(scheme) for scheme in JS_URL_SCHEMES):
+        return True
+    # data: URLs carrying active HTML/XHTML can contain script content.
+    if v.startswith("data:text/html") or v.startswith("data:application/xhtml+xml"):
+        return True
+    return False
+
+
+def is_dangerous_style(value):
+    v = str(value).lower()
+    return any(s in v for s in ("javascript:", "vbscript:", "expression("))
+
+
+def sanitize_srcset(value):
+    # Preserve non-dangerous srcset entries; drop entries using JS schemes.
+    parts = str(value).split(",")
+    safe = []
+    for part in parts:
+        if not is_dangerous_url(part.strip()):
+            safe.append(part)
+    return ",".join(safe)
+
+
+def clean_tag(tag):
+    for name, value in list(tag.attrs.items()):
+        lname = name.lower()
+
+        # Inline event handlers are JavaScript.
+        if lname.startswith("on"):
+            del tag.attrs[name]
+            continue
+
+        # CSS expressions and javascript: in style are dangerous in legacy/quirky contexts.
+        if lname == "style":
+            if is_dangerous_style(value):
+                del tag.attrs[name]
+            continue
+
+        # srcdoc contains HTML that may include scripts; sanitize it recursively.
+        if lname == "srcdoc":
+            if value:
+                tag.attrs[name] = sanitize_html(str(value))
+            continue
+
+        if lname == "srcset":
+            cleaned = sanitize_srcset(value)
+            if cleaned:
+                tag.attrs[name] = cleaned
+            else:
+                del tag.attrs[name]
+            continue
+
+        # Meta refresh content can attempt javascript: navigation.
+        if tag.name.lower() == "meta" and lname == "content":
+            if "javascript:" in str(value).lower() or "vbscript:" in str(value).lower():
+                del tag.attrs[name]
+            continue
+
+        if lname in URL_ATTRS:
+            if is_dangerous_url(value):
+                del tag.attrs[name]
+            continue
+
+
+def sanitize_html(html):
+    soup = BeautifulSoup(html, "html.parser")
+
+    # Remove all script elements, including those inside SVG/template-like content.
+    for script in soup.find_all("script"):
+        script.decompose()
+
+    for tag in soup.find_all(True):
+        clean_tag(tag)
+
+    return str(soup)
+
+
+def main():
+    if len(sys.argv) != 2:
+        print("Usage: filter.py <html-file>", file=sys.stderr)
+        sys.exit(1)
+
+    path = sys.argv[1]
+    with open(path, "r", encoding="utf-8") as f:
+        html = f.read()
+
+    cleaned = sanitize_html(html)
+
+    with open(path, "w", encoding="utf-8") as f:
+        f.write(cleaned)
+
+
+if __name__ == "__main__":
+    main()
+[?2004hroot@962c9b935c0a:/app# cat > /tmp/edge.html <<'HTML'
+[?2004l[?2004h> <!DOCTYPE html>
+[?2004l[?2004h> <html>
+[?2004l[?2004h>   <head>
+[?2004l[?2004h>     <style>body { background: expression(alert(1)); }</style>
+[?2004l[?2004h>     <meta http-equiv="refresh" content="0;url=javascript:alert(2)">
+[?2004l[?2004h>   </head>
+[?2004l[?2004h>   <body onload="evil()">
+[?2004l[?2004h>     <a href="java&#x09;script:alert(3)">obfuscated</a>
+[?2004l[?2004h>     <a href="javascript&#58;alert(4)">entity colon</a>
+[?2004l[?2004h>     <svg><script>alert(5)</script><circle onclick="evil()" r="1"/></svg>
+[?2004l[?2004h>     <div style="background:url('javascript:alert(6)')">style url</div>
+[?2004l[?2004h>     <p>legitimate text &amp; entities</p>
+[?2004l[?2004h>   </body>
+[?2004l[?2004h> </html>
+[?2004l[?2004h> HTML
+[?2004l[?2004hroot@962c9b935c0a:/app# cp /tmp/edge.html /tmp/edge_filtered.html
+[?2004l[?2004hroot@962c9b935c0a:/app# python3 /app/filter.py /tmp/edge_filtered.html
+[?2004l[?2004hroot@962c9b935c0a:/app# cat /tmp/edge_filtered.html
+[?2004l<!DOCTYPE html>
+
+<html>
+<head>
+<style>body { background: expression(alert(1)); }</style>
+<meta http-equiv="refresh"/>
+</head>
+<body>
+<a>obfuscated</a>
+<a>entity colon</a>
+<svg><circle r="1"></circle></svg>
+<div>style url</div>
+<p>legitimate text &amp; entities</p>
+</body>
+</html>
+[?2004hroot@962c9b935c0a:/app# python3 /app/filter.py /tmp/edge_filtered.html
+[?2004l[?2004hroot@962c9b935c0a:/app# cat /tmp/edge_filtered.html
+[?2004l<!DOCTYPE html>
+
+<html>
+<head>
+<style>body { background: expression(alert(1)); }</style>
+<meta http-equiv="refresh"/>
+</head>
+<body>
+<a>obfuscated</a>
+<a>entity colon</a>
+<svg><circle r="1"></circle></svg>
+<div>style url</div>
+<p>legitimate text &amp; entities</p>
+</body>
+</html>
+[?2004hroot@962c9b935c0a:/app# python3 - <<'PY'
+[?2004love_balanced_calls(css, 'url')
+
+    # Remove declarations that bind to XBL/HTC, which can load script behavior.
+    css = re.sub(r'-moz-binding\s*:[^;}]*[;}]?', '', css, flags=re.I)
+
+    # Remove any surviving script scheme strings.
+    css = re.sub(r'(?:javascript|vbscript|livescript|mocha):', '', css, flags=re.I)
+    return css
+'''
+
+marker = '\ndef clean_tag(tag):\n'
+if 'def remove_balanced_calls' not in s:
+    s = s.replace(marker, insert + marker)
+
+# Add style element sanitization in sanitize_html.
+old = '''    # Remove all script elements, including those inside SVG/template-like content.
+    for script in soup.find_all("script"):
+        script.decompose()
+'''
+new = '''    # Remove all script elements, including those inside SVG/template-like content.
+    for script in soup.find_all("script"):
+        script.decompose()
+
+    # Sanitize CSS in style elements; expression()/javascript: URLs are JS vectors.
+    for style in soup.find_all("style"):
+        css = style.string if style.string is not None else [?2004h> from pathlib import Path
+[?2004l[?2004h> 
+[?2004l[?2004h> p = Path('/app/filter.py')
+[?2004l[?2004h> s = p.read_text()
+[?2004l[?2004h> 
+[?2004l[?2004h> insert = r'''
+[?2004l[?2004h> 
+[?2004l[?2004h> def remove_balanced_calls(css, fname):
+[?2004l[?2004h>     pattern = re.compile(re.escape(fname) + r'\s*\(', re.I)
+[?2004l[?2004h>     while True:
+[?2004l[?2004h>         m = pattern.search(css)
+[?2004l[?2004h>         if not m:
+[?2004l[?2004h>             break
+[?2004l[?2004h>         start = m.start()
+[?2004l[?2004h>         i = m.end() - 1
+[?2004l[?2004h>         depth = 0
+[?2004l[?2004h>         end = len(css)
+[?2004l[?2004h>         while i < len(css):
+[?2004l[?2004h>             ch = css[i]
+[?2004l[?2004h>             if ch == '(':
+[?2004l[?2004h>                 depth += 1
+[?2004l[?2004h>             elif ch == ')':
+[?2004l[?2004h>                 depth -= 1
+[?2004l[?2004h>                 if depth == 0:
+[?2004l[?2004h>                     end = i + 1
+[?2004l[?2004h>                     break
+[?2004l[?2004h>             i += 1
+[?2004l[?2004h>         css = css[:start] + css[end:]
+[?2004l[?2004h>     return css
+[?2004l[?2004h> 
+[?2004l[?2004h> 
+[?2004l[?2004h> def sanitize_css(css):
+[?2004l[?2004h>     # Remove comments first so they cannot split dangerous tokens.
+[?2004l[?2004h>     css = re.sub(r'/\*.*?\*/', '', css, flags=re.S)
+[?2004l[?2004h> 
+[?2004l[?2004h>     # IE expression() and similar CSS JavaScript vectors.
+[?2004l[?2004h>     css = remove_balanced_calls(css, 'expression')
+[?2004l[?2004h> 
+[?2004l[?2004h>     # Dangerous URL functions, e.g. url(javascript:...).
+[?2004l[?2004h>     css = remove_balanced_calls(css, 'url')
+[?2004l[?2004h> 
+[?2004l[?2004h>     # Remove declarations that bind to XBL/HTC, which can load script behavior.
+[?2004l[?2004h>     css = re.sub(r'-moz-binding\s*:[^;}]*[;}]?', '', css, flags=re.I)
+[?2004l[?2004h> 
+[?2004l[?2004h>     # Remove any surviving script scheme strings.
+[?2004l[?2004h>     css = re.sub(r'(?:javascript|vbscript|livescript|mocha):', '', css, flags=re.I)
+[?2004l[?2004h>     return css
+[?2004l[?2004h> '''
+[?2004l[?2004h> 
+[?2004l[?2004h> marker = '\ndef clean_tag(tag):\n'
+[?2004l[?2004h> if 'def remove_balanced_calls' not in s:
+[?2004l[?2004h>     s = s.replace(marker, insert + marker)
+[?2004l[?2004h> 
+[?2004l[?2004h> # Add style element sanitization in sanitize_html.
+[?2004l[?2004h> old = '''    # Remove all script elements, including those inside SVG/template-like content.
+[?2004l[?2004h>     for script in soup.find_all("script"):
+[?2004l[?2004h>         script.decompose()
+[?2004l[?2004h> '''
+[?2004l[?2004h> new = '''    # Remove all script elements, including those inside SVG/template-like content.
+[?2004l[?2004h>     for script in soup.find_all("script"):
+[?2004l[?2004h>         script.decompose()
+[?2004l[?2004h> 
+[?2004l[?2004h>     # Sanitize CSS in style elements; expression()/javascript: URLs are JS vectors.
+[?2004l[?2004h>     for style in soup.find_all("style"):
+[?2004l[?2004h>         css = style.string if style.string is not None else "".join(style.strings)
+[?2004l[?2004h>         if css:
+[?2004l[?2004h>             cleaned_css = sanitize_css(css)
+[?2004l[?2004h>             style.string.replace_with(cleaned_css)
+[?2004l[?2004h> '''
+[?2004l[?2004h> if 'for style in soup.find_all("style"):' not in s:
+[?2004l[?2004h>     s = s.replace(old, new)
+[?2004l[?2004h> 
+[?2004l[?2004h> p.write_text(s)
+[?2004l[?2004h> PY
+[?2004l[?2004hroot@962c9b935c0a:/app# python3 -m py_compile /app/filter.py
+[?2004l[?2004hroot@962c9b935c0a:/app# cp /tmp/edge.html /tmp/edge_filtered.html
+[?2004l[?2004hroot@962c9b935c0a:/app# python3 /app/filter.py /tmp/edge_filtered.html
+[?2004l[?2004hroot@962c9b935c0a:/app# cat /tmp/edge_filtered.html
+[?2004l<!DOCTYPE html>
+
+<html>
+<head>
+<style>body { background: ; }</style>
+<meta http-equiv="refresh"/>
+</head>
+<body>
+<a>obfuscated</a>
+<a>entity colon</a>
+<svg><circle r="1"></circle></svg>
+<div>style url</div>
+<p>legitimate text &amp; entities</p>
+</body>
+</html>
+[?2004hroot@962c9b935c0a:/app# sed -n '1,260p' /app/filter.py
+[?2004l#!/usr/bin/env python3
+import re
+import sys
+
+from bs4 import BeautifulSoup
+
+
+JS_URL_SCHEMES = (
+    "javascript:",
+    "vbscript:",
+    "livescript:",
+    "mocha:",
+)
+
+URL_ATTRS = {
+    "href",
+    "src",
+    "action",
+    "formaction",
+    "data",
+    "xlink:href",
+    "poster",
+    "background",
+    "cite",
+    "longdesc",
+    "usemap",
+    "manifest",
+    "codebase",
+    "archive",
+    "classid",
+    "profile",
+    "srcset",
+}
+
+
+def normalize_for_check(value):
+    if value is None:
+        return ""
+    # HTML parsing already decodes entities; remove whitespace/control chars so
+    # attempts like "java\tscript:" are caught.
+    return re.sub(r"[\s\x00-\x20]+", "", str(value)).lower()
+
+
+def is_dangerous_url(value):
+    v = normalize_for_check(value)
+    if any(v.startswith(scheme) for scheme in JS_URL_SCHEMES):
+        return True
+    # data: URLs carrying active HTML/XHTML can contain script content.
+    if v.startswith("data:text/html") or v.startswith("data:application/xhtml+xml"):
+        return True
+    return False
+
+
+def is_dangerous_style(value):
+    v = str(value).lower()
+    return any(s in v for s in ("javascript:", "vbscript:", "expression("))
+
+
+def sanitize_srcset(value):
+    # Preserve non-dangerous srcset entries; drop entries using JS schemes.
+    parts = str(value).split(",")
+    safe = []
+    for part in parts:
+        if not is_dangerous_url(part.strip()):
+            safe.append(part)
+    return ",".join(safe)
+
+
+
+def remove_balanced_calls(css, fname):
+    pattern = re.compile(re.escape(fname) + r'\s*\(', re.I)
+    while True:
+        m = pattern.search(css)
+        if not m:
+            break
+        start = m.start()
+        i = m.end() - 1
+        depth = 0
+        end = len(css)
+        while i < len(css):
+            ch = css[i]
+            if ch == '(':
+                depth += 1
+            elif ch == ')':
+                depth -= 1
+                if depth == 0:
+                    end = i + 1
+                    break
+            i += 1
+        css = css[:start] + css[end:]
+    return css
+
+
+def sanitize_css(css):
+    # Remove comments first so they cannot split dangerous tokens.
+    css = re.sub(r'/\*.*?\*/', '', css, flags=re.S)
+
+    # IE expression() and similar CSS JavaScript vectors.
+    css = remove_balanced_calls(css, 'expression')
+
+    # Dangerous URL functions, e.g. url(javascript:...).
+    css = remove_balanced_calls(css, 'url')
+
+    # Remove declarations that bind to XBL/HTC, which can load script behavior.
+    css = re.sub(r'-moz-binding\s*:[^;}]*[;}]?', '', css, flags=re.I)
+
+    # Remove any surviving script scheme strings.
+    css = re.sub(r'(?:javascript|vbscript|livescript|mocha):', '', css, flags=re.I)
+    return css
+
+def clean_tag(tag):
+    for name, value in list(tag.attrs.items()):
+        lname = name.lower()
+
+        # Inline event handlers are JavaScript.
+        if lname.startswith("on"):
+            del tag.attrs[name]
+            continue
+
+        # CSS expressions and javascript: in style are dangerous in legacy/quirky contexts.
+        if lname == "style":
+            if is_dangerous_style(value):
+                del tag.attrs[name]
+            continue
+
+        # srcdoc contains HTML that may include scripts; sanitize it recursively.
+        if lname == "srcdoc":
+            if value:
+                tag.attrs[name] = sanitize_html(str(value))
+            continue
+
+        if lname == "srcset":
+            cleaned = sanitize_srcset(value)
+            if cleaned:
+                tag.attrs[name] = cleaned
+            else:
+                del tag.attrs[name]
+            continue
+
+        # Meta refresh content can attempt javascript: navigation.
+        if tag.name.lower() == "meta" and lname == "content":
+            if "javascript:" in str(value).lower() or "vbscript:" in str(value).lower():
+                del tag.attrs[name]
+            continue
+
+        if lname in URL_ATTRS:
+            if is_dangerous_url(value):
+                del tag.attrs[name]
+            continue
+
+
+def sanitize_html(html):
+    soup = BeautifulSoup(html, "html.parser")
+
+    # Remove all script elements, including those inside SVG/template-like content.
+    for script in soup.find_all("script"):
+        script.decompose()
+
+    # Sanitize CSS in style elements; expression()/javascript: URLs are JS vectors.
+    for style in soup.find_all("style"):
+        css = style.string if style.string is not None else "".join(style.strings)
+        if css:
+            cleaned_css = sanitize_css(css)
+            style.string.replace_with(cleaned_css)
+
+    for tag in soup.find_all(True):
+        clean_tag(tag)
+
+    return str(soup)
+
+
+def main():
+    if len(sys.argv) != 2:
+        print("Usage: filter.py <html-file>", file=sys.stderr)
+        sys.exit(1)
+
+    path = sys.argv[1]
+    with open(path, "r", encoding="utf-8") as f:
+        html = f.read()
+
+    cleaned = sanitize_html(html)
+
+    with open(path, "w", encoding="utf-8") as f:
+        f.write(cleaned)
+
+
+if __name__ == "__main__":
+    main()
+[?2004hroot@962c9b935c0a:/app# cat > /tmp/style_edge.html <<'HTML'
+[?2004l[?2004h> <!DOCTYPE html>
+[?2004l[?2004h> <html>
+[?2004l[?2004h>   <head>
+[?2004l[?2004h>     <style>/* comment */ body { color: red; } /* x */ a { background: url(javascript:alert(1)); }</style>
+[?2004l[?2004h>   </head>
+[?2004l[?2004h>   <body><p>ok</p></body>
+[?2004l[?2004h> </html>
+[?2004l[?2004h> HTML
+[?2004l[?2004hroot@962c9b935c0a:/app# cp /tmp/style_edge.html /tmp/style_edge_filtered.html
+[?2004l[?2004hroot@962c9b935c0a:/app# python3 /app/filter.py /tmp/style_edge_filtered.html
+[?2004l[?2004hroot@962c9b935c0a:/app# cat /tmp/style_edge_filtered.html
+[?2004l<!DOCTYPE html>
+
+<html>
+<head>
+<style> body { color: red; }  a { background: ; }</style>
+</head>
+<body><p>ok</p></body>
+</html>
+[?2004hroot@962c9b935c0a:/app# python3 - <<'PY'
+[?2004l[?2004h> from pathlib import Path
+[?2004l[?2004h> 
+[?2004lss = re.sub(r'-moz-binding\\s*:[^;}]*[;}]?', '', css, flags=re.I)
+
+    # Remove any surviving script scheme strings.
+    css = re.sub(r'(?:javascript|vbscript|livescript|mocha):', '', css, flags=re.I)
+    return css
+'''
+new_sanitize = '''def sanitize_css(css):
+    # Remove comments first so they cannot split dangerous tokens.
+    css = re.sub(r'/\\*.*?\\*/', '', css, flags=re.S)
+
+    # IE expression() and similar CSS JavaScript vectors.
+    css = remove_balanced_calls(css, 'expression')
+
+    # Preserve safe url() calls but drop dangerous ones, e.g. url(javascript:...).
+    css = re.sub(
+        r'url\\s*\\(([^)]*)\\)',
+        lambda m: '' if is_dangerous_url(m.group(1)) or is_dangerous_style(m.group(1)) else m.group(0),
+        css,
+        flags=re.I,
+    )
+
+    # Remove declarations that bind to XBL/HTC or IE behaviors, which can load script.
+    css = re.sub(r'(?:-moz-binding|behavior)\\s*:[^;}]*[;}]?', '', css, flags=re.I)
+
+    # Remove any surviving script scheme strings.
+    css = re.sub(r'(?:javascrip[?2004h> p = Path('/app/filter.py')
+[?2004l[?2004h> s = p.read_text()
+[?2004l[?2004h> 
+[?2004l[?2004h> s = s.replace('from bs4 import BeautifulSoup\n', 'from bs4 import BeautifulSoup, NavigableString\n')
+[?2004l[?2004h> 
+[?2004l[?2004h> old_is_style = '''def is_dangerous_style(value):
+[?2004l[?2004h>     v = str(value).lower()
+[?2004l[?2004h>     return any(s in v for s in ("javascript:", "vbscript:", "expression("))
+[?2004l[?2004h> '''
+[?2004l[?2004h> new_is_style = '''def is_dangerous_style(value):
+[?2004l[?2004h>     v = str(value).lower()
+[?2004l[?2004h>     return bool(re.search(r"(?:javascript|vbscript|livescript|mocha):|expression\\s*\\(", v))
+[?2004l[?2004h> '''
+[?2004l[?2004h> s = s.replace(old_is_style, new_is_style)
+[?2004l[?2004h> 
+[?2004l[?2004h> old_sanitize = '''def sanitize_css(css):
+[?2004l[?2004h>     # Remove comments first so they cannot split dangerous tokens.
+[?2004l[?2004h>     css = re.sub(r'/\\*.*?\\*/', '', css, flags=re.S)
+[?2004l[?2004h> 
+[?2004l[?2004h>     # IE expression() and similar CSS JavaScript vectors.
+[?2004l[?2004h>     css = remove_balanced_calls(css, 'expression')
+[?2004l[?2004h> 
+[?2004l[?2004h>     # Dangerous URL functions, e.g. url(javascript:...).
+[?2004l[?2004h>     css = remove_balanced_calls(css, 'url')
+[?2004l[?2004h> 
+[?2004l[?2004h>     # Remove declarations that bind to XBL/HTC, which can load script behavior.
+[?2004l[?2004h>     css = re.sub(r'-moz-binding\\s*:[^;}]*[;}]?', '', css, flags=re.I)
+[?2004l[?2004h> 
+[?2004l[?2004h>     # Remove any surviving script scheme strings.
+[?2004l[?2004h>     css = re.sub(r'(?:javascript|vbscript|livescript|mocha):', '', css, flags=re.I)
+[?2004l[?2004h>     return css
+[?2004l[?2004h> '''
+[?2004l[?2004h> new_sanitize = '''def sanitize_css(css):
+[?2004l[?2004h>     # Remove comments first so they cannot split dangerous tokens.
+[?2004l[?2004h>     css = re.sub(r'/\\*.*?\\*/', '', css, flags=re.S)
+[?2004l[?2004h> 
+[?2004l[?2004h>     # IE expression() and similar CSS JavaScript vectors.
+[?2004l[?2004h>     css = remove_balanced_calls(css, 'expression')
+[?2004l[?2004h> 
+[?2004l[?2004h>     # Preserve safe url() calls but drop dangerous ones, e.g. url(javascript:...).
+[?2004l[?2004h>     css = re.sub(
+[?2004l[?2004h>         r'url\\s*\\(([^)]*)\\)',
+[?2004l[?2004h>         lambda m: '' if is_dangerous_url(m.group(1)) or is_dangerous_style(m.group(1)) else m.group(0),
+[?2004l[?2004h>         css,
+[?2004l[?2004h>         flags=re.I,
+[?2004l[?2004h>     )
+[?2004l[?2004h> 
+[?2004l[?2004h>     # Remove declarations that bind to XBL/HTC or IE behaviors, which can load script.
+[?2004l[?2004h>     css = re.sub(r'(?:-moz-binding|behavior)\\s*:[^;}]*[;}]?', '', css, flags=re.I)
+[?2004l[?2004h> 
+[?2004l[?2004h>     # Remove any surviving script scheme strings.
+[?2004l[?2004h>     css = re.sub(r'(?:javascript|vbscript|livescript|mocha):', '', css, flags=re.I)
+[?2004l[?2004h>     return css
+[?2004l[?2004h> '''
+[?2004l[?2004h> s = s.replace(old_sanitize, new_sanitize)
+[?2004l[?2004h> 
+[?2004l[?2004h> old_style = '''    # Sanitize CSS in style elements; expression()/javascript: URLs are JS vectors.
+[?2004l[?2004h>     for style in soup.find_all("style"):
+[?2004l[?2004h>         css = style.string if style.string is not None else "".join(style.strings)
+[?2004l[?2004h>         if css:
+[?2004l[?2004h>             cleaned_css = sanitize_css(css)
+[?2004l[?2004h>             style.string.replace_with(cleaned_css)
+[?2004l[?2004h> '''
+[?2004l[?2004h> new_style = '''    # Sanitize CSS in style elements; expression()/javascript: URLs are JS vectors.
+[?2004l[?2004h>     for style in soup.find_all("style"):
+[?2004l[?2004h>         css = style.string if style.string is not None else "".join(style.strings)
+[?2004l[?2004h>         if css:
+[?2004l[?2004h>             cleaned_css = sanitize_css(css)
+[?2004l[?2004h>             style.clear()
+[?2004l[?2004h>             style.append(NavigableString(cleaned_css))
+[?2004l[?2004h> '''
+[?2004l[?2004h> s = s.replace(old_style, new_style)
+[?2004l[?2004h> 
+[?2004l[?2004h> p.write_text(s)
+[?2004l[?2004h> PY
+[?2004l[?2004hroot@962c9b935c0a:/app# python3 -m py_compile /app/filter.py
+[?2004l[?2004hroot@962c9b935c0a:/app# cat > /tmp/css_test.html <<'HTML'
+[?2004l[?2004h> <!DOCTYPE html>
+[?2004l[?2004h> <html>
+[?2004l[?2004h>   <head>
+[?2004l[?2004h>     <style>body { color: red; background: url('https://example.com/bg.png'); } a { background: url(javascript:alert(1)); } div { width: expression(alert(2)); }</style>
+[?2004l[?2004h>   </head>
+[?2004l[?2004h>   <body style="color: blue; background: url('https://safe.example.com/x.png'); width: expression(alert(3))">
+[?2004l[?2004h>     <p>ok</p>
+[?2004l[?2004h>   </body>
+[?2004l[?2004h> </html>
+[?2004l[?2004h> HTML
+[?2004l[?2004hroot@962c9b935c0a:/app# cp /tmp/css_test.html /tmp/css_test_filtered.html
+[?2004l[?2004hroot@962c9b935c0a:/app# python3 /app/filter.py /tmp/css_test_filtered.html
+[?2004l[?2004hroot@962c9b935c0a:/app# cat /tmp/css_test_filtered.html
+[?2004l<!DOCTYPE html>
+
+<html>
+<head>
+<style>body { color: red; background: url('https://example.com/bg.png'); } a { background: ); } div { width: ; }</style>
+</head>
+<body>
+<p>ok</p>
+</body>
+</html>
+[?2004hroot@962c9b935c0a:/app# cat > /app/filter.py <<'PY'
+[?2004lML can contain script content.
+    if v.startswith("data:text/html") or v.startswith("data:application/xhtml+xml"):
+        return True
+    return False
+
+
+def contains_dangerous_url(value):
+    v = normalize_for_check(value)
+    return any(scheme in v for scheme in JS_URL_SCHEMES) or "data:text/html" in v or "data:application/xhtml+xml" in v
+
+
+def is_dangerous_style(value):
+    v = str(value).lower()
+    return bool(re.search(r"(?:javascript|vbscript|livescript|mocha):|expression\s*\(", v))
+
+
+def sanitize_srcset(value):
+    # Preserve non-dangerous srcset entries; drop entries using JS schemes.
+    parts = str(value).split(",")
+    safe = []
+    for part in parts:
+        if not is_dangerous_url(part.strip()):
+            safe.append(part)
+    return ",".join(safe)
+
+
+def remove_balanced_calls_if(css, fname, predicate):
+    pattern = re.compile(re.escape(fname) + r"\s*\(", re.I)
+    result = []
+    pos = 0
+
+    while True:
+        m = pattern.search(css, pos)
+        if not m:
+            break
+
+        start [?2004h> #!/usr/bin/env python3
+[?2004l[?2004h> import re
+[?2004l[?2004h> import sys
+[?2004l[?2004h> 
+[?2004l[?2004h> from bs4 import BeautifulSoup, NavigableString
+[?2004l[?2004h> 
+[?2004l[?2004h> 
+[?2004l[?2004h> JS_URL_SCHEMES = (
+[?2004l[?2004h>     "javascript:",
+[?2004l[?2004h>     "vbscript:",
+[?2004l[?2004h>     "livescript:",
+[?2004l[?2004h>     "mocha:",
+[?2004l[?2004h> )
+[?2004lva[?2004h> 
+[?2004l[?2004h> URL_ATTRS = {
+[?2004l[?2004h>     "href",
+[?2004l[?2004h>     "src",
+[?2004l[?2004h>     "action",
+[?2004l[?2004h>     "formaction",
+[?2004l[?2004h>     "data",
+[?2004l[?2004h>     "xlink:href",
+[?2004l[?2004h>     "poster",
+[?2004l[?2004h>     "background",
+[?2004l[?2004h>     "cite",
+[?2004l[?2004h>     "longdesc",
+[?2004l[?2004h>     "usemap",
+[?2004l[?2004h>     "manifest",
+[?2004l[?2004h>     "codebase",
+[?2004l[?2004h>     "archive",
+[?2004l[?2004h>     "classid",
+[?2004l[?2004h>     "profile",
+[?2004l[?2004h>     "srcset",
+[?2004l[?2004h>     "code",
+[?2004l[?2004h> }
+[?2004lam[?2004h> 
+[?2004le[?2004h> 
+[?2004l[?2004h> def normalize_for_check(value):
+[?2004l[?2004h>     if value is None:
+[?2004l[?2004h>         return ""
+[?2004l[?2004h>     # HTML parsing already decodes entities. Remove whitespace/control characters
+[?2004l[?2004h>     # and surrounding quotes so attempts like "java\tscript:" and url('javascript:')
+[?2004l[?2004h>     # are caught.
+[?2004l [?2004h>     v = re.sub(r"[\s\x00-\x20]+", "", str(value)).lower()
+[?2004l[?2004h>     return v.strip("'\"")
+[?2004l     [?2004h> 
+[?2004l [?2004h> 
+[?2004l [?2004h> def is_dangerous_url(value):
+[?2004l        [?2004h>     v = normalize_for_check(value)
+[?2004l[?2004h>     if any(v.startswith(scheme) for scheme in JS_URL_SCHEMES):
+[?2004l[?2004h>         return True
+[?2004l[?2004h>     # data: URLs carrying active HTML/XHTML can contain script content.
+[?2004l[?2004h>     if v.startswith("data:text/html") or v.startswith("data:application/xhtml+xml"):
+[?2004l[?2004h>         return True
+[?2004l[?2004h>     return False
+[?2004l[?2004h> 
+[?2004l [?2004h> 
+[?2004lJ[?2004h> def contains_dangerous_url(value):
+[?2004l[?2004h>     v = normalize_for_check(value)
+[?2004l[?2004h>     return any(scheme in v for scheme in JS_URL_SCHEMES) or "data:text/html" in v or "data:application/xhtml+xml" in v
+[?2004l[?2004h> 
+[?2004l([?2004h> 
+[?2004lc[?2004h> def is_dangerous_style(value):
+[?2004l[?2004h>     v = str(value).lower()
+[?2004l[?2004h>     return bool(re.search(r"(?:javascript|vbscript|livescript|mocha):|expression\s*\(", v))
+[?2004l[?2004h> 
+[?2004lr[?2004h> 
+[?2004le[?2004h> def sanitize_srcset(value):
+[?2004l[?2004h>     # Preserve non-dangerous srcset entries; drop entries using JS schemes.
+[?2004l[?2004h>     parts = str(value).split(",")
+[?2004l[?2004h>     safe = []
+[?2004l[?2004h>     for part in parts:
+[?2004l[?2004h>         if not is_dangerous_url(part.strip()):
+[?2004l[?2004h>             safe.append(part)
+[?2004l[?2004h>     return ",".join(safe)
+[?2004l[?2004h> 
+[?2004lt[?2004h> 
+[?2004l[?2004h> def remove_balanced_calls_if(css, fname, predicate):
+[?2004l[?2004h>     pattern = re.compile(re.escape(fname) + r"\s*\(", re.I)
+[?2004l[?2004h>     result = []
+[?2004l[?2004h>     pos = 0
+[?2004l[?2004h> 
+[?2004l[?2004h>     while True:
+[?2004l[?2004h>         m = pattern.search(css, pos)
+[?2004l[?2004h>         if not m:
+[?2004lm py_compile /app/filter.py
+cp /tmp/test.html /tmp/test_filtered.html
+p[?2004h>             break
+[?2004l[?2004h> 
+[?2004l[?2004h>         start = m.start()
+[?2004ld.html[?2004h>         open_idx = m.end() - 1
+[?2004ltml
+cp[?2004h>         depth = 0
+[?2004l[?2004h>         end = len(css)
+[?2004l[?2004h>         i = open_idx
+[?2004lp/f[?2004h> 
+[?2004li[?2004h>         while i < len(css):
+[?2004l[?2004h>             ch = css[i]
+[?2004l[?2004h>             if ch == "(":
+[?2004l[?2004h>                 depth += 1
+[?2004l[?2004h>             elif ch == ")":
+[?2004l[?2004h>                 depth -= 1
+[?2004l[?2004h>                 if depth == 0:
+[?2004l[?2004h>                     end = i + 1
+[?2004l[?2004h>                     break
+[?2004l[?2004h>             i += 1
+[?2004l[?2004h> 
+[?2004l[?2004h>         inner = css[open_idx + 1:end - 1] if end > open_idx + 1 else ""
+[?2004l[?2004h>         result.append(css[pos:start])
+[?2004l[?2004h> 
+[?2004l[?2004h>         if predicate(inner):
+[?2004l[?2004h>             pos = end
+[?2004l[?2004h>         else:
+[?2004l[?2004h>             result.append(css[start:end])
+[?2004l[?2004h>             pos = end
+[?2004l[?2004h> 
+[?2004l[?2004h>     result.append(css[pos:])
+[?2004l[?2004h>     return "".join(result)
+[?2004l[?2004h> 
+[?2004l[?2004h> 
+[?2004l[?2004h> def remove_balanced_calls(css, fname):
+[?2004l[?2004h>     return remove_balanced_calls_if(css, fname, lambda inner: True)
+[?2004l[?2004h> 
+[?2004l[?2004h> 
+[?2004l[?2004h> def sanitize_css(css):
+[?2004l[?2004h>     # Remove comments first so they cannot split dangerous tokens.
+[?2004l[?2004h>     css = re.sub(r"/\*.*?\*/", "", css, flags=re.S)
+[?2004l[?2004h> 
+[?2004l[?2004h>     # IE expression() and similar CSS JavaScript vectors.
+[?2004l[?2004h>     css = remove_balanced_calls(css, "expression")
+[?2004l[?2004h> 
+[?2004l[?2004h>     # Preserve safe url() calls but drop dangerous ones, e.g. url(javascript:...).
+[?2004l[?2004h>     css = remove_balanced_calls_if(
+[?2004l[?2004h>         css,
+[?2004l[?2004h>         "url",
+[?2004l[?2004h>         lambda inner: is_dangerous_url(inner) or is_dangerous_style(inner),
+[?2004l[?2004h>     )
+[?2004l[?2004h> 
+[?2004l[?2004h>     # Remove declarations that bind to XBL/HTC or IE behaviors, which can load script.
+[?2004l[?2004h>     css = re.sub(r"(?:-moz-binding|behavior)\s*:[^;}]*[;}]?", "", css, flags=re.I)
+[?2004l[?2004h> 
+[?2004l[?2004h>     # Remove any surviving script scheme strings.
+[?2004l[?2004h>     css = re.sub(r"(?:javascript|vbscript|livescript|mocha):", "", css, flags=re.I)
+[?2004l[?2004h>     return css
+[?2004l[?2004h> 
+[?2004l[?2004h> 
+[?2004l[?2004h> def clean_tag(tag):
+[?2004l[?2004h>     for name, value in list(tag.attrs.items()):
+[?2004l[?2004h>         lname = name.lower()
+[?2004l[?2004h> 
+[?2004l[?2004h>         # Inline event handlers are JavaScript.
+[?2004l[?2004h>         if lname.startswith("on"):
+[?2004l[?2004h>             del tag.attrs[name]
+[?2004l[?2004h>             continue
+[?2004l[?2004h> 
+[?2004l[?2004h>         # Sanitize CSS in style attributes instead of dropping all safe styling.
+[?2004l[?2004h>         if lname == "style":
+[?2004l[?2004h>             cleaned = sanitize_css(str(value))
+[?2004l[?2004h>             if cleaned.strip():
+[?2004l[?2004h>                 tag.attrs[name] = cleaned
+[?2004l[?2004h>             else:
+[?2004l[?2004h>                 del tag.attrs[name]
+[?2004l[?2004h>             continue
+[?2004l[?2004h> 
+[?2004l[?2004h>         # srcdoc contains HTML that may include scripts; sanitize it recursively.
+[?2004l[?2004h>         if lname == "srcdoc":
+[?2004l[?2004h>             if value:
+[?2004l[?2004h>                 tag.attrs[name] = sanitize_html(str(value))
+[?2004l[?2004h>             continue
+[?2004l[?2004h> 
+[?2004l[?2004h>         if lname == "srcset":
+[?2004l[?2004h>             cleaned = sanitize_srcset(value)
+[?2004l[?2004h>             if cleaned:
+[?2004l[?2004h>                 tag.attrs[name] = cleaned
+[?2004l[?2004h>             else:
+[?2004l[?2004h>                 del tag.attrs[name]
+[?2004l[?2004h>             continue
+[?2004l[?2004h> 
+[?2004l[?2004h>         # Meta refresh content can attempt javascript: navigation.
+[?2004l[?2004h>         if tag.name.lower() == "meta" and lname == "content":
+[?2004l[?2004h>             if contains_dangerous_url(value):
+[?2004l[?2004h>                 del tag.attrs[name]
+[?2004l[?2004h>             continue
+[?2004l[?2004h> 
+[?2004l[?2004h>         if lname in URL_ATTRS:
+[?2004l[?2004h>             if is_dangerous_url(value):
+[?2004l[?2004h>                 del tag.attrs[name]
+[?2004l[?2004h>             continue
+[?2004l[?2004h> 
+[?2004l[?2004h> 
+[?2004l[?2004h> def sanitize_html(html):
+[?2004l[?2004h>     soup = BeautifulSoup(html, "html.parser")
+[?2004l[?2004h> 
+[?2004l[?2004h>     # Remove all script elements, including those inside SVG/template-like content.
+[?2004l[?2004h>     for script in soup.find_all("script"):
+[?2004l[?2004h>         script.decompose()
+[?2004l[?2004h> 
+[?2004l[?2004h>     # Sanitize CSS in style elements; expression()/javascript: URLs are JS vectors.
+[?2004l[?2004h>     for style in soup.find_all("style"):
+[?2004l[?2004h>         css = style.string if style.string is not None else "".join(style.strings)
+[?2004l[?2004h>         if css:
+[?2004l[?2004h>             cleaned_css = sanitize_css(css)
+[?2004l[?2004h>             style.clear()
+[?2004l[?2004h>             style.append(NavigableString(cleaned_css))
+[?2004l[?2004h> 
+[?2004l[?2004h>     for tag in soup.find_all(True):
+[?2004l[?2004h>         clean_tag(tag)
+[?2004l[?2004h> 
+[?2004l[?2004h>     return str(soup)
+[?2004l[?2004h> 
+[?2004l[?2004h> 
+[?2004l[?2004h> def main():
+[?2004l[?2004h>     if len(sys.argv) != 2:
+[?2004l[?2004h>         print("Usage: filter.py <html-file>", file=sys.stderr)
+[?2004l[?2004h>         sys.exit(1)
+[?2004l[?2004h> 
+[?2004l[?2004h>     path = sys.argv[1]
+[?2004l[?2004h>     with open(path, "r", encoding="utf-8") as f:
+[?2004l[?2004h>         html = f.read()
+[?2004l[?2004h> 
+[?2004l[?2004h>     cleaned = sanitize_html(html)
+[?2004l[?2004h> 
+[?2004l[?2004h>     with open(path, "w", encoding="utf-8") as f:
+[?2004l[?2004h>         f.write(cleaned)
+[?2004l[?2004h> 
+[?2004l[?2004h> 
+[?2004l[?2004h> if __name__ == "__main__":
+[?2004l[?2004h>     main()
+[?2004l[?2004h> PY
+[?2004l[?2004hroot@962c9b935c0a:/app# chmod +x /app/filter.py
+[?2004l[?2004hroot@962c9b935c0a:/app# python3 -m py_compile /app/filter.py
+[?2004l[?2004hroot@962c9b935c0a:/app# cp /tmp/test.html /tmp/test_filtered.html
+[?2004l[?2004hroot@962c9b935c0a:/app# python3 /app/filter.py /tmp/test_filtered.html
+[?2004l[?2004hroot@962c9b935c0a:/app# cat /tmp/test_filtered.html
+[?2004l<!DOCTYPE html>
+
+<html>
+<head>
+<title>Test</title>
+
+</head>
+<body>
+<h1>Hello</h1>
+<a>link</a>
+<a href="https://example.com">safe</a>
+<img alt="img" src="x"/>
+<iframe srcdoc="&lt;p&gt;ok&lt;/p&gt;"></iframe>
+<table>
+<tr><td>cell</td></tr>
+</table>
+</body>
+</html>
+[?2004hroot@962c9b935c0a:/app# cp /tmp/css_test.html /tmp/css_test_filtered.html
+[?2004l[?2004hroot@962c9b935c0a:/app# python3 /app/filter.py /tmp/css_test_filtered.html
+[?2004l[?2004hroot@962c9b935c0a:/app# cat /tmp/css_test_filtered.html
+[?2004l<!DOCTYPE html>
+
+<html>
+<head>
+<style>body { color: red; background: url('https://example.com/bg.png'); } a { background: ; } div { width: ; }</style>
+</head>
+<body style="color: blue; background: url('https://safe.example.com/x.png'); width: ">
+<p>ok</p>
+</body>
+</html>
+[?2004hroot@962c9b935c0a:/app# python3 -m py_compile /app/filter.py && ls -l /app/filter.py && sed -n '1,260p' /app/filter.py
+[?2004l-rwxr-xr-x 1 root root 5975 Jul 16 06:27 /app/filter.py
+#!/usr/bin/env python3
+import re
+import sys
+
+from bs4 import BeautifulSoup, NavigableString
+
+
+JS_URL_SCHEMES = (
+    "javascript:",
+    "vbscript:",
+    "livescript:",
+    "mocha:",
+)
+
+URL_ATTRS = {
+    "href",
+    "src",
+    "action",
+    "formaction",
+    "data",
+    "xlink:href",
+    "poster",
+    "background",
+    "cite",
+    "longdesc",
+    "usemap",
+    "manifest",
+    "codebase",
+    "archive",
+    "classid",
+    "profile",
+    "srcset",
+    "code",
+}
+
+
+def normalize_for_check(value):
+    if value is None:
+        return ""
+    # HTML parsing already decodes entities. Remove whitespace/control characters
+    # and surrounding quotes so attempts like "java\tscript:" and url('javascript:')
+    # are caught.
+    v = re.sub(r"[\s\x00-\x20]+", "", str(value)).lower()
+    return v.strip("'\"")
+
+
+def is_dangerous_url(value):
+    v = normalize_for_check(value)
+    if any(v.startswith(scheme) for scheme in JS_URL_SCHEMES):
+        return True
+    # data: URLs carrying active HTML/XHTML can contain script content.
+    if v.startswith("data:text/html") or v.startswith("data:application/xhtml+xml"):
+        return True
+    return False
+
+
+def contains_dangerous_url(value):
+    v = normalize_for_check(value)
+    return any(scheme in v for scheme in JS_URL_SCHEMES) or "data:text/html" in v or "data:application/xhtml+xml" in v
+
+
+def is_dangerous_style(value):
+    v = str(value).lower()
+    return bool(re.search(r"(?:javascript|vbscript|livescript|mocha):|expression\s*\(", v))
+
+
+def sanitize_srcset(value):
+    # Preserve non-dangerous srcset entries; drop entries using JS schemes.
+    parts = str(value).split(",")
+    safe = []
+    for part in parts:
+        if not is_dangerous_url(part.strip()):
+            safe.append(part)
+    return ",".join(safe)
+
+
+def remove_balanced_calls_if(css, fname, predicate):
+    pattern = re.compile(re.escape(fname) + r"\s*\(", re.I)
+    result = []
+    pos = 0
+
+    while True:
+        m = pattern.search(css, pos)
+        if not m:
+            break
+
+        start = m.start()
+        open_idx = m.end() - 1
+        depth = 0
+        end = len(css)
+        i = open_idx
+
+        while i < len(css):
+            ch = css[i]
+            if ch == "(":
+                depth += 1
+            elif ch == ")":
+                depth -= 1
+                if depth == 0:
+                    end = i + 1
+                    break
+            i += 1
+
+        inner = css[open_idx + 1:end - 1] if end > open_idx + 1 else ""
+        result.append(css[pos:start])
+
+        if predicate(inner):
+            pos = end
+        else:
+            result.append(css[start:end])
+            pos = end
+
+    result.append(css[pos:])
+    return "".join(result)
+
+
+def remove_balanced_calls(css, fname):
+    return remove_balanced_calls_if(css, fname, lambda inner: True)
+
+
+def sanitize_css(css):
+    # Remove comments first so they cannot split dangerous tokens.
+    css = re.sub(r"/\*.*?\*/", "", css, flags=re.S)
+
+    # IE expression() and similar CSS JavaScript vectors.
+    css = remove_balanced_calls(css, "expression")
+
+    # Preserve safe url() calls but drop dangerous ones, e.g. url(javascript:...).
+    css = remove_balanced_calls_if(
+        css,
+        "url",
+        lambda inner: is_dangerous_url(inner) or is_dangerous_style(inner),
+    )
+
+    # Remove declarations that bind to XBL/HTC or IE behaviors, which can load script.
+    css = re.sub(r"(?:-moz-binding|behavior)\s*:[^;}]*[;}]?", "", css, flags=re.I)
+
+    # Remove any surviving script scheme strings.
+    css = re.sub(r"(?:javascript|vbscript|livescript|mocha):", "", css, flags=re.I)
+    return css
+
+
+def clean_tag(tag):
+    for name, value in list(tag.attrs.items()):
+        lname = name.lower()
+
+        # Inline event handlers are JavaScript.
+        if lname.startswith("on"):
+            del tag.attrs[name]
+            continue
+
+        # Sanitize CSS in style attributes instead of dropping all safe styling.
+        if lname == "style":
+            cleaned = sanitize_css(str(value))
+            if cleaned.strip():
+                tag.attrs[name] = cleaned
+            else:
+                del tag.attrs[name]
+            continue
+
+        # srcdoc contains HTML that may include scripts; sanitize it recursively.
+        if lname == "srcdoc":
+            if value:
+                tag.attrs[name] = sanitize_html(str(value))
+            continue
+
+        if lname == "srcset":
+            cleaned = sanitize_srcset(value)
+            if cleaned:
+                tag.attrs[name] = cleaned
+            else:
+                del tag.attrs[name]
+            continue
+
+        # Meta refresh content can attempt javascript: navigation.
+        if tag.name.lower() == "meta" and lname == "content":
+            if contains_dangerous_url(value):
+                del tag.attrs[name]
+            continue
+
+        if lname in URL_ATTRS:
+            if is_dangerous_url(value):
+                del tag.attrs[name]
+            continue
+
+
+def sanitize_html(html):
+    soup = BeautifulSoup(html, "html.parser")
+
+    # Remove all script elements, including those inside SVG/template-like content.
+    for script in soup.find_all("script"):
+        script.decompose()
+
+    # Sanitize CSS in style elements; expression()/javascript: URLs are JS vectors.
+    for style in soup.find_all("style"):
+        css = style.string if style.string is not None else "".join(style.strings)
+        if css:
+            cleaned_css = sanitize_css(css)
+            style.clear()
+            style.append(NavigableString(cleaned_css))
+
+    for tag in soup.find_all(True):
+        clean_tag(tag)
+
+    return str(soup)
+
+
+def main():
+    if len(sys.argv) != 2:
+        print("Usage: filter.py <html-file>", file=sys.stderr)
+        sys.exit(1)
+
+    path = sys.argv[1]
+    with open(path, "r", encoding="utf-8") as f:
+        html = f.read()
+
+    cleaned = sanitize_html(html)
+
+    with open(path, "w", encoding="utf-8") as f:
+        f.write(cleaned)
+
+
+if __name__ == "__main__":
+    main()
+[?2004hroot@962c9b935c0a:/app# 

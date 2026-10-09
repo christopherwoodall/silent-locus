@@ -1,0 +1,1071 @@
+[?2004hroot@5105556e159d:/app# asciinema rec --stdin /logs/agent/recording.cast
+[?2004l[0;32masciinema: recording asciicast to /logs/agent/recording.cast[0m
+[0;32masciinema: press <ctrl-d> or type "exit" when you're done[0m
+[?2004hroot@5105556e159d:/app# clear
+[?2004l[H[J[3J[?2004hroot@5105556e159d:/app# ls -la /app
+[?2004ltotal 8
+drwxr-xr-x 2 root root 4096 Oct 22  2025 [0m[01;34m.[0m
+drwxr-xr-x 1 root root 4096 Jul 14 18:14 [01;34m..[0m
+[?2004hroot@5105556e159d:/app# python3 - <<'PY'
+[?2004l[?2004h> import torch, transformers
+[?2004l[?2004h> print('torch', torch.__version__)
+[?2004l[?2004h> print('transformers', transformers.__version__)
+[?2004l[?2004h> from transformers.models.llama.modeling_llama import LlamaForCausalLM
+[?2004l[?2004h> print(LlamaForCausalLM)
+[?2004l[?2004h> PY
+[?2004lTraceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+ModuleNotFoundError: No module named 'torch'
+[?2004hroot@5105556e159d:/app# cat > /app/pipeline_parallel.py <<'PY'
+[?2004l[?2004h> import inspect
+[?2004l[?2004h> 
+[?2004lo[?2004h> import torch
+[?2004l[?2004h> import torch.distributed as dist
+[?2004l[?2004h> import torch.nn.functional as F
+[?2004l[?2004h> from torch.distributed import P2POp
+[?2004l[?2004h> 
+[?2004ls[?2004h> 
+[?2004l [?2004h> def _get_decoder_layers(model):
+[?2004l[?2004h>     if hasattr(model, "model") and hasattr(model.model, "layers"):
+[?2004l[?2004h>         return model.model.layers
+[?2004l[?2004h>     if hasattr(model, "transformer") and hasattr(model.transformer, "h"):
+[?2004l[?2004h>         return model.transformer.h
+[?2004l[?2004h>     raise AttributeError("Could not locate Llama decoder layers")
+[?2004l[?2004h> 
+[?2004l_[?2004h> 
+[?2004ls[?2004h> def _get_hidden_size(model):
+[?2004l[?2004h>     if hasattr(model, "config") and getattr(model.config, "hidden_size", None) is not None:
+[?2004l[?2004h>         return int(model.config.hidden_size)
+[?2004l[?2004h>     embed = model.get_input_embeddings()
+[?2004l[?2004h>     if hasattr(embed, "out_features"):
+[?2004l[?2004h>         return int(embed.out_features)
+[?2004l[?2004h>     if hasattr(embed, "embedding_dim"):
+[?2004l[?2004h>         return int(embed.embedding_dim)
+[?2004l[?2004h>     raise AttributeError("Could not determine hidden size")
+[?2004l[?2004h> 
+[?2004l=[?2004h> 
+[?2004l [?2004h> def _get_input_embeddings(model):
+[?2004l[?2004h>     if hasattr(model, "get_input_embeddings"):
+[?2004l[?2004h>         return model.get_input_embeddings()
+[?2004l[?2004h>     if hasattr(model, "model") and hasattr(model.model, "embed_tokens"):
+[?2004l[?2004h>         return model.model.embed_tokens
+[?2004lst else None
+    lm_head = _get_lm_he[?2004h>     raise AttributeError("Could not locate input embeddings")
+[?2004l[?2004h> 
+[?2004le[?2004h> 
+[?2004l_[?2004h> def _get_final_norm(model):
+[?2004l[?2004h>     if hasattr(model, "model") and hasattr(model.model, "norm"):
+[?2004l[?2004h>         return model.model.norm
+[?2004l[?2004h>     if hasattr(model, "transformer") and hasattr(model.transformer, "ln_f"):
+[?2004l[?2004h>         return model.transformer.ln_f
+[?2004l[?2004h>     raise AttributeError("Could not locate final norm")
+[?2004l[?2004h> 
+[?2004lt[?2004h> 
+[?2004l_[?2004h> def _get_lm_head(model):
+[?2004l[?2004h>     if hasattr(model, "get_output_embeddings"):
+[?2004l[?2004h>         return model.get_output_embeddings()
+[?2004l[?2004h>     if hasattr(model, "lm_head"):
+[?2004l[?2004h>         return model.lm_head
+[?2004l[?2004h>     raise AttributeError("Could not locate LM head")
+[?2004l[?2004h> 
+[?2004lr[?2004h> 
+[?2004le[?2004h> def _layer_bounds(num_layers, world_size, rank):
+[?2004l[?2004h>     base = num_layers // world_size
+[?2004l[?2004h>     rem = num_layers % world_size
+[?2004l[?2004h>     start = rank * base + min(rank, rem)
+[?2004l[?2004h>     end = start + base + (1 if rank < rem else 0)
+[?2004l[?2004h>     return start, end
+[?2004l[?2004h> 
+[?2004lt[?2004h> 
+[?2004lo[?2004h> def _make_causal_mask(batch, seq_len, device, dtype):
+[?2004l[?2004h>     mask = torch.full(
+[?2004l[?2004h>         (batch, 1, seq_len, seq_len),
+[?2004l[?2004h>         torch.finfo(dtype).min,
+[?2004l[?2004h>         device=device,
+[?2004l[?2004h>         dtype=dtype,
+[?2004l [?2004h>     )
+[?2004l     t[?2004h>     return torch.triu(mask, diagonal=1).contiguous()
+[?2004l       [?2004h> 
+[?2004l [?2004h> 
+[?2004l [?2004h> def _hidden_from_layer_output(output):
+[?2004l[?2004h>     if isinstance(output, tuple):
+[?2004l[?2004h>         return output[0]
+[?2004l[?2004h>     if isinstance(output, list):
+[?2004l[?2004h>         return output[0]
+[?2004l[?2004h>     if hasattr(output, "hidden_states") and output.hidden_states is not None:
+[?2004l[?2004h>         hs = output.hidden_states
+[?2004l-100,
+ [?2004h>         if isinstance(hs, tuple):
+[?2004l[?2004h>             return hs[-1]
+[?2004l[?2004h>         return hs
+[?2004l[?2004h>     if hasattr(output, "last_hidden_state") and output.last_hidden_state is not None:
+[?2004l[?2004h>         return output.last_hidden_state
+[?2004l[?2004h>     return output
+[?2004l[?2004h> 
+[?2004l [?2004h> 
+[?2004l [?2004h> def _call_decoder_layer(layer, hidden, device, dtype):
+[?2004l[?2004h>     batch, seq_len = hidden.shape[0], hidden.shape[1]
+[?2004l[?2004h>     position_ids = torch.arange(seq_len, device=device).unsqueeze(0).expand(batch, -1).contiguous()
+[?2004l[?2004h>     attention_mask = _make_causal_mask(batch, seq_len, device, dtype)
+[?2004l[?2004h> 
+[?2004l[?2004h>     try:
+[?2004l[?2004h>         sig = inspect.signature(layer.forward)
+[?2004l [?2004h>         params = sig.parameters
+[?2004l[?2004h>         has_var_kw = any(p.kind == inspect.Parameter.VAR_KEYWORD for p in params.values())
+[?2004l[?2004h>     except (ValueError, TypeError):
+[?2004l  s[?2004h>         params = {}
+[?2004ls[mb_idx][?2004h>         has_var_kw = False
+[?2004l[?2004h> 
+[?2004l [?2004h>     kwargs = {}
+[?2004l[?2004h>     candidates = (
+[?2004l[?2004h>         ("attention_mask", attention_mask),
+[?2004l[?2004h>         ("position_ids", position_ids),
+[?2004l[?2004h>         ("use_cache", False),
+[?2004l[?2004h>         ("output_attentions", False),
+[?2004le a gradi[?2004h>     )
+[?2004l[?2004h>     for name, value in candidates:
+[?2004lend(input_gra[?2004h>         if name in params or has_var_kw:
+[?2004lPY
+[?2004h>             kwargs[name] = value
+[?2004l[?2004h> 
+[?2004l[?2004h>     output = layer(hidden, **kwargs)
+[?2004l[?2004h>     return _hidden_from_layer_output(output)
+[?2004l[?2004h> 
+[?2004l[?2004h> 
+[?2004l[?2004h> def _p2p_send(tensor, peer):
+[?2004l[?2004h>     tensor = tensor.contiguous()
+[?2004l[?2004h>     work_list = dist.batch_isend_irecv([P2POp(dist.isend, tensor, peer)])
+[?2004l[?2004h>     for work in work_list:
+[?2004l[?2004h>         work.wait()
+[?2004l[?2004h> 
+[?2004l[?2004h> 
+[?2004l[?2004h> def _p2p_recv(shape, peer, device, dtype):
+[?2004l[?2004h>     tensor = torch.zeros(shape, device=device, dtype=dtype)
+[?2004l[?2004h>     work_list = dist.batch_isend_irecv([P2POp(dist.irecv, tensor, peer)])
+[?2004l[?2004h>     for work in work_list:
+[?2004l[?2004h>         work.wait()
+[?2004l[?2004h>     return tensor
+[?2004l[?2004h> 
+[?2004l[?2004h> 
+[?2004l[?2004h> def _broadcast_microbatch_shapes(inputs, rank, world_size):
+[?2004l[?2004h>     if world_size <= 1:
+[?2004l[?2004h>         return [(int(t.shape[0]), int(t.shape[1])) for t in inputs]
+[?2004l[?2004h>     if rank == 0:
+[?2004l[?2004h>         shapes = [(int(t.shape[0]), int(t.shape[1])) for t in inputs]
+[?2004l[?2004h>     else:
+[?2004l[?2004h>         shapes = []
+[?2004l[?2004h>     obj = [shapes]
+[?2004l[?2004h>     dist.broadcast_object_list(obj, src=0)
+[?2004l[?2004h>     return obj[0]
+[?2004l[?2004h> 
+[?2004l[?2004h> 
+[?2004l[?2004h> def train_step_pipeline_afab(model, inputs, targets, device, dtype):
+[?2004l[?2004h>     if dist.is_available():
+[?2004l[?2004h>         rank = dist.get_rank()
+[?2004l[?2004h>         world_size = dist.get_world_size()
+[?2004l[?2004h>     else:
+[?2004l[?2004h>         rank = 0
+[?2004l[?2004h>         world_size = 1
+[?2004l[?2004h> 
+[?2004l[?2004h>     model.zero_grad(set_to_none=True)
+[?2004l[?2004h> 
+[?2004l[?2004h>     shapes = _broadcast_microbatch_shapes(inputs, rank, world_size)
+[?2004l[?2004h>     num_microbatches = len(shapes)
+[?2004l[?2004h> 
+[?2004l[?2004h>     hidden_size = _get_hidden_size(model)
+[?2004l[?2004h>     layers = _get_decoder_layers(model)
+[?2004l[?2004h>     start, end = _layer_bounds(len(layers), world_size, rank)
+[?2004l[?2004h>     stage_layers = layers[start:end]
+[?2004l[?2004h> 
+[?2004l[?2004h>     is_first = rank == 0
+[?2004l[?2004h>     is_last = rank == world_size - 1
+[?2004l[?2004h>     prev_rank = rank - 1
+[?2004l[?2004h>     next_rank = rank + 1
+[?2004l[?2004h> 
+[?2004l[?2004h>     embed = _get_input_embeddings(model) if is_first else None
+[?2004l[?2004h>     final_norm = _get_final_norm(model) if is_last else None
+[?2004l[?2004h>     lm_head = _get_lm_head(model) if is_last else None
+[?2004l[?2004h> 
+[?2004l[?2004h>     stage_inputs = []
+[?2004l[?2004h>     stage_outputs = []
+[?2004l[?2004h>     losses = []
+[?2004l[?2004h> 
+[?2004l[?2004h>     with torch.enable_grad():
+[?2004l[?2004h>         # All-forward phase.
+[?2004l[?2004h>         for mb_idx in range(num_microbatches):
+[?2004l[?2004h>             if is_first:
+[?2004l[?2004h>                 input_ids = inputs[mb_idx].to(device=device)
+[?2004l[?2004h>                 if input_ids.dtype != torch.long:
+[?2004l[?2004h>                     input_ids = input_ids.long()
+[?2004l[?2004h>                 hidden = embed(input_ids).to(dtype)
+[?2004l[?2004h>                 stage_input = None
+[?2004l[?2004h>             else:
+[?2004l[?2004h>                 shape = (shapes[mb_idx][0], shapes[mb_idx][1], hidden_size)
+[?2004l[?2004h>                 hidden = _p2p_recv(shape, prev_rank, device, dtype)
+[?2004l[?2004h>                 hidden.requires_grad_(True)
+[?2004l[?2004h>                 stage_input = hidden
+[?2004l[?2004h> 
+[?2004l[?2004h>             for layer in stage_layers:
+[?2004l[?2004h>                 hidden = _call_decoder_layer(layer, hidden, device, dtype).to(dtype)
+[?2004l[?2004h> 
+[?2004l[?2004h>             if is_last:
+[?2004l[?2004h>                 hidden = hidden.to(dtype)
+[?2004l[?2004h>                 normed = final_norm(hidden).to(dtype)
+[?2004l[?2004h>                 logits = lm_head(normed).to(dtype)
+[?2004l[?2004h>                 target_ids = targets[mb_idx].to(device=device)
+[?2004l[?2004h>                 if target_ids.dtype != torch.long:
+[?2004l[?2004h>                     target_ids = target_ids.long()
+[?2004l[?2004h>                 loss = F.cross_entropy(
+[?2004l[?2004h>                     logits.view(-1, logits.size(-1)),
+[?2004l[?2004h>                     target_ids.view(-1),
+[?2004l[?2004h>                     ignore_index=-100,
+[?2004l[?2004h>                 )
+[?2004l[?2004h>                 loss = loss / num_microbatches
+[?2004l[?2004h>                 losses.append(loss)
+[?2004l[?2004h>                 stage_inputs.append(stage_input)
+[?2004l[?2004h>                 stage_outputs.append(hidden)
+[?2004l[?2004h>             else:
+[?2004l[?2004h>                 hidden = hidden.to(dtype)
+[?2004l[?2004h>                 stage_inputs.append(stage_input)
+[?2004l[?2004h>                 stage_outputs.append(hidden)
+[?2004l[?2004h>                 _p2p_send(hidden.detach(), next_rank)
+[?2004l[?2004h> 
+[?2004l[?2004h>         # All-backward phase.
+[?2004l[?2004h>         for mb_idx in reversed(range(num_microbatches)):
+[?2004l[?2004h>             if is_last:
+[?2004l[?2004h>                 losses[mb_idx].backward()
+[?2004l[?2004h>             else:
+[?2004l[?2004h>                 grad_shape = stage_outputs[mb_idx].shape
+[?2004l[?2004h>                 grad = _p2p_recv(grad_shape, next_rank, device, dtype)
+[?2004l[?2004h>                 stage_outputs[mb_idx].backward(grad)
+[?2004l[?2004h> 
+[?2004l[?2004h>             if not is_first:
+[?2004l[?2004h>                 input_grad = stage_inputs[mb_idx].grad
+[?2004l[?2004h>                 if input_grad is None:
+[?2004l[?2004h>                     raise RuntimeError("Stage input did not receive a gradient")
+[?2004l[?2004h>                 _p2p_send(input_grad.to(dtype).contiguous(), prev_rank)
+[?2004l[?2004h> PY
+[?2004l[?2004hroot@5105556e159d:/app# python3 -m py_compile /app/pipeline_parallel.py
+[?2004l[?2004hroot@5105556e159d:/app# sed -n '1,240p' /app/pipeline_parallel.py
+[?2004limport inspect
+
+import torch
+import torch.distributed as dist
+import torch.nn.functional as F
+from torch.distributed import P2POp
+
+
+def _get_decoder_layers(model):
+    if hasattr(model, "model") and hasattr(model.model, "layers"):
+        return model.model.layers
+    if hasattr(model, "transformer") and hasattr(model.transformer, "h"):
+        return model.transformer.h
+    raise AttributeError("Could not locate Llama decoder layers")
+
+
+def _get_hidden_size(model):
+    if hasattr(model, "config") and getattr(model.config, "hidden_size", None) is not None:
+        return int(model.config.hidden_size)
+    embed = model.get_input_embeddings()
+    if hasattr(embed, "out_features"):
+        return int(embed.out_features)
+    if hasattr(embed, "embedding_dim"):
+        return int(embed.embedding_dim)
+    raise AttributeError("Could not determine hidden size")
+
+
+def _get_input_embeddings(model):
+    if hasattr(model, "get_input_embeddings"):
+        return model.get_input_embeddings()
+    if hasattr(model, "model") and hasattr(model.model, "embed_tokens"):
+        return model.model.embed_tokens
+    raise AttributeError("Could not locate input embeddings")
+
+
+def _get_final_norm(model):
+    if hasattr(model, "model") and hasattr(model.model, "norm"):
+        return model.model.norm
+    if hasattr(model, "transformer") and hasattr(model.transformer, "ln_f"):
+        return model.transformer.ln_f
+    raise AttributeError("Could not locate final norm")
+
+
+def _get_lm_head(model):
+    if hasattr(model, "get_output_embeddings"):
+        return model.get_output_embeddings()
+    if hasattr(model, "lm_head"):
+        return model.lm_head
+    raise AttributeError("Could not locate LM head")
+
+
+def _layer_bounds(num_layers, world_size, rank):
+    base = num_layers // world_size
+    rem = num_layers % world_size
+    start = rank * base + min(rank, rem)
+    end = start + base + (1 if rank < rem else 0)
+    return start, end
+
+
+def _make_causal_mask(batch, seq_len, device, dtype):
+    mask = torch.full(
+        (batch, 1, seq_len, seq_len),
+        torch.finfo(dtype).min,
+        device=device,
+        dtype=dtype,
+    )
+    return torch.triu(mask, diagonal=1).contiguous()
+
+
+def _hidden_from_layer_output(output):
+    if isinstance(output, tuple):
+        return output[0]
+    if isinstance(output, list):
+        return output[0]
+    if hasattr(output, "hidden_states") and output.hidden_states is not None:
+        hs = output.hidden_states
+        if isinstance(hs, tuple):
+            return hs[-1]
+        return hs
+    if hasattr(output, "last_hidden_state") and output.last_hidden_state is not None:
+        return output.last_hidden_state
+    return output
+
+
+def _call_decoder_layer(layer, hidden, device, dtype):
+    batch, seq_len = hidden.shape[0], hidden.shape[1]
+    position_ids = torch.arange(seq_len, device=device).unsqueeze(0).expand(batch, -1).contiguous()
+    attention_mask = _make_causal_mask(batch, seq_len, device, dtype)
+
+    try:
+        sig = inspect.signature(layer.forward)
+        params = sig.parameters
+        has_var_kw = any(p.kind == inspect.Parameter.VAR_KEYWORD for p in params.values())
+    except (ValueError, TypeError):
+        params = {}
+        has_var_kw = False
+
+    kwargs = {}
+    candidates = (
+        ("attention_mask", attention_mask),
+        ("position_ids", position_ids),
+        ("use_cache", False),
+        ("output_attentions", False),
+    )
+    for name, value in candidates:
+        if name in params or has_var_kw:
+            kwargs[name] = value
+
+    output = layer(hidden, **kwargs)
+    return _hidden_from_layer_output(output)
+
+
+def _p2p_send(tensor, peer):
+    tensor = tensor.contiguous()
+    work_list = dist.batch_isend_irecv([P2POp(dist.isend, tensor, peer)])
+    for work in work_list:
+        work.wait()
+
+
+def _p2p_recv(shape, peer, device, dtype):
+    tensor = torch.zeros(shape, device=device, dtype=dtype)
+    work_list = dist.batch_isend_irecv([P2POp(dist.irecv, tensor, peer)])
+    for work in work_list:
+        work.wait()
+    return tensor
+
+
+def _broadcast_microbatch_shapes(inputs, rank, world_size):
+    if world_size <= 1:
+        return [(int(t.shape[0]), int(t.shape[1])) for t in inputs]
+    if rank == 0:
+        shapes = [(int(t.shape[0]), int(t.shape[1])) for t in inputs]
+    else:
+        shapes = []
+    obj = [shapes]
+    dist.broadcast_object_list(obj, src=0)
+    return obj[0]
+
+
+def train_step_pipeline_afab(model, inputs, targets, device, dtype):
+    if dist.is_available():
+        rank = dist.get_rank()
+        world_size = dist.get_world_size()
+    else:
+        rank = 0
+        world_size = 1
+
+    model.zero_grad(set_to_none=True)
+
+    shapes = _broadcast_microbatch_shapes(inputs, rank, world_size)
+    num_microbatches = len(shapes)
+
+    hidden_size = _get_hidden_size(model)
+    layers = _get_decoder_layers(model)
+    start, end = _layer_bounds(len(layers), world_size, rank)
+    stage_layers = layers[start:end]
+
+    is_first = rank == 0
+    is_last = rank == world_size - 1
+    prev_rank = rank - 1
+    next_rank = rank + 1
+
+    embed = _get_input_embeddings(model) if is_first else None
+    final_norm = _get_final_norm(model) if is_last else None
+    lm_head = _get_lm_head(model) if is_last else None
+
+    stage_inputs = []
+    stage_outputs = []
+    losses = []
+
+    with torch.enable_grad():
+        # All-forward phase.
+        for mb_idx in range(num_microbatches):
+            if is_first:
+                input_ids = inputs[mb_idx].to(device=device)
+                if input_ids.dtype != torch.long:
+                    input_ids = input_ids.long()
+                hidden = embed(input_ids).to(dtype)
+                stage_input = None
+            else:
+                shape = (shapes[mb_idx][0], shapes[mb_idx][1], hidden_size)
+                hidden = _p2p_recv(shape, prev_rank, device, dtype)
+                hidden.requires_grad_(True)
+                stage_input = hidden
+
+            for layer in stage_layers:
+                hidden = _call_decoder_layer(layer, hidden, device, dtype).to(dtype)
+
+            if is_last:
+                hidden = hidden.to(dtype)
+                normed = final_norm(hidden).to(dtype)
+                logits = lm_head(normed).to(dtype)
+                target_ids = targets[mb_idx].to(device=device)
+                if target_ids.dtype != torch.long:
+                    target_ids = target_ids.long()
+                loss = F.cross_entropy(
+                    logits.view(-1, logits.size(-1)),
+                    target_ids.view(-1),
+                    ignore_index=-100,
+                )
+                loss = loss / num_microbatches
+                losses.append(loss)
+                stage_inputs.append(stage_input)
+                stage_outputs.append(hidden)
+            else:
+                hidden = hidden.to(dtype)
+                stage_inputs.append(stage_input)
+                stage_outputs.append(hidden)
+                _p2p_send(hidden.detach(), next_rank)
+
+        # All-backward phase.
+        for mb_idx in reversed(range(num_microbatches)):
+            if is_last:
+                losses[mb_idx].backward()
+            else:
+                grad_shape = stage_outputs[mb_idx].shape
+                grad = _p2p_recv(grad_shape, next_rank, device, dtype)
+                stage_outputs[mb_idx].backward(grad)
+
+            if not is_first:
+                input_grad = stage_inputs[mb_idx].grad
+                if input_grad is None:
+                    raise RuntimeError("Stage input did not receive a gradient")
+                _p2p_send(input_grad.to(dtype).contiguous(), prev_rank)
+[?2004hroot@5105556e159d:/app# cat > /app/pipeline_parallel.py <<'PY'
+[?2004l[?2004h> import inspect
+[?2004l[?2004h> 
+[?2004l[?2004h> import torch
+[?2004l, device):
+    num_tensor = t[?2004h> import torch.distributed as dist
+[?2004l[?2004h> import torch.nn.functional as F
+[?2004l[?2004h> from torch.distributed import P2POp
+[?2004l[?2004h> 
+[?2004lt[?2004h> 
+[?2004l([?2004h> def _get_decoder_layers(model):
+[?2004l[?2004h>     if hasattr(model, "model") and hasattr(model.model, "layers"):
+[?2004ld[?2004h>         return model.model.layers
+[?2004l m[?2004h>     if hasattr(model, "transformer") and hasattr(model.transformer, "h"):
+[?2004l[?2004h>         return model.transformer.h
+[?2004l[?2004h>     raise AttributeError("Could not locate Llama decoder layers")
+[?2004l[?2004h> 
+[?2004la[?2004h> 
+[?2004lv[?2004h> def _get_hidden_size(model):
+[?2004l[?2004h>     if hasattr(model, "config") and getattr(model.config, "hidden_size", None) is not None:
+[?2004l[?2004h>         return int(model.config.hidden_size)
+[?2004l[?2004h>     embed = model.get_input_embeddings()
+[?2004l[?2004h>     if hasattr(embed, "out_features"):
+[?2004l[?2004h>         return int(embed.out_features)
+[?2004l[?2004h>     if hasattr(embed, "embedding_dim"):
+[?2004l[?2004h>         return int(embed.embedding_dim)
+[?2004l[?2004h>     raise AttributeError("Could not determine hidden size")
+[?2004l[?2004h> 
+[?2004li[?2004h> 
+[?2004lz[?2004h> def _get_input_embeddings(model):
+[?2004l[?2004h>     if hasattr(model, "get_input_embeddings"):
+[?2004l[?2004h>         return model.get_input_embeddings()
+[?2004l[?2004h>     if hasattr(model, "model") and hasattr(model.model, "embed_tokens"):
+[?2004l[?2004h>         return model.model.embed_tokens
+[?2004l[?2004h>     raise AttributeError("Could not locate input embeddings")
+[?2004l[?2004h> 
+[?2004le[?2004h> 
+[?2004lt[?2004h> def _get_final_norm(model):
+[?2004l[?2004h>     if hasattr(model, "model") and hasattr(model.model, "norm"):
+[?2004l[?2004h>         return model.model.norm
+[?2004l[?2004h>     if hasattr(model, "transformer") and hasattr(model.transformer, "ln_f"):
+[?2004l[?2004h>         return model.transformer.ln_f
+[?2004l[?2004h>     raise AttributeError("Could not locate final norm")
+[?2004l[?2004h> 
+[?2004lh[?2004h> 
+[?2004la[?2004h> def _get_lm_head(model):
+[?2004l[?2004h>     if hasattr(model, "get_output_embeddings"):
+[?2004l[?2004h>         return model.get_output_embeddings()
+[?2004l[?2004h>     if hasattr(model, "lm_head"):
+[?2004l[?2004h>         return model.lm_head
+[?2004l[?2004h>     raise AttributeError("Could not locate LM head")
+[?2004l[?2004h> 
+[?2004l)[?2004h> 
+[?2004l
+[?2004h> def _layer_bounds(num_layers, world_size, rank):
+[?2004l[?2004h>     base = num_layers // world_size
+[?2004l[?2004h>     rem = num_layers % world_size
+[?2004l[?2004h>     start = rank * base + min(rank, rem)
+[?2004l[?2004h>     end = start + base + (1 if rank < rem else 0)
+[?2004l[?2004h>     return start, end
+[?2004l[?2004h> 
+[?2004li[?2004h> 
+[?2004lc[?2004h> def _make_causal_mask(batch, seq_len, device, dtype):
+[?2004l[?2004h>     mask = torch.full(
+[?2004l[?2004h>         (batch, 1, seq_len, seq_len),
+[?2004l[?2004h>         torch.finfo(dtype).min,
+[?2004l
+
+[?2004h>         device=device,
+[?2004l[?2004h>         dtype=dtype,
+[?2004l[?2004h>     )
+[?2004l(devic[?2004h>     return torch.triu(mask, diagonal=1).contiguous()
+[?2004l[?2004h> 
+[?2004lN[?2004h> 
+[?2004lo[?2004h> def _hidden_from_layer_output(output):
+[?2004l[?2004h>     if isinstance(output, tuple):
+[?2004l[?2004h>         return output[0]
+[?2004l[?2004h>     if isinstance(output, list):
+[?2004l[?2004h>         return output[0]
+[?2004l[?2004h>     if hasattr(output, "hidden_states") and output.hidden_states is not None:
+[?2004l[?2004h>         hs = output.hidden_states
+[?2004l[?2004h>         if isinstance(hs, tuple):
+[?2004l[?2004h>             return hs[-1]
+[?2004l[?2004h>         return hs
+[?2004l[?2004h>     if hasattr(output, "last_hidden_state") and output.last_hidden_state is not None:
+[?2004l[?2004h>         return output.last_hidden_state
+[?2004l[?2004h>     return output
+[?2004l
+    [?2004h> 
+[?2004l[?2004h> 
+[?2004l  [?2004h> def _call_decoder_layer(layer, hidden, device, dtype):
+[?2004l[?2004h>     batch, seq_len = hidden.shape[0], hidden.shape[1]
+[?2004l[?2004h>     position_ids = torch.arange(seq_len, device=device).unsqueeze(0).expand(batch, -1).contiguous()
+[?2004l[?2004h>     attention_mask = _make_causal_mask(batch, seq_len, device, dtype)
+[?2004l[?2004h> 
+[?2004l [?2004h>     try:
+[?2004l[?2004h>         sig = inspect.signature(layer.forward)
+[?2004l[?2004h>         params = sig.parameters
+[?2004l[?2004h>         has_var_kw = any(p.kind == inspect.Parameter.VAR_KEYWORD for p in params.values())
+[?2004l[?2004h>     except (ValueError, TypeError):
+[?2004l[?2004h>         params = {}
+[?2004l[?2004h>         has_var_kw = False
+[?2004lids = [?2004h> 
+[?2004lt[?2004h>     kwargs = {}
+[?2004l[?2004h>     candidates = (
+[?2004l[?2004h>         ("attention_mask", attention_mask),
+[?2004l[?2004h>         ("position_ids", position_ids),
+[?2004l[?2004h>         ("use_cache", False),
+[?2004l[?2004h>         ("output_attentions", False),
+[?2004l[?2004h>     )
+[?2004l[?2004h>     for name, value in candidates:
+[?2004lze(-1))[?2004h>         if name in params or has_var_kw:
+[?2004l[?2004h>             kwargs[name] = value
+[?2004l[?2004h> 
+[?2004lx[?2004h>     output = layer(hidden, **kwargs)
+[?2004l[?2004h>     return _hidden_from_layer_output(output)
+[?2004l[?2004h> 
+[?2004l [?2004h> 
+[?2004l [?2004h> def _p2p_send(tensor, peer):
+[?2004l[?2004h>     tensor = tensor.contiguous()
+[?2004l[?2004h>     work_list = dist.batch_isend_irecv([P2POp(dist.isend, tensor, peer)])
+[?2004l[?2004h>     for work in work_list:
+[?2004l[?2004h>         work.wait()
+[?2004l[?2004h> 
+[?2004le[?2004h> 
+[?2004l[?2004h> def _p2p_recv(shape, peer, device, dtype):
+[?2004l[?2004h>     tensor = torch.zeros(shape, device=device, dtype=dtype)
+[?2004l[?2004h>     work_list = dist.batch_isend_irecv([P2POp(dist.irecv, tensor, peer)])
+[?2004l[?2004h>     for work in work_list:
+[?2004l[?2004h>         work.wait()
+[?2004l[?2004h>     return tensor
+[?2004l[?2004h> 
+[?2004lc[?2004h> 
+[?2004l[?2004h> def _broadcast_num_microbatches(num, rank, world_size, device):
+[?2004l[?2004h>     num_tensor = torch.tensor([int(num)], device=device, dtype=torch.long)
+[?2004l[?2004h>     if world_size > 1:
+[?2004l[?2004h>         dist.broadcast(num_tensor, src=0)
+[?2004l[?2004h>     return int(num_tensor.item())
+[?2004l[?2004h> 
+[?2004le[?2004h> 
+[?2004l_[?2004h> def _move_modules_to_device_dtype(modules, device, dtype):
+[?2004lrst[?2004h>     for module in modules:
+[?2004l[?2004h>         if module is not None:
+[?2004l[?2004h>             module.to(device=device, dtype=dtype)
+[?2004l[?2004h> 
+[?2004l [?2004h> 
+[?2004l [?2004h> def train_step_pipeline_afab(model, inputs, targets, device, dtype):
+[?2004l[?2004h>     if dist.is_available() and dist.is_initialized():
+[?2004l[?2004h>         rank = dist.get_rank()
+[?2004l[?2004h>         world_size = dist.get_world_size()
+[?2004l[?2004h>     else:
+[?2004l[?2004h>         rank = 0
+[?2004l[?2004h>         world_size = 1
+[?2004l[?2004h> 
+[?2004l[?2004h>     model.zero_grad(set_to_none=True)
+[?2004l[?2004h> 
+[?2004l[?2004h>     num_microbatches = _broadcast_num_microbatches(len(inputs), rank, world_size, device)
+[?2004l[?2004h> 
+[?2004l[?2004h>     hidden_size = _get_hidden_size(model)
+[?2004l[?2004h>     layers = _get_decoder_layers(model)
+[?2004l[?2004h>     start, end = _layer_bounds(len(layers), world_size, rank)
+[?2004l[?2004h>     stage_layers = layers[start:end]
+[?2004l[?2004h> 
+[?2004l[?2004h>     is_first = rank == 0
+[?2004l[?2004h>     is_last = rank == world_size - 1
+[?2004l[?2004h>     prev_rank = rank - 1
+[?2004l[?2004h>     next_rank = rank + 1
+[?2004l[?2004h> 
+[?2004l[?2004h>     embed = _get_input_embeddings(model) if is_first else None
+[?2004l[?2004h>     final_norm = _get_final_norm(model) if is_last else None
+[?2004l[?2004h>     lm_head = _get_lm_head(model) if is_last else None
+[?2004l[?2004h> 
+[?2004l[?2004h>     _move_modules_to_device_dtype(stage_layers, device, dtype)
+[?2004l[?2004h>     _move_modules_to_device_dtype([embed, final_norm, lm_head], device, dtype)
+[?2004l[?2004h> 
+[?2004l[?2004h>     stage_inputs = []
+[?2004l[?2004h>     stage_outputs = []
+[?2004l[?2004h>     losses = []
+[?2004l[?2004h> 
+[?2004l[?2004h>     with torch.enable_grad():
+[?2004l[?2004h>         # All-forward phase.
+[?2004l[?2004h>         for mb_idx in range(num_microbatches):
+[?2004l[?2004h>             if is_first:
+[?2004l[?2004h>                 input_ids = inputs[mb_idx].to(device=device)
+[?2004l[?2004h>                 if input_ids.dtype != torch.long:
+[?2004l[?2004h>                     input_ids = input_ids.long()
+[?2004l[?2004h> 
+[?2004l[?2004h>                 microbatch_size = int(input_ids.shape[0])
+[?2004l[?2004h>                 seq_len = int(input_ids.shape[1])
+[?2004l[?2004h>                 shape_tensor = torch.tensor(
+[?2004l[?2004h>                     [microbatch_size, seq_len],
+[?2004l[?2004h>                     device=device,
+[?2004l[?2004h>                     dtype=torch.long,
+[?2004l[?2004h>                 )
+[?2004l[?2004h>                 if not is_last:
+[?2004l[?2004h>                     _p2p_send(shape_tensor, next_rank)
+[?2004l[?2004h> 
+[?2004l[?2004h>                 hidden = embed(input_ids).to(device=device, dtype=dtype)
+[?2004l[?2004h>                 stage_input = None
+[?2004l[?2004h>             else:
+[?2004l[?2004h>                 shape_tensor = _p2p_recv((2,), prev_rank, device, torch.long)
+[?2004l[?2004h>                 microbatch_size = int(shape_tensor[0].item())
+[?2004l[?2004h>                 seq_len = int(shape_tensor[1].item())
+[?2004l[?2004h>                 if not is_last:
+[?2004l[?2004h>                     _p2p_send(shape_tensor, next_rank)
+[?2004l[?2004h> 
+[?2004l[?2004h>                 hidden = _p2p_recv(
+[?2004l[?2004h>                     (microbatch_size, seq_len, hidden_size),
+[?2004l[?2004h>                     prev_rank,
+[?2004l[?2004h>                     device,
+[?2004l[?2004h>                     dtype,
+[?2004l[?2004h>                 )
+[?2004l[?2004h>                 hidden.requires_grad_(True)
+[?2004l[?2004h>                 stage_input = hidden
+[?2004l[?2004h> 
+[?2004l[?2004h>             for layer in stage_layers:
+[?2004l[?2004h>                 hidden = _call_decoder_layer(layer, hidden, device, dtype).to(
+[?2004l[?2004h>                     device=device, dtype=dtype
+[?2004l[?2004h>                 )
+[?2004l[?2004h> 
+[?2004l[?2004h>             if is_last:
+[?2004l[?2004h>                 hidden = hidden.to(device=device, dtype=dtype)
+[?2004l[?2004h>                 normed = final_norm(hidden).to(device=device, dtype=dtype)
+[?2004l[?2004h>                 logits = lm_head(normed).to(device=device, dtype=dtype)
+[?2004l[?2004h> 
+[?2004l[?2004h>                 target_ids = targets[mb_idx].to(device=device)
+[?2004l[?2004h>                 if target_ids.dtype != torch.long:
+[?2004l[?2004h>                     target_ids = target_ids.long()
+[?2004l[?2004h> 
+[?2004l[?2004h>                 loss = F.cross_entropy(
+[?2004l[?2004h>                     logits.view(-1, logits.size(-1)),
+[?2004l[?2004h>                     target_ids.view(-1),
+[?2004l[?2004h>                     ignore_index=-100,
+[?2004l[?2004h>                 )
+[?2004l[?2004h>                 loss = loss / num_microbatches
+[?2004l[?2004h>                 losses.append(loss)
+[?2004l[?2004h>                 stage_inputs.append(stage_input)
+[?2004l[?2004h>                 stage_outputs.append(hidden)
+[?2004l[?2004h>             else:
+[?2004l[?2004h>                 hidden = hidden.to(device=device, dtype=dtype)
+[?2004l[?2004h>                 stage_inputs.append(stage_input)
+[?2004l[?2004h>                 stage_outputs.append(hidden)
+[?2004l[?2004h>                 _p2p_send(hidden.detach(), next_rank)
+[?2004l[?2004h> 
+[?2004l[?2004h>         # All-backward phase.
+[?2004l[?2004h>         for mb_idx in reversed(range(num_microbatches)):
+[?2004l[?2004h>             if is_last:
+[?2004l[?2004h>                 losses[mb_idx].backward()
+[?2004l[?2004h>             else:
+[?2004l[?2004h>                 grad_shape = stage_outputs[mb_idx].shape
+[?2004l[?2004h>                 grad = _p2p_recv(grad_shape, next_rank, device, dtype)
+[?2004l[?2004h>                 stage_outputs[mb_idx].backward(grad)
+[?2004l[?2004h> 
+[?2004l[?2004h>             if not is_first:
+[?2004l[?2004h>                 input_grad = stage_inputs[mb_idx].grad
+[?2004l[?2004h>                 if input_grad is None:
+[?2004l[?2004h>                     raise RuntimeError("Stage input did not receive a gradient")
+[?2004l[?2004h>                 _p2p_send(input_grad.to(device=device, dtype=dtype).contiguous(), prev_rank)
+[?2004l[?2004h> PY
+[?2004l[?2004hroot@5105556e159d:/app# python3 -m py_compile /app/pipeline_parallel.py
+[?2004l[?2004hroot@5105556e159d:/app# python3 - <<'PY'
+[?2004l[?2004h> path = '/app/pipeline_parallel.py'
+[?2004l[?2004h> s = open(path).read()
+[?2004l[?2004h> old = '''                loss = F.cross_entropy(
+[?2004l[?2004h>                     logits.view(-1, logits.size(-1)),
+[?2004l[?2004h>                     target_ids.view(-1),
+[?2004l[?2004h>                     ignore_index=-100,
+[?2004l[?2004h>                 )
+[?2004l[?2004h>                 loss = loss / num_microbatches
+[?2004l[?2004h> '''
+[?2004l[?2004h> new = '''                shift_logits = logits[..., :-1, :].contiguous().float()
+[?2004l[?2004h>                 shift_targets = target_ids[..., 1:].contiguous()
+[?2004l[?2004h>                 loss = F.cross_entropy(
+[?2004l[?2004h>                     shift_logits.view(-1, shift_logits.size(-1)),
+[?2004l[?2004h>                     shift_targets.view(-1),
+[?2004l[?2004h>                     ignore_index=-100,
+[?2004l[?2004h>                 )
+[?2004l[?2004h>                 loss = loss / num_microbatches
+[?2004l[?2004h> '''
+[?2004l[?2004h> if old not in s:
+[?2004l[?2004h>     raise SystemExit('loss block not found')
+[?2004l[?2004h> open(path, 'w').write(s.replace(old, new))
+[?2004l[?2004h> PY
+[?2004lpython3 -m py_compile /app/pipeline_parallel.py
+[?2004hroot@5105556e159d:/app# python3 -m py_compile /app/pipeline_parallel.py
+[?2004l[?2004hroot@5105556e159d:/app# sed -n '180,235p' /app/pipeline_parallel.py
+[?2004l                    input_ids = input_ids.long()
+
+                microbatch_size = int(input_ids.shape[0])
+                seq_len = int(input_ids.shape[1])
+                shape_tensor = torch.tensor(
+                    [microbatch_size, seq_len],
+                    device=device,
+                    dtype=torch.long,
+                )
+                if not is_last:
+                    _p2p_send(shape_tensor, next_rank)
+
+                hidden = embed(input_ids).to(device=device, dtype=dtype)
+                stage_input = None
+            else:
+                shape_tensor = _p2p_recv((2,), prev_rank, device, torch.long)
+                microbatch_size = int(shape_tensor[0].item())
+                seq_len = int(shape_tensor[1].item())
+                if not is_last:
+                    _p2p_send(shape_tensor, next_rank)
+
+                hidden = _p2p_recv(
+                    (microbatch_size, seq_len, hidden_size),
+                    prev_rank,
+                    device,
+                    dtype,
+                )
+                hidden.requires_grad_(True)
+                stage_input = hidden
+
+            for layer in stage_layers:
+                hidden = _call_decoder_layer(layer, hidden, device, dtype).to(
+                    device=device, dtype=dtype
+                )
+
+            if is_last:
+                hidden = hidden.to(device=device, dtype=dtype)
+                normed = final_norm(hidden).to(device=device, dtype=dtype)
+                logits = lm_head(normed).to(device=device, dtype=dtype)
+
+                target_ids = targets[mb_idx].to(device=device)
+                if target_ids.dtype != torch.long:
+                    target_ids = target_ids.long()
+
+                shift_logits = logits[..., :-1, :].contiguous().float()
+                shift_targets = target_ids[..., 1:].contiguous()
+                loss = F.cross_entropy(
+                    shift_logits.view(-1, shift_logits.size(-1)),
+                    shift_targets.view(-1),
+                    ignore_index=-100,
+                )
+                loss = loss / num_microbatches
+                losses.append(loss)
+                stage_inputs.append(stage_input)
+                stage_outputs.append(hidden)
+            else:
+[?2004hroot@5105556e159d:/app# nl -ba /app/pipeline_parallel.py | sed -n '1,260p'
+[?2004l     1	import inspect
+     2	
+     3	import torch
+     4	import torch.distributed as dist
+     5	import torch.nn.functional as F
+     6	from torch.distributed import P2POp
+     7	
+     8	
+     9	def _get_decoder_layers(model):
+    10	    if hasattr(model, "model") and hasattr(model.model, "layers"):
+    11	        return model.model.layers
+    12	    if hasattr(model, "transformer") and hasattr(model.transformer, "h"):
+    13	        return model.transformer.h
+    14	    raise AttributeError("Could not locate Llama decoder layers")
+    15	
+    16	
+    17	def _get_hidden_size(model):
+    18	    if hasattr(model, "config") and getattr(model.config, "hidden_size", None) is not None:
+    19	        return int(model.config.hidden_size)
+    20	    embed = model.get_input_embeddings()
+    21	    if hasattr(embed, "out_features"):
+    22	        return int(embed.out_features)
+    23	    if hasattr(embed, "embedding_dim"):
+    24	        return int(embed.embedding_dim)
+    25	    raise AttributeError("Could not determine hidden size")
+    26	
+    27	
+    28	def _get_input_embeddings(model):
+    29	    if hasattr(model, "get_input_embeddings"):
+    30	        return model.get_input_embeddings()
+    31	    if hasattr(model, "model") and hasattr(model.model, "embed_tokens"):
+    32	        return model.model.embed_tokens
+    33	    raise AttributeError("Could not locate input embeddings")
+    34	
+    35	
+    36	def _get_final_norm(model):
+    37	    if hasattr(model, "model") and hasattr(model.model, "norm"):
+    38	        return model.model.norm
+    39	    if hasattr(model, "transformer") and hasattr(model.transformer, "ln_f"):
+    40	        return model.transformer.ln_f
+    41	    raise AttributeError("Could not locate final norm")
+    42	
+    43	
+    44	def _get_lm_head(model):
+    45	    if hasattr(model, "get_output_embeddings"):
+    46	        return model.get_output_embeddings()
+    47	    if hasattr(model, "lm_head"):
+    48	        return model.lm_head
+    49	    raise AttributeError("Could not locate LM head")
+    50	
+    51	
+    52	def _layer_bounds(num_layers, world_size, rank):
+    53	    base = num_layers // world_size
+    54	    rem = num_layers % world_size
+    55	    start = rank * base + min(rank, rem)
+    56	    end = start + base + (1 if rank < rem else 0)
+    57	    return start, end
+    58	
+    59	
+    60	def _make_causal_mask(batch, seq_len, device, dtype):
+    61	    mask = torch.full(
+    62	        (batch, 1, seq_len, seq_len),
+    63	        torch.finfo(dtype).min,
+    64	        device=device,
+    65	        dtype=dtype,
+    66	    )
+    67	    return torch.triu(mask, diagonal=1).contiguous()
+    68	
+    69	
+    70	def _hidden_from_layer_output(output):
+    71	    if isinstance(output, tuple):
+    72	        return output[0]
+    73	    if isinstance(output, list):
+    74	        return output[0]
+    75	    if hasattr(output, "hidden_states") and output.hidden_states is not None:
+    76	        hs = output.hidden_states
+    77	        if isinstance(hs, tuple):
+    78	            return hs[-1]
+    79	        return hs
+    80	    if hasattr(output, "last_hidden_state") and output.last_hidden_state is not None:
+    81	        return output.last_hidden_state
+    82	    return output
+    83	
+    84	
+    85	def _call_decoder_layer(layer, hidden, device, dtype):
+    86	    batch, seq_len = hidden.shape[0], hidden.shape[1]
+    87	    position_ids = torch.arange(seq_len, device=device).unsqueeze(0).expand(batch, -1).contiguous()
+    88	    attention_mask = _make_causal_mask(batch, seq_len, device, dtype)
+    89	
+    90	    try:
+    91	        sig = inspect.signature(layer.forward)
+    92	        params = sig.parameters
+    93	        has_var_kw = any(p.kind == inspect.Parameter.VAR_KEYWORD for p in params.values())
+    94	    except (ValueError, TypeError):
+    95	        params = {}
+    96	        has_var_kw = False
+    97	
+    98	    kwargs = {}
+    99	    candidates = (
+   100	        ("attention_mask", attention_mask),
+   101	        ("position_ids", position_ids),
+   102	        ("use_cache", False),
+   103	        ("output_attentions", False),
+   104	    )
+   105	    for name, value in candidates:
+   106	        if name in params or has_var_kw:
+   107	            kwargs[name] = value
+   108	
+   109	    output = layer(hidden, **kwargs)
+   110	    return _hidden_from_layer_output(output)
+   111	
+   112	
+   113	def _p2p_send(tensor, peer):
+   114	    tensor = tensor.contiguous()
+   115	    work_list = dist.batch_isend_irecv([P2POp(dist.isend, tensor, peer)])
+   116	    for work in work_list:
+   117	        work.wait()
+   118	
+   119	
+   120	def _p2p_recv(shape, peer, device, dtype):
+   121	    tensor = torch.zeros(shape, device=device, dtype=dtype)
+   122	    work_list = dist.batch_isend_irecv([P2POp(dist.irecv, tensor, peer)])
+   123	    for work in work_list:
+   124	        work.wait()
+   125	    return tensor
+   126	
+   127	
+   128	def _broadcast_num_microbatches(num, rank, world_size, device):
+   129	    num_tensor = torch.tensor([int(num)], device=device, dtype=torch.long)
+   130	    if world_size > 1:
+   131	        dist.broadcast(num_tensor, src=0)
+   132	    return int(num_tensor.item())
+   133	
+   134	
+   135	def _move_modules_to_device_dtype(modules, device, dtype):
+   136	    for module in modules:
+   137	        if module is not None:
+   138	            module.to(device=device, dtype=dtype)
+   139	
+   140	
+   141	def train_step_pipeline_afab(model, inputs, targets, device, dtype):
+   142	    if dist.is_available() and dist.is_initialized():
+   143	        rank = dist.get_rank()
+   144	        world_size = dist.get_world_size()
+   145	    else:
+   146	        rank = 0
+   147	        world_size = 1
+   148	
+   149	    model.zero_grad(set_to_none=True)
+   150	
+   151	    num_microbatches = _broadcast_num_microbatches(len(inputs), rank, world_size, device)
+   152	
+   153	    hidden_size = _get_hidden_size(model)
+   154	    layers = _get_decoder_layers(model)
+   155	    start, end = _layer_bounds(len(layers), world_size, rank)
+   156	    stage_layers = layers[start:end]
+   157	
+   158	    is_first = rank == 0
+   159	    is_last = rank == world_size - 1
+   160	    prev_rank = rank - 1
+   161	    next_rank = rank + 1
+   162	
+   163	    embed = _get_input_embeddings(model) if is_first else None
+   164	    final_norm = _get_final_norm(model) if is_last else None
+   165	    lm_head = _get_lm_head(model) if is_last else None
+   166	
+   167	    _move_modules_to_device_dtype(stage_layers, device, dtype)
+   168	    _move_modules_to_device_dtype([embed, final_norm, lm_head], device, dtype)
+   169	
+   170	    stage_inputs = []
+   171	    stage_outputs = []
+   172	    losses = []
+   173	
+   174	    with torch.enable_grad():
+   175	        # All-forward phase.
+   176	        for mb_idx in range(num_microbatches):
+   177	            if is_first:
+   178	                input_ids = inputs[mb_idx].to(device=device)
+   179	                if input_ids.dtype != torch.long:
+   180	                    input_ids = input_ids.long()
+   181	
+   182	                microbatch_size = int(input_ids.shape[0])
+   183	                seq_len = int(input_ids.shape[1])
+   184	                shape_tensor = torch.tensor(
+   185	                    [microbatch_size, seq_len],
+   186	                    device=device,
+   187	                    dtype=torch.long,
+   188	                )
+   189	                if not is_last:
+   190	                    _p2p_send(shape_tensor, next_rank)
+   191	
+   192	                hidden = embed(input_ids).to(device=device, dtype=dtype)
+   193	                stage_input = None
+   194	            else:
+   195	                shape_tensor = _p2p_recv((2,), prev_rank, device, torch.long)
+   196	                microbatch_size = int(shape_tensor[0].item())
+   197	                seq_len = int(shape_tensor[1].item())
+   198	                if not is_last:
+   199	                    _p2p_send(shape_tensor, next_rank)
+   200	
+   201	                hidden = _p2p_recv(
+   202	                    (microbatch_size, seq_len, hidden_size),
+   203	                    prev_rank,
+   204	                    device,
+   205	                    dtype,
+   206	                )
+   207	                hidden.requires_grad_(True)
+   208	                stage_input = hidden
+   209	
+   210	            for layer in stage_layers:
+   211	                hidden = _call_decoder_layer(layer, hidden, device, dtype).to(
+   212	                    device=device, dtype=dtype
+   213	                )
+   214	
+   215	            if is_last:
+   216	                hidden = hidden.to(device=device, dtype=dtype)
+   217	                normed = final_norm(hidden).to(device=device, dtype=dtype)
+   218	                logits = lm_head(normed).to(device=device, dtype=dtype)
+   219	
+   220	                target_ids = targets[mb_idx].to(device=device)
+   221	                if target_ids.dtype != torch.long:
+   222	                    target_ids = target_ids.long()
+   223	
+   224	                shift_logits = logits[..., :-1, :].contiguous().float()
+   225	                shift_targets = target_ids[..., 1:].contiguous()
+   226	                loss = F.cross_entropy(
+   227	                    shift_logits.view(-1, shift_logits.size(-1)),
+   228	                    shift_targets.view(-1),
+   229	                    ignore_index=-100,
+   230	                )
+   231	                loss = loss / num_microbatches
+   232	                losses.append(loss)
+   233	                stage_inputs.append(stage_input)
+   234	                stage_outputs.append(hidden)
+   235	            else:
+   236	                hidden = hidden.to(device=device, dtype=dtype)
+   237	                stage_inputs.append(stage_input)
+   238	                stage_outputs.append(hidden)
+   239	                _p2p_send(hidden.detach(), next_rank)
+   240	
+   241	        # All-backward phase.
+   242	        for mb_idx in reversed(range(num_microbatches)):
+   243	            if is_last:
+   244	                losses[mb_idx].backward()
+   245	            else:
+   246	                grad_shape = stage_outputs[mb_idx].shape
+   247	                grad = _p2p_recv(grad_shape, next_rank, device, dtype)
+   248	                stage_outputs[mb_idx].backward(grad)
+   249	
+   250	            if not is_first:
+   251	                input_grad = stage_inputs[mb_idx].grad
+   252	                if input_grad is None:
+   253	                    raise RuntimeError("Stage input did not receive a gradient")
+   254	                _p2p_send(input_grad.to(device=device, dtype=dtype).contiguous(), prev_rank)
+[?2004hroot@5105556e159d:/app# 

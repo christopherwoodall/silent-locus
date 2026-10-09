@@ -1,0 +1,602 @@
+[?2004hroot@7529eb093145:/app# asciinema rec --stdin /logs/agent/recording.cast
+[?2004l[0;32masciinema: recording asciicast to /logs/agent/recording.cast[0m
+[0;32masciinema: press <ctrl-d> or type "exit" when you're done[0m
+[?2004hroot@7529eb093145:/app# clear
+[?2004l[H[J[3J[?2004hroot@7529eb093145:/app# ls -la /app
+[?2004ltotal 12
+drwxr-xr-x 1 root root 4096 Aug 22  2025 .
+drwxr-xr-x 1 root root 4096 Jul 18 08:03 ..
+-rw-r--r-- 1 root root 4096 Aug 11  2025 trunc.db
+[?2004hroot@7529eb093145:/app# file /app/trunc.db
+[?2004lbash: file: command not found
+[?2004hroot@7529eb093145:/app# sqlite3 /app/trunc.db ".tables" 2>&1
+[?2004lbash: sqlite3: command not found
+[?2004hroot@7529eb093145:/app# sqlite3 /app/trunc.db ".recover" 2>&1 | head -200
+[?2004lbash: sqlite3: command not found
+[?2004hroot@7529eb093145:/app# python3 - <<'PY'
+[?2004l[?2004h> import struct, os
+[?2004l     left=struct.unpack('>I',b[o:o+4])[0]; o+=4
+    payload_len,o=varint(b,o)
+    rowid,o=varint(b,o)
+    print('cell at',p,'left',left if type in (2,5) else None,'payload_len',payload_len,'rowid',rowid)
+    body=b[o:o+payload_len]
+    print(' body hex',body[:80].hex())
+    # parse record header
+    hstart=o
+    hlen,ho=varint(b,o)
+    print(' record header len',hlen)
+    serials=[]
+    oo=ho
+    while oo < hstart+hlen:
+        s,oo=varint(b,oo)
+        serials.append(s)
+    print(' serials',serials)
+    vals=[]
+    data_off=hstart+hlen
+    for s in serials:
+        if s==0:
+            vals.append(None)
+        elif s==1:
+            vals.append(int.from_bytes(b[data_off:data_off+1],'big',signed=True)); data_off+=1
+        elif s==2:
+            vals.append(int.from_bytes(b[data_off:data_off+2],'big',signed=True)); data_off+=2
+        elif s==3:
+            vals.append(int.from_bytes(b[data_off:data_off+3],'big',signed=True)); data_off+=3
+        elif s==4:
+            vals.append(int.from_bytes(b[data_off:data_off+4],'big',signed=True)); data_off+=4
+        elif s==5:
+            vals.append(int.from_bytes(b[data_off:data_off+6],'big',signed=True)); data_off+=6
+        elif s==6:
+            vals.append(int.from_bytes(b[data_off:data_off+8],'big',signed=True)); data_off+=8
+        elif s==7:
+            vals.append(struct.unpack('>d',b[data_off:data_off+8])[0]); data_off+=8
+        elif s==8:
+            vals.append(0)
+        elif s==9:
+            vals.append(1)
+        elif s>=12 and s%2==0:
+            n=(s-12)//2; vals.append(b[data_off:data_off+n]); data_off+=n
+        elif s>=13 and s%2==1:
+            n=(s-13)//2; vals.append(b[data_off:data_off+n].decode('utf-8','replace')); data_off+=n
+        else:
+            vals.append(('?',s))
+    print(' values',vals)
+    print()
+
+for p in ptrs:
+    parse_cell(data,p,type)
+PY
+[?2004h> p='/app/trunc.db'
+[?2004l[?2004h> data=open(p,'rb').read()
+[?2004l[?2004h> print('size',len(data))
+[?2004l[?2004h> print('header',data[:16])
+[?2004l[?2004h> print('page_size',struct.unpack('>H',data[16:18])[0])
+[?2004l[?2004h> print('text_encoding',struct.unpack('>I',data[56:60])[0])
+[?2004l[?2004h> print('file_format_write',data[18], 'read',data[19])
+[?2004l[?2004h> print('reserved',data[20])
+[?2004l[?2004h> # first page btree header at offset 100 for page 1
+[?2004l[?2004h> type=data[100]
+[?2004l[?2004h> print('page1 btree type',type)
+[?2004l[?2004h> first_free,ncells,cell_start,frag=struct.unpack('>HHHB',data[101:108])
+[?2004l[?2004h> print('first_free',first_free,'ncells',ncells,'cell_start',cell_start,'frag',frag)
+[?2004l[?2004h> ptrs=[]
+[?2004l[?2004h> off=108
+[?2004l[?2004h> for i in range(ncells):
+[?2004l[?2004h>     ptrs.append(struct.unpack('>H',data[off+i*2:off+i*2+2])[0])
+[?2004l[?2004h> print('cell ptrs',ptrs)
+[?2004l[?2004h> 
+[?2004l[?2004h> def varint(b,o):
+[?2004l[?2004h>     val=0
+[?2004l[?2004h>     for j in range(9):
+[?2004l[?2004h>         c=b[o+j]
+[?2004l[?2004h>         if j<8:
+[?2004l[?2004h>             val=(val<<7)|(c&0x7f)
+[?2004l[?2004h>             if not c&0x80:
+[?2004l[?2004h>                 return val,o+j+1
+[?2004l[?2004h>         else:
+[?2004l[?2004h>             val=(val<<8)|c
+[?2004l[?2004h>             return val,o+j+1
+[?2004l[?2004h>     return val,o
+[?2004l[?2004h> 
+[?2004l[?2004h> def parse_cell(b,p,type):
+[?2004l[?2004h>     o=p
+[?2004l[?2004h>     if type in (2,5):
+[?2004l[?2004h>         left=struct.unpack('>I',b[o:o+4])[0]; o+=4
+[?2004l[?2004h>     payload_len,o=varint(b,o)
+[?2004l[?2004h>     rowid,o=varint(b,o)
+[?2004l[?2004h>     print('cell at',p,'left',left if type in (2,5) else None,'payload_len',payload_len,'rowid',rowid)
+[?2004l[?2004h>     body=b[o:o+payload_len]
+[?2004l[?2004h>     print(' body hex',body[:80].hex())
+[?2004l[?2004h>     # parse record header
+[?2004l[?2004h>     hstart=o
+[?2004l[?2004h>     hlen,ho=varint(b,o)
+[?2004l[?2004h>     print(' record header len',hlen)
+[?2004l[?2004h>     serials=[]
+[?2004l[?2004h>     oo=ho
+[?2004l[?2004h>     while oo < hstart+hlen:
+[?2004l[?2004h>         s,oo=varint(b,oo)
+[?2004l[?2004h>         serials.append(s)
+[?2004l[?2004h>     print(' serials',serials)
+[?2004l[?2004h>     vals=[]
+[?2004l[?2004h>     data_off=hstart+hlen
+[?2004l[?2004h>     for s in serials:
+[?2004l[?2004h>         if s==0:
+[?2004l[?2004h>             vals.append(None)
+[?2004l[?2004h>         elif s==1:
+[?2004l[?2004h>             vals.append(int.from_bytes(b[data_off:data_off+1],'big',signed=True)); data_off+=1
+[?2004l[?2004h>         elif s==2:
+[?2004l[?2004h>             vals.append(int.from_bytes(b[data_off:data_off+2],'big',signed=True)); data_off+=2
+[?2004l[?2004h>         elif s==3:
+[?2004l[?2004h>             vals.append(int.from_bytes(b[data_off:data_off+3],'big',signed=True)); data_off+=3
+[?2004l[?2004h>         elif s==4:
+[?2004l[?2004h>             vals.append(int.from_bytes(b[data_off:data_off+4],'big',signed=True)); data_off+=4
+[?2004l[?2004h>         elif s==5:
+[?2004l[?2004h>             vals.append(int.from_bytes(b[data_off:data_off+6],'big',signed=True)); data_off+=6
+[?2004l[?2004h>         elif s==6:
+[?2004l[?2004h>             vals.append(int.from_bytes(b[data_off:data_off+8],'big',signed=True)); data_off+=8
+[?2004l[?2004h>         elif s==7:
+[?2004l[?2004h>             vals.append(struct.unpack('>d',b[data_off:data_off+8])[0]); data_off+=8
+[?2004l[?2004h>         elif s==8:
+[?2004l[?2004h>             vals.append(0)
+[?2004l[?2004h>         elif s==9:
+[?2004l[?2004h>             vals.append(1)
+[?2004l[?2004h>         elif s>=12 and s%2==0:
+[?2004l[?2004h>             n=(s-12)//2; vals.append(b[data_off:data_off+n]); data_off+=n
+[?2004l[?2004h>         elif s>=13 and s%2==1:
+[?2004l[?2004h>             n=(s-13)//2; vals.append(b[data_off:data_off+n].decode('utf-8','replace')); data_off+=n
+[?2004l[?2004h>         else:
+[?2004l[?2004h>             vals.append(('?',s))
+[?2004l[?2004h>     print(' values',vals)
+[?2004l[?2004h>     print()
+[?2004l[?2004h> 
+[?2004l[?2004h> for p in ptrs:
+[?2004l[?2004h>     parse_cell(data,p,type)
+[?2004l[?2004h> PY
+[?2004lsize 4096
+header b'\r\x00\x00\x00\n\x0fI\x00\x0f\xf0\x0f\xdf\x0f\xce\x0f\xbd'
+page_size 4012
+text_encoding 0
+file_format_write 15 read 155
+reserved 15
+page1 btree type 0
+first_free 0 ncells 0 cell_start 0 frag 0
+cell ptrs []
+[?2004hroot@7529eb093145:/app# ^C[?2004l[?2004h[?2004l
+[?2004hroot@7529eb093145:/app# python3 -c "import struct; data=open('/app/trunc.db','rb').read(); print('size',len(data)); print('header',data[:16]); print('page_size',struct.unpack('!H',data[16:18])[0]); print('encoding',struct.unpack('!I',data[56:60])[0]); print('page_type',data[100]); print('btree_header',struct.unpack('!HHHB',data[101:108]))"
+[?2004lbash: !H',data[16: event not found
+[?2004hroot@7529eb093145:/app# cat > /tmp/inspect.py <<'PY'
+[?2004l[?2004h> import struct, re, binascii
+[?2004l(data):
+                ptrs=[struct.unpack('>H',data[ptrbase+i*2:ptrbase+i*2+2])[0] for i in range(nc)]
+                print(' ptrs',ptrs)
+PY
+python3 /tmp/inspect.py
+[?2004h> data=open('/app/trunc.db','rb').read()
+[?2004l[?2004h> print('size', len(data))
+[?2004l[?2004h> print('first256 hex:')
+[?2004l[?2004h> for i in range(0, min(len(data),256), 16):
+[?2004l[?2004h>     chunk=data[i:i+16]
+[?2004l[?2004h>     print(f'{i:04x}: {chunk.hex(" ")}  {"".join(chr(b) if 32<=b<127 else "." for b in chunk)}')
+[?2004l[?2004h> print('\nstrings:')
+[?2004l[?2004h> cur=b''
+[?2004l[?2004h> start=0
+[?2004l[?2004h> for i,b in enumerate(data):
+[?2004l[?2004h>     if 32<=b<127:
+[?2004l[?2004h>         if not cur: start=i
+[?2004l[?2004h>         cur+=bytes([b])
+[?2004l[?2004h>     else:
+[?2004l[?2004h>         if len(cur)>=4:
+[?2004l[?2004h>             print(start, cur.decode('utf-8','replace'))
+[?2004l[?2004h>         cur=b''
+[?2004l[?2004h> if len(cur)>=4:
+[?2004l[?2004h>     print(start, cur.decode())
+[?2004l[?2004h> print('\nscan page headers:')
+[?2004l[?2004h> for off in range(0, len(data)-8, 1):
+[?2004l[?2004h>     t=data[off]
+[?2004l[?2004h>     if t in (2,5,10,13):
+[?2004l[?2004h>         try:
+[?2004l[?2004h>             ff,nc,cs,frag=struct.unpack('>HHHB',data[off+1:off+8])
+[?2004l[?2004h>         except:
+[?2004l[?2004h>             continue
+[?2004l[?2004h>         if nc>0 and nc<200 and cs>0 and cs<len(data):
+[?2004l[?2004h>             print('off',off,'type',t,'first_free',ff,'ncells',nc,'cell_start',cs,'frag',frag)
+[?2004l[?2004h>             ptrbase=off+8
+[?2004l[?2004h>             if off+8+nc*2 <= len(data):
+[?2004l[?2004h>                 ptrs=[struct.unpack('>H',data[ptrbase+i*2:ptrbase+i*2+2])[0] for i in range(nc)]
+[?2004l[?2004h>                 print(' ptrs',ptrs)
+[?2004l[?2004h> PY
+[?2004l[?2004hroot@7529eb093145:/app# python3 /tmp/inspect.py
+[?2004lsize 4096
+first256 hex:
+0000: 0d 00 00 00 0a 0f 49 00 0f f0 0f df 0f ce 0f bd  ......I.........
+0010: 0f ac 0f 9b 0f 8a 0f 79 0f 61 0f 49 00 00 00 00  .......y.a.I....
+0020: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+0030: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+0040: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+0050: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+0060: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+0070: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+0080: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+0090: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+00a0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+00b0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+00c0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+00d0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+00e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+00f0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+
+strings:
+3919 testword09?
+3943 testword08@X
+3967 testword07c
+3984 testword06K
+4001 testword052
+4018 testword04*
+4035 testword03
+4052 testword02
+4069 testword01
+4086 testword00
+
+scan page headers:
+off 0 type 13 first_free 0 ncells 10 cell_start 3913 frag 0
+ ptrs [4080, 4063, 4046, 4029, 4012, 3995, 3978, 3961, 3937, 3913]
+[?2004hroot@7529eb093145:/app# cat > /tmp/recover.py <<'PY'
+[?2004leturn struct.unpack('>d', data[off:off+8])[0], off+8
+    if serial == 8:
+        return 0, off
+    if serial == 9:
+        return 1, off
+    if serial >= 12 and serial % 2 == 0:
+        n = (serial - 12) // 2
+        return data[off:off+n], off+n
+    if serial >= 13 and serial % 2 == 1:
+        n = (serial - 13) // 2
+        return data[off:off+n].decode('utf-8', 'replace'), off+n
+    return None, off
+
+data = open('/app/trunc.db', 'rb').read()
+page_type, first_free, ncells, cell_start, frag = struct.unpack('>BHHHB', data[:8])
+print('page_type', page_type, 'ncells', ncells, 'cell_start', cell_start)
+
+ptrs = [struct.unpack('>H', data[8 + i*2:10 + i*2])[0] for i in range(ncells)]
+print('ptrs', ptrs)
+
+rows = []
+for p in ptrs:
+    off = p
+    payload_len, off = varint(data, off)
+    rowid, off = varint(data, off)
+    payload_start = off
+    hlen, hoff = varint(data, payload_start)
+    serials = []
+    oo = hoff
+    while oo < payload_start + hlen:
+        s, oo = varint(data, oo)
+        serials.append(s)
+    vals[?2004h> import struct, json
+[?2004l[?2004h> 
+[?2004l[?2004h> def varint(data, off):
+[?2004l[?2004h>     val = 0
+[?2004l[?2004h>     for i in range(9):
+[?2004l[?2004h>         b = data[off + i]
+[?2004l[?2004h>         if i < 8:
+[?2004l[?2004h>             val = (val << 7) | (b & 0x7f)
+[?2004l[?2004h>             if not (b & 0x80):
+[?2004l[?2004h>                 return val, off + i + 1
+[?2004l[?2004h>         else:
+[?2004l[?2004h>             val = (val << 8) | b
+[?2004l[?2004h>             return val, off + i + 1
+[?2004l[?2004h> 
+[?2004l[?2004h> def serial_value(data, off, serial):
+[?2004l[?2004h>     if serial == 0:
+[?2004l[?2004h>         return None, off
+[?2004l[?2004h>     if serial == 1:
+[?2004l[?2004h>         return int.from_bytes(data[off:off+1], 'big', signed=True), off+1
+[?2004l[?2004h>     if serial == 2:
+[?2004l[?2004h>         return int.from_bytes(data[off:off+2], 'big', signed=True), off+2
+[?2004l[?2004h>     if serial == 3:
+[?2004l[?2004h>         return int.from_bytes(data[off:off+3], 'big', signed=True), off+3
+[?2004l[?2004h>     if serial == 4:
+[?2004l[?2004h>         return int.from_bytes(data[off:off+4], 'big', signed=True), off+4
+[?2004l[?2004h>     if serial == 5:
+[?2004l[?2004h>         return int.from_bytes(data[off:off+6], 'big', signed=True), off+6
+[?2004l[?2004h>     if serial == 6:
+[?2004l[?2004h>         return int.from_bytes(data[off:off+8], 'big', signed=True), off+8
+[?2004l[?2004h>     if serial == 7:
+[?2004l[?2004h>         return struct.unpack('>d', data[off:off+8])[0], off+8
+[?2004l[?2004h>     if serial == 8:
+[?2004l[?2004h>         return 0, off
+[?2004l[?2004h>     if serial == 9:
+[?2004l[?2004h>         return 1, off
+[?2004l[?2004h>     if serial >= 12 and serial % 2 == 0:
+[?2004l[?2004h>         n = (serial - 12) // 2
+[?2004l[?2004h>         return data[off:off+n], off+n
+[?2004l[?2004h>     if serial >= 13 and serial % 2 == 1:
+[?2004l[?2004h>         n = (serial - 13) // 2
+[?2004l[?2004h>         return data[off:off+n].decode('utf-8', 'replace'), off+n
+[?2004l[?2004h>     return None, off
+[?2004l[?2004h> 
+[?2004l[?2004h> data = open('/app/trunc.db', 'rb').read()
+[?2004l[?2004h> page_type, first_free, ncells, cell_start, frag = struct.unpack('>BHHHB', data[:8])
+[?2004l[?2004h> print('page_type', page_type, 'ncells', ncells, 'cell_start', cell_start)
+[?2004l[?2004h> 
+[?2004l[?2004h> ptrs = [struct.unpack('>H', data[8 + i*2:10 + i*2])[0] for i in range(ncells)]
+[?2004l[?2004h> print('ptrs', ptrs)
+[?2004l[?2004h> 
+[?2004l[?2004h> rows = []
+[?2004l[?2004h> for p in ptrs:
+[?2004l[?2004h>     off = p
+[?2004l[?2004h>     payload_len, off = varint(data, off)
+[?2004l[?2004h>     rowid, off = varint(data, off)
+[?2004l[?2004h>     payload_start = off
+[?2004l[?2004h>     hlen, hoff = varint(data, payload_start)
+[?2004l[?2004h>     serials = []
+[?2004l[?2004h>     oo = hoff
+[?2004l[?2004h>     while oo < payload_start + hlen:
+[?2004l[?2004h>         s, oo = varint(data, oo)
+[?2004l[?2004h>         serials.append(s)
+[?2004l[?2004h>     vals = []
+[?2004l[?2004h>     doff = payload_start + hlen
+[?2004l[?2004h>     for s in serials:
+[?2004l[?2004h>         v, doff = serial_value(data, doff, s)
+[?2004l[?2004h>         vals.append(v)
+[?2004l[?2004h>     print('rowid', rowid, 'serials', serials, 'values', vals)
+[?2004l[?2004h>     rows.append(vals)
+[?2004l[?2004h> 
+[?2004l[?2004h> # Based on visible schema/data, first column is word, second column is value.
+[?2004l[?2004h> result = []
+[?2004l[?2004h> for vals in rows:
+[?2004l[?2004h>     if len(vals) >= 2:
+[?2004l[?2004h>         result.append({'word': vals[0], 'value': vals[1]})
+[?2004l[?2004h> 
+[?2004l[?2004h> with open('/app/recover.json', 'w') as f:
+[?2004l[?2004h>     json.dump(result, f, indent=2)
+[?2004l[?2004h> print(json.dumps(result, indent=2))
+[?2004l[?2004h> PY
+[?2004l[?2004hroot@7529eb093145:/app# python3 /tmp/recover.py
+[?2004lpage_type 13 ncells 10 cell_start 3913
+ptrs [4080, 4063, 4046, 4029, 4012, 3995, 3978, 3961, 3937, 3913]
+rowid 1 serials [0, 33, 9] values [None, 'testword00', 1]
+rowid 2 serials [0, 33, 1] values [None, 'testword01', 2]
+rowid 3 serials [0, 33, 1] values [None, 'testword02', 10]
+rowid 4 serials [0, 33, 1] values [None, 'testword03', 25]
+rowid 5 serials [0, 33, 1] values [None, 'testword04', 42]
+rowid 6 serials [0, 33, 1] values [None, 'testword05', 50]
+rowid 7 serials [0, 33, 1] values [None, 'testword06', 75]
+rowid 8 serials [0, 33, 1] values [None, 'testword07', 99]
+rowid 9 serials [0, 33, 7] values [None, 'testword08', 99.99]
+rowid 10 serials [0, 33, 7] values [None, 'testword09', 0.5]
+[
+  {
+    "word": null,
+    "value": "testword00"
+  },
+  {
+    "word": null,
+    "value": "testword01"
+  },
+  {
+    "word": null,
+    "value": "testword02"
+  },
+  {
+    "word": null,
+    "value": "testword03"
+  },
+  {
+    "word": null,
+    "value": "testword04"
+  },
+  {
+    "word": null,
+    "value": "testword05"
+  },
+  {
+    "word": null,
+    "value": "testword06"
+  },
+  {
+    "word": null,
+    "value": "testword07"
+  },
+  {
+    "word": null,
+    "value": "testword08"
+  },
+  {
+    "word": null,
+    "value": "testword09"
+  }
+]
+[?2004hroot@7529eb093145:/app# python3 - <<'PY'
+[?2004l[?2004h> import struct, json
+[?2004l[?2004h> 
+[?2004l.unpack('>d', data[off:off+8])[0], off+8
+    if serial == 8:
+        return 0, off
+    if serial == 9:
+        return 1, off
+    if serial >= 12 and serial % 2 == 0:
+        n = (serial - 12) // 2
+        return data[off:off+n], off+n
+    if serial >= 13 and serial % 2 == 1:
+        n = (serial - 13) // 2
+        return data[off:off+n].decode('utf-8', 'replace'), off+n
+    return None, off
+
+data = open('/app/trunc.db', 'rb').read()
+ncells = struct.unpack('>H', data[3:5])[0]
+ptrs = [struct.unpack('>H', data[8 + i*2:10 + i*2])[0] for i in range(ncells)]
+
+result = []
+for p in ptrs:
+    off = p
+    payload_len, off = varint(data, off)
+    rowid, off = varint(data, off)
+    payload_start = off
+    hlen, hoff = varint(data, payload_start)
+    serials = []
+    oo = hoff
+    while oo < payload_start + hlen:
+        s, oo = varint(data, oo)
+        serials.append(s)
+    vals = []
+    doff = payload_start + hlen
+    for s in serials:
+        v, doff = serial_value(data, doff, s)
+        vals.append(v)
+    # Record form[?2004h> def varint(data, off):
+[?2004l[?2004h>     val = 0
+[?2004l[?2004h>     for i in range(9):
+[?2004l[?2004h>         b = data[off + i]
+[?2004l[?2004h>         if i < 8:
+[?2004l[?2004h>             val = (val << 7) | (b & 0x7f)
+[?2004l[?2004h>             if not (b & 0x80):
+[?2004l[?2004h>                 return val, off + i + 1
+[?2004l[?2004h>         else:
+[?2004l[?2004h>             val = (val << 8) | b
+[?2004l[?2004h>             return val, off + i + 1
+[?2004l[?2004h> 
+[?2004l[?2004h> def serial_value(data, off, serial):
+[?2004l[?2004h>     if serial == 0:
+[?2004l[?2004h>         return None, off
+[?2004l[?2004h>     if serial == 1:
+[?2004l[?2004h>         return int.from_bytes(data[off:off+1], 'big', signed=True), off+1
+[?2004l[?2004h>     if serial == 2:
+[?2004l[?2004h>         return int.from_bytes(data[off:off+2], 'big', signed=True), off+2
+[?2004l[?2004h>     if serial == 3:
+[?2004l[?2004h>         return int.from_bytes(data[off:off+3], 'big', signed=True), off+3
+[?2004l[?2004h>     if serial == 4:
+[?2004l[?2004h>         return int.from_bytes(data[off:off+4], 'big', signed=True), off+4
+[?2004l[?2004h>     if serial == 5:
+[?2004l[?2004h>         return int.from_bytes(data[off:off+6], 'big', signed=True), off+6
+[?2004l[?2004h>     if serial == 6:
+[?2004l[?2004h>         return int.from_bytes(data[off:off+8], 'big', signed=True), off+8
+[?2004l[?2004h>     if serial == 7:
+[?2004l[?2004h>         return struct.unpack('>d', data[off:off+8])[0], off+8
+[?2004l[?2004h>     if serial == 8:
+[?2004l[?2004h>         return 0, off
+[?2004l[?2004h>     if serial == 9:
+[?2004l[?2004h>         return 1, off
+[?2004l[?2004h>     if serial >= 12 and serial % 2 == 0:
+[?2004l[?2004h>         n = (serial - 12) // 2
+[?2004l[?2004h>         return data[off:off+n], off+n
+[?2004l[?2004h>     if serial >= 13 and serial % 2 == 1:
+[?2004l[?2004h>         n = (serial - 13) // 2
+[?2004l[?2004h>         return data[off:off+n].decode('utf-8', 'replace'), off+n
+[?2004l[?2004h>     return None, off
+[?2004l[?2004h> 
+[?2004l[?2004h> data = open('/app/trunc.db', 'rb').read()
+[?2004l[?2004h> ncells = struct.unpack('>H', data[3:5])[0]
+[?2004l[?2004h> ptrs = [struct.unpack('>H', data[8 + i*2:10 + i*2])[0] for i in range(ncells)]
+[?2004l[?2004h> 
+[?2004l[?2004h> result = []
+[?2004l[?2004h> for p in ptrs:
+[?2004l[?2004h>     off = p
+[?2004l[?2004h>     payload_len, off = varint(data, off)
+[?2004l[?2004h>     rowid, off = varint(data, off)
+[?2004l[?2004h>     payload_start = off
+[?2004l[?2004h>     hlen, hoff = varint(data, payload_start)
+[?2004l[?2004h>     serials = []
+[?2004l[?2004h>     oo = hoff
+[?2004l[?2004h>     while oo < payload_start + hlen:
+[?2004l[?2004h>         s, oo = varint(data, oo)
+[?2004l[?2004h>         serials.append(s)
+[?2004l[?2004h>     vals = []
+[?2004l[?2004h>     doff = payload_start + hlen
+[?2004l[?2004h>     for s in serials:
+[?2004l[?2004h>         v, doff = serial_value(data, doff, s)
+[?2004l[?2004h>         vals.append(v)
+[?2004l[?2004h>     # Record format is: id (NULL rowid alias), word, value
+[?2004l[?2004h>     result.append({"word": vals[1], "value": vals[2]})
+[?2004l[?2004h> 
+[?2004l[?2004h> with open('/app/recover.json', 'w') as f:
+[?2004l[?2004h>     json.dump(result, f, indent=2)
+[?2004l[?2004h> print(open('/app/recover.json').read())
+[?2004l[?2004h> PY
+[?2004l[
+  {
+    "word": "testword00",
+    "value": 1
+  },
+  {
+    "word": "testword01",
+    "value": 2
+  },
+  {
+    "word": "testword02",
+    "value": 10
+  },
+  {
+    "word": "testword03",
+    "value": 25
+  },
+  {
+    "word": "testword04",
+    "value": 42
+  },
+  {
+    "word": "testword05",
+    "value": 50
+  },
+  {
+    "word": "testword06",
+    "value": 75
+  },
+  {
+    "word": "testword07",
+    "value": 99
+  },
+  {
+    "word": "testword08",
+    "value": 99.99
+  },
+  {
+    "word": "testword09",
+    "value": 0.5
+  }
+]
+[?2004hroot@7529eb093145:/app# ls -l /app/recover.json && cat /app/recover.json
+[?2004l-rw-r--r-- 1 root root 514 Jul 18 08:07 /app/recover.json
+[
+  {
+    "word": "testword00",
+    "value": 1
+  },
+  {
+    "word": "testword01",
+    "value": 2
+  },
+  {
+    "word": "testword02",
+    "value": 10
+  },
+  {
+    "word": "testword03",
+    "value": 25
+  },
+  {
+    "word": "testword04",
+    "value": 42
+  },
+  {
+    "word": "testword05",
+    "value": 50
+  },
+  {
+    "word": "testword06",
+    "value": 75
+  },
+  {
+    "word": "testword07",
+    "value": 99
+  },
+  {
+    "word": "testword08",
+    "value": 99.99
+  },
+  {
+    "word": "testword09",
+    "value": 0.5
+  }
+][?2004hroot@7529eb093145:/app# 

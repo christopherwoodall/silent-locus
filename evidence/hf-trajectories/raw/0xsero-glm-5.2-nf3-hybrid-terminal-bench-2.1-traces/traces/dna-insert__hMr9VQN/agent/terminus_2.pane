@@ -1,0 +1,550 @@
+[?2004hroot@dd93376d410c:/app# asciinema rec --stdin /logs/agent/recording.cast
+[?2004l[0;32masciinema: recording asciicast to /logs/agent/recording.cast[0m
+[0;32masciinema: press <ctrl-d> or type "exit" when you're done[0m
+[?2004hroot@dd93376d410c:/app# clear
+[?2004l[H[J[3J[?2004hroot@dd93376d410c:/app# ls -la
+[?2004ltotal 16
+drwxr-xr-x 1 root root 4096 Oct 28  2025 [0m[01;34m.[0m
+drwxr-xr-x 1 root root 4096 Jul 18 02:28 [01;34m..[0m
+-rw-r--r-- 1 root root 7238 Oct 24  2025 sequences.fasta
+[?2004hroot@dd93376d410c:/app# python3 - <<'PY'
+[?2004l[?2004h> from pathlib import Path
+[?2004l[?2004h> p=Path('sequences.fasta')
+[?2004l[?2004h> print(p.read_text()[:2000])
+[?2004l[?2004h> PY
+[?2004lwhich oligotm || command -v oligotm || find / -name oligotm -type f 2>/dev/null | head
+>input
+actcttcctttttcaatattattgaagcatttatcagggttattgtctcatgagcggatacatatttgaatgtatttagaaaaataaacaaataggggttccgcgcacatttccccgaaaagtgctagtggtgctagccccgcgaaattaatacgactcactatagggtctagaaataattttgtttaactttaagaaggagatatacatatgagcaagggcgaggagctgttcaccggggtggtgcccatcctggtcgagctggacggcgacgtaaacggccacaagttcagcgtgtccggcgagggtgagggcgatgccacctacggcaagctgaccctgaagttcatctgcaccacgggcaagctgcccgtgccctggcccaccctcgtgaccaccctgacctacggcgtgcagtgcttcagccgctaccccgaccacatgaagcagcacgacttcttcaagtccgccatgcccgaaggctacgtccaggagcgcaccatcttcttcaaggacgacggcaactacaagacccgcgccgaggtgaagttcgagggcgacaccctggtgaaccgcatcgagctgaagggcatcgacttcaaggaggacggcaacatcctggggcacaagctggagtacaactacaacagccacaacgtctatatcatggccgacaagcagaagaacggcatcaaggtgaacttcaagatccgccacaacatcgaggacggcagcgtgcagctcgccgaccactaccagcagaacacccccatcggcgacggccccgtgctgctgcccgacaaccactatctgagcacccagtccgccctgagcaaagaccccaacgagaagcgcgatcacatggtcctgctggagttcgtgaccgccgccgggatcactctcggcatggacgagctgtacaaaggtagtggctccggtagcggtagcggcagcgactacaaggacgacgacgacaagggttccggttctggttcaggtagtggttcagacaaagactgcgaaatgaagcgcaccaccctggatagccctctgggcaagctggaactgtctgggtgcgaacagggcctgcaccgtatcatcttcctgggcaaaggaacatctgccgccgacgccgtggaagtgcctgccccagccgccgtgctgggcggaccagagccactgatgcaggctaccgcatggctcaacgcctactttcaccagcctgaggccatcgaggagttccctgtgccagcgctgcaccatccagtgttccagcaggagagctttacccgccaggtgctgtggaaactgctgaaagtggtgaagtttggagaggtcatcagctacagccacctggccgccctggccggcaatcccgcagccaccgccgcagtgaaaaccgcactgagcggaaatcccgtgcccattctgatcccctgccaccgggtggtgcagggcgacctggacgtggggggctacgaaggcgggctcgcagttaaagagtggctgctggcccacgagggccacagactgggtaagcctgggctgggttaatgaggatcccgggaattctcgagtaaggttaacctgcaggaggcctttaattaaggtggtgcggccgcgctagcggtcccgggggatcgatccggctgctaacaaagcccgaaaggaagctgagttggctgctgccaccgctgagcaataactagcataaccccttggggcctctaaacgggtcttgaggggttttttgctgaaaggaggaactatatccggaagcttggcactggccgaccggggtcgagcactgactcgctgcgctcggtcgttcggctgcggcgagcggtatcagctcactcaaaggcggtaatacggttatccacagaatcaggggataacgcaggaaagaacatgtgagcaaaaggccagcaaaaggccaggaaccgtaaaaaggccgcgttgctggcgtttttccataggctccgcccccctg
+[?2004hroot@dd93376d410c:/app# which oligotm || command -v oligotm || find / -name oligotm -type f 2>/dev/null | head
+[?2004l[?2004hroot@dd93376d410c:/app# python3 - <<'PY'
+[?2004l[?2004h> from pathlib import Path
+[?2004l[?2004h> records=[]
+[?2004l[?2004h> header=None
+[?2004l[?2004h> seq=[]
+[?2004l[?2004h> for line in Path('sequences.fasta').read_text().splitlines():
+[?2004l[?2004h>     if line.startswith('>'):
+[?2004l[?2004h>         if header is not None:
+[?2004l[?2004h>             records.append((header,''.join(seq)))
+[?2004l[?2004h>         header=line[1:].strip()
+[?2004l[?2004h>         seq=[]
+[?2004l[?2004h>     else:
+[?2004l[?2004h>         seq.append(line.strip())
+[?2004l[?2004h> if header is not None:
+[?2004l[?2004h>     records.append((header,''.join(seq)))
+[?2004l[?2004h> print('records', len(records))
+[?2004l[?2004h> for h,s in records:
+[?2004l[?2004h>     print(h, len(s))
+[?2004l[?2004h>     print(s[:200])
+[?2004l[?2004h>     print(s[-200:])
+[?2004l[?2004h> PY
+[?2004lpython3 - <<'PY'
+try:
+    import primer3
+    print('primer3 python module available', primer3.__version__ if hasattr(primer3,'__version__') else '')
+except Exception as e:
+    print('no primer3 python module:', repr(e))
+PY
+records 2
+input 3591
+actcttcctttttcaatattattgaagcatttatcagggttattgtctcatgagcggatacatatttgaatgtatttagaaaaataaacaaataggggttccgcgcacatttccccgaaaagtgctagtggtgctagccccgcgaaattaatacgactcactatagggtctagaaataattttgtttaactttaagaagg
+atcattggaaaacgttcttcggggcgaaaactctcaaggatcttaccgctgttgagatccagttcgatgtaacccactcgtgcacccaactgatcttcagcatcttttactttcaccagcgtttctgggtgagcaaaaacaggaaggcaaaatgccgcaaaaaagggaataagggcgacacggaaatgttgaatactcat
+output 3630
+actcttcctttttcaatattattgaagcatttatcagggttattgtctcatgagcggatacatatttgaatgtatttagaaaaataaacaaataggggttccgcgcacatttccccgaaaagtgctagtggtgctagccccgcgaaattaatacgactcactatagggtctagaaataattttgtttaactttaagaagg
+atcattggaaaacgttcttcggggcgaaaactctcaaggatcttaccgctgttgagatccagttcgatgtaacccactcgtgcacccaactgatcttcagcatcttttactttcaccagcgtttctgggtgagcaaaaacaggaaggcaaaatgccgcaaaaaagggaataagggcgacacggaaatgttgaatactcat
+[?2004hroot@dd93376d410c:/app# python3 - <<'PY'
+[?2004l[?2004h> try:
+[?2004l[?2004h>     import primer3
+[?2004l[?2004h>     print('primer3 python module available', primer3.__version__ if hasattr(primer3,'__version__') else '')
+[?2004l[?2004h> except Exception as e:
+[?2004l[?2004h>     print('no primer3 python module:', repr(e))
+[?2004l[?2004h> PY
+[?2004lpython3 - <<'PY'
+from pathlib import Path
+records=[]
+header=None; seq=[]
+for line in Path('sequences.fasta').read_text().splitlines():
+    if line.startswith('>'):
+        if header is not None: records.append((header,''.join(seq)))
+        header=line[1:].strip(); seq=[]
+    else: seq.append(line.strip())
+if header is not None: records.append((header,''.join(seq)))
+inp=[s for h,s in records if h.lower().startswith('input')][0]
+out=[s for h,s in records if h.lower().startswith('output')][0]
+print('input len', len(inp), 'output len', len(out))
+# simple positional diff
+n=min(len(inp),len(out))
+diffs=[i for i in range(n) if inp[i]!=out[i]]
+print('positional diffs', len(diffs), diffs[:100])
+if diffs:
+    print('first diff', diffs[0], 'last diff', diffs[-1])
+    for i in diffs[:50]:
+        print(i, inp[i], out[i])
+PY
+no primer3 python module: ModuleNotFoundError("No module named 'primer3'")
+[?2004hroot@dd93376d410c:/app# python3 - <<'PY'
+[?2004l[?2004h> from pathlib import Path
+[?2004l[?2004h> records=[]
+[?2004l[?2004h> header=None; seq=[]
+[?2004l[?2004h> for line in Path('sequences.fasta').read_text().splitlines():
+[?2004l[?2004h>     if line.startswith('>'):
+[?2004l[?2004h>         if header is not None: records.append((header,''.join(seq)))
+[?2004l[?2004h>         header=line[1:].strip(); seq=[]
+[?2004l[?2004h>     else: seq.append(line.strip())
+[?2004l[?2004h> if header is not None: records.append((header,''.join(seq)))
+[?2004l[?2004h> inp=[s for h,s in records if h.lower().startswith('input')][0]
+[?2004l[?2004h> out=[s for h,s in records if h.lower().startswith('output')][0]
+[?2004l[?2004h> print('input len', len(inp), 'output len', len(out))
+[?2004l[?2004h> # simple positional diff
+[?2004l[?2004h> n=min(len(inp),len(out))
+[?2004l[?2004h> diffs=[i for i in range(n) if inp[i]!=out[i]]
+[?2004l[?2004h> print('positional diffs', len(diffs), diffs[:100])
+[?2004l[?2004h> if diffs:
+[?2004l[?2004h>     print('first diff', diffs[0], 'last diff', diffs[-1])
+[?2004l[?2004h>     for i in diffs[:50]:
+[?2004l[?2004h>         print(i, inp[i], out[i])
+[?2004l[?2004h> PY
+[?2004linput len 3591 output len 3630
+positional diffs 2351 [215, 217, 218, 219, 220, 221, 224, 227, 228, 229, 230, 233, 235, 236, 237, 239, 240, 241, 242, 243, 245, 246, 248, 249, 250, 251, 252, 253, 254, 255, 256, 257, 259, 260, 261, 262, 266, 267, 268, 269, 270, 271, 273, 274, 275, 276, 277, 278, 280, 281, 282, 283, 284, 285, 286, 287, 288, 291, 292, 293, 296, 297, 298, 299, 300, 301, 302, 305, 308, 311, 313, 314, 315, 317, 319, 321, 322, 324, 326, 327, 328, 331, 332, 333, 336, 339, 340, 341, 342, 345, 346, 347, 348, 349, 350, 351, 354, 355, 356, 357]
+first diff 215 last diff 3590
+215 c t
+217 a g
+218 g a
+219 g t
+220 g t
+221 c a
+224 g a
+227 g a
+228 c g
+229 t a
+230 g a
+233 c a
+235 c g
+236 c a
+237 g a
+239 g a
+240 g a
+241 t g
+242 g a
+243 g t
+245 g a
+246 c a
+248 c a
+249 a g
+250 t a
+251 c a
+252 c a
+253 t g
+254 g c
+255 g a
+256 t a
+257 c g
+259 a g
+260 g c
+261 c g
+262 t a
+266 c g
+267 g c
+268 g t
+269 c g
+270 g t
+271 a t
+273 g a
+274 t c
+275 a c
+276 a g
+277 a g
+278 c g
+280 g t
+281 c g
+[?2004hroot@dd93376d410c:/app# python3 - <<'PY'
+[?2004l[?2004h> from pathlib import Path
+[?2004l[?2004h> import difflib
+[?2004l[?2004h> 
+[?2004l[?2004h> records=[]
+[?2004l[?2004h> header=None; seq=[]
+[?2004l[?2004h> for line in Path('sequences.fasta').read_text().splitlines():
+[?2004l[?2004h>     if line.startswith('>'):
+[?2004l[?2004h>         if header is not None: records.append((header,''.join(seq)))
+[?2004l[?2004h>         header=line[1:].strip(); seq=[]
+[?2004l[?2004h>     else: seq.append(line.strip())
+[?2004l[?2004h> if header is not None: records.append((header,''.join(seq)))
+[?2004l[?2004h> inp=[s for h,s in records if h.lower().startswith('input')][0].upper()
+[?2004l[?2004h> out=[s for h,s in records if h.lower().startswith('output')][0].upper()
+[?2004l[?2004h> print('input len', len(inp), 'output len', len(out), 'diff', len(out)-len(inp))
+[?2004l[?2004h> 
+[?2004l[?2004h> # check exact circular rotation
+[?2004l[?2004h> double=out+out
+[?2004l[?2004h> pos=double.find(inp)
+[?2004l[?2004h> print('input as circular rotation of output?', pos)
+[?2004l[?2004h> if pos==-1:
+[?2004l[?2004h>     double=inp+inp
+[?2004l[?2004h>     pos=double.find(out)
+[?2004l[?2004h>     print('output as circular rotation of input?', pos)
+[?2004l[?2004h> 
+[?2004l[?2004h> # difflib alignment blocks
+[?2004l[?2004h> sm=difflib.SequenceMatcher(None, inp, out, autojunk=False)
+[?2004l[?2004h> print('ratio', sm.ratio())
+[?2004l[?2004h> blocks=[]
+[?2004l[?2004h> for a,b,s in sm.get_matching_blocks():
+[?2004l[?2004h>     print('match', a, b, s)
+[?2004l[?2004h> print('non-matches:')
+[?2004l[?2004h> for tag,i1,i2,j1,j2 in sm.get_opcodes():
+[?2004l[?2004h>     if tag!='equal':
+[?2004l[?2004h>         print(tag, 'inp[%d:%d]'%(i1,i2), repr(inp[i1:i2]), 'out[%d:%d]'%(j1,j2), repr(out[j1:j2]))
+[?2004l[?2004h>         blocks.append((tag,i1,i2,j1,j2))
+[?2004l[?2004h> print('num non-equal opcodes', len(blocks))
+[?2004l[?2004h> PY
+[?2004linput len 3591 output len 3630 diff 39
+input as circular rotation of output? -1
+output as circular rotation of input? -1
+ratio 0.9945990859991691
+match 0 0 213
+match 213 252 3378
+match 3591 3630 0
+non-matches:
+insert inp[213:213] '' out[213:252] 'AGTAGATTAGAAGAAGAATTAAGAAGAAGATTAACAGAA'
+num non-equal opcodes 1
+[?2004hroot@dd93376d410c:/app# 
+[?2004l[?2004hroot@dd93376d410c:/app# python3 - <<'PY'
+[?2004l[?2004h> from pathlib import Path
+[?2004l[?2004h> records=[]
+[?2004l[?2004h> header=None; seq=[]
+[?2004l[?2004h> for line in Path('sequences.fasta').read_text().splitlines():
+[?2004l[?2004h>     if line.startswith('>'):
+[?2004l[?2004h>         if header is not None: records.append((header,''.join(seq)))
+[?2004l[?2004h>         header=line[1:].strip(); seq=[]
+[?2004l[?2004h>     else: seq.append(line.strip())
+[?2004l[?2004h> if header is not None: records.append((header,''.join(seq)))
+[?2004l[?2004h> inp=[s for h,s in records if h.lower().startswith('input')][0].upper()
+[?2004l[?2004h> out=[s for h,s in records if h.lower().startswith('output')][0].upper()
+[?2004l[?2004h> ins='AGTAGATTAGAAGAAGAATTAAGAAGAAGATTAACAGAA'
+[?2004l[?2004h> print('insert len', len(ins), ins)
+[?2004l[?2004h> print('context input 180-240:', inp[180:240])
+[?2004l[?2004h> print('context output 180-260:', out[180:260])
+[?2004l[?2004h> print('input[200:230]:', inp[200:230])
+[?2004l[?2004h> print('output[200:260]:', out[200:260])
+[?2004l[?2004h> print('verify out[213:252]==ins:', out[213:252]==ins)
+[?2004l[?2004h> print('verify out[:213]==inp[:213] and out[252:]==inp[213:]:', out[:213]==inp[:213], out[252:]==inp[213:])
+[?2004l[?2004h> PY
+[?2004lapt-cache policy primer3 2>/dev/null; python3 -m pip --version 2>/dev/null; python3 -m pip install primer3-py 2>&1 | tail -5
+insert len 39 AGTAGATTAGAAGAAGAATTAAGAAGAAGATTAACAGAA
+context input 180-240: TTTGTTTAACTTTAAGAAGGAGATATACATATGAGCAAGGGCGAGGAGCTGTTCACCGGG
+context output 180-260: TTTGTTTAACTTTAAGAAGGAGATATACATATGAGTAGATTAGAAGAAGAATTAAGAAGAAGATTAACAGAAAGCAAGGG
+input[200:230]: AGATATACATATGAGCAAGGGCGAGGAGCT
+output[200:260]: AGATATACATATGAGTAGATTAGAAGAAGAATTAAGAAGAAGATTAACAGAAAGCAAGGG
+verify out[213:252]==ins: True
+verify out[:213]==inp[:213] and out[252:]==inp[213:]: True True
+[?2004hroot@dd93376d410c:/app# apt-cache policy primer3 2>/dev/null; python3 -m pip --version 2>/dev/null; python3 -m pip install primer3-py 2>&1 | tail -5
+[?2004lprimer3:
+  Installed: (none)
+  Candidate: 2.6.1-4
+  Version table:
+     2.6.1-4 500
+        500 http://archive.ubuntu.com/ubuntu noble/universe amd64 Packages
+
+/usr/bin/python3: No module named pip
+[?2004hroot@dd93376d410c:/app# 
+[?2004l[?2004hroot@dd93376d410c:/app# apt-get update && apt-get install -y primer3
+[?2004l0% [Working]            Hit:1 http://security.ubuntu.com/ubuntu noble-security InRelease
+0% [Connecting to archive.ubuntu.com (91.189.91.82)]                                                    Hit:2 http://archive.ubuntu.com/ubuntu noble InRelease
+                                                    0% [Working]            Hit:3 http://archive.ubuntu.com/ubuntu noble-updates InRelease
+0% [Working]            Hit:4 http://archive.ubuntu.com/ubuntu noble-backports InRelease
+0% [Working]0% [Working]0% [Working]0% [Working]0% [Working]0% [Working]0% [Working]20% [Working]             Reading package lists... 0%Reading package lists... 0%Reading package lists... 0%Reading package lists... 5%Reading package lists... 5%Reading package lists... 7%Reading package lists... 24%Reading package lists... 39%Reading package lists... 54%Reading package lists... 63%Reading package lists... 63%Reading package lists... 64%Reading package lists... 64%Reading package lists... 65%Reading package lists... 65%Reading package lists... 68%Reading package lists... 69%Reading package lists... 69%Reading package lists... 77%Reading package lists... 77%Reading package lists... 83%Reading package lists... 83%Reading package lists... 84%Reading package lists... 84%Reading package lists... 84%Reading package lists... 84%Reading package lists... 84%Reading package lists... 84%Reading package lists... 84%Reading package lists... 84%Reading package lists... 84%Reading package lists... 88%Reading package lists... 88%Reading package lists... 94%Reading package lists... 94%Reading package lists... 99%Reading package lists... 99%Reading package lists... 99%Reading package lists... 99%Reading package lists... Done
+Reading package lists... 0%Reading package lists... 0%Reading package lists... 0%Reading package lists... 5%Reading package lists... 5%Reading package lists... 7%which oligotm && oligotm 2>&1 | head -20
+Reading package lists... 18%Reading package lists... 35%Reading package lists... 48%Reading package lists... 63%Reading package lists... 63%Reading package lists... 64%Reading package lists... 64%Reading package lists... 64%Reading package lists... 65%Reading package lists... 65%Reading package lists... 69%Reading package lists... 69%
+Reading package lists... 77%Reading package lists... 77%Reading package lists... 77%Reading package lists... 83%Reading package lists... 83%Reading package lists... 84%Reading package lists... 84%Reading package lists... 84%Reading package lists... 84%Reading package lists... 84%Reading package lists... 84%Reading package lists... 84%Reading package lists... 84%Reading package lists... 88%Reading package lists... 88%Reading package lists... 94%Reading package lists... 94%Reading package lists... 99%Reading package lists... 99%Reading package lists... 99%Reading package lists... 99%Reading package lists... 99%Reading package lists... Done
+Building dependency tree... 0%Building dependency tree... 0%Building dependency tree... 50%Building dependency tree... 50%Building dependency tree... 83%Building dependency tree... Done
+Reading state information... 0% Reading state information... 4%Reading state information... Done
+Suggested packages:
+  ncbi-epcr
+The following NEW packages will be installed:
+  primer3
+0 upgraded, 1 newly installed, 0 to remove and 31 not upgraded.
+Need to get 221 kB of archives.
+After this operation, 793 kB of additional disk space will be used.
+0% [Working]            Get:1 http://archive.ubuntu.com/ubuntu noble/universe amd64 primer3 amd64 2.6.1-4 [221 kB]
+5% [1 primer3 13.9 kB/221 kB 6%]                                100% [Working]              Fetched 221 kB in 0s (613 kB/s)
+debconf: delaying package configuration, since apt-utils is not installed
+Selecting previously unselected package primer3.
+(Reading database ... (Reading database ... 5%(Reading database ... 10%(Reading database ... 15%(Reading database ... 20%(Reading database ... 25%(Reading database ... 30%(Reading database ... 35%(Reading database ... 40%(Reading database ... 45%(Reading database ... 50%(Reading database ... 55%(Reading database ... 60%(Reading database ... 65%(Reading database ... 70%(Reading database ... 75%(Reading database ... 80%(Reading database ... 85%(Reading database ... 90%(Reading database ... 95%(Reading database ... 100%(Reading database ... 6312 files and directories currently installed.)
+Preparing to unpack .../primer3_2.6.1-4_amd64.deb ...
+Unpacking primer3 (2.6.1-4) ...
+Setting up primer3 (2.6.1-4) ...
+[?2004hroot@dd93376d410c:/app# which oligotm && oligotm 2>&1 | head -20
+[?2004l/usr/bin/oligotm
+USAGE: oligotm OPTIONS oligo
+
+where oligo is a DNA sequence of between 2 and 36 bases
+
+and
+
+OPTIONS can include any of the the following:
+
+-mv monovalent_conc - concentration of monovalent cations in mM, by default 50mM
+
+-dv divalent_conc   - concentration of divalent cations in mM, by default 1.5mM
+
+-n  dNTP_conc       - concentration of deoxynycleotide triphosphate in mM, by default 0.6mM
+
+-d  dna_conc        - concentration of DNA strands in nM, by default 50nM
+
+-dm dmso_conc       - concentration of DMSO in %, by default 0
+
+-df dmso_factor     - correction factor for DMSO, by default 0.6
+
+[?2004hroot@dd93376d410c:/app# python3 - <<'PY'
+[?2004l[?2004h> from pathlib import Path
+[?2004l[?2004h> import subprocess
+[?2004l[?2004h> 
+[?2004l[?2004h> records=[]
+[?2004l[?2004h> header=None; seq=[]
+[?2004l[?2004h> for line in Path('sequences.fasta').read_text().splitlines():
+[?2004l[?2004h>     if line.startswith('>'):
+[?2004l[?2004h>         if header is not None: records.append((header,''.join(seq)))
+[?2004l[?2004h>         header=line[1:].strip(); seq=[]
+[?2004l[?2004h>     else: seq.append(line.strip())
+[?2004l[?2004h> if header is not None: records.append((header,''.join(seq)))
+[?2004l[?2004h> inp=[s for h,s in records if h.lower().startswith('input')][0].upper()
+[?2004l[?2004h> 
+[?2004l[?2004h> ins='AGTAGATTAGAAGAAGAATTAAGAAGAAGATTAACAGAA'
+[?2004l[?2004h> # Insertion after input index 212 (0-based), i.e. between inp[212] and inp[213]
+[?2004l[?2004h> # Upstream annealing region ends at index 212; downstream annealing starts at index 213.
+[?2004l[?2004h> def oligotm(seq):
+[?2004l[?2004h>     cmd=['oligotm','-tp','1','-sc','1','-mv','50','-dv','2','-n','0.8','-d','500']
+[?2004l[?2004h>     res=subprocess.run(cmd, input=seq, capture_output=True, text=True, check=True)
+[?2004l[?2004h>     return float(res.stdout.strip())
+[?2004l[?2004h> 
+[?2004l[?2004h> candidates=[]
+[?2004l[?2004h> # reverse primer anneals upstream of insertion, on bottom strand; annealing region is reverse complement of inp[end-L:end]
+[?2004l[?2004h> for L in range(15,46):
+[?2004l[?2004h>     start=213-L
+[?2004l[?2004h>     end=213
+[?2004l[?2004h>     anneal=inp[start:end]
+[?2004l[?2004h>     tm=oligotm(anneal)
+[?2004l[?2004h>     if 58<=tm<=72:
+[?2004l[?2004h>         candidates.append(('R', L, anneal, tm))
+[?2004l[?2004h> print('Reverse candidates:')
+[?2004l[?2004h> for c in candidates:
+[?2004l[?2004h>     print(c[0], c[1], c[3], c[2])
+[?2004l[?2004h> 
+[?2004l[?2004h> # forward primer: 5' non-annealing tail = insertion, annealing region downstream inp[213:213+L]
+[?2004l[?2004h> fcandidates=[]
+[?2004l[?2004h> for L in range(15,46):
+[?2004l[?2004h>     start=213
+[?2004l[?2004h>     end=213+L
+[?2004l[?2004h>     anneal=inp[start:end]
+[?2004l[?2004h>     tm=oligotm(anneal)
+[?2004l[?2004h>     if 58<=tm<=72:
+[?2004l[?2004h>         fcandidates.append(('F', L, anneal, tm))
+[?2004l[?2004h> print('Forward candidates:')
+[?2004l[?2004h> for c in fcandidates:
+[?2004l[?2004h>     print(c[0], c[1], c[3], c[2])
+[?2004l[?2004h> 
+[?2004l[?2004h> # select pair with Tm within 5, prefer balanced and around 65
+[?2004l[?2004h> best=None
+[?2004l[?2004h> for r in candidates:
+[?2004l[?2004h>     for f in fcandidates:
+[?2004l[?2004h>         if abs(r[3]-f[3])<=5:
+[?2004l[?2004h>             score=abs(r[3]-f[3]) + abs((r[3]+f[3])/2-65)
+[?2004l[?2004h>             if best is None or score<best[0]:
+[?2004l[?2004h>                 best=(score, r, f)
+[?2004l[?2004h> if not best:
+[?2004l[?2004h>     raise SystemExit('no valid pair')
+[?2004l[?2004h> _, r, f = best
+[?2004l[?2004h> # reverse primer sequence is reverse complement of upstream annealing region
+[?2004l[?2004h> revcomp=''.join({'A':'T','C':'G','G':'C','T':'A'}[b] for b in r[2][::-1])
+[?2004l[?2004h> # forward primer sequence is insertion tail + downstream annealing region
+[?2004l[?2004h> fwd=ins + f[2]
+[?2004l[?2004h> print('selected reverse anneal', r[1], r[3], r[2])
+[?2004l[?2004h> print('selected forward anneal', f[1], f[3], f[2])
+[?2004l[?2004h> print('reverse primer', revcomp, 'tm', r[3])
+[?2004l[?2004h> print('forward primer', fwd, 'anneal tm', f[3])
+[?2004l[?2004h> print('tm diff', abs(r[3]-f[3]))
+[?2004l[?2004h> Path('primers.fasta').write_text(f'>forward_primer\n{fwd}\n>reverse_primer\n{revcomp}\n')
+[?2004l[?2004h> print('wrote primers.fasta')
+[?2004l[?2004h> PY
+[?2004lTraceback (most recent call last):
+  File "<stdin>", line 28, in <module>
+  File "<stdin>", line 19, in oligotm
+  File "/usr/lib/python3.12/subprocess.py", line 571, in run
+    raise CalledProcessError(retcode, process.args,
+subprocess.CalledProcessError: Command '['oligotm', '-tp', '1', '-sc', '1', '-mv', '50', '-dv', '2', '-n', '0.8', '-d', '500']' returned non-zero exit status 255.
+[?2004hroot@dd93376d410c:/app# python3 - <<'PY'
+[?2004l[?2004h> from pathlib import Path
+[?2004l[?2004h> import subprocess
+[?2004l[?2004h> 
+[?2004l[?2004h> records=[]
+[?2004l[?2004h> header=None; seq=[]
+[?2004l[?2004h> for line in Path('sequences.fasta').read_text().splitlines():
+[?2004l[?2004h>     if line.startswith('>'):
+[?2004l[?2004h>         if header is not None: records.append((header,''.join(seq)))
+[?2004l[?2004h>         header=line[1:].strip(); seq=[]
+[?2004l[?2004h>     else: seq.append(line.strip())
+[?2004l[?2004h> if header is not None: records.append((header,''.join(seq)))
+[?2004l[?2004h> inp=[s for h,s in records if h.lower().startswith('input')][0].upper()
+[?2004l[?2004h> 
+[?2004l[?2004h> ins='AGTAGATTAGAAGAAGAATTAAGAAGAAGATTAACAGAA'
+[?2004l[?2004h> 
+[?2004l[?2004h> def oligotm(seq):
+[?2004l[?2004h>     cmd=['oligotm','-tp','1','-sc','1','-mv','50','-dv','2','-n','0.8','-d','500',seq]
+[?2004l[?2004h>     res=subprocess.run(cmd, capture_output=True, text=True)
+[?2004l[?2004h>     if res.returncode != 0:
+[?2004l[?2004h>         raise RuntimeError(f'oligotm failed for {seq}: {res.stderr or res.stdout}')
+[?2004l[?2004h>     return float(res.stdout.strip())
+[?2004l[?2004h> 
+[?2004l[?2004h> # test oligotm behavior for lengths
+[?2004l[?2004h> for L in [15,20,30,36,37,45]:
+[?2004l[?2004h>     s=inp[213:213+L]
+[?2004l[?2004h>     try:
+[?2004l[?2004h>         print('len',L,'tm',oligotm(s))
+[?2004l[?2004h>     except Exception as e:
+[?2004l[?2004h>         print('len',L,'ERR',str(e)[:80])
+[?2004l[?2004h> 
+[?2004l[?2004h> candidates=[]
+[?2004l[?2004h> for L in range(15,37):
+[?2004l[?2004h>     anneal=inp[213-L:213]
+[?2004l[?2004h>     try:
+[?2004l[?2004h>         tm=oligotm(anneal)
+[?2004l[?2004h>     except Exception:
+[?2004l[?2004h>         continue
+[?2004l[?2004h>     if 58<=tm<=72:
+[?2004l[?2004h>         candidates.append(('R',L,anneal,tm))
+[?2004l[?2004h> print('Reverse candidates:')
+[?2004l[?2004h> for c in candidates:
+[?2004l[?2004h>     print(c[0],c[1],c[3],c[2])
+[?2004l[?2004h> 
+[?2004l[?2004h> fcandidates=[]
+[?2004l[?2004h> for L in range(15,37):
+[?2004l[?2004h>     anneal=inp[213:213+L]
+[?2004l[?2004h>     try:
+[?2004l[?2004h>         tm=oligotm(anneal)
+[?2004l[?2004h>     except Exception:
+[?2004l[?2004h>         continue
+[?2004l[?2004h>     if 58<=tm<=72:
+[?2004l[?2004h>         fcandidates.append(('F',L,anneal,tm))
+[?2004l[?2004h> print('Forward candidates:')
+[?2004l[?2004h> for c in fcandidates:
+[?2004l[?2004h>     print(c[0],c[1],c[3],c[2])
+[?2004l[?2004h> 
+[?2004l[?2004h> best=None
+[?2004l[?2004h> for r in candidates:
+[?2004l[?2004h>     for f in fcandidates:
+[?2004l[?2004h>         if abs(r[3]-f[3])<=5:
+[?2004l[?2004h>             score=abs(r[3]-f[3]) + abs((r[3]+f[3])/2-65)
+[?2004l[?2004h>             if best is None or score<best[0]:
+[?2004l[?2004h>                 best=(score,r,f)
+[?2004l[?2004h> if not best:
+[?2004l[?2004h>     raise SystemExit('no valid pair')
+[?2004l[?2004h> _,r,f=best
+[?2004l[?2004h> revcomp=''.join({'A':'T','C':'G','G':'C','T':'A'}[b] for b in r[2][::-1])
+[?2004l[?2004h> fwd=ins + f[2]
+[?2004l[?2004h> print('selected reverse anneal', r[1], r[3], r[2])
+[?2004l[?2004h> print('selected forward anneal', f[1], f[3], f[2])
+[?2004l[?2004h> print('reverse primer', revcomp, 'tm', r[3])
+[?2004l[?2004h> print('forward primer', fwd, 'anneal tm', f[3])
+[?2004l[?2004h> print('tm diff', abs(r[3]-f[3]))
+[?2004l[?2004h> Path('primers.fasta').write_text(f'>pair1_forward_primer\n{fwd}\n>pair1_reverse_primer\n{revcomp}\n')
+[?2004l[?2004h> print('wrote primers.fasta')
+[?2004l[?2004h> PY
+[?2004llen 15 tm 59.535508
+len 20 tm 68.194043
+len 30 tm 79.041448
+len 36 tm 83.746924
+len 37 tm 84.267751
+len 45 tm 85.468721
+Reverse candidates:
+R 30 58.082753 GTTTAACTTTAAGAAGGAGATATACATATG
+R 31 59.311917 TGTTTAACTTTAAGAAGGAGATATACATATG
+R 32 59.742459 TTGTTTAACTTTAAGAAGGAGATATACATATG
+R 33 60.146585 TTTGTTTAACTTTAAGAAGGAGATATACATATG
+R 34 60.526651 TTTTGTTTAACTTTAAGAAGGAGATATACATATG
+R 35 60.759434 ATTTTGTTTAACTTTAAGAAGGAGATATACATATG
+R 36 61.101686 AATTTTGTTTAACTTTAAGAAGGAGATATACATATG
+Forward candidates:
+F 15 59.535508 AGCAAGGGCGAGGAG
+F 16 63.484852 AGCAAGGGCGAGGAGC
+F 17 65.140238 AGCAAGGGCGAGGAGCT
+F 18 66.274364 AGCAAGGGCGAGGAGCTG
+F 19 67.945836 AGCAAGGGCGAGGAGCTGT
+F 20 68.194043 AGCAAGGGCGAGGAGCTGTT
+F 21 68.712785 AGCAAGGGCGAGGAGCTGTTC
+F 22 70.071857 AGCAAGGGCGAGGAGCTGTTCA
+F 23 70.687175 AGCAAGGGCGAGGAGCTGTTCAC
+selected reverse anneal 36 61.101686 AATTTTGTTTAACTTTAAGAAGGAGATATACATATG
+selected forward anneal 16 63.484852 AGCAAGGGCGAGGAGC
+reverse primer CATATGTATATCTCCTTCTTAAAGTTAAACAAAATT tm 61.101686
+forward primer AGTAGATTAGAAGAAGAATTAAGAAGAAGATTAACAGAAAGCAAGGGCGAGGAGC anneal tm 63.484852
+tm diff 2.3831659999999957
+wrote primers.fasta
+[?2004hroot@dd93376d410c:/app# 
+[?2004l[?2004hroot@dd93376d410c:/app# cat primers.fasta
+[?2004l>pair1_forward_primer
+AGTAGATTAGAAGAAGAATTAAGAAGAAGATTAACAGAAAGCAAGGGCGAGGAGC
+>pair1_reverse_primer
+CATATGTATATCTCCTTCTTAAAGTTAAACAAAATT
+[?2004hroot@dd93376d410c:/app# python3 - <<'PY'
+[?2004l[?2004h> from pathlib import Path
+[?2004l[?2004h> import subprocess
+[?2004l[?2004h> 
+[?2004l[?2004h> # parse input/output
+[?2004l[?2004h> recs=[]
+[?2004l[?2004h> h=None; s=[]
+[?2004l[?2004h> for line in Path('sequences.fasta').read_text().splitlines():
+[?2004l[?2004h>     if line.startswith('>'):
+[?2004l[?2004h>         if h is not None: recs.append((h,''.join(s)))
+[?2004l[?2004h>         h=line[1:].strip(); s=[]
+[?2004l[?2004h>     else: s.append(line.strip())
+[?2004l[?2004h> if h is not None: recs.append((h,''.join(s)))
+[?2004l[?2004h> inp=[seq for name,seq in recs if name.lower().startswith('input')][0].upper()
+[?2004l[?2004h> out=[seq for name,seq in recs if name.lower().startswith('output')][0].upper()
+[?2004l[?2004h> 
+[?2004l[?2004h> # parse primers
+[?2004l[?2004h> precs=[]
+[?2004l[?2004h> h=None; s=[]
+[?2004l[?2004h> for line in Path('primers.fasta').read_text().splitlines():
+[?2004l[?2004h>     if line.startswith('>'):
+[?2004l[?2004h>         if h is not None: precs.append((h,''.join(s)))
+[?2004l[?2004h>         h=line[1:].strip(); s=[]
+[?2004l[?2004h>     else: s.append(line.strip())
+[?2004l[?2004h> if h is not None: precs.append((h,''.join(s)))
+[?2004l[?2004h> fwd=[seq for name,seq in precs if 'forward' in name.lower()][0].upper()
+[?2004l[?2004h> rev=[seq for name,seq in precs if 'reverse' in name.lower()][0].upper()
+[?2004l[?2004h> print('primers:', len(precs))
+[?2004l[?2004h> for name,seq in precs:
+[?2004l[?2004h>     print(name, len(seq), seq)
+[?2004l[?2004h> 
+[?2004l[?2004h> ins='AGTAGATTAGAAGAAGAATTAAGAAGAAGATTAACAGAA'
+[?2004l[?2004h> # known design: forward = ins + inp[213:213+16]; reverse = revcomp(inp[213-36:213])
+[?2004l[?2004h> fwd_anneal=fwd[len(ins):]
+[?2004l[?2004h> rev_anneal=''.join({'A':'T','C':'G','G':'C','T':'A'}[b] for b in rev[::-1])
+[?2004l[?2004h> 
+[?2004l[?2004h> def tm(seq):
+[?2004l[?2004h>     r=subprocess.run(['oligotm','-tp','1','-sc','1','-mv','50','-dv','2','-n','0.8','-d','500',seq],capture_output=True,text=True)
+[?2004l[?2004h>     if r.returncode:
+[?2004l[?2004h>         raise RuntimeError(r.stderr or r.stdout)
+[?2004l[?2004h>     return float(r.stdout.strip())
+[?2004l[?2004h> 
+[?2004l[?2004h> print('forward anneal', len(fwd_anneal), fwd_anneal, 'tm', tm(fwd_anneal))
+[?2004l[?2004h> print('reverse anneal', len(rev_anneal), rev_anneal, 'tm', tm(rev_anneal))
+[?2004l[?2004h> ftm=tm(fwd_anneal); rtm=tm(rev_anneal)
+[?2004l[?2004h> assert 15<=len(fwd_anneal)<=45
+[?2004l[?2004h> assert 15<=len(rev_anneal)<=45
+[?2004l[?2004h> assert 58<=ftm<=72
+[?2004l[?2004h> assert 58<=rtm<=72
+[?2004l[?2004h> assert abs(ftm-rtm)<=5
+[?2004l[?2004h> assert inp[213:213+len(fwd_anneal)]==fwd_anneal
+[?2004l[?2004h> assert inp[213-len(rev_anneal):213]==rev_anneal
+[?2004l[?2004h> # simulate circular product: upstream end + insertion + downstream start
+[?2004l[?2004h> product=inp[:213]+ins+inp[213:]
+[?2004l[?2004h> assert product==out
+[?2004l[?2004h> print('validation passed')
+[?2004l[?2004h> print('tm diff', abs(ftm-rtm))
+[?2004l[?2004h> PY
+[?2004lprimers: 2
+pair1_forward_primer 55 AGTAGATTAGAAGAAGAATTAAGAAGAAGATTAACAGAAAGCAAGGGCGAGGAGC
+pair1_reverse_primer 36 CATATGTATATCTCCTTCTTAAAGTTAAACAAAATT
+forward anneal 16 AGCAAGGGCGAGGAGC tm 63.484852
+reverse anneal 36 AATTTTGTTTAACTTTAAGAAGGAGATATACATATG tm 61.101686
+validation passed
+tm diff 2.3831659999999957
+[?2004hroot@dd93376d410c:/app# 

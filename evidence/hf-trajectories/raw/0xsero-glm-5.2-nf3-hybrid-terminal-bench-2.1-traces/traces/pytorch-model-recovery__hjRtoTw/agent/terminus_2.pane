@@ -1,0 +1,467 @@
+[?2004hroot@c0addc5ce529:/app# asciinema rec --stdin /logs/agent/recording.cast
+[?2004l[0;32masciinema: recording asciicast to /logs/agent/recording.cast[0m
+[0;32masciinema: press <ctrl-d> or type "exit" when you're done[0m
+[?2004hroot@c0addc5ce529:/app# clear
+[?2004l[H[J[3J[?2004hroot@c0addc5ce529:/app# python3 - <<'PY'
+[?2004l[?2004h> import torch, os
+[?2004l[?2004h> print('files:', os.listdir('/app'))
+[?2004l[?2004h> print('\n=== weights.pt ===')
+[?2004l[?2004h> try:
+[?2004l[?2004h>     w = torch.load('/app/weights.pt', map_location='cpu')
+[?2004l[?2004h>     print(type(w))
+[?2004l[?2004h>     if isinstance(w, dict):
+[?2004l[?2004h>         for k,v in w.items():
+[?2004l[?2004h>             if hasattr(v,'shape'):
+[?2004l[?2004h>                 print(k, tuple(v.shape), v.dtype, v.min().item() if v.numel()>0 else None, v.max().item() if v.numel()>0 else None)
+[?2004l[?2004h>             else:
+[?2004l[?2004h>                 print(k, type(v), v)
+[?2004l[?2004h> except Exception as e:
+[?2004l[?2004h>     print('ERR weights', repr(e))
+[?2004l[?2004h> print('\n=== dataset.pt ===')
+[?2004l[?2004h> try:
+[?2004l[?2004h>     d = torch.load('/app/dataset.pt', map_location='cpu')
+[?2004l[?2004h>     print(type(d))
+[?2004l[?2004h>     if isinstance(d, dict):
+[?2004l[?2004h>         for k,v in d.items():
+[?2004l[?2004h>             if hasattr(v,'shape'):
+[?2004l[?2004h>                 print(k, tuple(v.shape), v.dtype, v.min().item() if v.numel()>0 else None, v.max().item() if v.numel()>0 else None)
+[?2004l[?2004h>             else:
+[?2004l[?2004h>                 print(k, type(v), v)
+[?2004l[?2004h>     elif isinstance(d,(list,tuple)):
+[?2004l[?2004h>         print('len', len(d))
+[?2004l[?2004h>         for i,x in enumerate(d[:5]):
+[?2004l[?2004h>             print(i, type(x), x.shape if hasattr(x,'shape') else x)
+[?2004l[?2004h> except Exception as e:
+[?2004l[?2004h>     print('ERR dataset', repr(e))
+[?2004l[?2004h> PY
+[?2004l/usr/local/lib/python3.13/site-packages/torch/_subclasses/functional_tensor.py:276: UserWarning: Failed to initialize NumPy: No module named 'numpy' (Triggered internally at /pytorch/torch/csrc/utils/tensor_numpy.cpp:81.)
+  cpu = _conversion_method_template(device=torch.device("cpu"))
+files: ['dataset.pt', 'weights.pt']
+
+=== weights.pt ===
+<class 'collections.OrderedDict'>
+embedding.weight (128, 64) torch.float32 -0.1249782145023346 0.12496709823608398
+embedding.bias (128,) torch.float32 -0.12489227950572968 0.12138769030570984
+pos_encoder.pe (1, 5000, 128) torch.float32 -1.0 1.0
+transformer_encoder.layers.0.self_attn.in_proj_weight (384, 128) torch.float32 -0.10825197398662567 0.10825113207101822
+transformer_encoder.layers.0.self_attn.in_proj_bias (384,) torch.float32 0.0 0.0
+transformer_encoder.layers.0.self_attn.out_proj.weight (128, 128) torch.float32 -0.0883878543972969 0.08837126940488815
+transformer_encoder.layers.0.self_attn.out_proj.bias (128,) torch.float32 0.0 0.0
+transformer_encoder.layers.0.linear1.weight (256, 128) torch.float32 -0.08837995678186417 0.08838650584220886
+transformer_encoder.layers.0.linear1.bias (256,) torch.float32 -0.08733794838190079 0.08812636137008667
+transformer_encoder.layers.0.linear2.weight (128, 256) torch.float32 -0.06249849498271942 0.06249188631772995
+transformer_encoder.layers.0.linear2.bias (128,) torch.float32 -0.06014628708362579 0.062188684940338135
+transformer_encoder.layers.0.norm1.weight (128,) torch.float32 1.0 1.0
+transformer_encoder.layers.0.norm1.bias (128,) torch.float32 0.0 0.0
+transformer_encoder.layers.0.norm2.weight (128,) torch.float32 1.0 1.0
+transformer_encoder.layers.0.norm2.bias (128,) torch.float32 0.0 0.0
+transformer_encoder.layers.1.self_attn.in_proj_weight (384, 128) torch.float32 -0.10825197398662567 0.10825113207101822
+transformer_encoder.layers.1.self_attn.in_proj_bias (384,) torch.float32 0.0 0.0
+transformer_encoder.layers.1.self_attn.out_proj.weight (128, 128) torch.float32 -0.0883878543972969 0.08837126940488815
+transformer_encoder.layers.1.self_attn.out_proj.bias (128,) torch.float32 0.0 0.0
+transformer_encoder.layers.1.linear1.weight (256, 128) torch.float32 -0.08837995678186417 0.08838650584220886
+transformer_encoder.layers.1.linear1.bias (256,) torch.float32 -0.08733794838190079 0.08812636137008667
+transformer_encoder.layers.1.linear2.weight (128, 256) torch.float32 -0.06249849498271942 0.06249188631772995
+transformer_encoder.layers.1.linear2.bias (128,) torch.float32 -0.06014628708362579 0.062188684940338135
+transformer_encoder.layers.1.norm1.weight (128,) torch.float32 1.0 1.0
+transformer_encoder.layers.1.norm1.bias (128,) torch.float32 0.0 0.0
+transformer_encoder.layers.1.norm2.weight (128,) torch.float32 1.0 1.0
+transformer_encoder.layers.1.norm2.bias (128,) torch.float32 0.0 0.0
+transformer_encoder.layers.2.self_attn.in_proj_weight (384, 128) torch.float32 -0.10825197398662567 0.10825113207101822
+transformer_encoder.layers.2.self_attn.in_proj_bias (384,) torch.float32 0.0 0.0
+transformer_encoder.layers.2.self_attn.out_proj.weight (128, 128) torch.float32 -0.0883878543972969 0.08837126940488815
+transformer_encoder.layers.2.self_attn.out_proj.bias (128,) torch.float32 0.0 0.0
+transformer_encoder.layers.2.linear1.weight (256, 128) torch.float32 -0.08837995678186417 0.08838650584220886
+transformer_encoder.layers.2.linear1.bias (256,) torch.float32 -0.08733794838190079 0.08812636137008667
+transformer_encoder.layers.2.linear2.weight (128, 256) torch.float32 -0.06249849498271942 0.06249188631772995
+transformer_encoder.layers.2.linear2.bias (128,) torch.float32 -0.06014628708362579 0.062188684940338135
+transformer_encoder.layers.2.norm1.weight (128,) torch.float32 1.0 1.0
+transformer_encoder.layers.2.norm1.bias (128,) torch.float32 0.0 0.0
+transformer_encoder.layers.2.norm2.weight (128,) torch.float32 1.0 1.0
+transformer_encoder.layers.2.norm2.bias (128,) torch.float32 0.0 0.0
+transformer_decoder.layers.0.self_attn.in_proj_weight (384, 128) torch.float32 -0.1082509309053421 0.10823731124401093
+transformer_decoder.layers.0.self_attn.in_proj_bias (384,) torch.float32 0.0 0.0
+transformer_decoder.layers.0.self_attn.out_proj.weight (128, 128) torch.float32 -0.08837824314832687 0.0883704349398613
+transformer_decoder.layers.0.self_attn.out_proj.bias (128,) torch.float32 0.0 0.0
+transformer_decoder.layers.0.multihead_attn.in_proj_weight (384, 128) torch.float32 -0.10825257748365402 0.10824915021657944
+transformer_decoder.layers.0.multihead_attn.in_proj_bias (384,) torch.float32 0.0 0.0
+transformer_decoder.layers.0.multihead_attn.out_proj.weight (128, 128) torch.float32 -0.08838675171136856 0.08836768567562103
+transformer_decoder.layers.0.multihead_attn.out_proj.bias (128,) torch.float32 0.0 0.0
+transformer_decoder.layers.0.linear1.weight (256, 128) torch.float32 -0.08837806433439255 0.08838328719139099
+transformer_decoder.layers.0.linear1.bias (256,) torch.float32 -0.08575119823217392 0.0880318135023117
+transformer_decoder.layers.0.linear2.weight (128, 256) torch.float32 -0.062493696808815 0.06249867379665375
+transformer_decoder.layers.0.linear2.bias (128,) torch.float32 -0.061975009739398956 0.06235014647245407
+transformer_decoder.layers.0.norm1.weight (128,) torch.float32 1.0 1.0
+transformer_decoder.layers.0.norm1.bias (128,) torch.float32 0.0 0.0
+transformer_decoder.layers.0.norm2.weight (128,) torch.float32 1.0 1.0
+transformer_decoder.layers.0.norm2.bias (128,) torch.float32 0.0 0.0
+transformer_decoder.layers.0.norm3.weight (128,) torch.float32 1.0 1.0
+transformer_decoder.layers.0.norm3.bias (128,) torch.float32 0.0 0.0
+output_layer.weight (64, 128) torch.float32 -0.08837893605232239 0.08837991952896118
+output_layer.bias (64,) torch.float32 -0.08837573230266571 0.08650398999452591
+
+=== dataset.pt ===
+<class 'dict'>
+src_sequences (20, 20, 64) torch.float32 -4.449373245239258 3.9585869312286377
+tgt_sequences (20, 20, 64) torch.float32 -4.6240925788879395 4.286369323730469
+[?2004hroot@c0addc5ce529:/app# python3 - <<'PY'
+[?2004l[?2004h> import torch, math, torch.nn as nn
+[?2004lcoderLayer(128, nhead, 256, batch_first=True)
+        self.transformer_decoder = nn.TransformerDecoder(layer_d, 1)
+        self.output_layer = nn.Linear(128,64)
+        self.mask = mask
+    def enc(self, src):
+        return self.transformer_encoder(self.pos_encoder(self.embedding(src)))
+    def dec(self, tgt, memory):
+        tgt_emb = self.pos_encoder(self.embedding(tgt))
+        tgt_mask = None
+        if self.mask:
+            i = torch.arange(tgt.size(1))
+            tgt_mask = torch.triu(torch.full((tgt.size(1), tgt.size(1)), float('-inf')), diagonal=1)
+        return self.transformer_decoder(tgt_emb, memory, tgt_mask=tgt_mask)
+    def forward(self, src, tgt):
+        return self.output_layer(self.dec(tgt, self.enc(src)))
+
+w = torch.load('/app/weights.pt', map_location='cpu')
+d = torch.load('/app/dataset.pt', map_location='cpu')
+src, tgt = d['src_sequences'], d['tgt_sequences']
+
+for mask in [False, True]:
+    m = Model(nhead=8, mask=mask)
+    missing, unexpected = m.load_state_dict(w, strict=False)
+    print('mask', mask, 'missing', missing, 'unexpected', unexpected)
+    m.eval()
+    with torch.no_grad():
+        out = m(src, tgt)
+        loss = F.mse_loss(out, tgt)
+        feat = m.dec(tgt, m.enc(src))
+        X = feat.reshape(-1,128).double()
+        Y = tgt.reshape(-1,64).double()
+        Xb = torch.cat([X, torch.ones(X.size(0),1, dtype=torch.double)], dim=1)
+        sol = torch.linalg.lstsq(Xb, Y).solution
+        W = sol[:-1].T.float()
+        b = sol[-1].float()
+        out2 = (X @ sol[:-1] + sol[-1]).float().reshape(20,20,64)
+        loss2 = F.mse_loss(out2, tgt)
+        print('orig', loss.item(), 'new', loss2.item())
+
+# shifted tgt input variant
+for mask in [False, True]:
+    m = Model(nhead=8, mask=mask)
+    m.load_state_dict(w, strict=True)
+    m.eval()
+    tgt_in = torch.cat([torch.zeros(20,1,64), tgt[:, :-1, :]], dim=1)
+    with torch.no_grad():
+        out = m(src, tgt_in)
+        loss = F.mse_loss(out, tgt)
+        feat = m.dec(tgt_in, m.enc(src))
+        X = feat.reshape(-1,128).double()
+    [?2004h> from torch.nn import functional as F
+[?2004l[?2004h> 
+[?2004l[?2004h> class PositionalEncoding(nn.Module):
+[?2004l[?2004h>     def __init__(self, d_model=128, max_len=5000):
+[?2004l[?2004h>         super().__init__()
+[?2004l[?2004h>         position = torch.arange(max_len).unsqueeze(1).float()
+[?2004l[?2004h>         div_term = torch.exp(torch.arange(0, d_model, 2).float() * (-math.log(10000.0) / d_model))
+[?2004l[?2004h>         pe = torch.zeros(max_len, d_model)
+[?2004l[?2004h>         pe[:, 0::2] = torch.sin(position * div_term)
+[?2004l[?2004h>         pe[:, 1::2] = torch.cos(position * div_term)
+[?2004l[?2004h>         pe = pe.unsqueeze(0)
+[?2004l[?2004h>         self.register_buffer('pe', pe)
+[?2004l[?2004h>     def forward(self, x):
+[?2004l[?2004h>         return x + self.pe[:, :x.size(1)]
+[?2004l[?2004h> 
+[?2004l[?2004h> class Model(nn.Module):
+[?2004l[?2004h>     def __init__(self, nhead=8, mask=True):
+[?2004l[?2004h>         super().__init__()
+[?2004l[?2004h>         self.embedding = nn.Linear(64,128)
+[?2004l[?2004h>         self.pos_encoder = PositionalEncoding(128)
+[?2004l[?2004h>         layer_e = nn.TransformerEncoderLayer(128, nhead, 256, batch_first=True)
+[?2004l[?2004h>         self.transformer_encoder = nn.TransformerEncoder(layer_e, 3)
+[?2004l[?2004h>         layer_d = nn.TransformerDecoderLayer(128, nhead, 256, batch_first=True)
+[?2004l[?2004h>         self.transformer_decoder = nn.TransformerDecoder(layer_d, 1)
+[?2004l[?2004h>         self.output_layer = nn.Linear(128,64)
+[?2004l[?2004h>         self.mask = mask
+[?2004l[?2004h>     def enc(self, src):
+[?2004l[?2004h>         return self.transformer_encoder(self.pos_encoder(self.embedding(src)))
+[?2004l[?2004h>     def dec(self, tgt, memory):
+[?2004l[?2004h>         tgt_emb = self.pos_encoder(self.embedding(tgt))
+[?2004l[?2004h>         tgt_mask = None
+[?2004l[?2004h>         if self.mask:
+[?2004l[?2004h>             i = torch.arange(tgt.size(1))
+[?2004l[?2004h>             tgt_mask = torch.triu(torch.full((tgt.size(1), tgt.size(1)), float('-inf')), diagonal=1)
+[?2004l[?2004h>         return self.transformer_decoder(tgt_emb, memory, tgt_mask=tgt_mask)
+[?2004l[?2004h>     def forward(self, src, tgt):
+[?2004l[?2004h>         return self.output_layer(self.dec(tgt, self.enc(src)))
+[?2004l[?2004h> 
+[?2004l[?2004h> w = torch.load('/app/weights.pt', map_location='cpu')
+[?2004l[?2004h> d = torch.load('/app/dataset.pt', map_location='cpu')
+[?2004l[?2004h> src, tgt = d['src_sequences'], d['tgt_sequences']
+[?2004l[?2004h> 
+[?2004l[?2004h> for mask in [False, True]:
+[?2004l[?2004h>     m = Model(nhead=8, mask=mask)
+[?2004l[?2004h>     missing, unexpected = m.load_state_dict(w, strict=False)
+[?2004l[?2004h>     print('mask', mask, 'missing', missing, 'unexpected', unexpected)
+[?2004l[?2004h>     m.eval()
+[?2004l[?2004h>     with torch.no_grad():
+[?2004l[?2004h>         out = m(src, tgt)
+[?2004l[?2004h>         loss = F.mse_loss(out, tgt)
+[?2004l[?2004h>         feat = m.dec(tgt, m.enc(src))
+[?2004l[?2004h>         X = feat.reshape(-1,128).double()
+[?2004l[?2004h>         Y = tgt.reshape(-1,64).double()
+[?2004l[?2004h>         Xb = torch.cat([X, torch.ones(X.size(0),1, dtype=torch.double)], dim=1)
+[?2004l[?2004h>         sol = torch.linalg.lstsq(Xb, Y).solution
+[?2004l[?2004h>         W = sol[:-1].T.float()
+[?2004l[?2004h>         b = sol[-1].float()
+[?2004l[?2004h>         out2 = (X @ sol[:-1] + sol[-1]).float().reshape(20,20,64)
+[?2004l[?2004h>         loss2 = F.mse_loss(out2, tgt)
+[?2004l[?2004h>         print('orig', loss.item(), 'new', loss2.item())
+[?2004l[?2004h> 
+[?2004l[?2004h> # shifted tgt input variant
+[?2004l[?2004h> for mask in [False, True]:
+[?2004l[?2004h>     m = Model(nhead=8, mask=mask)
+[?2004l[?2004h>     m.load_state_dict(w, strict=True)
+[?2004l[?2004h>     m.eval()
+[?2004l[?2004h>     tgt_in = torch.cat([torch.zeros(20,1,64), tgt[:, :-1, :]], dim=1)
+[?2004l[?2004h>     with torch.no_grad():
+[?2004l[?2004h>         out = m(src, tgt_in)
+[?2004l[?2004h>         loss = F.mse_loss(out, tgt)
+[?2004l[?2004h>         feat = m.dec(tgt_in, m.enc(src))
+[?2004l[?2004h>         X = feat.reshape(-1,128).double()
+[?2004l[?2004h>         Y = tgt.reshape(-1,64).double()
+[?2004l[?2004h>         Xb = torch.cat([X, torch.ones(X.size(0),1, dtype=torch.double)], dim=1)
+[?2004l[?2004h>         sol = torch.linalg.lstsq(Xb, Y).solution
+[?2004l[?2004h>         out2 = (X @ sol[:-1] + sol[-1]).float().reshape(20,20,64)
+[?2004l[?2004h>         loss2 = F.mse_loss(out2, tgt)
+[?2004l[?2004h>         print('shift mask', mask, 'orig', loss.item(), 'new', loss2.item())
+[?2004l[?2004h> PY
+[?2004l/usr/local/lib/python3.13/site-packages/torch/_subclasses/functional_tensor.py:276: UserWarning: Failed to initialize NumPy: No module named 'numpy' (Triggered internally at /pytorch/torch/csrc/utils/tensor_numpy.cpp:81.)
+  cpu = _conversion_method_template(device=torch.device("cpu"))
+mask False missing [] unexpected []
+orig 1.5510307550430298 new 0.01616610400378704
+mask True missing [] unexpected []
+orig 1.5506080389022827 new 0.021771006286144257
+shift mask False orig 1.5537910461425781 new 0.6885057091712952
+shift mask True orig 1.554797649383545 new 0.6859824657440186
+[?2004hroot@c0addc5ce529:/app# cat > /app/recover_model.py <<'PY'
+[?2004leedforward=256,
+            batch_first=True,
+        )
+        self.transformer_encoder = nn.TransformerEncoder(encoder_layer, num_layers=3)
+        decoder_layer = nn.TransformerDecoderLayer(
+            d_model=128,
+            nhead=8,
+            dim_feedforward=256,
+            batch_first=True,
+        )
+        self.transformer_decoder = nn.TransformerDecoder(decoder_layer, num_layers=1)
+        self.output_layer = nn.Linear(128, 64)
+
+    def forward(self, src: torch.Tensor, tgt: torch.Tensor) -> torch.Tensor:
+        src_emb = self.pos_encoder(self.embedding(src))
+        memory = self.transformer_encoder(src_emb)
+        tgt_emb = self.pos_encoder(self.embedding(tgt))
+        dec_out = self.transformer_decoder(tgt_emb, memory)
+        return self.output_layer(dec_out)
+
+
+def main():
+    weights_path = '/app/weights.pt'
+    dataset_path = '/app/dataset.pt'
+    model_path = '/app/model.pt'
+
+    state_dict = torch.load(weights_path, map_location='cpu')
+    data = torch.load(dataset_path, map_location='c[?2004h> import math
+[?2004l[?2004h> import torch
+[?2004l[?2004h> import torch.nn as nn
+[?2004l[?2004h> import torch.nn.functional as F
+[?2004l[?2004h> 
+[?2004l[?2004h> 
+[?2004l[?2004h> class PositionalEncoding(nn.Module):
+[?2004l[?2004h>     def __init__(self, d_model: int = 128, max_len: int = 5000):
+[?2004l[?2004h>         super().__init__()
+[?2004l[?2004h>         position = torch.arange(max_len).unsqueeze(1).float()
+[?2004l[?2004h>         div_term = torch.exp(torch.arange(0, d_model, 2).float() * (-math.log(10000.0) / d_model))
+[?2004l[?2004h>         pe = torch.zeros(max_len, d_model)
+[?2004l[?2004h>         pe[:, 0::2] = torch.sin(position * div_term)
+[?2004l[?2004h>         pe[:, 1::2] = torch.cos(position * div_term)
+[?2004l[?2004h>         pe = pe.unsqueeze(0)
+[?2004l[?2004h>         self.register_buffer('pe', pe)
+[?2004l[?2004h> 
+[?2004l[?2004h>     def forward(self, x: torch.Tensor) -> torch.Tensor:
+[?2004l[?2004h>         return x + self.pe[:, :x.size(1)]
+[?2004l[?2004h> 
+[?2004l[?2004h> 
+[?2004l[?2004h> class RecoveredModel(nn.Module):
+[?2004l[?2004h>     def __init__(self):
+[?2004l[?2004h>         super().__init__()
+[?2004l[?2004h>         self.embedding = nn.Linear(64, 128)
+[?2004l[?2004h>         self.pos_encoder = PositionalEncoding(128, 5000)
+[?2004l[?2004h>         encoder_layer = nn.TransformerEncoderLayer(
+[?2004l[?2004h>             d_model=128,
+[?2004l[?2004h>             nhead=8,
+[?2004l[?2004h>             dim_feedforward=256,
+[?2004l[?2004h>             batch_first=True,
+[?2004l[?2004h>         )
+[?2004l[?2004h>         self.transformer_encoder = nn.TransformerEncoder(encoder_layer, num_layers=3)
+[?2004l[?2004h>         decoder_layer = nn.TransformerDecoderLayer(
+[?2004l[?2004h>             d_model=128,
+[?2004l[?2004h>             nhead=8,
+[?2004l[?2004h>             dim_feedforward=256,
+[?2004l[?2004h>             batch_first=True,
+[?2004l[?2004h>         )
+[?2004l[?2004h>         self.transformer_decoder = nn.TransformerDecoder(decoder_layer, num_layers=1)
+[?2004l[?2004h>         self.output_layer = nn.Linear(128, 64)
+[?2004l[?2004h> 
+[?2004l[?2004h>     def forward(self, src: torch.Tensor, tgt: torch.Tensor) -> torch.Tensor:
+[?2004l[?2004h>         src_emb = self.pos_encoder(self.embedding(src))
+[?2004l[?2004h>         memory = self.transformer_encoder(src_emb)
+[?2004l[?2004h>         tgt_emb = self.pos_encoder(self.embedding(tgt))
+[?2004l[?2004h>         dec_out = self.transformer_decoder(tgt_emb, memory)
+[?2004l[?2004h>         return self.output_layer(dec_out)
+[?2004l[?2004h> 
+[?2004l[?2004h> 
+[?2004l[?2004h> def main():
+[?2004l[?2004h>     weights_path = '/app/weights.pt'
+[?2004l[?2004h>     dataset_path = '/app/dataset.pt'
+[?2004l[?2004h>     model_path = '/app/model.pt'
+[?2004l[?2004h> 
+[?2004l[?2004h>     state_dict = torch.load(weights_path, map_location='cpu')
+[?2004l[?2004h>     data = torch.load(dataset_path, map_location='cpu')
+[?2004l[?2004h>     src = data['src_sequences']
+[?2004l[?2004h>     tgt = data['tgt_sequences']
+[?2004l[?2004h> 
+[?2004l[?2004h>     model = RecoveredModel()
+[?2004l[?2004h>     missing, unexpected = model.load_state_dict(state_dict, strict=True)
+[?2004l[?2004h>     assert not missing and not unexpected
+[?2004l[?2004h> 
+[?2004l[?2004h>     # Freeze every parameter except output_layer.
+[?2004l[?2004h>     for name, param in model.named_parameters():
+[?2004l[?2004h>         param.requires_grad_(name.startswith('output_layer'))
+[?2004l[?2004h> 
+[?2004l[?2004h>     model.eval()
+[?2004l[?2004h>     with torch.no_grad():
+[?2004l[?2004h>         original_output = model(src, tgt)
+[?2004l[?2004h>         original_loss = F.mse_loss(original_output, tgt)
+[?2004l[?2004h> 
+[?2004l[?2004h>         # Compute frozen decoder features and fit output_layer by least squares.
+[?2004l[?2004h>         src_emb = model.pos_encoder(model.embedding(src))
+[?2004l[?2004h>         memory = model.transformer_encoder(src_emb)
+[?2004l[?2004h>         tgt_emb = model.pos_encoder(model.embedding(tgt))
+[?2004l[?2004h>         features = model.transformer_decoder(tgt_emb, memory)
+[?2004l[?2004h> 
+[?2004l[?2004h>         X = features.reshape(-1, 128).double()
+[?2004l[?2004h>         Y = tgt.reshape(-1, 64).double()
+[?2004l[?2004h>         Xb = torch.cat([X, torch.ones(X.size(0), 1, dtype=torch.double)], dim=1)
+[?2004l[?2004h>         sol = torch.linalg.lstsq(Xb, Y).solution
+[?2004l[?2004h> 
+[?2004l[?2004h>         new_weight = sol[:-1].t().contiguous().float()
+[?2004l[?2004h>         new_bias = sol[-1].contiguous().float()
+[?2004l[?2004h> 
+[?2004l[?2004h>         model.output_layer.weight.data.copy_(new_weight)
+[?2004l[?2004h>         model.output_layer.bias.data.copy_(new_bias)
+[?2004l[?2004h> 
+[?2004l[?2004h>         updated_output = model(src, tgt)
+[?2004l[?2004h>         updated_loss = F.mse_loss(updated_output, tgt)
+[?2004l[?2004h> 
+[?2004l[?2004h>     print(f'original_loss={original_loss.item()}')
+[?2004l[?2004h>     print(f'updated_loss={updated_loss.item()}')
+[?2004l[?2004h> 
+[?2004l[?2004h>     scripted = torch.jit.script(model)
+[?2004l[?2004h>     scripted.save(model_path)
+[?2004l[?2004h>     print(f'saved {model_path}')
+[?2004l[?2004h> 
+[?2004l[?2004h> 
+[?2004l[?2004h> if __name__ == '__main__':
+[?2004l[?2004h>     main()
+[?2004l[?2004h> PY
+[?2004l[?2004hroot@c0addc5ce529:/app# python3 /app/recover_model.py
+[?2004l/usr/local/lib/python3.13/site-packages/torch/_subclasses/functional_tensor.py:276: UserWarning: Failed to initialize NumPy: No module named 'numpy' (Triggered internally at /pytorch/torch/csrc/utils/tensor_numpy.cpp:81.)
+  cpu = _conversion_method_template(device=torch.device("cpu"))
+python3 - <<'PY'
+import torch
+import torch.nn.functional as F
+
+orig_sd = torch.load('/app/weights.pt', map_location='cpu')
+data = torch.load('/app/dataset.pt', map_location='cpu')
+src, tgt = data['src_sequences'], data['tgt_sequences']
+
+m = torch.jit.load('/app/model.pt')
+print('TorchScript loaded:', type(m))
+print('load original weights:', m.load_state_dict(orig_sd))
+
+# Original loss using the TorchScript model after loading original weights.
+with torch.no_grad():
+    orig_loss = F.mse_loss(m(src, tgt), tgt)
+print('original_loss_jit=', orig_loss.item())
+
+# Updated model from saved file.
+m2 = torch.jit.load('/app/model.pt')
+updated_sd = m2.state_dict()
+
+print('keys match:', set(updated_sd.keys()) == set(orig_sd.keys()))
+diff_keys = []
+for k in orig_sd:
+    if k.startswith('output_layer'):
+        if torch.allclose(orig_sd[k], updated_sd[k]):
+            diff_keys.append(k + ' unexpectedly unchanged')
+    else:
+        if not torch.allclose(orig_sd[k], updated_sd[k]):
+            diff_keys.append(k)
+print('diff_keys:', diff_keys)
+
+with torch.no_grad():
+    new_loss = F.mse_loss(m2(src, tgt), tgt)
+print('updated_loss_jit=', new_loss.item())
+print('loss_lower:', new_loss.item() < orig_loss.item())
+PY
+original_loss=1.5510307550430298
+updated_loss=0.016224607825279236
+saved /app/model.pt
+[?2004hroot@c0addc5ce529:/app# python3 - <<'PY'
+[?2004l[?2004h> import torch
+[?2004l[?2004h> import torch.nn.functional as F
+[?2004l[?2004h> 
+[?2004l[?2004h> orig_sd = torch.load('/app/weights.pt', map_location='cpu')
+[?2004l[?2004h> data = torch.load('/app/dataset.pt', map_location='cpu')
+[?2004l[?2004h> src, tgt = data['src_sequences'], data['tgt_sequences']
+[?2004l[?2004h> 
+[?2004l[?2004h> m = torch.jit.load('/app/model.pt')
+[?2004l[?2004h> print('TorchScript loaded:', type(m))
+[?2004l[?2004h> print('load original weights:', m.load_state_dict(orig_sd))
+[?2004l[?2004h> 
+[?2004l[?2004h> # Original loss using the TorchScript model after loading original weights.
+[?2004l[?2004h> with torch.no_grad():
+[?2004l[?2004h>     orig_loss = F.mse_loss(m(src, tgt), tgt)
+[?2004l[?2004h> print('original_loss_jit=', orig_loss.item())
+[?2004l[?2004h> 
+[?2004l[?2004h> # Updated model from saved file.
+[?2004l[?2004h> m2 = torch.jit.load('/app/model.pt')
+[?2004l[?2004h> updated_sd = m2.state_dict()
+[?2004l[?2004h> 
+[?2004l[?2004h> print('keys match:', set(updated_sd.keys()) == set(orig_sd.keys()))
+[?2004l[?2004h> diff_keys = []
+[?2004l[?2004h> for k in orig_sd:
+[?2004l[?2004h>     if k.startswith('output_layer'):
+[?2004l[?2004h>         if torch.allclose(orig_sd[k], updated_sd[k]):
+[?2004l[?2004h>             diff_keys.append(k + ' unexpectedly unchanged')
+[?2004l[?2004h>     else:
+[?2004l[?2004h>         if not torch.allclose(orig_sd[k], updated_sd[k]):
+[?2004l[?2004h>             diff_keys.append(k)
+[?2004l[?2004h> print('diff_keys:', diff_keys)
+[?2004l[?2004h> 
+[?2004l[?2004h> with torch.no_grad():
+[?2004l[?2004h>     new_loss = F.mse_loss(m2(src, tgt), tgt)
+[?2004l[?2004h> print('updated_loss_jit=', new_loss.item())
+[?2004l[?2004h> print('loss_lower:', new_loss.item() < orig_loss.item())
+[?2004l[?2004h> PY
+[?2004l/usr/local/lib/python3.13/site-packages/torch/_subclasses/functional_tensor.py:276: UserWarning: Failed to initialize NumPy: No module named 'numpy' (Triggered internally at /pytorch/torch/csrc/utils/tensor_numpy.cpp:81.)
+  cpu = _conversion_method_template(device=torch.device("cpu"))
+TorchScript loaded: <class 'torch.jit._script.RecursiveScriptModule'>
+load original weights: <All keys matched successfully>
+original_loss_jit= 1.5510307550430298
+keys match: True
+diff_keys: []
+updated_loss_jit= 0.016224607825279236
+loss_lower: True
+[?2004hroot@c0addc5ce529:/app# 

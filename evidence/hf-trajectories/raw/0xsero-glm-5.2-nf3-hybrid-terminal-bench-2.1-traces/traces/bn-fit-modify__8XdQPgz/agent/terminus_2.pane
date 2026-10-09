@@ -1,0 +1,360 @@
+[?2004hroot@78a1df144594:/app# asciinema rec --stdin /logs/agent/recording.cast
+[?2004l[0;32masciinema: recording asciicast to /logs/agent/recording.cast[0m
+[0;32masciinema: press <ctrl-d> or type "exit" when you're done[0m
+[?2004hroot@78a1df144594:/app# clear
+[?2004l[H[J[3J[?2004hroot@78a1df144594:/app# ls -la /app
+[?2004ltotal 836
+drwxr-xr-x 1 root root   4096 Oct 31  2025 [0m[01;34m.[0m
+drwxr-xr-x 1 root root   4096 Jul 19 05:32 [01;34m..[0m
+-rw-r--r-- 1 root root 844949 Oct 31  2025 bn_sample_10k.csv
+[?2004hroot@78a1df144594:/app# head -5 /app/bn_sample_10k.csv
+[?2004l"U","Y","R","D","M"
+65.1595787086976,55.0497451938166,73.1506268775402,57.6615550291927,64.3384681778361
+44.6029054197735,43.600175682188,38.589412608575,45.9401940372555,21.2469494226791
+54.4564237284025,54.1307611128149,47.302573583304,41.8194189531508,52.392400251044
+57.3210008646862,61.0491365637276,48.9899101338243,54.4998895140635,52.223173316915
+[?2004hroot@78a1df144594:/app# python3 - <<'PY'
+[?2004l[?2004h> import sys, importlib.util
+[?2004l[?2004h> mods=['pgmpy','networkx','pandas','numpy','sklearn','statsmodels']
+[?2004l[?2004h> for m in mods:
+[?2004l[?2004h>     print(m, bool(importlib.util.find_spec(m)))
+[?2004l[?2004h> PY
+[?2004lpgmpy False
+networkx False
+pandas False
+numpy False
+sklearn False
+statsmodels False
+[?2004hroot@78a1df144594:/app# python3 - <<'PY'
+[?2004l[?2004h> import csv, math
+[?2004l[?2004h> from itertools import combinations
+[?2004l[?2004h> data={}
+[?2004l[?2004h> with open('/app/bn_sample_10k.csv') as f:
+[?2004l[?2004h>     r=csv.DictReader(f)
+[?2004l[?2004h>     cols=r.fieldnames
+[?2004l[?2004h>     for row in r:
+[?2004l[?2004h>         for c in cols:
+[?2004l[?2004h>             data.setdefault(c,[]).append(float(row[c]))
+[?2004l[?2004h> n=len(data[cols[0]])
+[?2004l[?2004h> means={c:sum(data[c])/n for c in cols}
+[?2004l[?2004h> std={c:math.sqrt(sum((x-means[c])**2 for x in data[c])/n) for c in cols}
+[?2004l[?2004h> print('n',n)
+[?2004l[?2004h> for c in cols: print(c,'mean',means[c],'std',std[c])
+[?2004l[?2004h> corr={}
+[?2004l[?2004h> for a,b in combinations(cols,2):
+[?2004l[?2004h>     s=sum((data[a][i]-means[a])*(data[b][i]-means[b]) for i in range(n))/n
+[?2004l[?2004h> nstd=std[a]*std[b]
+[?2004l[?2004h> corr[(a,b)]=s/(std[a]*std[b])
+[?2004l[?2004h> print('\nCorrelations:')
+[?2004l[?2004h> for a,b in combinations(cols,2):
+[?2004l[?2004h>     print(f'{a}-{b}: {corr[(a,b)]:.4f}')
+[?2004l[?2004h> # partial correlation between a,b given all others using matrix inverse of correlation matrix
+[?2004l[?2004h> idx={c:i for i,c in enumerate(cols)}
+[?2004l[?2004h> C=[[1.0 for _ in cols] for _ in cols]
+[?2004l[?2004h> for a,b in corr:
+[?2004l[?2004h>     i,j=idx[a],idx[b]
+[?2004l[?2004h>     C[i][j]=corr[(a,b)]
+[?2004l[?2004h>     C[j][i]=corr[(a,b)]
+[?2004l[?2004h> # invert matrix via Gauss-Jordan
+[?2004l[?2004h> m=len(cols)
+[?2004l[?2004h> A=[row[:]+[1.0 if i==j else 0.0 for j in range(m)] for i,row in enumerate(C)]
+[?2004l[?2004h> for col in range(m):
+[?2004l[?2004h>     piv=max(range(col,m), key=lambda i: abs(A[i][col]))
+[?2004l[?2004h>     if abs(A[piv][col])<1e-12: raise Exception('singular')
+[?2004l[?2004h>     A[col],A[piv]=A[piv],A[col]
+[?2004l[?2004h>     pivval=A[col][col]
+[?2004l[?2004h>     A[col]=[x/pivval for x in A[col]]
+[?2004l[?2004h>     for i in range(m):
+[?2004l[?2004h>         if i!=col and abs(A[i][col])>1e-15:
+[?2004l[?2004h>             f=A[i][col]
+[?2004l[?2004h>             A[i]=[a-f*b for a,b in zip(A[i],A[col])]
+[?2004l[?2004h> inv=[[A[i][m+j] for j in range(m)] for i in range(m)]
+[?2004l[?2004h> print('\nPartial correlations given all other vars:')
+[?2004l[?2004h> for a,b in combinations(cols,2):
+[?2004l[?2004h>     i,j=idx[a],idx[b]
+[?2004l[?2004h>     pc=-inv[i][j]/math.sqrt(inv[i][i]*inv[j][j])
+[?2004l[?2004h>     print(f'{a}-{b}: {pc:.4f}')
+[?2004l[?2004h> PY
+[?2004ln 10000
+U mean 50.479893648837994 std 10.684617568519114
+Y mean 50.35472533389906 std 13.317452381806872
+R mean 46.41368494034576 std 14.90669323837792
+D mean 38.03432518055476 std 17.634448525278618
+M mean 41.44426017660128 std 17.191607516956644
+
+Correlations:
+Traceback (most recent call last):
+  File "<stdin>", line 22, in <module>
+KeyError: ('U', 'Y')
+[?2004hroot@78a1df144594:/app# python3 - <<'PY'
+[?2004l[?2004h> import csv, math
+[?2004l[?2004h> from itertools import combinations
+[?2004l[?2004h> fn='/app/bn_sample_10k.csv'
+[?2004l[?2004h> with open(fn) as f:
+[?2004l[?2004h>     r=csv.DictReader(f)
+[?2004l[?2004h>     print('fieldnames repr:', r.fieldnames)
+[?2004l[?2004h>     cols=r.fieldnames
+[?2004l[?2004h>     data={c:[] for c in cols}
+[?2004l[?2004h>     for row in r:
+[?2004l[?2004h>         for c in cols:
+[?2004l[?2004h>             data[c].append(float(row[c]))
+[?2004l[?2004h> n=len(data[cols[0]])
+[?2004l[?2004h> means={c:sum(data[c])/n for c in cols}
+[?2004l[?2004h> std={c:math.sqrt(sum((x-means[c])**2 for x in data[c])/n) for c in cols}
+[?2004l[?2004h> print('n',n)
+[?2004l[?2004h> for c in cols: print(c,'mean',means[c],'std',std[c])
+[?2004l[?2004h> corr={}
+[?2004l[?2004h> pairs=list(combinations(cols,2))
+[?2004l[?2004h> for a,b in pairs:
+[?2004l[?2004h>     s=sum((data[a][i]-means[a])*(data[b][i]-means[b]) for i in range(n))/n
+[?2004l[?2004h>     corr[(a,b)]=s/(std[a]*std[b])
+[?2004l[?2004h> print('\nCorrelations:')
+[?2004l[?2004h> for a,b in pairs:
+[?2004l[?2004h>     print(f'{a}-{b}: {corr[(a,b)]:.4f}')
+[?2004l[?2004h> idx={c:i for i,c in enumerate(cols)}
+[?2004l[?2004h> C=[[1.0 for _ in cols] for _ in cols]
+[?2004l[?2004h> for a,b in corr:
+[?2004l[?2004h>     i,j=idx[a],idx[b]
+[?2004l[?2004h>     C[i][j]=corr[(a,b)]
+[?2004l[?2004h>     C[j][i]=corr[(a,b)]
+[?2004l[?2004h> m=len(cols)
+[?2004l[?2004h> A=[row[:]+[1.0 if i==j else 0.0 for j in range(m)] for i,row in enumerate(C)]
+[?2004l[?2004h> for col in range(m):
+[?2004l[?2004h>     piv=max(range(col,m), key=lambda i: abs(A[i][col]))
+[?2004l[?2004h>     if abs(A[piv][col])<1e-12: raise Exception('singular')
+[?2004l[?2004h>     A[col],A[piv]=A[piv],A[col]
+[?2004l[?2004h>     pivval=A[col][col]
+[?2004l[?2004h>     A[col]=[x/pivval for x in A[col]]
+[?2004l[?2004h>     for i in range(m):
+[?2004l[?2004h>         if i!=col and abs(A[i][col])>1e-15:
+[?2004l[?2004h>             f=A[i][col]
+[?2004l[?2004h>             A[i]=[a-f*b for a,b in zip(A[i],A[col])]
+[?2004l[?2004h> inv=[[A[i][m+j] for j in range(m)] for i in range(m)]
+[?2004l[?2004h> print('\nPartial correlations given all other vars:')
+[?2004l[?2004h> for a,b in pairs:
+[?2004l[?2004h>     i,j=idx[a],idx[b]
+[?2004l[?2004h>     pc=-inv[i][j]/math.sqrt(inv[i][i]*inv[j][j])
+[?2004l[?2004h>     print(f'{a}-{b}: {pc:.4f}')
+[?2004l[?2004h> PY
+[?2004lfieldnames repr: ['U', 'Y', 'R', 'D', 'M']
+n 10000
+U mean 50.479893648837994 std 10.684617568519114
+Y mean 50.35472533389906 std 13.317452381806872
+R mean 46.41368494034576 std 14.90669323837792
+D mean 38.03432518055476 std 17.634448525278618
+M mean 41.44426017660128 std 17.191607516956644
+
+Correlations:
+U-Y: 0.6028
+U-R: 0.7044
+U-D: 0.5372
+U-M: 0.6620
+Y-R: 0.4305
+Y-D: 0.5395
+Y-M: 0.3848
+R-D: 0.3816
+R-M: 0.5986
+D-M: 0.3479
+
+Partial correlations given all other vars:
+U-Y: 0.3307
+U-R: 0.4397
+U-D: 0.2349
+U-M: 0.3817
+Y-R: 0.0149
+Y-D: 0.3202
+Y-M: -0.0241
+R-D: 0.0034
+R-M: 0.2490
+D-M: -0.0056
+[?2004hroot@78a1df144594:/app# python3 - <<'PY'
+[?2004l[?2004h> import csv, math, random
+[?2004l[?2004h> from itertools import combinations
+[?2004l[?2004h> 
+[?2004l[?2004h> fn='/app/bn_sample_10k.csv'
+[?2004l[?2004h> out_dag='/app/learned_dag.csv'
+[?2004l[?2004h> out_int='/app/intervened_dag.csv'
+[?2004l[?2004h> out_sample='/app/final_bn_sample.csv'
+[?2004l[?2004h> random.seed(12345)
+[?2004l[?2004h> 
+[?2004l[?2004h> # Recovered DAG edges: to,from
+[?2004l[?2004h> learned_edges = [
+[?2004l[?2004h>     ('Y','U'),
+[?2004l[?2004h>     ('R','U'),
+[?2004l[?2004h>     ('D','U'),
+[?2004l[?2004h>     ('M','U'),
+[?2004l[?2004h>     ('D','Y'),
+[?2004l[?2004h>     ('M','R'),
+[?2004l[?2004h> ]
+[?2004l[?2004h> with open(out_dag,'w',newline='') as f:
+[?2004l[?2004h>     w=csv.writer(f)
+[?2004l[?2004h>     w.writerow(['to','from'])
+[?2004l[?2004h>     w.writerows(learned_edges)
+[?2004l[?2004h> 
+[?2004l[?2004h> # Read data
+[?2004l[?2004h> with open(fn) as f:
+[?2004l[?2004h>     r=csv.DictReader(f)
+[?2004l[?2004h>     cols=r.fieldnames
+[?2004l[?2004h>     data={c:[] for c in cols}
+[?2004l[?2004h>     for row in r:
+[?2004l[?2004h>         for c in cols:
+[?2004l[?2004h>             data[c].append(float(row[c]))
+[?2004l[?2004h> n=len(data[cols[0]])
+[?2004l[?2004h> 
+[?2004l[?2004h> # Parents from recovered DAG
+[?2004l[?2004h> parents = {
+[?2004l[?2004h>     'U': [],
+[?2004l[?2004h>     'Y': ['U'],
+[?2004l[?2004h>     'R': ['U'],
+[?2004l[?2004h>     'D': ['U','Y'],
+[?2004l[?2004h>     'M': ['U','R'],
+[?2004l[?2004h> }
+[?2004l[?2004h> 
+[?2004l[?2004h> def solve_normal_equations(X, y):
+[?2004l[?2004h>     # X: list of rows including intercept as first column
+[?2004l[?2004h>     # returns coefficients beta
+[?2004l[?2004h>     m=len(X[0])
+[?2004l[?2004h>     # A = X^T X, b = X^T y
+[?2004l[?2004h>     A=[[0.0]*m for _ in range(m)]
+[?2004l[?2004h>     b=[0.0]*m
+[?2004l[?2004h>     for xi,yi in zip(X,y):
+[?2004l[?2004h>         for i in range(m):
+[?2004l[?2004h>             b[i]+=xi[i]*yi
+[?2004l[?2004h>             for j in range(m):
+[?2004l[?2004h>                 A[i][j]+=xi[i]*xi[j]
+[?2004l[?2004h>     # Gaussian elimination with partial pivoting
+[?2004l[?2004h>     aug=[A[i][:]+[b[i]] for i in range(m)]
+[?2004l[?2004h>     for col in range(m):
+[?2004l[?2004h>         piv=max(range(col,m), key=lambda i: abs(aug[i][col]))
+[?2004l[?2004h>         if abs(aug[piv][col]) < 1e-12:
+[?2004l[?2004h>             raise Exception('singular normal equations')
+[?2004l[?2004h>         aug[col],aug[piv]=aug[piv],aug[col]
+[?2004l[?2004h>         pivval=aug[col][col]
+[?2004l[?2004h>         aug[col]=[v/pivval for v in aug[col]]
+[?2004l[?2004h>         for i in range(m):
+[?2004l[?2004h>             if i!=col and abs(aug[i][col])>1e-15:
+[?2004l[?2004h>                 f=aug[i][col]
+[?2004l[?2004h>                 aug[i]=[a-f*b for a,b in zip(aug[i],aug[col])]
+[?2004l[?2004h>     return [aug[i][m] for i in range(m)]
+[?2004l[?2004h> 
+[?2004l[?2004h> # Fit Gaussian BN parameters
+[?2004l[?2004h> params={}
+[?2004l[?2004h> for node in cols:
+[?2004l[?2004h>     p=parents[node]
+[?2004l[?2004h>     if not p:
+[?2004l[?2004h>         mu=sum(data[node])/n
+[?2004l[?2004h>         var=sum((x-mu)**2 for x in data[node])/n
+[?2004l[?2004h>         params[node]={'intercept':mu,'betas':{},'sigma':math.sqrt(var)}
+[?2004l[?2004h>     else:
+[?2004l[?2004h>         X=[[1.0]+[data[par][i] for par in p] for i in range(n)]
+[?2004l[?2004h>         y=data[node]
+[?2004l[?2004h>         beta=solve_normal_equations(X,y)
+[?2004l[?2004h>         intercept=beta[0]
+[?2004l[?2004h>         betas={par:beta[j+1] for j,par in enumerate(p)}
+[?2004l[?2004h>         sse=sum((y[i]-(intercept+sum(betas[par]*data[par][i] for par in p)))**2 for i in range(n))
+[?2004l[?2004h>         sigma=math.sqrt(sse/(n - len(p) - 1))  # residual std
+[?2004l[?2004h>         params[node]={'intercept':intercept,'betas':betas,'sigma':sigma}
+[?2004l[?2004h> 
+[?2004l[?2004h> print('Fitted BN parameters:')
+[?2004l[?2004h> for node in cols:
+[?2004l[?2004h>     print(node, params[node])
+[?2004l[?2004h> 
+[?2004l[?2004h> # Intervened DAG: remove incoming edges to Y
+[?2004l[?2004h> intervened_edges=[(t,f) for (t,f) in learned_edges if t!='Y']
+[?2004l[?2004h> with open(out_int,'w',newline='') as f:
+[?2004l[?2004h>     w=csv.writer(f)
+[?2004l[?2004h>     w.writerow(['to','from'])
+[?2004l[?2004h>     w.writerows(intervened_edges)
+[?2004l[?2004h> 
+[?2004l[?2004h> # Sample 10k from intervened BN with do(Y=0.0)
+[?2004l[?2004h> sample_rows=[]
+[?2004l[?2004h> for _ in range(n):
+[?2004l[?2004h>     vals={}
+[?2004l[?2004h>     # topological order compatible with intervened graph
+[?2004l[?2004h>     vals['U']=random.gauss(params['U']['intercept'], params['U']['sigma'])
+[?2004l[?2004h>     vals['Y']=0.0  # exact intervention
+[?2004l[?2004h>     vals['R']=params['R']['intercept'] + params['R']['betas']['U']*vals['U'] + random.gauss(0, params['R']['sigma'])
+[?2004l[?2004h>     vals['D']=params['D']['intercept'] + params['D']['betas']['U']*vals['U'] + params['D']['betas']['Y']*vals['Y'] + random.gauss(0, params['D']['sigma'])
+[?2004l[?2004h>     vals['M']=params['M']['intercept'] + params['M']['betas']['U']*vals['U'] + params['M']['betas']['R']*vals['R'] + random.gauss(0, params['M']['sigma'])
+[?2004l[?2004h>     sample_rows.append([vals[c] for c in cols])
+[?2004l[?2004h> 
+[?2004l[?2004h> with open(out_sample,'w',newline='') as f:
+[?2004l[?2004h>     w=csv.writer(f, quoting=csv.QUOTE_NONNUMERIC)
+[?2004l[?2004h>     w.writerow(cols)
+[?2004l[?2004h>     w.writerows(sample_rows)
+[?2004l[?2004h> 
+[?2004l[?2004h> print('\nWrote files:')
+[?2004l[?2004h> for p in [out_dag,out_int,out_sample]:
+[?2004l[?2004h>     print(p)
+[?2004l[?2004h> print('\nLearned DAG:')
+[?2004l[?2004h> with open(out_dag) as f:
+[?2004l[?2004h>     print(f.read())
+[?2004l[?2004h> print('Intervened DAG:')
+[?2004l[?2004h> with open(out_int) as f:
+[?2004l[?2004h>     print(f.read())
+[?2004l[?2004h> print('Sample head:')
+[?2004l[?2004h> with open(out_sample) as f:
+[?2004l[?2004h>     for i,line in enumerate(f):
+[?2004l[?2004h>         if i>=6: break
+[?2004l[?2004h>         print(line.strip())
+[?2004l[?2004h> PY
+[?2004lFitted BN parameters:
+U {'intercept': 50.479893648837994, 'betas': {}, 'sigma': 10.684617568519114}
+Y {'intercept': 12.4283907033413, 'betas': {'U': 0.7513156603377819}, 'sigma': 10.627136947847998}
+R {'intercept': -3.197411899016359, 'betas': {'U': 0.9827892503989933}, 'sigma': 10.581428211183672}
+D {'intercept': -12.296513517029751, 'betas': {'U': 0.5495886405654031, 'Y': 0.4485708624455027}, 'sigma': 14.09164929505755}
+M {'intercept': -11.357020085804777, 'betas': {'U': 0.7675166204677017, 'R': 0.30286590917200723}, 'sigma': 12.482149687636516}
+
+Wrote files:
+/app/learned_dag.csv
+/app/intervened_dag.csv
+/app/final_bn_sample.csv
+
+Learned DAG:
+to,from
+Y,U
+R,U
+D,U
+M,U
+D,Y
+M,R
+
+Intervened DAG:
+to,from
+R,U
+D,U
+M,U
+D,Y
+M,R
+
+Sample head:
+"U","Y","R","D","M"
+49.15712949329268,0.0,45.87052281378828,20.12199069213264,30.902935831695455
+45.73213604372553,0.0,46.85587320145673,5.177707885107129,34.946995692879206
+58.564342047077055,0.0,62.29194290593213,11.822302419998497,49.520353259633495
+41.02977693103749,0.0,33.87451465020111,16.20626411141788,28.97092969575791
+61.394115827546855,0.0,55.68065346479458,13.467520593919144,52.452994052539196
+[?2004hroot@78a1df144594:/app# wc -l /app/learned_dag.csv /app/intervened_dag.csv /app/final_bn_sample.csv
+[?2004l     7 /app/learned_dag.csv
+     6 /app/intervened_dag.csv
+ 10001 /app/final_bn_sample.csv
+ 10014 total
+[?2004hroot@78a1df144594:/app# cat /app/learned_dag.csv /app/intervened_dag.csv
+[?2004lto,from
+Y,U
+R,U
+D,U
+M,U
+D,Y
+M,R
+to,from
+R,U
+D,U
+M,U
+D,Y
+M,R
+[?2004hroot@78a1df144594:/app# head -3 /app/final_bn_sample.csv
+[?2004l"U","Y","R","D","M"
+49.15712949329268,0.0,45.87052281378828,20.12199069213264,30.902935831695455
+45.73213604372553,0.0,46.85587320145673,5.177707885107129,34.946995692879206
+[?2004hroot@78a1df144594:/app# 

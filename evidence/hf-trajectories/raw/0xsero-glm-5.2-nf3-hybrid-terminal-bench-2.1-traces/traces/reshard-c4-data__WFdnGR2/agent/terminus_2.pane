@@ -1,0 +1,712 @@
+[?2004hroot@f0ddec31cf80:/app# asciinema rec --stdin /logs/agent/recording.cast
+[?2004l[0;32masciinema: recording asciicast to /logs/agent/recording.cast[0m
+[0;32masciinema: press <ctrl-d> or type "exit" when you're done[0m
+[?2004hroot@f0ddec31cf80:/app# clear
+[?2004l[H[J[3J[?2004hroot@f0ddec31cf80:/app# pwd
+[?2004l/app
+[?2004hroot@f0ddec31cf80:/app# ls -la
+[?2004ltotal 532
+drwxr-xr-x 1 root root   4096 Sep 13  2025 .
+drwxr-xr-x 1 root root   4096 Jul 18 04:15 ..
+drwxr-xr-x 2 root root 532480 Sep 13  2025 c4_sample
+[?2004hroot@f0ddec31cf80:/app# find . -maxdepth 3 -type f | head -50
+[?2004l./c4_sample/c4-mini-07277-of-10000.jsonl
+./c4_sample/c4-mini-03976-of-10000.jsonl
+./c4_sample/c4-mini-09186-of-10000.jsonl
+./c4_sample/c4-mini-08146-of-10000.jsonl
+./c4_sample/c4-mini-04714-of-10000.jsonl
+./c4_sample/c4-mini-04098-of-10000.jsonl
+./c4_sample/c4-mini-02861-of-10000.jsonl
+./c4_sample/c4-mini-00741-of-10000.jsonl
+./c4_sample/c4-mini-05670-of-10000.jsonl
+./c4_sample/c4-mini-03190-of-10000.jsonl
+./c4_sample/c4-mini-02361-of-10000.jsonl
+./c4_sample/c4-mini-09848-of-10000.jsonl
+./c4_sample/c4-mini-05561-of-10000.jsonl
+./c4_sample/c4-mini-08187-of-10000.jsonl
+./c4_sample/c4-mini-00136-of-10000.jsonl
+./c4_sample/c4-mini-04729-of-10000.jsonl
+./c4_sample/c4-mini-06104-of-10000.jsonl
+./c4_sample/c4-mini-08822-of-10000.jsonl
+./c4_sample/c4-mini-05004-of-10000.jsonl
+./c4_sample/c4-mini-02179-of-10000.jsonl
+./c4_sample/c4-mini-01955-of-10000.jsonl
+./c4_sample/c4-mini-03849-of-10000.jsonl
+./c4_sample/c4-mini-05078-of-10000.jsonl
+./c4_sample/c4-mini-01547-of-10000.jsonl
+./c4_sample/c4-mini-08196-of-10000.jsonl
+./c4_sample/c4-mini-00054-of-10000.jsonl
+./c4_sample/c4-mini-05343-of-10000.jsonl
+./c4_sample/c4-mini-07597-of-10000.jsonl
+./c4_sample/c4-mini-01854-of-10000.jsonl
+./c4_sample/c4-mini-04880-of-10000.jsonl
+./c4_sample/c4-mini-05252-of-10000.jsonl
+./c4_sample/c4-mini-04359-of-10000.jsonl
+./c4_sample/c4-mini-09790-of-10000.jsonl
+./c4_sample/c4-mini-03011-of-10000.jsonl
+./c4_sample/c4-mini-07473-of-10000.jsonl
+./c4_sample/c4-mini-03830-of-10000.jsonl
+./c4_sample/c4-mini-03860-of-10000.jsonl
+./c4_sample/c4-mini-09131-of-10000.jsonl
+./c4_sample/c4-mini-03799-of-10000.jsonl
+./c4_sample/c4-mini-05194-of-10000.jsonl
+./c4_sample/c4-mini-09611-of-10000.jsonl
+./c4_sample/c4-mini-04291-of-10000.jsonl
+./c4_sample/c4-mini-02185-of-10000.jsonl
+./c4_sample/c4-mini-02834-of-10000.jsonl
+./c4_sample/c4-mini-06090-of-10000.jsonl
+./c4_sample/c4-mini-07328-of-10000.jsonl
+./c4_sample/c4-mini-06117-of-10000.jsonl
+./c4_sample/c4-mini-07186-of-10000.jsonl
+./c4_sample/c4-mini-01948-of-10000.jsonl
+./c4_sample/c4-mini-06258-of-10000.jsonl
+[?2004hroot@f0ddec31cf80:/app# find . -maxdepth 3 -type d | head -50
+[?2004l.
+./c4_sample
+[?2004hroot@f0ddec31cf80:/app# which uv || true
+[?2004l/usr/bin/uv
+[?2004hroot@f0ddec31cf80:/app# find c4_sample -type f | wc -l
+[?2004l9898
+[?2004hroot@f0ddec31cf80:/app# du -sh c4_sample
+[?2004l800M	c4_sample
+[?2004hroot@f0ddec31cf80:/app# find c4_sample -type f -printf '%s\n' | sort -n | tail -5
+[?2004l234343
+254441
+262108
+268401
+307834
+[?2004hroot@f0ddec31cf80:/app# find c4_sample -type f -printf '%s\n' | sort -n | head -5
+[?2004l38912
+39008
+39034
+39130
+39234
+[?2004hroot@f0ddec31cf80:/app# 
+[?2004l[?2004hroot@f0ddec31cf80:/app# cat > /app/pyproject.toml <<'EOF'
+[?2004l     self.chunk_paths.append(path)
+        self.chunk_index += 1
+
+    def write(self, data: bytes) -> int:
+        if not data:
+            return 0
+        if self.current is None:
+            self._open_new_chunk()
+
+        written = 0
+        while data:
+            remaining = CHUNK_SIZE - self.current_size
+            if remaining == 0:
+                self._open_new_chunk()
+                remaining = CHUNK_SIZE
+
+            piece = data[:remaining]
+            self.current.write(piece)
+            self.current_size += len(piece)
+            written += len(piece)
+            data = data[remaining:]
+
+        return written
+
+    def close(self):
+        if self.current is not None:
+            self.current.close()
+            self.current = None
+
+
+def base30_digits(n: int, depth: int) -> list[int]:
+    digits = [0] * depth
+    for i in range(depth - 1, -1, -1):
+        digits[i] = n % 30
+        n //= 30
+    return digits
+
+
+def chunk_tree_path(base_dir: str, chunk_index: int, depth: int, filename: str) ->[?2004h> [project]
+[?2004l str:
+    digits = base30_digits(chunk_index, depth)
+    parts = [str(d) for d in digits] + [filename]
+    return os.path.join(base_dir, *parts)
+
+
+def add_tree(tar: tarfile.TarFile, input_dir: str):
+    for root, dirnames, filenames in os.walk(input_dir, followlinks=False):
+        dirnames.sort()
+        filenames.sort()
+
+        for d in dirnames:
+            full = os.path.join(root, d)
+            rel = os.path.relpath(full, input_dir)
+            if os.path.islink(full):
+                tar.add(full, arcname=rel, recursive=False, follow_symlinks=False)
+            else:
+                tar.add(full, arcname=rel, recursive=False)
+
+        for f in filenames:
+            full = os.path.join(root, f)
+            rel = os.path.relpath(full, input_dir)
+            if os.path.islink(full):
+                tar.add(full, arcname=rel, recursive=False, follow_symlinks=False)
+            else:
+                tar.add(full, arcname=rel, recursive=False)
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(
+        description="Reshard a dataset directory into chunked files with directory constraints."
+    )
+    parser.add_argument("input_dir", help="Input dataset directory")
+    parser.add_argument("output_dir", help="Output resharded directory")
+    args = parser.parse_args()
+
+    input_dir = os.path.abspath(args.input_dir)
+    output_dir = os.path.abspath(args.output_dir)
+
+    if not os.path.isdir(input_dir):
+        print(f"error: input directory does not exist: {input_dir}", file=sys.stderr)
+        return 1
+
+    # Avoid tarring the output directory while it is being written.
+    if output_dir == input_dir or output_dir.startswith(input_dir + os.sep):
+        print(
+            "error: output_dir must not be the same as or inside input_dir",
+            file=sys.stderr,
+        )
+        return 1
+
+    os.makedirs(output_dir, exist_ok=True)
+    meta_dir = os.path.join(output_dir, META_DIR_NAME)
+
+    if os.path.exists(meta_dir):
+        shutil.rmtree(meta_dir)
+    os.makedirs(meta_dir, exist_ok=True)
+
+    tmp_dir[?2004h> name = "reshard-scripts"
+[?2004l[?2004h> version = "0.1.0"
+[?2004l[?2004h> description = "Dataset resharding scripts"
+[?2004l[?2004h> requires-python = ">=3.10"
+[?2004l[?2004h> dependencies = []
+[?2004l[?2004h> 
+[?2004l
+[?2004h> [tool.uv]
+[?2004l[?2004h> package = false
+[?2004lr[?2004h> EOF
+[?2004l[?2004hroot@f0ddec31cf80:/app# 
+[?2004l[?2004hroot@f0ddec31cf80:/app# cat > /app/compress.py <<'PY'
+[?2004l[?2004h> #!/usr/bin/env python3
+[?2004l[?2004h> import argparse
+[?2004l[?2004h> import json
+[?2004l[?2004h> import math
+[?2004l[?2004h> import os
+[?2004l[?2004h> import shutil
+[?2004l[?2004h> import sys
+[?2004l[?2004h> import tarfile
+[?2004l[?2004h> 
+[?2004lf[?2004h> CHUNK_SIZE = 14 * 1024 * 1024  # 14 MiB, safely under 15 MiB
+[?2004l[?2004h> MAX_ENTRIES = 30
+[?2004l[?2004h> META_DIR_NAME = ".reshard_v1"
+[?2004l[?2004h> 
+[?2004l[?2004h> 
+[?2004l[?2004h> class ChunkedWriter:
+[?2004l[?2004h>     """Writes a binary stream to chunk files, each no larger than CHUNK_SIZE."""
+[?2004l[?2004h> 
+[?2004l[?2004h>     def __init__(self, tmp_dir: str):
+[?2004l[?2004h>         self.tmp_dir = tmp_dir
+[?2004lT[?2004h>         self.chunk_paths = []
+[?2004l[?2004h>         self.chunk_index = 0
+[?2004l[?2004h>         self.current = None
+[?2004l[?2004h>         self.current_size = 0
+[?2004l[?2004h> 
+[?2004l[?2004h>     def _open_new_chunk(self):
+[?2004l[?2004h>         if self.current is not None:
+[?2004l[?2004h>             self.current.close()
+[?2004l[?2004h>         name = f"part-{self.chunk_index:010d}.bin"
+[?2004l[?2004h>         path = os.path.join(self.tmp_dir, name)
+[?2004l[?2004h>         self.current = open(path, "wb")
+[?2004l[?2004h>         self.current_size = 0
+[?2004l[?2004h>         self.chunk_paths.append(path)
+[?2004l[?2004h>         self.chunk_index += 1
+[?2004l[?2004h> 
+[?2004l[?2004h>     def write(self, data: bytes) -> int:
+[?2004l[?2004h>         if not data:
+[?2004l[?2004h>             return 0
+[?2004l[?2004h>         if self.current is None:
+[?2004l[?2004h>             self._open_new_chunk()
+[?2004l[?2004h> 
+[?2004lt[?2004h>         written = 0
+[?2004l[?2004h>         while data:
+[?2004l[?2004h>             remaining = CHUNK_SIZE - self.current_size
+[?2004l[?2004h>             if remaining == 0:
+[?2004l[?2004h>                 self._open_new_chunk()
+[?2004l[?2004h>                 remaining = CHUNK_SIZE
+[?2004l[?2004h> 
+[?2004le[?2004h>             piece = data[:remaining]
+[?2004l[?2004h>             self.current.write(piece)
+[?2004li[?2004h>             self.current_size += len(piece)
+[?2004l[?2004h>             written += len(piece)
+[?2004l[?2004h>             data = data[remaining:]
+[?2004l[?2004h> 
+[?2004lt[?2004h>         return written
+[?2004l[?2004h> 
+[?2004lu[?2004h>     def close(self):
+[?2004l[?2004h>         if self.current is not None:
+[?2004lv[?2004h>             self.current.close()
+[?2004l[?2004h>             self.current = None
+[?2004l[?2004h> 
+[?2004l[?2004h> 
+[?2004l[?2004h> def base30_digits(n: int, depth: int) -> list[int]:
+[?2004l[?2004h>     digits = [0] * depth
+[?2004l[?2004h>     for i in range(depth - 1, -1, -1):
+[?2004l[?2004h>         digits[i] = n % 30
+[?2004l[?2004h>         n //= 30
+[?2004l[?2004h>     return digits
+[?2004l[?2004h> 
+[?2004l [?2004h> 
+[?2004l[?2004h> def chunk_tree_path(base_dir: str, chunk_index: int, depth: int, filename: str) -> str:
+[?2004l[?2004h>     digits = base30_digits(chunk_index, depth)
+[?2004l[?2004h>     parts = [str(d) for d in digits] + [filename]
+[?2004l[?2004h>     return os.path.join(base_dir, *parts)
+[?2004l[?2004h> 
+[?2004l [?2004h> 
+[?2004l [?2004h> def add_tree(tar: tarfile.TarFile, input_dir: str):
+[?2004ls[?2004h>     for root, dirnames, filenames in os.walk(input_dir, followlinks=False):
+[?2004l[?2004h>         dirnames.sort()
+[?2004l[?2004h>         filenames.sort()
+[?2004l[?2004h> 
+[?2004l [?2004h>         for d in dirnames:
+[?2004l[?2004h>             full = os.path.join(root, d)
+[?2004l[?2004h>             rel = os.path.relpath(full, input_dir)
+[?2004l[?2004h>             if os.path.islink(full):
+[?2004l[?2004h>                 tar.add(full, arcname=rel, recursive=False, follow_symlinks=False)
+[?2004l[?2004h>             else:
+[?2004l[?2004h>                 tar.add(full, arcname=rel, recursive=False)
+[?2004l[?2004h> 
+[?2004lt[?2004h>         for f in filenames:
+[?2004l[?2004h>             full = os.path.join(root, f)
+[?2004l[?2004h>             rel = os.path.relpath(full, input_dir)
+[?2004l[?2004h>             if os.path.islink(full):
+[?2004l[?2004h>                 tar.add(full, arcname=rel, recursive=False, follow_symlinks=False)
+[?2004l[?2004h>             else:
+[?2004l[?2004h>                 tar.add(full, arcname=rel, recursive=False)
+[?2004l[?2004h> 
+[?2004lu[?2004h> 
+[?2004lr[?2004h> def main() -> int:
+[?2004l[?2004h>     parser = argparse.ArgumentParser(
+[?2004l[?2004h>         description="Reshard a dataset directory into chunked files with directory constraints."
+[?2004l[?2004h>     )
+[?2004l[?2004h>     parser.add_argument("input_dir", help="Input dataset directory")
+[?2004l    ret[?2004h>     parser.add_argument("output_dir", help="Output resharded directory")
+[?2004l[?2004h>     args = parser.parse_args()
+[?2004l[?2004h> 
+[?2004ll[?2004h>     input_dir = os.path.abspath(args.input_dir)
+[?2004l[?2004h>     output_dir = os.path.abspath(args.output_dir)
+[?2004l[?2004h> 
+[?2004l [?2004h>     if not os.path.isdir(input_dir):
+[?2004l[?2004h>         print(f"error: input directory does not exist: {input_dir}", file=sys.stderr)
+[?2004l[?2004h>         return 1
+[?2004l[?2004h> 
+[?2004lu[?2004h>     # Avoid tarring the output directory while it is being written.
+[?2004l[?2004h>     if output_dir == input_dir or output_dir.startswith(input_dir + os.sep):
+[?2004l[?2004h>         print(
+[?2004l[?2004h>             "error: output_dir must not be the same as or inside input_dir",
+[?2004l[?2004h>             file=sys.stderr,
+[?2004l[?2004h>         )
+[?2004l[?2004h>         return 1
+[?2004l[?2004h> 
+[?2004l[?2004h>     os.makedirs(output_dir, exist_ok=True)
+[?2004lTA_DIR_[?2004h>     meta_dir = os.path.join(output_dir, META_DIR_NAME)
+[?2004l[?2004h> 
+[?2004le[?2004h>     if os.path.exists(meta_dir):
+[?2004l[?2004h>         shutil.rmtree(meta_dir)
+[?2004l[?2004h>     os.makedirs(meta_dir, exist_ok=True)
+[?2004l[?2004h> 
+[?2004lp[?2004h>     tmp_dir = os.path.join(meta_dir, ".tmp_shards")
+[?2004l o[?2004h>     shards_dir = os.path.join(meta_dir, "shards")
+[?2004l[?2004h>     os.makedirs(tmp_dir, exist_ok=True)
+[?2004l[?2004h>     os.makedirs(shards_dir, exist_ok=True)
+[?2004l[?2004h> 
+[?2004lv[?2004h>     writer = ChunkedWriter(tmp_dir)
+[?2004l[?2004h>     try:
+[?2004l[?2004h>         with tarfile.open(fileobj=writer, mode="w|", format=tarfile.GNU_FORMAT) as tar:
+[?2004l[?2004h>             add_tree(tar, input_dir)
+[?2004l[?2004h>     finally:
+[?2004l[?2004h>         writer.close()
+[?2004l[?2004h> 
+[?2004ls[?2004h>     chunk_paths = writer.chunk_paths
+[?2004l[?2004h>     if not chunk_paths:
+[?2004l[?2004h>         # A tar stream always contains at least the end-of-archive marker, but guard anyway.
+[?2004lunk_[?2004h>         shutil.rmtree(shards_dir, ignore_errors=True)
+[?2004l[?2004h>         os.makedirs(shards_dir, exist_ok=True)
+[?2004l[?2004h>     else:
+[?2004l[?2004h>         depth = max(1, math.ceil(math.log(len(chunk_paths), 30))) if len(chunk_paths) > 1 else 1
+[?2004l[?2004h>         for idx, old_path in enumerate(chunk_paths):
+[?2004l[?2004h>             new_path = chunk_tree_path(shards_dir, idx, depth, os.path.basename(old_path))
+[?2004l[?2004h>             os.makedirs(os.path.dirname(new_path), exist_ok=True)
+[?2004l  [?2004h>             shutil.move(old_path, new_path)
+[?2004l[?2004h> 
+[?2004lf[?2004h>     shutil.rmtree(tmp_dir, ignore_errors=True)
+[?2004l[?2004h> 
+[?2004le[?2004h>     manifest = {
+[?2004lr[?2004h>         "format": "reshard-tar-split-v1",
+[?2004l[?2004h>         "chunk_count": len(chunk_paths),
+[?2004l[?2004h>         "chunk_size_limit": CHUNK_SIZE,
+[?2004l[?2004h>         "max_entries_per_dir": MAX_ENTRIES,
+[?2004l[?2004h>         "tar_format": "gnu",
+[?2004l[?2004h>     }
+[?2004l.py
+u[?2004h>     with open(os.path.join(meta_dir, "manifest.json"), "w", encoding="utf-8") as f:
+[?2004l[?2004h>         json.dump(manifest, f, indent=2)
+[?2004l[?2004h> 
+[?2004l[?2004h>     print(f"resharded {input_dir} -> {output_dir} ({len(chunk_paths)} chunks)")
+[?2004l[?2004h>     return 0
+[?2004l[?2004h> 
+[?2004l[?2004h> 
+[?2004l[?2004h> if __name__ == "__main__":
+[?2004l[?2004h>     raise SystemExit(main())
+[?2004l[?2004h> PY
+[?2004l[?2004hroot@f0ddec31cf80:/app# 
+[?2004l[?2004hroot@f0ddec31cf80:/app# cat > /app/decompress.py <<'PY'
+[?2004l[?2004h> #!/usr/bin/env python3
+[?2004l[?2004h> import argparse
+[?2004l[?2004h> import json
+[?2004l[?2004h> import os
+[?2004l[?2004h> import re
+[?2004l[?2004h> import shutil
+[?2004l[?2004h> import sys
+[?2004l[?2004h> import tarfile
+[?2004l[?2004h> 
+[?2004l[?2004h> META_DIR_NAME = ".reshard_v1"
+[?2004l[?2004h> 
+[?2004l[?2004h> 
+[?2004l[?2004h> class ConcatenatedReader:
+[?2004l[?2004h>     """Reads a list of chunk files as one contiguous binary stream."""
+[?2004l[?2004h> 
+[?2004l[?2004h>     def __init__(self, paths):
+[?2004l[?2004h>         self.paths = paths
+[?2004l[?2004h>         self.index = 0
+[?2004l[?2004h>         self.current = None
+[?2004l[?2004h> 
+[?2004l[?2004h>     def _open_next(self):
+[?2004l[?2004h>         if self.current is not None:
+[?2004l[?2004h>             self.current.close()
+[?2004l[?2004h>             self.current = None
+[?2004l[?2004h>         if self.index < len(self.paths):
+[?2004l[?2004h>             self.current = open(self.paths[self.index], "rb")
+[?2004l[?2004h>             self.index += 1
+[?2004l[?2004h> 
+[?2004l[?2004h>     def read(self, size=-1):
+[?2004l[?2004h>         if self.current is None:
+[?2004l[?2004h>             self._open_next()
+[?2004l[?2004h>             if self.current is None:
+[?2004l[?2004h>                 return b""
+[?2004l[?2004h> 
+[?2004l[?2004h>         if size is None or size < 0:
+[?2004l[?2004h>             data = b""
+[?2004l[?2004h>             while True:
+[?2004l[?2004h>                 piece = self.current.read()
+[?2004l[?2004h>                 if not piece:
+[?2004l[?2004h>                     self._open_next()
+[?2004l[?2004h>                     if self.current is None:
+[?2004l[?2004h>                         break
+[?2004l[?2004h>                 else:
+[?2004l[?2004h>                     data += piece
+[?2004l[?2004h>             return data
+[?2004l[?2004h> 
+[?2004l[?2004h>         data = b""
+[?2004l[?2004h>         while size > 0:
+[?2004l[?2004h>             piece = self.current.read(size)
+[?2004l[?2004h>             if not piece:
+[?2004l[?2004h>                 self._open_next()
+[?2004l[?2004h>                 if self.current is None:
+[?2004l[?2004h>                     break
+[?2004l[?2004h>             else:
+[?2004l[?2004h>                 data += piece
+[?2004l[?2004h>                 size -= len(piece)
+[?2004l[?2004h>         return data
+[?2004l[?2004h> 
+[?2004l[?2004h>     def close(self):
+[?2004l[?2004h>         if self.current is not None:
+[?2004l[?2004h>             self.current.close()
+[?2004l[?2004h>             self.current = None
+[?2004l[?2004h> 
+[?2004l[?2004h> 
+[?2004l[?2004h> def chunk_sort_key(path):
+[?2004l[?2004h>     m = re.search(r"part-(\d+)\.bin$", os.path.basename(path))
+[?2004l[?2004h>     return int(m.group(1)) if m else path
+[?2004l[?2004h> 
+[?2004l[?2004h> 
+[?2004l[?2004h> def collect_chunks(shards_dir):
+[?2004l[?2004h>     chunks = []
+[?2004l[?2004h>     for root, _, files in os.walk(shards_dir):
+[?2004l[?2004h>         for f in files:
+[?2004l[?2004h>             if f.endswith(".bin"):
+[?2004l[?2004h>                 chunks.append(os.path.join(root, f))
+[?2004l[?2004h>     chunks.sort(key=chunk_sort_key)
+[?2004l[?2004h>     return chunks
+[?2004l[?2004h> 
+[?2004l[?2004h> 
+[?2004l[?2004h> def main() -> int:
+[?2004l[?2004h>     parser = argparse.ArgumentParser(
+[?2004l[?2004h>         description="Reconstruct the original dataset directory from a resharded directory in-place."
+[?2004l[?2004h>     )
+[?2004l[?2004h>     parser.add_argument("resharded_dir", help="Resharded dataset directory")
+[?2004l[?2004h>     args = parser.parse_args()
+[?2004l[?2004h> 
+[?2004l[?2004h>     resharded_dir = os.path.abspath(args.resharded_dir)
+[?2004l[?2004h>     meta_dir = os.path.join(resharded_dir, META_DIR_NAME)
+[?2004l[?2004h>     manifest_path = os.path.join(meta_dir, "manifest.json")
+[?2004l[?2004h> 
+[?2004l[?2004h>     if not os.path.isfile(manifest_path):
+[?2004l[?2004h>         print(f"error: manifest not found: {manifest_path}", file=sys.stderr)
+[?2004l[?2004h>         return 1
+[?2004l[?2004h> 
+[?2004l[?2004h>     with open(manifest_path, "r", encoding="utf-8") as f:
+[?2004l[?2004h>         manifest = json.load(f)
+[?2004l[?2004h> 
+[?2004l[?2004h>     if manifest.get("format") != "reshard-tar-split-v1":
+[?2004l[?2004h>         print("error: unsupported reshard format", file=sys.stderr)
+[?2004l[?2004h>         return 1
+[?2004l[?2004h> 
+[?2004l[?2004h>     shards_dir = os.path.join(meta_dir, "shards")
+[?2004l[?2004h>     if not os.path.isdir(shards_dir):
+[?2004l[?2004h>         print(f"error: shards directory not found: {shards_dir}", file=sys.stderr)
+[?2004l[?2004h>         return 1
+[?2004l[?2004h> 
+[?2004l[?2004h>     chunks = collect_chunks(shards_dir)
+[?2004l[?2004h>     if len(chunks) != manifest.get("chunk_count", len(chunks)):
+[?2004l[?2004h>         print(
+[?2004l[?2004h>             f"error: expected {manifest.get('chunk_count')} chunks, found {len(chunks)}",
+[?2004l[?2004h>             file=sys.stderr,
+[?2004l[?2004h>         )
+[?2004l[?2004h>         return 1
+[?2004l[?2004h> 
+[?2004l[?2004h>     reader = ConcatenatedReader(chunks)
+[?2004l[?2004h>     try:
+[?2004l[?2004h>         with tarfile.open(mode="r|", fileobj=reader) as tar:
+[?2004l[?2004h>             try:
+[?2004l[?2004h>                 tar.extractall(path=resharded_dir, filter="data")
+[?2004l[?2004h>             except TypeError:
+[?2004l[?2004h>                 tar.extractall(path=resharded_dir)
+[?2004l[?2004h>     finally:
+[?2004l[?2004h>         reader.close()
+[?2004l[?2004h> 
+[?2004l[?2004h>     shutil.rmtree(meta_dir, ignore_errors=True)
+[?2004l[?2004h>     print(f"reconstructed original structure in {resharded_dir}")
+[?2004l[?2004h>     return 0
+[?2004l[?2004h> 
+[?2004l[?2004h> 
+[?2004l[?2004h> if __name__ == "__main__":
+[?2004l[?2004h>     raise SystemExit(main())
+[?2004l[?2004h> PY
+[?2004l[?2004hroot@f0ddec31cf80:/app# 
+[?2004l[?2004hroot@f0ddec31cf80:/app# chmod +x /app/compress.py /app/decompress.py
+[?2004l[?2004hroot@f0ddec31cf80:/app# uv sync
+[?2004lUsing CPython 3.13.7 interpreter at: [36m/usr/local/bin/python3[39m
+Creating virtual environment at: [36m.venv[39m
+░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░ 0/0[2K[37m⠙[0m [2mResolving dependencies...                                                                                                                                     [0m[2K[37m⠋[0m [2mResolving dependencies...                                                                                                                                     [0m[2K[37m⠙[0m [2mResolving dependencies...                                                                                                                                     [0m[2K[37m⠋[0m [2mResolving dependencies...                                                                                                                                     [0m[2K[37m⠙[0m [2mResolving dependencies...                                                                                                                                     [0m[2K[37m⠙[0m [2mreshard-scripts==0.1.0                                                                                                                                        [0m[2K[37m⠙[0m [2m                                                                                                                                                              [0m[2K[2mResolved [1m1 package[0m [2min 82ms[0m[0m
+[2mAudited in 0.56ms[0m
+[?2004hroot@f0ddec31cf80:/app# 
+[?2004l[?2004hroot@f0ddec31cf80:/app# ls -la /app
+[?2004ltotal 556
+drwxr-xr-x 1 root root   4096 Jul 18 04:24 .
+drwxr-xr-x 1 root root   4096 Jul 18 04:15 ..
+drwxr-xr-x 4 root root   4096 Jul 18 04:24 .venv
+drwxr-xr-x 2 root root 532480 Sep 13  2025 c4_sample
+-rwxr-xr-x 1 root root   5402 Jul 18 04:24 compress.py
+-rwxr-xr-x 1 root root   3732 Jul 18 04:24 decompress.py
+-rw-r--r-- 1 root root    168 Jul 18 04:24 pyproject.toml
+-rw-r--r-- 1 root root    135 Jul 18 04:24 uv.lock
+[?2004hroot@f0ddec31cf80:/app# python -m py_compile /app/compress.py /app/decompress.py
+[?2004l[?2004hroot@f0ddec31cf80:/app# head -20 /app/pyproject.toml
+[?2004l[project]
+name = "reshard-scripts"
+version = "0.1.0"
+description = "Dataset resharding scripts"
+requires-python = ">=3.10"
+dependencies = []
+
+[tool.uv]
+package = false
+[?2004hroot@f0ddec31cf80:/app# 
+[?2004l[?2004hroot@f0ddec31cf80:/app# rm -rf /app/test_resharded /app/test_original_copy
+[?2004lh.join(root, f)))
+print("resharded max file size:", max_file)
+print("resharded bad dirs:", bad_dirs[:5], "count=", len(bad_dirs))
+
+orig = file_hashes("/app/c4_sample")
+restored = file_hashes("/app/test_resharded")
+print("original files:", len(orig))
+print("restored files:", len(restored))
+print("same keys:", set(orig) == set(restored))
+print("same hashes:", orig == restored)
+PY
+[?2004hroot@f0ddec31cf80:/app# python /app/compress.py /app/c4_sample /app/test_resharded
+[?2004l
+
+resharded /app/c4_sample -> /app/test_resharded (57 chunks)
+[?2004hroot@f0ddec31cf80:/app# python /app/decompress.py /app/test_resharded
+[?2004l
+reconstructed original structure in /app/test_resharded
+[?2004hroot@f0ddec31cf80:/app# python - <<'PY'
+[?2004l[?2004h> import os
+[?2004l[?2004h> import hashlib
+[?2004l[?2004h> 
+[?2004l[?2004h> def file_hashes(path):
+[?2004l[?2004h>     result = {}
+[?2004l[?2004h>     for root, dirs, files in os.walk(path):
+[?2004l[?2004h>         dirs.sort()
+[?2004l[?2004h>         files.sort()
+[?2004l[?2004h>         for f in files:
+[?2004l[?2004h>             full = os.path.join(root, f)
+[?2004l[?2004h>             rel = os.path.relpath(full, path)
+[?2004l[?2004h>             h = hashlib.sha256()
+[?2004l[?2004h>             with open(full, "rb") as fh:
+[?2004l[?2004h>                 for chunk in iter(lambda: fh.read(1024 * 1024), b""):
+[?2004l[?2004h>                     h.update(chunk)
+[?2004l[?2004h>             result[rel] = h.hexdigest()
+[?2004l[?2004h>     return result
+[?2004l[?2004h> 
+[?2004l[?2004h> # Constraint checks for resharded dir before decompression.
+[?2004l[?2004h> resharded = "/app/test_resharded"
+[?2004l[?2004h> max_file = 0
+[?2004l[?2004h> bad_dirs = []
+[?2004l[?2004h> for root, dirs, files in os.walk(resharded):
+[?2004l[?2004h>     entry_count = len(dirs) + len(files)
+[?2004l[?2004h>     if entry_count > 30:
+[?2004l[?2004h>         bad_dirs.append((root, entry_count))
+[?2004l[?2004h>     for f in files:
+[?2004l[?2004h>         max_file = max(max_file, os.path.getsize(os.path.join(root, f)))
+[?2004l[?2004h> print("resharded max file size:", max_file)
+[?2004l[?2004h> print("resharded bad dirs:", bad_dirs[:5], "count=", len(bad_dirs))
+[?2004l[?2004h> 
+[?2004l[?2004h> orig = file_hashes("/app/c4_sample")
+[?2004l[?2004h> restored = file_hashes("/app/test_resharded")
+[?2004l[?2004h> print("original files:", len(orig))
+[?2004l[?2004h> print("restored files:", len(restored))
+[?2004l[?2004h> print("same keys:", set(orig) == set(restored))
+[?2004l[?2004h> print("same hashes:", orig == restored)
+[?2004l[?2004h> PY
+[?2004lresharded max file size: 307834
+resharded bad dirs: [('/app/test_resharded', 9898)] count= 1
+
+
+original files: 9898
+restored files: 9898
+same keys: True
+same hashes: True
+[?2004hroot@f0ddec31cf80:/app# 
+[?2004l[?2004hroot@f0ddec31cf80:/app# 
+[?2004l[?2004hroot@f0ddec31cf80:/app# 
+[?2004l[?2004hroot@f0ddec31cf80:/app# 
+[?2004l[?2004hroot@f0ddec31cf80:/app# 
+[?2004l[?2004hroot@f0ddec31cf80:/app# rm -rf /app/test_resharded2
+[?2004l[?2004hroot@f0ddec31cf80:/app# python /app/compress.py /app/c4_sample /app/test_resharded2
+[?2004l
+resharded /app/c4_sample -> /app/test_resharded2 (57 chunks)
+[?2004hroot@f0ddec31cf80:/app# find /app/test_resharded2 -maxdepth 4 | head -40
+[?2004l/app/test_resharded2
+/app/test_resharded2/.reshard_v1
+/app/test_resharded2/.reshard_v1/manifest.json
+/app/test_resharded2/.reshard_v1/shards
+/app/test_resharded2/.reshard_v1/shards/0
+/app/test_resharded2/.reshard_v1/shards/0/2
+/app/test_resharded2/.reshard_v1/shards/0/13
+/app/test_resharded2/.reshard_v1/shards/0/20
+/app/test_resharded2/.reshard_v1/shards/0/26
+/app/test_resharded2/.reshard_v1/shards/0/27
+/app/test_resharded2/.reshard_v1/shards/0/19
+/app/test_resharded2/.reshard_v1/shards/0/3
+/app/test_resharded2/.reshard_v1/shards/0/24
+/app/test_resharded2/.reshard_v1/shards/0/29
+/app/test_resharded2/.reshard_v1/shards/0/22
+/app/test_resharded2/.reshard_v1/shards/0/12
+/app/test_resharded2/.reshard_v1/shards/0/23
+/app/test_resharded2/.reshard_v1/shards/0/6
+/app/test_resharded2/.reshard_v1/shards/0/0
+/app/test_resharded2/.reshard_v1/shards/0/17
+/app/test_resharded2/.reshard_v1/shards/0/10
+/app/test_resharded2/.reshard_v1/shards/0/5
+/app/test_resharded2/.reshard_v1/shards/0/16
+/app/test_resharded2/.reshard_v1/shards/0/8
+/app/test_resharded2/.reshard_v1/shards/0/9
+/app/test_resharded2/.reshard_v1/shards/0/21
+/app/test_resharded2/.reshard_v1/shards/0/18
+/app/test_resharded2/.reshard_v1/shards/0/7
+/app/test_resharded2/.reshard_v1/shards/0/25
+/app/test_resharded2/.reshard_v1/shards/0/28
+/app/test_resharded2/.reshard_v1/shards/0/1
+/app/test_resharded2/.reshard_v1/shards/0/4
+/app/test_resharded2/.reshard_v1/shards/0/15
+/app/test_resharded2/.reshard_v1/shards/0/11
+/app/test_resharded2/.reshard_v1/shards/0/14
+/app/test_resharded2/.reshard_v1/shards/1
+/app/test_resharded2/.reshard_v1/shards/1/2
+/app/test_resharded2/.reshard_v1/shards/1/13
+/app/test_resharded2/.reshard_v1/shards/1/20
+/app/test_resharded2/.reshard_v1/shards/1/26
+[?2004hroot@f0ddec31cf80:/app# python - <<'PY'
+[?2004l[?2004h> import os
+[?2004l[?2004h> resharded = "/app/test_resharded2"
+[?2004l[?2004h> max_file = 0
+[?2004l[?2004h> bad_dirs = []
+[?2004l[?2004h> for root, dirs, files in os.walk(resharded):
+[?2004l[?2004h>     entry_count = len(dirs) + len(files)
+[?2004l[?2004h>     if entry_count > 30:
+[?2004l[?2004h>         bad_dirs.append((root, entry_count))
+[?2004l[?2004h>     for f in files:
+[?2004l[?2004h>         max_file = max(max_file, os.path.getsize(os.path.join(root, f)))
+[?2004l[?2004h> print("resharded max file size:", max_file)
+[?2004l[?2004h> print("resharded bad dirs:", bad_dirs)
+[?2004l[?2004h> assert max_file <= 15 * 1024 * 1024
+[?2004l[?2004h> assert not bad_dirs
+[?2004l[?2004h> print("constraints OK")
+[?2004l[?2004h> PY
+[?2004lresharded max file size: 14680064
+resharded bad dirs: []
+constraints OK
+[?2004hroot@f0ddec31cf80:/app# python /app/decompress.py /app/test_resharded2
+[?2004l
+diff -qr /app/c4_sample /app/test_resharded2 && echo "ROUND TRIP OK"
+reconstructed original structure in /app/test_resharded2
+[?2004hroot@f0ddec31cf80:/app# diff -qr /app/c4_sample /app/test_resharded2 && echo "ROUND TRIP OK"
+[?2004lROUND TRIP OK
+[?2004hroot@f0ddec31cf80:/app# 
+[?2004l[?2004hroot@f0ddec31cf80:/app# 
+[?2004l[?2004hroot@f0ddec31cf80:/app# diff -qr /app/c4_sample /app/test_resharded2 && echo "ROUND TRIP OK"
+[?2004lROUND TRIP OK
+[?2004hroot@f0ddec31cf80:/app# 
+[?2004l[?2004hroot@f0ddec31cf80:/app# uv run python -m py_compile /app/compress.py /app/decompress.py
+[?2004l[?2004hroot@f0ddec31cf80:/app# uv run python /app/compress.py --help
+[?2004lusage: compress.py [-h] input_dir output_dir
+
+Reshard a dataset directory into chunked files with directory constraints.
+
+positional arguments:
+  input_dir   Input dataset directory
+  output_dir  Output resharded directory
+
+options:
+  -h, --help  show this help message and exit
+[?2004hroot@f0ddec31cf80:/app# uv run python /app/decompress.py --help
+[?2004lusage: decompress.py [-h] resharded_dir
+
+Reconstruct the original dataset directory from a resharded directory in-place.
+
+positional arguments:
+  resharded_dir  Resharded dataset directory
+
+options:
+  -h, --help     show this help message and exit
+[?2004hroot@f0ddec31cf80:/app# rm -rf /app/test_resharded /app/test_resharded2
+[?2004l[?2004hroot@f0ddec31cf80:/app# rm -rf /app/__pycache__
+[?2004l[?2004hroot@f0ddec31cf80:/app# ls -la /app
+[?2004ltotal 556
+drwxr-xr-x 1 root root   4096 Jul 18 04:28 .
+drwxr-xr-x 1 root root   4096 Jul 18 04:15 ..
+drwxr-xr-x 4 root root   4096 Jul 18 04:24 .venv
+drwxr-xr-x 2 root root 532480 Sep 13  2025 c4_sample
+-rwxr-xr-x 1 root root   5402 Jul 18 04:24 compress.py
+-rwxr-xr-x 1 root root   3732 Jul 18 04:24 decompress.py
+-rw-r--r-- 1 root root    168 Jul 18 04:24 pyproject.toml
+-rw-r--r-- 1 root root    135 Jul 18 04:24 uv.lock
+[?2004hroot@f0ddec31cf80:/app# 
+[?2004l[?2004hroot@f0ddec31cf80:/app# 

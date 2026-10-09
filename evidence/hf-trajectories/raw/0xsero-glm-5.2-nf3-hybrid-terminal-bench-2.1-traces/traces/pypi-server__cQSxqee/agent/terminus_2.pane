@@ -1,0 +1,203 @@
+[?2004hroot@212bd8acb745:/app# asciinema rec --stdin /logs/agent/recording.cast
+[?2004l[0;32masciinema: recording asciicast to /logs/agent/recording.cast[0m
+[0;32masciinema: press <ctrl-d> or type "exit" when you're done[0m
+[?2004hroot@212bd8acb745:/app# clear
+[?2004l[H[J[3J[?2004hroot@212bd8acb745:/app# pwd
+[?2004l/app
+[?2004hroot@212bd8acb745:/app# python3 --version
+[?2004lPython 3.13.7
+[?2004hroot@212bd8acb745:/app# python3 -m pip --version
+[?2004lpython3 -c "import build, setuptools, wheel; print('build/setuptools/wheel available')" 2>/dev/null || echo "build/setuptools/wheel availability unknown"
+pip 25.2 from /usr/local/lib/python3.13/site-packages/pip (python 3.13)
+[?2004hroot@212bd8acb745:/app# python3 -c "import build, setuptools, wheel; print('build/setuptools/wheel available')" 2>/dev/null || echo "build/setuptools/wheel availability unknown"
+[?2004lbuild/setuptools/wheel availability unknown
+[?2004hroot@212bd8acb745:/app# bash <<'EOF'
+[?2004lfor x, y in zip(a, b))\n\n__all__ = ["dotproduct"]\n'
+metadata = b'Metadata-Version: 2.1\nName: vectorops\nVersion: 0.1.0\nSummary: Simple vector operations\nAuthor: vectorops\nLicense: MIT\n'
+wheel_meta = b'Wheel-Version: 1.0\nGenerator: manual\nRoot-Is-Purelib: true\nTag: py3-none-any\n'
+
+wheel_files = {
+    f"{name}/__init__.py": init_code,
+    f"{name}-{version}.dist-info/METADATA": metadata,
+    f"{name}-{version}.dist-info/WHEEL": wheel_meta,
+}
+
+record_lines = []
+for path, data in wheel_files.items():
+    digest = hashlib.sha256(data).digest()
+    hash_str = "sha256=" + base64.urlsafe_b64encode(digest).rstrip(b"=").decode()
+    record_lines.append(f"{path},{hash_str},{len(data)}")
+record_data = ("\n".join(record_lines) + f"\n{name}-{version}.dist-info/RECORD,,\n").encode()
+
+wheel_path = os.path.join(dist, f"{name}-{version}-py3-none-any.whl")
+with zipfile.ZipFile(wheel_path, "w", zipfile.ZIP_DEFLATED) as z:
+    for path, data in wheel_files.items():
+        z.writestr(path, data)
+    z.writestr(f"{name}[?2004h> set -euo pipefail
+[?2004l[?2004h> rm -rf /app/vectorops-project /app/dist /app/pypi /app/build_vectorops.py /app/pypi_server.pid
+[?2004l[?2004h> mkdir -p /app/vectorops-project/vectorops /app/dist /app/pypi/simple/vectorops
+[?2004l[?2004h> 
+[?2004l[?2004h> cat > /app/vectorops-project/README.md <<'README'
+[?2004l[?2004h> # vectorops
+[?2004l[?2004h> 
+[?2004l[?2004h> Simple vector operations.
+[?2004l[?2004h> README
+[?2004l[?2004h> 
+[?2004l[?2004h> cat > /app/vectorops-project/pyproject.toml <<'PYPROJECT'
+[?2004l[?2004h> [build-system]
+[?2004l[?2004h> requires = ["setuptools>=61.0"]
+[?2004l[?2004h> build-backend = "setuptools.build_meta"
+[?2004l[?2004h> 
+[?2004l[?2004h> [project]
+[?2004l[?2004h> name = "vectorops"
+[?2004l[?2004h> version = "0.1.0"
+[?2004l[?2004h> description = "Simple vector operations"
+[?2004l[?2004h> readme = "README.md"
+[?2004l[?2004h> PYPROJECT
+[?2004l[?2004h> 
+[?2004l[?2004h> cat > /app/vectorops-project/vectorops/__init__.py <<'INIT'
+[?2004l[?2004h> def dotproduct(a, b):
+[?2004l[?2004h>     return sum(x * y for x, y in zip(a, b))
+[?2004l[?2004h> 
+[?2004l[?2004h> __all__ = ["dotproduct"]
+[?2004l[?2004h> INIT
+[?2004l[?2004h> 
+[?2004l[?2004h> python3 - <<'PY'
+[?2004l[?2004h> import base64
+[?2004l[?2004h> import hashlib
+[?2004l[?2004h> import io
+[?2004l[?2004h> import os
+[?2004l[?2004h> import shutil
+[?2004l[?2004h> import tarfile
+[?2004l[?2004h> import zipfile
+[?2004l[?2004h> 
+[?2004l[?2004h> project = "/app/vectorops-project"
+[?2004l[?2004h> dist = "/app/dist"
+[?2004l[?2004h> pypi = "/app/pypi/simple/vectorops"
+[?2004l[?2004h> name = "vectorops"
+[?2004l[?2004h> version = "0.1.0"
+[?2004l[?2004h> 
+[?2004l[?2004h> init_code = b'def dotproduct(a, b):\n    return sum(x * y for x, y in zip(a, b))\n\n__all__ = ["dotproduct"]\n'
+[?2004l[?2004h> metadata = b'Metadata-Version: 2.1\nName: vectorops\nVersion: 0.1.0\nSummary: Simple vector operations\nAuthor: vectorops\nLicense: MIT\n'
+[?2004l[?2004h> wheel_meta = b'Wheel-Version: 1.0\nGenerator: manual\nRoot-Is-Purelib: true\nTag: py3-none-any\n'
+[?2004l[?2004h> 
+[?2004l[?2004h> wheel_files = {
+[?2004l[?2004h>     f"{name}/__init__.py": init_code,
+[?2004l[?2004h>     f"{name}-{version}.dist-info/METADATA": metadata,
+[?2004l[?2004h>     f"{name}-{version}.dist-info/WHEEL": wheel_meta,
+[?2004l[?2004h> }
+[?2004l[?2004h> 
+[?2004l[?2004h> record_lines = []
+[?2004l[?2004h> for path, data in wheel_files.items():
+[?2004l[?2004h>     digest = hashlib.sha256(data).digest()
+[?2004l[?2004h>     hash_str = "sha256=" + base64.urlsafe_b64encode(digest).rstrip(b"=").decode()
+[?2004l[?2004h>     record_lines.append(f"{path},{hash_str},{len(data)}")
+[?2004l[?2004h> record_data = ("\n".join(record_lines) + f"\n{name}-{version}.dist-info/RECORD,,\n").encode()
+[?2004l[?2004h> 
+[?2004l[?2004h> wheel_path = os.path.join(dist, f"{name}-{version}-py3-none-any.whl")
+[?2004l[?2004h> with zipfile.ZipFile(wheel_path, "w", zipfile.ZIP_DEFLATED) as z:
+[?2004l[?2004h>     for path, data in wheel_files.items():
+[?2004l[?2004h>         z.writestr(path, data)
+[?2004l[?2004h>     z.writestr(f"{name}-{version}.dist-info/RECORD", record_data)
+[?2004l[?2004h> 
+[?2004l[?2004h> sdist_path = os.path.join(dist, f"{name}-{version}.tar.gz")
+[?2004l[?2004h> with tarfile.open(sdist_path, "w:gz") as tar:
+[?2004l[?2004h>     def add_bytes(arcname, data):
+[?2004l[?2004h>         info = tarfile.TarInfo(arcname)
+[?2004l[?2004h>         info.size = len(data)
+[?2004l[?2004h>         info.mtime = 0
+[?2004l[?2004h>         tar.addfile(info, io.BytesIO(data))
+[?2004l[?2004h> 
+[?2004l[?2004h>     add_bytes(f"{name}-{version}/PKG-INFO", metadata)
+[?2004l[?2004h>     add_bytes(f"{name}-{version}/pyproject.toml", open(os.path.join(project, "pyproject.toml"), "rb").read())
+[?2004l[?2004h>     add_bytes(f"{name}-{version}/README.md", open(os.path.join(project, "README.md"), "rb").read())
+[?2004l[?2004h>     add_bytes(f"{name}-{version}/{name}/__init__.py", init_code)
+[?2004l[?2004h> 
+[?2004l[?2004h> shutil.copy2(wheel_path, pypi)
+[?2004l[?2004h> shutil.copy2(sdist_path, pypi)
+[?2004l[?2004h> 
+[?2004l[?2004h> print("Built distributions:")
+[?2004l[?2004h> for path in (wheel_path, sdist_path):
+[?2004l[?2004h>     print(path, os.path.getsize(path))
+[?2004l[?2004h> PY
+[?2004l[?2004h> 
+[?2004l[?2004h> ls -la /app/dist /app/pypi/simple/vectorops
+[?2004l[?2004h> EOF
+[?2004lBuilt distributions:
+/app/dist/vectorops-0.1.0-py3-none-any.whl 1021
+/app/dist/vectorops-0.1.0.tar.gz 482
+/app/dist:
+total 16
+drwxr-xr-x 2 root root 4096 Jul 14 18:12 .
+drwxr-xr-x 1 root root 4096 Jul 14 18:12 ..
+-rw-r--r-- 1 root root 1021 Jul 14 18:12 vectorops-0.1.0-py3-none-any.whl
+-rw-r--r-- 1 root root  482 Jul 14 18:12 vectorops-0.1.0.tar.gz
+
+/app/pypi/simple/vectorops:
+total 16
+drwxr-xr-x 2 root root 4096 Jul 14 18:12 .
+drwxr-xr-x 3 root root 4096 Jul 14 18:12 ..
+-rw-r--r-- 1 root root 1021 Jul 14 18:12 vectorops-0.1.0-py3-none-any.whl
+-rw-r--r-- 1 root root  482 Jul 14 18:12 vectorops-0.1.0.tar.gz
+[?2004hroot@212bd8acb745:/app# bash <<'EOF'
+[?2004l[?2004h> set -euo pipefail
+[?2004l[?2004h> if [ -f /app/pypi_server.pid ]; then
+[?2004l[?2004h>   kill "$(cat /app/pypi_server.pid)" 2>/dev/null || true
+[?2004l[?2004h> fi
+[?2004l[?2004h> nohup python3 -m http.server 8080 --directory /app/pypi > /app/pypi_server.log 2>&1 &
+[?2004l[?2004h> echo $! > /app/pypi_server.pid
+[?2004l[?2004h> sleep 1
+[?2004l[?2004h> cat /app/pypi_server.log
+[?2004l[?2004h> python3 - <<'PY'
+[?2004l[?2004h> import urllib.request
+[?2004l[?2004h> resp = urllib.request.urlopen("http://localhost:8080/simple/vectorops/")
+[?2004l[?2004h> print(resp.read().decode()[:800])
+[?2004l[?2004h> PY
+[?2004l[?2004h> EOF
+[?2004l<!DOCTYPE HTML>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Directory listing for /simple/vectorops/</title>
+</head>
+<body>
+<h1>Directory listing for /simple/vectorops/</h1>
+<hr>
+<ul>
+<li><a href="vectorops-0.1.0-py3-none-any.whl">vectorops-0.1.0-py3-none-any.whl</a></li>
+<li><a href="vectorops-0.1.0.tar.gz">vectorops-0.1.0.tar.gz</a></li>
+</ul>
+<hr>
+</body>
+</html>
+
+[?2004hroot@212bd8acb745:/app# bash <<'EOF'
+[?2004l[?2004h> set -e
+[?2004l[?2004h> python3 -m pip config set global.trusted-host localhost
+[?2004l[?2004h> python3 -m pip uninstall -y vectorops || true
+[?2004l[?2004h> pip install --index-url http://localhost:8080/simple vectorops==0.1.0
+[?2004l[?2004h> cd /tmp
+[?2004l[?2004h> python3 -c "from vectorops import dotproduct; assert 1 == dotproduct([1,1], [0,1]); print('vectorops installed and dotproduct works')"
+[?2004l[?2004h> python3 -m pip show vectorops
+[?2004l[?2004h> EOF
+[?2004lWriting to /root/.config/pip/pip.conf
+[33mWARNING: Skipping vectorops as it is not installed.[0m[33m
+[0m[33mWARNING: Running pip as the 'root' user can result in broken permissions and conflicting behaviour with the system package manager, possibly rendering your system unusable. It is recommended to use a virtual environment instead: https://pip.pypa.io/warnings/venv. Use the --root-user-action option if you know what you are doing and want to suppress this warning.[0m[33m
+[0mLooking in indexes: http://localhost:8080/simple
+Collecting vectorops==0.1.0
+  Downloading http://localhost:8080/simple/vectorops/vectorops-0.1.0-py3-none-any.whl (1.0 kB)
+Installing collected packages: vectorops
+Successfully installed vectorops-0.1.0
+[33mWARNING: Running pip as the 'root' user can result in broken permissions and conflicting behaviour with the system package manager, possibly rendering your system unusable. It is recommended to use a virtual environment instead: https://pip.pypa.io/warnings/venv. Use the --root-user-action option if you know what you are doing and want to suppress this warning.[0m[33m
+[0mvectorops installed and dotproduct works
+Name: vectorops
+Version: 0.1.0
+Summary: Simple vector operations
+Home-page: 
+Author: vectorops
+Author-email: 
+License: MIT
+Location: /usr/local/lib/python3.13/site-packages
+Requires: 
+Required-by: 
+[?2004hroot@212bd8acb745:/app# 

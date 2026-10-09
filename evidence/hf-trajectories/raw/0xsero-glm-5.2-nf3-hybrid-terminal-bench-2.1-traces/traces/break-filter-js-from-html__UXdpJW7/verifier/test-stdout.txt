@@ -1,0 +1,248 @@
+Hit:1 http://deb.debian.org/debian bookworm InRelease
+Hit:2 http://deb.debian.org/debian bookworm-updates InRelease
+Hit:3 http://deb.debian.org/debian-security bookworm-security InRelease
+Reading package lists...
+Reading package lists...
+Building dependency tree...
+Reading state information...
+The following additional packages will be installed:
+  libcurl4 libnghttp2-14 librtmp1 libssh2-1
+The following NEW packages will be installed:
+  curl libcurl4 libnghttp2-14 librtmp1 libssh2-1
+0 upgraded, 5 newly installed, 0 to remove and 87 not upgraded.
+Need to get 1020 kB of archives.
+After this operation, 2101 kB of additional disk space will be used.
+Get:1 http://deb.debian.org/debian bookworm/main amd64 libnghttp2-14 amd64 1.52.0-1+deb12u3 [72.4 kB]
+Get:2 http://deb.debian.org/debian bookworm/main amd64 librtmp1 amd64 2.4+20151223.gitfa8646d.1-2+b2 [60.8 kB]
+Get:3 http://deb.debian.org/debian bookworm/main amd64 libssh2-1 amd64 1.10.0-3+b1 [179 kB]
+Get:4 http://deb.debian.org/debian bookworm/main amd64 libcurl4 amd64 7.88.1-10+deb12u15 [392 kB]
+Get:5 http://deb.debian.org/debian bookworm/main amd64 curl amd64 7.88.1-10+deb12u15 [316 kB]
+debconf: delaying package configuration, since apt-utils is not installed
+Fetched 1020 kB in 0s (2944 kB/s)
+Selecting previously unselected package libnghttp2-14:amd64.
+(Reading database ... (Reading database ... 5%(Reading database ... 10%(Reading database ... 15%(Reading database ... 20%(Reading database ... 25%(Reading database ... 30%(Reading database ... 35%(Reading database ... 40%(Reading database ... 45%(Reading database ... 50%(Reading database ... 55%(Reading database ... 60%(Reading database ... 65%(Reading database ... 70%(Reading database ... 75%(Reading database ... 80%(Reading database ... 85%(Reading database ... 90%(Reading database ... 95%(Reading database ... 100%(Reading database ... 23584 files and directories currently installed.)
+Preparing to unpack .../libnghttp2-14_1.52.0-1+deb12u3_amd64.deb ...
+Unpacking libnghttp2-14:amd64 (1.52.0-1+deb12u3) ...
+Selecting previously unselected package librtmp1:amd64.
+Preparing to unpack .../librtmp1_2.4+20151223.gitfa8646d.1-2+b2_amd64.deb ...
+Unpacking librtmp1:amd64 (2.4+20151223.gitfa8646d.1-2+b2) ...
+Selecting previously unselected package libssh2-1:amd64.
+Preparing to unpack .../libssh2-1_1.10.0-3+b1_amd64.deb ...
+Unpacking libssh2-1:amd64 (1.10.0-3+b1) ...
+Selecting previously unselected package libcurl4:amd64.
+Preparing to unpack .../libcurl4_7.88.1-10+deb12u15_amd64.deb ...
+Unpacking libcurl4:amd64 (7.88.1-10+deb12u15) ...
+Selecting previously unselected package curl.
+Preparing to unpack .../curl_7.88.1-10+deb12u15_amd64.deb ...
+Unpacking curl (7.88.1-10+deb12u15) ...
+Setting up libnghttp2-14:amd64 (1.52.0-1+deb12u3) ...
+Setting up librtmp1:amd64 (2.4+20151223.gitfa8646d.1-2+b2) ...
+Setting up libssh2-1:amd64 (1.10.0-3+b1) ...
+Setting up libcurl4:amd64 (7.88.1-10+deb12u15) ...
+Setting up curl (7.88.1-10+deb12u15) ...
+Processing triggers for libc-bin (2.36-9+deb12u10) ...
+downloading uv 0.9.5 x86_64-unknown-linux-gnu
+no checksums to verify
+installing to /root/.local/bin
+  uv
+  uvx
+everything's installed!
+
+To add $HOME/.local/bin to your PATH, either restart your shell or run:
+
+    source $HOME/.local/bin/env (sh, bash, zsh)
+    source $HOME/.local/bin/env.fish (fish)
+Downloading pygments (1.2MiB)
+Downloading selenium (9.2MiB)
+ Downloading pygments
+ Downloading selenium
+Installed 23 packages in 103ms
+============================= test session starts ==============================
+platform linux -- Python 3.13.7, pytest-8.4.1, pluggy-1.6.0
+rootdir: /tests
+plugins: json-ctrf-0.3.5
+collected 1 item
+
+../tests/test_outputs.py F                                               [100%]
+
+=================================== FAILURES ===================================
+________________________ test_out_html_bypasses_filter _________________________
+
+    def test_out_html_bypasses_filter():
+        """Test that out.html still triggers an alert after being filtered."""
+        import subprocess
+    
+        out_path = Path("/app/out.html")
+    
+        # First check the file exists
+        assert out_path.exists(), f"File {out_path} does not exist"
+    
+        # Create a temporary copy of the file to filter
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".html", delete=False) as f:
+            # Copy the original content to temp file
+            f.write(out_path.read_text())
+            filtered_path = Path(f.name)
+    
+        # Apply the filter using command-line interface (modifies file in-place)
+        result = subprocess.run(
+            ["python", "/tests/filter.py", str(filtered_path)],
+            capture_output=True,
+            text=True,
+        )
+    
+        # Check if filter ran successfully
+        assert result.returncode == 0, f"Filter failed with error: {result.stderr}"
+    
+        # Setup Chrome options for headless mode
+        chrome_options = Options()
+        chrome_options.add_argument("--headless")
+        chrome_options.add_argument("--no-sandbox")
+        chrome_options.add_argument("--disable-dev-shm-usage")
+        chrome_options.add_argument("--disable-gpu")
+        chrome_options.add_argument("--window-size=1920,1080")
+    
+        # Use Chromium as Chrome
+        chrome_options.binary_location = "/usr/bin/chromium"
+    
+        # Initialize the Chrome driver with explicit service
+        driver = None
+        alert_detected = False
+        alert_text = None
+    
+        try:
+            service = Service(executable_path="/usr/bin/chromedriver")
+>           driver = webdriver.Chrome(service=service, options=chrome_options)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+/tests/test_outputs.py:61: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/root/.cache/uv/archive-v0/hKsiPj04PlGr53Xp8ciWu/lib/python3.13/site-packages/selenium/webdriver/chrome/webdriver.py:47: in __init__
+    super().__init__(
+/root/.cache/uv/archive-v0/hKsiPj04PlGr53Xp8ciWu/lib/python3.13/site-packages/selenium/webdriver/chromium/webdriver.py:69: in __init__
+    super().__init__(command_executor=executor, options=options)
+/root/.cache/uv/archive-v0/hKsiPj04PlGr53Xp8ciWu/lib/python3.13/site-packages/selenium/webdriver/remote/webdriver.py:263: in __init__
+    self.start_session(capabilities)
+/root/.cache/uv/archive-v0/hKsiPj04PlGr53Xp8ciWu/lib/python3.13/site-packages/selenium/webdriver/remote/webdriver.py:366: in start_session
+    response = self.execute(Command.NEW_SESSION, caps)["value"]
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.cache/uv/archive-v0/hKsiPj04PlGr53Xp8ciWu/lib/python3.13/site-packages/selenium/webdriver/remote/webdriver.py:458: in execute
+    self.error_handler.check_response(response)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <selenium.webdriver.remote.errorhandler.ErrorHandler object at 0x2aaaadf5c1a0>
+response = {'status': 500, 'value': '{"value":{"error":"session not created","message":"session not created: Chrome instance exit...\\n#16 0x55555602cbce \\u003Cunknown>\\n#17 0x55555603e765 \\u003Cunknown>\\n#18 0x2aaaab8a11f5 \\u003Cunknown>\\n"}}'}
+
+    def check_response(self, response: dict[str, Any]) -> None:
+        """Checks that a JSON response from the WebDriver does not have an
+        error.
+    
+        :Args:
+         - response - The JSON response from the WebDriver server as a dictionary
+           object.
+    
+        :Raises: If the response contains an error message.
+        """
+        status = response.get("status", None)
+        if not status or status == ErrorCode.SUCCESS:
+            return
+        value = None
+        message = response.get("message", "")
+        screen: str = response.get("screen", "")
+        stacktrace = None
+        if isinstance(status, int):
+            value_json = response.get("value", None)
+            if value_json and isinstance(value_json, str):
+                try:
+                    value = json.loads(value_json)
+                    if isinstance(value, dict):
+                        if len(value) == 1:
+                            value = value["value"]
+                        status = value.get("error", None)
+                        if not status:
+                            status = value.get("status", ErrorCode.UNKNOWN_ERROR)
+                            message = value.get("value") or value.get("message")
+                            if not isinstance(message, str):
+                                value = message
+                                message = message.get("message")
+                        else:
+                            message = value.get("message", None)
+                except ValueError:
+                    pass
+    
+        exception_class: type[WebDriverException]
+        e = ErrorCode()
+        error_codes = [item for item in dir(e) if not item.startswith("__")]
+        for error_code in error_codes:
+            error_info = getattr(ErrorCode, error_code)
+            if isinstance(error_info, list) and status in error_info:
+                exception_class = getattr(ExceptionMapping, error_code, WebDriverException)
+                break
+        else:
+            exception_class = WebDriverException
+    
+        if not value:
+            value = response["value"]
+        if isinstance(value, str):
+            raise exception_class(value)
+        if message == "" and "message" in value:
+            message = value["message"]
+    
+        screen = None  # type: ignore[assignment]
+        if "screen" in value:
+            screen = value["screen"]
+    
+        stacktrace = None
+        st_value = value.get("stackTrace") or value.get("stacktrace")
+        if st_value:
+            if isinstance(st_value, str):
+                stacktrace = st_value.split("\n")
+            else:
+                stacktrace = []
+                try:
+                    for frame in st_value:
+                        line = frame.get("lineNumber", "")
+                        file = frame.get("fileName", "<anonymous>")
+                        if line:
+                            file = f"{file}:{line}"
+                        meth = frame.get("methodName", "<anonymous>")
+                        if "className" in frame:
+                            meth = f"{frame['className']}.{meth}"
+                        msg = "    at %s (%s)"
+                        msg = msg % (meth, file)
+                        stacktrace.append(msg)
+                except TypeError:
+                    pass
+        if exception_class == UnexpectedAlertPresentException:
+            alert_text = None
+            if "data" in value:
+                alert_text = value["data"].get("text")
+            elif "alert" in value:
+                alert_text = value["alert"].get("text")
+            raise exception_class(message, screen, stacktrace, alert_text)  # type: ignore[call-arg]  # mypy is not smart enough here
+>       raise exception_class(message, screen, stacktrace)
+E       selenium.common.exceptions.SessionNotCreatedException: Message: session not created: Chrome instance exited. Examine ChromeDriver verbose log to determine the cause.; For documentation on this error, please visit: https://www.selenium.dev/documentation/webdriver/troubleshooting/errors#sessionnotcreatedexception
+E       Stacktrace:
+E       #0 0x55555603fc9e <unknown>
+E       #1 0x555555a95f17 <unknown>
+E       #2 0x555555acde9a <unknown>
+E       #3 0x555555ac90b0 <unknown>
+E       #4 0x555555b1325f <unknown>
+E       #5 0x555555b046c3 <unknown>
+E       #6 0x555555ad51a9 <unknown>
+E       #7 0x555555ad5d11 <unknown>
+E       #8 0x555556009ed0 <unknown>
+E       #9 0x55555600d2f1 <unknown>
+E       #10 0x55555600cd88 <unknown>
+E       #11 0x55555600d795 <unknown>
+E       #12 0x555555ff3abc <unknown>
+E       #13 0x55555600db11 <unknown>
+E       #14 0x555555fdcb7a <unknown>
+E       #15 0x55555602c9d5 <unknown>
+E       #16 0x55555602cbce <unknown>
+E       #17 0x55555603e765 <unknown>
+E       #18 0x2aaaab8a11f5 <unknown>
+
+/root/.cache/uv/archive-v0/hKsiPj04PlGr53Xp8ciWu/lib/python3.13/site-packages/selenium/webdriver/remote/errorhandler.py:232: SessionNotCreatedException
+=========================== short test summary info ============================
+FAILED ../tests/test_outputs.py::test_out_html_bypasses_filter - selenium.com...
+============================== 1 failed in 5.61s ===============================

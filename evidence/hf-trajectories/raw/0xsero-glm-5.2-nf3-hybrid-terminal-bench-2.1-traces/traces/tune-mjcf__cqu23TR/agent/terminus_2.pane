@@ -1,0 +1,1205 @@
+[?2004hroot@44ba1e451396:/app# asciinema rec --stdin /logs/agent/recording.cast
+[?2004l[0;32masciinema: recording asciicast to /logs/agent/recording.cast[0m
+[0;32masciinema: press <ctrl-d> or type "exit" when you're done[0m
+[?2004hroot@44ba1e451396:/app# clear
+[?2004l[H[J[3J[?2004hroot@44ba1e451396:/app# ls -la /app
+[?2004ltotal 16
+drwxr-xr-x 1 root root 4096 Sep 13  2025 .
+drwxr-xr-x 1 root root 4096 Jul 19 05:45 ..
+-rw-r--r-- 1 root root 3112 Sep 13  2025 eval.py
+-rw-r--r-- 1 root root 1254 Sep 13  2025 model_ref.xml
+[?2004hroot@44ba1e451396:/app# sed -n '1,240p' /app/model_ref.xml
+[?2004l<!-- Inspired by https://github.com/google-deepmind/mujoco/blob/main/model/plugin/elasticity/cable.xml -->
+<mujoco model="Cable">
+
+  <extension>
+    <plugin plugin="mujoco.elasticity.cable"/>
+  </extension>
+
+  <statistic center="0 0 .3" extent="1"/>
+  <visual>
+    <global elevation="-30"/>
+  </visual>
+
+  <compiler autolimits="true"/>
+
+  <size memory="2M"/>
+
+  <worldbody>
+    <composite type="cable" curve="s" count="41 1 1" size="1" offset="-.3 0 .6" initial="none">
+      <plugin plugin="mujoco.elasticity.cable">
+        <!--Units are in Pa (SI)-->
+        <config key="twist" value="1e7"/>
+        <config key="bend" value="4e6"/>
+        <config key="vmax" value="0.05"/>
+      </plugin>
+      <joint kind="main" damping=".015"/>
+      <geom type="capsule" size=".005" rgba=".8 .2 .1 1" condim="1"/>
+    </composite>
+    <body name="slider" pos=".7 0 .6">
+      <joint type="slide" axis="1 0 0" damping=".1"/>
+      <geom size=".01"/>
+    </body>
+  </worldbody>
+  <equality>
+    <connect name="right_boundary" body1="B_last" body2="slider" anchor=".025 0 0"/>
+  </equality>
+  <contact>
+    <exclude body1="B_last" body2="slider"/>
+  </contact>
+  <actuator>
+    <motor site="S_last" gear="0 0 0 1 0 0" ctrlrange="-.03 .03"/>
+  </actuator>
+</mujoco>[?2004hroot@44ba1e451396:/app# sed -n '1,260p' /app/eval.py
+[?2004limport time
+from pathlib import Path
+
+import mujoco
+import numpy as np
+
+total_sim_time = 2.0
+atol = 1e-5  # absolute tolerance for state comparison
+pctg = 0.6  # target percentage of reference model time
+n_runs = 20  # number of runs to average timing
+model_path = Path("model.xml")
+model_ref_path = Path("model_ref.xml")
+
+
+def test_correctness():
+    """Compare final states of models with potentially different timesteps"""
+    model = mujoco.MjModel.from_xml_path(str(model_path))
+    model_ref = mujoco.MjModel.from_xml_path(str(model_ref_path))
+
+    seed = np.random.randint(0, 10000)
+    final_state = simulate_model(model, seed)
+    final_state_ref = simulate_model(model_ref, seed)
+
+    # compare final states
+    state_diff = np.linalg.norm(final_state - final_state_ref)
+    print(f"Final state difference: {state_diff:.4f}")
+
+    assert np.allclose(final_state, final_state_ref, atol=atol), (
+        f"Final states differ by {state_diff}, exceeding tolerance {atol}"
+    )
+
+
+def simulate_model(model, seed):
+    """Simulate model with randomized initial qpos and return only the final state"""
+    data = mujoco.MjData(model)
+    nstep = int(total_sim_time / model.opt.timestep)
+    # jiggle initial qpos for robustness
+    rng = np.random.default_rng(seed)
+    data.qpos += rng.normal(0, 0.01, size=data.qpos.shape)
+    mujoco.mj_forward(model, data)
+
+    for _ in range(nstep):
+        mujoco.mj_step(model, data)
+
+    full_physics = mujoco.mjtState.mjSTATE_FULLPHYSICS
+    state = np.zeros(mujoco.mj_stateSize(model, full_physics))
+    mujoco.mj_getState(model, data, state, full_physics)
+    assert not np.isnan(state).any(), "Final state contains NaN values"
+    assert not np.isinf(state).any(), "Final state contains Inf values"
+    return state
+
+
+def simulation_time(model, n_runs):
+    """Run n_runs times with different seeds, and return time taken."""
+    times = []
+    for _ in range(n_runs):
+        seed = np.random.randint(0, 10000)
+        time_start = time.perf_counter()
+        _ = simulate_model(model, seed)
+        time_end = time.perf_counter()
+        times.append(time_end - time_start)
+    return np.array(times)
+
+
+def test_model_speed():
+    """Test that new model is faster than the reference model"""
+    model = mujoco.MjModel.from_xml_path(str(model_path))
+    model_ref = mujoco.MjModel.from_xml_path(str(model_ref_path))
+
+    # simulate both models for same total time with same random seed
+    times_model = simulation_time(model, n_runs=n_runs)
+    times_model_ref = simulation_time(model_ref, n_runs=n_runs)
+    speedup = (times_model_ref / times_model).mean().item()
+    act_time_pctg = (times_model / times_model_ref).mean().item()
+
+    print(f"Avg simulation time: {times_model.mean().item():.4f} secs")
+    print(f"Avg simulation time (ref): {times_model_ref.mean().item():.4f} secs")
+    print(f"Speedup: {speedup:.2f}x")
+    print(f"Time pctg: {act_time_pctg:.2f}")
+
+    assert act_time_pctg <= pctg, (
+        f"Time pctg {act_time_pctg * 100:.2f}% (need {pctg * 100:.2f}%)"
+    )
+
+
+if __name__ == "__main__":
+    test_correctness()
+    test_model_speed()
+[?2004hroot@44ba1e451396:/app# cp /app/model_ref.xml /app/model.xml
+[?2004l[?2004hroot@44ba1e451396:/app# python3 - <<'PY'
+[?2004l[?2004h> import mujoco, numpy as np
+[?2004l[?2004h> m=mujoco.MjModel.from_xml_path('/app/model_ref.xml')
+[?2004l[?2004h> print('nq',m.nq,'nv',m.nv,'nbody',m.nbody,'ngeom',m.ngeom,'njoint',m.njoint)
+[?2004l[?2004h> print('timestep',m.opt.timestep)
+[?2004l[?2004h> print('integrator',m.opt.integrator)
+[?2004l[?2004h> print('solver',m.opt.solver)
+[?2004l[?2004h> print('iterations',m.opt.iterations,'ls_iterations',m.opt.ls_iterations)
+[?2004l[?2004h> print('flags',m.opt.disableflags,m.opt.enableflags)
+[?2004l[?2004h> print('cone',m.opt.cone)
+[?2004l[?2004h> print('njnt',m.jnt_type[:10], m.njnt)
+[?2004l[?2004h> print('actuator',m.actuator_trntype, m.actuator_gaintype, m.nu)
+[?2004l[?2004h> print('opt obj preconst', m.opt.preconst)
+[?2004l[?2004h> print('gravity',m.opt.gravity)
+[?2004l[?2004h> PY
+[?2004lpython3 /app/eval.py
+Traceback (most recent call last):
+  File [35m"<stdin>"[0m, line [35m3[0m, in [35m<module>[0m
+[1;35mAttributeError[0m: [35m'mujoco._structs.MjModel' object has no attribute 'njoint'. Did you mean: 'joint'?[0m
+[?2004hroot@44ba1e451396:/app# python3 /app/eval.py
+[?2004l
+Final state difference: 0.0000
+python3 - <<'PY'
+import mujoco, numpy as np
+m=mujoco.MjModel.from_xml_path('/app/model_ref.xml')
+print('nq',m.nq,'nv',m.nv,'nbody',m.nbody,'ngeom',m.ngeom,'njnt',m.njnt)
+print('timestep',m.opt.timestep)
+print('integrator',m.opt.integrator)
+print('solver',m.opt.solver)
+print('iterations',m.opt.iterations,'ls_iterations',m.opt.ls_iterations)
+print('disableflags',m.opt.disableflags,'enableflags',m.opt.enableflags)
+print('cone',m.opt.cone)
+print('jnt_type first/last',m.jnt_type[:5], m.jnt_type[-5:])
+print('actuator_trntype',m.actuator_trntype, 'nu',m.nu)
+print('opt.preconst',m.opt.preconst)
+print('gravity',m.opt.gravity)
+print('timend',m.opt.timestep)
+PY
+
+
+^CTraceback (most recent call last):
+  File [35m"/app/eval.py"[0m, line [35m88[0m, in [35m<module>[0m
+    [31mtest_model_speed[0m[1;31m()[0m
+    [31m~~~~~~~~~~~~~~~~[0m[1;31m^^[0m
+  File [35m"/app/eval.py"[0m, line [35m71[0m, in [35mtest_model_speed[0m
+    times_model = simulation_time(model, n_runs=n_runs)
+  File [35m"/app/eval.py"[0m, line [35m59[0m, in [35msimulation_time[0m
+    _ = simulate_model(model, seed)
+  File [35m"/app/eval.py"[0m, line [35m43[0m, in [35msimulate_model[0m
+    [31mmujoco.mj_step[0m[1;31m(model, data)[0m
+    [31m~~~~~~~~~~~~~~[0m[1;31m^^^^^^^^^^^^^[0m
+[1;35mKeyboardInterrupt[0m
+
+[?2004hroot@44ba1e451396:/app# python3 - <<'PY'
+[?2004l[?2004h> import mujoco, numpy as np
+[?2004l[?2004h> m=mujoco.MjModel.from_xml_path('/app/model_ref.xml')
+[?2004l[?2004h> print('nq',m.nq,'nv',m.nv,'nbody',m.nbody,'ngeom',m.ngeom,'njnt',m.njnt)
+[?2004l[?2004h> print('timestep',m.opt.timestep)
+[?2004l[?2004h> print('integrator',m.opt.integrator)
+[?2004l[?2004h> print('solver',m.opt.solver)
+[?2004l[?2004h> print('iterations',m.opt.iterations,'ls_iterations',m.opt.ls_iterations)
+[?2004l[?2004h> print('disableflags',m.opt.disableflags,'enableflags',m.opt.enableflags)
+[?2004l[?2004h> print('cone',m.opt.cone)
+[?2004l[?2004h> print('jnt_type first/last',m.jnt_type[:5], m.jnt_type[-5:])
+[?2004l[?2004h> print('actuator_trntype',m.actuator_trntype, 'nu',m.nu)
+[?2004l[?2004h> print('opt.preconst',m.opt.preconst)
+[?2004l[?2004h> print('gravity',m.opt.gravity)
+[?2004l[?2004h> PY
+[?2004lnq 157 nv 118 nbody 42 ngeom 41 njnt 40
+timestep 0.002
+integrator 0
+solver 2
+iterations 100 ls_iterations 50
+disableflags 0 enableflags 0
+cone 0
+jnt_type first/last [1 1 1 1 1] [1 1 1 1 2]
+actuator_trntype [4] nu 1
+Traceback (most recent call last):
+  File [35m"<stdin>"[0m, line [35m12[0m, in [35m<module>[0m
+[1;35mAttributeError[0m: [35m'mujoco._structs.MjOption' object has no attribute 'preconst'[0m
+[?2004hroot@44ba1e451396:/app# 
+[?2004l[?2004hroot@44ba1e451396:/app# python3 - <<'PY'
+[?2004l[?2004h> import mujoco
+[?2004l[?2004h> m=mujoco.MjModel.from_xml_path('/app/model_ref.xml')
+[?2004l[?2004h> print([f for f in dir(m.opt) if not f.startswith('__')])
+[?2004l[?2004h> print('integrator enum', {name:getattr(mujoco.mjtIntegrator,name) for name in dir(mujoco.mjtIntegrator) if not name.startswith('__')})
+[?2004l[?2004h> print('solver enum', {name:getattr(mujoco.mjtSolver,name) for name in dir(mujoco.mjtSolver) if not name.startswith('__')})
+[?2004l[?2004h> print('disableflags enum', {name:getattr(mujoco.mjtDisableBit,name) for name in dir(mujoco.mjtDisableBit) if not name.startswith('__')})
+[?2004l[?2004h> PY
+[?2004lcat > /app/bench.py <<'PY'
+import time, importlib.util, sys
+import mujoco, numpy as np
+
+ref_path='/app/model_ref.xml'
+cand_path='/app/model.xml'
+total_sim_time=2.0
+atol=1e-5
+
+def simulate_model(model, seed):
+    data=mujoco.MjData(model)
+    nstep=int(total_sim_time/model.opt.timestep)
+    rng=np.random.default_rng(seed)
+    data.qpos += rng.normal(0,0.01,size=data.qpos.shape)
+    mujoco.mj_forward(model,data)
+    for _ in range(nstep):
+        mujoco.mj_step(model,data)
+    full=mujoco.mjtState.mjSTATE_FULLPHYSICS
+    st=np.zeros(mujoco.mj_stateSize(model,full))
+    mujoco.mj_getState(model,data,st,full)
+    assert not np.isnan(st).any()
+    assert not np.isinf(st).any()
+    return st
+
+def final_diff(seed):
+    mref=mujoco.MjModel.from_xml_path(ref_path)
+    mcand=mujoco.MjModel.from_xml_path(cand_path)
+    sr=simulate_model(mref,seed)
+    sc=simulate_model(mcand,seed)
+    if sr.shape != sc.shape:
+        return np.inf, sr, sc
+    return np.linalg.norm(sr-sc), sr, sc
+
+def time_model(model, seeds):
+    ts=[]
+    for s in seeds:
+        t0=time.perf_counter()
+        simulate_model(model,s)
+        t1=time.perf_counter()
+        ts.append(t1-t0)
+    return np.array(ts)
+
+if __name__=='__main__':
+    seeds=[1,2,3]
+    for s in seeds:
+        d,_,_=final_diff(s)
+        print('seed',s,'diff',d)
+    mref=mujoco.MjModel.from_xml_path(ref_path)
+    mc=mujoco.MjModel.from_xml_path(cand_path)
+    tr=time_model(mref,seeds)
+    tc=time_model(mc,seeds)
+    print('ref times',tr,'mean',tr.mean())
+    print('cand times',tc,'mean',tc.mean())
+    print('pctg', (tc.mean()/tr.mean()))
+PY
+['_float_fields', '_floatarray_fields', '_int_fields', '_pybind11_conduit_v1_', 'apirate', 'ccd_iterations', 'ccd_tolerance', 'cone', 'density', 'disableactuator', 'disableflags', 'enableflags', 'gravity', 'impratio', 'integrator', 'iterations', 'jacobian', 'ls_iterations', 'ls_tolerance', 'magnetic', 'noslip_iterations', 'noslip_tolerance', 'o_friction', 'o_margin', 'o_solimp', 'o_solref', 'sdf_initpoints', 'sdf_iterations', 'solver', 'timestep', 'tolerance', 'viscosity', 'wind']
+integrator enum {'_pybind11_conduit_v1_': <instancemethod _pybind11_conduit_v1_ at 0x2aaaac344a00>, 'mjINT_EULER': <mjtIntegrator.mjINT_EULER: 0>, 'mjINT_IMPLICIT': <mjtIntegrator.mjINT_IMPLICIT: 2>, 'mjINT_IMPLICITFAST': <mjtIntegrator.mjINT_IMPLICITFAST: 3>, 'mjINT_RK4': <mjtIntegrator.mjINT_RK4: 1>, 'name': <property object at 0x2aaaac353290>, 'value': <property object at 0x2aaaac3535b0>}
+solver enum {'_pybind11_conduit_v1_': <instancemethod _pybind11_conduit_v1_ at 0x2aaaac360160>, 'mjSOL_CG': <mjtSolver.mjSOL_CG: 1>, 'mjSOL_NEWTON': <mjtSolver.mjSOL_NEWTON: 2>, 'mjSOL_PGS': <mjtSolver.mjSOL_PGS: 0>, 'name': <property object at 0x2aaaac35d850>, 'value': <property object at 0x2aaaac35db70>}
+disableflags enum {'_pybind11_conduit_v1_': <instancemethod _pybind11_conduit_v1_ at 0x2aaaac3225c0>, 'mjDSBL_ACTUATION': <mjtDisableBit.mjDSBL_ACTUATION: 1024>, 'mjDSBL_AUTORESET': <mjtDisableBit.mjDSBL_AUTORESET: 32768>, 'mjDSBL_CLAMPCTRL': <mjtDisableBit.mjDSBL_CLAMPCTRL: 128>, 'mjDSBL_CONSTRAINT': <mjtDisableBit.mjDSBL_CONSTRAINT: 1>, 'mjDSBL_CONTACT': <mjtDisableBit.mjDSBL_CONTACT: 16>, 'mjDSBL_EQUALITY': <mjtDisableBit.mjDSBL_EQUALITY: 2>, 'mjDSBL_EULERDAMP': <mjtDisableBit.mjDSBL_EULERDAMP: 16384>, 'mjDSBL_FILTERPARENT': <mjtDisableBit.mjDSBL_FILTERPARENT: 512>, 'mjDSBL_FRICTIONLOSS': <mjtDisableBit.mjDSBL_FRICTIONLOSS: 4>, 'mjDSBL_GRAVITY': <mjtDisableBit.mjDSBL_GRAVITY: 64>, 'mjDSBL_LIMIT': <mjtDisableBit.mjDSBL_LIMIT: 8>, 'mjDSBL_MIDPHASE': <mjtDisableBit.mjDSBL_MIDPHASE: 8192>, 'mjDSBL_NATIVECCD': <mjtDisableBit.mjDSBL_NATIVECCD: 65536>, 'mjDSBL_PASSIVE': <mjtDisableBit.mjDSBL_PASSIVE: 32>, 'mjDSBL_REFSAFE': <mjtDisableBit.mjDSBL_REFSAFE: 2048>, 'mjDSBL_SENSOR': <mjtDisableBit.mjDSBL_SENSOR: 4096>, 'mjDSBL_WARMSTART': <mjtDisableBit.mjDSBL_WARMSTART: 256>, 'mjNDISABLE': <mjtDisableBit.mjNDISABLE: 17>, 'name': <property object at 0x2aaaac3301d0>, 'value': <property object at 0x2aaaac330540>}
+[?2004hroot@44ba1e451396:/app# cat > /app/bench.py <<'PY'
+[?2004l[?2004h> import time, importlib.util, sys
+[?2004l[?2004h> import mujoco, numpy as np
+[?2004l[?2004h> 
+[?2004l[?2004h> ref_path='/app/model_ref.xml'
+[?2004l[?2004h> cand_path='/app/model.xml'
+[?2004l[?2004h> total_sim_time=2.0
+[?2004l[?2004h> atol=1e-5
+[?2004l[?2004h> 
+[?2004l[?2004h> def simulate_model(model, seed):
+[?2004l[?2004h>     data=mujoco.MjData(model)
+[?2004l[?2004h>     nstep=int(total_sim_time/model.opt.timestep)
+[?2004l[?2004h>     rng=np.random.default_rng(seed)
+[?2004l[?2004h>     data.qpos += rng.normal(0,0.01,size=data.qpos.shape)
+[?2004l[?2004h>     mujoco.mj_forward(model,data)
+[?2004l[?2004h>     for _ in range(nstep):
+[?2004l[?2004h>         mujoco.mj_step(model,data)
+[?2004l[?2004h>     full=mujoco.mjtState.mjSTATE_FULLPHYSICS
+[?2004l[?2004h>     st=np.zeros(mujoco.mj_stateSize(model,full))
+[?2004l[?2004h>     mujoco.mj_getState(model,data,st,full)
+[?2004l[?2004h>     assert not np.isnan(st).any()
+[?2004l[?2004h>     assert not np.isinf(st).any()
+[?2004l[?2004h>     return st
+[?2004l[?2004h> 
+[?2004l[?2004h> def final_diff(seed):
+[?2004l[?2004h>     mref=mujoco.MjModel.from_xml_path(ref_path)
+[?2004l[?2004h>     mcand=mujoco.MjModel.from_xml_path(cand_path)
+[?2004l[?2004h>     sr=simulate_model(mref,seed)
+[?2004l[?2004h>     sc=simulate_model(mcand,seed)
+[?2004l[?2004h>     if sr.shape != sc.shape:
+[?2004l[?2004h>         return np.inf, sr, sc
+[?2004l[?2004h>     return np.linalg.norm(sr-sc), sr, sc
+[?2004l[?2004h> 
+[?2004l[?2004h> def time_model(model, seeds):
+[?2004l[?2004h>     ts=[]
+[?2004l[?2004h>     for s in seeds:
+[?2004l[?2004h>         t0=time.perf_counter()
+[?2004l[?2004h>         simulate_model(model,s)
+[?2004l[?2004h>         t1=time.perf_counter()
+[?2004l[?2004h>         ts.append(t1-t0)
+[?2004l[?2004h>     return np.array(ts)
+[?2004l[?2004h> 
+[?2004l[?2004h> if __name__=='__main__':
+[?2004l[?2004h>     seeds=[1,2,3]
+[?2004l[?2004h>     for s in seeds:
+[?2004l[?2004h>         d,_,_=final_diff(s)
+[?2004l[?2004h>         print('seed',s,'diff',d)
+[?2004l[?2004h>     mref=mujoco.MjModel.from_xml_path(ref_path)
+[?2004l[?2004h>     mc=mujoco.MjModel.from_xml_path(cand_path)
+[?2004l[?2004h>     tr=time_model(mref,seeds)
+[?2004l[?2004h>     tc=time_model(mc,seeds)
+[?2004l[?2004h>     print('ref times',tr,'mean',tr.mean())
+[?2004l[?2004h>     print('cand times',tc,'mean',tc.mean())
+[?2004l[?2004h>     print('pctg', (tc.mean()/tr.mean()))
+[?2004l[?2004h> PY
+[?2004l[?2004hroot@44ba1e451396:/app# 
+[?2004l[?2004hroot@44ba1e451396:/app# python3 /app/bench.py
+[?2004l
+seed 1 diff 0.0
+
+seed 2 diff 0.0
+
+seed 3 diff 0.0
+
+
+
+ref times [12.83022467 12.67635942 12.86340926] mean 12.789997783683551
+cand times [12.69175784 12.63850355 12.88898842] mean 12.739749936658578
+pctg 0.9960713169873199
+[?2004hroot@44ba1e451396:/app# 
+[?2004l[?2004hroot@44ba1e451396:/app# 
+[?2004l[?2004hroot@44ba1e451396:/app# 
+[?2004l[?2004hroot@44ba1e451396:/app# 
+[?2004l[?2004hroot@44ba1e451396:/app# 
+[?2004l[?2004hroot@44ba1e451396:/app# 
+[?2004l[?2004hroot@44ba1e451396:/app# python3 - <<'PY'
+[?2004l[?2004h> import mujoco, numpy as np, time
+[?2004l[?2004h> ref_path='/app/model_ref.xml'
+[?2004l[?2004h> seeds=[1,2,3]
+[?2004l[?2004h> states={}
+[?2004l[?2004h> mref=mujoco.MjModel.from_xml_path(ref_path)
+[?2004l[?2004h> for s in seeds:
+[?2004l[?2004h>     data=mujoco.MjData(mref)
+[?2004l[?2004h>     nstep=int(2.0/mref.opt.timestep)
+[?2004l[?2004h>     rng=np.random.default_rng(s)
+[?2004l[?2004h>     data.qpos += rng.normal(0,0.01,size=data.qpos.shape)
+[?2004l[?2004h>     mujoco.mj_forward(mref,data)
+[?2004l[?2004h>     t0=time.perf_counter()
+[?2004l[?2004h>     for _ in range(nstep):
+[?2004l[?2004h>         mujoco.mj_step(mref,data)
+[?2004l[?2004h>     t1=time.perf_counter()
+[?2004l[?2004h>     full=mujoco.mjtState.mjSTATE_FULLPHYSICS
+[?2004l[?2004h>     st=np.zeros(mujoco.mj_stateSize(mref,full))
+[?2004l[?2004h>     mujoco.mj_getState(mref,data,st,full)
+[?2004l[?2004h>     states[s]=st
+[?2004l[?2004h>     print('seed',s,'time',t1-t0,'nan',np.isnan(st).any(),'inf',np.isinf(st).any())
+[?2004l[?2004h> np.savez('/app/ref_states.npz', **{str(s):states[s] for s in seeds})
+[?2004l[?2004h> print('saved ref_states.npz')
+[?2004l[?2004h> PY
+[?2004lseed 1 time 12.50085058901459 nan False inf False
+seed 2 time 12.669737506075762 nan False inf False
+seed 3 time 12.579176545958035 nan False inf False
+saved ref_states.npz
+[?2004hroot@44ba1e451396:/app# cat > /app/quick.py <<'PY'
+[?2004ltimes.append(t1-t0)
+    diff=np.linalg.norm(st-ref[str(s)])
+    maxdiff=max(maxdiff,diff)
+    print('seed',s,'diff',diff,'time',t1-t0)
+print('maxdiff',maxdiff,'mean_time',np.mean(times),'pctg_ref_12.79',np.mean(times)/12.79)
+PY
+[?2004h> import time, sys
+[?2004l[?2004h> import mujoco, numpy as np
+[?2004l[?2004h> 
+[?2004l[?2004h> cand_path='/app/model.xml'
+[?2004l[?2004h> ref=np.load('/app/ref_states.npz')
+[?2004l[?2004h> seeds=[int(k) for k in ref.files]
+[?2004l[?2004h> 
+[?2004l[?2004h> def simulate_model(model, seed):
+[?2004l[?2004h>     data=mujoco.MjData(model)
+[?2004l[?2004h>     nstep=int(2.0/model.opt.timestep)
+[?2004l[?2004h>     rng=np.random.default_rng(seed)
+[?2004l[?2004h>     data.qpos += rng.normal(0,0.01,size=data.qpos.shape)
+[?2004l[?2004h>     mujoco.mj_forward(model,data)
+[?2004l[?2004h>     for _ in range(nstep):
+[?2004l[?2004h>         mujoco.mj_step(model,data)
+[?2004l[?2004h>     full=mujoco.mjtState.mjSTATE_FULLPHYSICS
+[?2004l[?2004h>     st=np.zeros(mujoco.mj_stateSize(model,full))
+[?2004l[?2004h>     mujoco.mj_getState(model,data,st,full)
+[?2004l[?2004h>     assert not np.isnan(st).any(), 'NaN'
+[?2004l[?2004h>     assert not np.isinf(st).any(), 'Inf'
+[?2004l[?2004h>     return st
+[?2004l[?2004h> 
+[?2004l[?2004h> m=mujoco.MjModel.from_xml_path(cand_path)
+[?2004l[?2004h> print('timestep',m.opt.timestep,'integrator',m.opt.integrator,'solver',m.opt.solver,'iterations',m.opt.iterations,'ls',m.opt.ls_iterations,'flags',m.opt.disableflags)
+[?2004l[?2004h> maxdiff=0.0
+[?2004l[?2004h> times=[]
+[?2004l[?2004h> for s in seeds:
+[?2004l[?2004h>     t0=time.perf_counter()
+[?2004l[?2004h>     st=simulate_model(m,s)
+[?2004l[?2004h>     t1=time.perf_counter()
+[?2004l[?2004h>     times.append(t1-t0)
+[?2004l[?2004h>     diff=np.linalg.norm(st-ref[str(s)])
+[?2004l[?2004h>     maxdiff=max(maxdiff,diff)
+[?2004l[?2004h>     print('seed',s,'diff',diff,'time',t1-t0)
+[?2004l[?2004h> print('maxdiff',maxdiff,'mean_time',np.mean(times),'pctg_ref_12.79',np.mean(times)/12.79)
+[?2004l[?2004h> PY
+[?2004l[?2004hroot@44ba1e451396:/app# python3 - <<'PY'
+[?2004l[?2004h> from pathlib import Path
+[?2004l[?2004h> src=Path('/app/model_ref.xml').read_text()
+[?2004l[?2004h> opt='<option solver=\"Newton\" iterations=\"10\" ls_iterations=\"10\"/>\n  '
+[?2004l[?2004h> src=src.replace('  <worldbody>', opt+'<worldbody>', 1)
+[?2004l[?2004h> Path('/app/model.xml').write_text(src)
+[?2004l[?2004h> print(Path('/app/model.xml').read_text())
+[?2004l[?2004h> PY
+[?2004lpython3 /app/quick.py
+<!-- Inspired by https://github.com/google-deepmind/mujoco/blob/main/model/plugin/elasticity/cable.xml -->
+<mujoco model="Cable">
+
+  <extension>
+    <plugin plugin="mujoco.elasticity.cable"/>
+  </extension>
+
+  <statistic center="0 0 .3" extent="1"/>
+  <visual>
+    <global elevation="-30"/>
+  </visual>
+
+  <compiler autolimits="true"/>
+
+  <size memory="2M"/>
+
+<option solver="Newton" iterations="10" ls_iterations="10"/>
+  <worldbody>
+    <composite type="cable" curve="s" count="41 1 1" size="1" offset="-.3 0 .6" initial="none">
+      <plugin plugin="mujoco.elasticity.cable">
+        <!--Units are in Pa (SI)-->
+        <config key="twist" value="1e7"/>
+        <config key="bend" value="4e6"/>
+        <config key="vmax" value="0.05"/>
+      </plugin>
+      <joint kind="main" damping=".015"/>
+      <geom type="capsule" size=".005" rgba=".8 .2 .1 1" condim="1"/>
+    </composite>
+    <body name="slider" pos=".7 0 .6">
+      <joint type="slide" axis="1 0 0" damping=".1"/>
+      <geom size=".01"/>
+    </body>
+  </worldbody>
+  <equality>
+    <connect name="right_boundary" body1="B_last" body2="slider" anchor=".025 0 0"/>
+  </equality>
+  <contact>
+    <exclude body1="B_last" body2="slider"/>
+  </contact>
+  <actuator>
+    <motor site="S_last" gear="0 0 0 1 0 0" ctrlrange="-.03 .03"/>
+  </actuator>
+</mujoco>
+[?2004hroot@44ba1e451396:/app# python3 /app/quick.py
+[?2004ltimestep 0.002 integrator 0 solver 2 iterations 10 ls 10 flags 0
+seed 1 diff 0.0 time 12.712991965003312
+seed 2 diff 0.0 time 12.731336254975758
+seed 3 diff 0.0 time 12.50127446395345
+maxdiff 0.0 mean_time 12.648534227977507 pctg_ref_12.79 0.9889393454243556
+[?2004hroot@44ba1e451396:/app# 
+[?2004l[?2004hroot@44ba1e451396:/app# python3 - <<'PY'
+[?2004l[?2004h> import mujoco
+[?2004l[?2004h> for xml in [
+[?2004l[?2004h>   '<mujoco><worldbody><body><geom size="0.1"/></body></worldbody><flag contact="disable"/></mujoco>',
+[?2004l[?2004h>   '<mujoco><worldbody><body><geom size="0.1"/></body></worldbody><option disableflags="contact"/></mujoco>',
+[?2004l[?2004h>   '<mujoco><option><flag contact="disable"/></option><worldbody><body><geom size="0.1"/></body></worldbody></mujoco>',
+[?2004l[?2004h> ]:
+[?2004l[?2004h>     try:
+[?2004l[?2004h>         m=mujoco.MjModel.from_xml_string(xml)
+[?2004l[?2004h>         print('OK', xml, 'flags', m.opt.disableflags)
+[?2004l[?2004h>     except Exception as e:
+[?2004l[?2004h>         print('ERR', xml, type(e).__name__, e)
+[?2004l[?2004h> PY
+[?2004lcat > /app/screen.py <<'PY'
+import time, sys
+import mujoco, numpy as np
+
+cand_path='/app/model.xml'
+ref=np.load('/app/ref_states.npz')
+seed=1
+
+def simulate_model(model, seed):
+    data=mujoco.MjData(model)
+    nstep=int(2.0/model.opt.timestep)
+    rng=np.random.default_rng(seed)
+    data.qpos += rng.normal(0,0.01,size=data.qpos.shape)
+    mujoco.mj_forward(model,data)
+    for _ in range(nstep):
+        mujoco.mj_step(model,data)
+    full=mujoco.mjtState.mjSTATE_FULLPHYSICS
+    st=np.zeros(mujoco.mj_stateSize(model,full))
+    mujoco.mj_getState(model,data,st,full)
+    assert not np.isnan(st).any(), 'NaN'
+    assert not np.isinf(st).any(), 'Inf'
+    return st
+
+m=mujoco.MjModel.from_xml_path(cand_path)
+print('timestep',m.opt.timestep,'integrator',m.opt.integrator,'solver',m.opt.solver,'iterations',m.opt.iterations,'ls',m.opt.ls_iterations,'flags',m.opt.disableflags)
+t0=time.perf_counter()
+st=simulate_model(m,seed)
+t1=time.perf_counter()
+diff=np.linalg.norm(st-ref[str(seed)])
+print('seed',seed,'diff',diff,'time',t1-t0,'pctg_ref_12.79',(t1-t0)/12.79)
+PY
+python3 - <<'PY'
+from pathlib import Path
+src=Path('/app/model_ref.xml').read_text()
+src=src.replace('  <worldbody>', '  <flag contact="disable"/>\n  <worldbody>', 1)
+Path('/app/model.xml').write_text(src)
+print(Path('/app/model.xml').read_text())
+PY
+python3 /app/screen.py
+ERR <mujoco><worldbody><body><geom size="0.1"/></body></worldbody><flag contact="disable"/></mujoco> ValueError XML Error: Schema violation: unrecognized element
+Element 'flag', line 1
+
+ERR <mujoco><worldbody><body><geom size="0.1"/></body></worldbody><option disableflags="contact"/></mujoco> ValueError XML Error: Schema violation: unrecognized attribute: 'disableflags'
+Element 'option', line 1
+
+OK <mujoco><option><flag contact="disable"/></option><worldbody><body><geom size="0.1"/></body></worldbody></mujoco> flags 16
+[?2004hroot@44ba1e451396:/app# cat > /app/screen.py <<'PY'
+[?2004l[?2004h> import time, sys
+[?2004l[?2004h> import mujoco, numpy as np
+[?2004l[?2004h> 
+[?2004l[?2004h> cand_path='/app/model.xml'
+[?2004l[?2004h> ref=np.load('/app/ref_states.npz')
+[?2004l[?2004h> seed=1
+[?2004l[?2004h> 
+[?2004l[?2004h> def simulate_model(model, seed):
+[?2004l[?2004h>     data=mujoco.MjData(model)
+[?2004l[?2004h>     nstep=int(2.0/model.opt.timestep)
+[?2004l[?2004h>     rng=np.random.default_rng(seed)
+[?2004l[?2004h>     data.qpos += rng.normal(0,0.01,size=data.qpos.shape)
+[?2004l[?2004h>     mujoco.mj_forward(model,data)
+[?2004l[?2004h>     for _ in range(nstep):
+[?2004l[?2004h>         mujoco.mj_step(model,data)
+[?2004l[?2004h>     full=mujoco.mjtState.mjSTATE_FULLPHYSICS
+[?2004l[?2004h>     st=np.zeros(mujoco.mj_stateSize(model,full))
+[?2004l[?2004h>     mujoco.mj_getState(model,data,st,full)
+[?2004l[?2004h>     assert not np.isnan(st).any(), 'NaN'
+[?2004l[?2004h>     assert not np.isinf(st).any(), 'Inf'
+[?2004l[?2004h>     return st
+[?2004l[?2004h> 
+[?2004l[?2004h> m=mujoco.MjModel.from_xml_path(cand_path)
+[?2004l[?2004h> print('timestep',m.opt.timestep,'integrator',m.opt.integrator,'solver',m.opt.solver,'iterations',m.opt.iterations,'ls',m.opt.ls_iterations,'flags',m.opt.disableflags)
+[?2004l[?2004h> t0=time.perf_counter()
+[?2004l[?2004h> st=simulate_model(m,seed)
+[?2004l[?2004h> t1=time.perf_counter()
+[?2004l[?2004h> diff=np.linalg.norm(st-ref[str(seed)])
+[?2004l[?2004h> print('seed',seed,'diff',diff,'time',t1-t0,'pctg_ref_12.79',(t1-t0)/12.79)
+[?2004l[?2004h> PY
+[?2004l[?2004hroot@44ba1e451396:/app# python3 - <<'PY'
+[?2004l[?2004h> from pathlib import Path
+[?2004l[?2004h> src=Path('/app/model_ref.xml').read_text()
+[?2004l[?2004h> src=src.replace('  <worldbody>', '  <flag contact="disable"/>\n  <worldbody>', 1)
+[?2004l[?2004h> Path('/app/model.xml').write_text(src)
+[?2004l[?2004h> print(Path('/app/model.xml').read_text())
+[?2004l[?2004h> PY
+[?2004l<!-- Inspired by https://github.com/google-deepmind/mujoco/blob/main/model/plugin/elasticity/cable.xml -->
+<mujoco model="Cable">
+
+  <extension>
+    <plugin plugin="mujoco.elasticity.cable"/>
+  </extension>
+
+  <statistic center="0 0 .3" extent="1"/>
+  <visual>
+    <global elevation="-30"/>
+  </visual>
+
+  <compiler autolimits="true"/>
+
+  <size memory="2M"/>
+
+  <flag contact="disable"/>
+  <worldbody>
+    <composite type="cable" curve="s" count="41 1 1" size="1" offset="-.3 0 .6" initial="none">
+      <plugin plugin="mujoco.elasticity.cable">
+        <!--Units are in Pa (SI)-->
+        <config key="twist" value="1e7"/>
+        <config key="bend" value="4e6"/>
+        <config key="vmax" value="0.05"/>
+      </plugin>
+      <joint kind="main" damping=".015"/>
+      <geom type="capsule" size=".005" rgba=".8 .2 .1 1" condim="1"/>
+    </composite>
+    <body name="slider" pos=".7 0 .6">
+      <joint type="slide" axis="1 0 0" damping=".1"/>
+      <geom size=".01"/>
+    </body>
+  </worldbody>
+  <equality>
+    <connect name="right_boundary" body1="B_last" body2="slider" anchor=".025 0 0"/>
+  </equality>
+  <contact>
+    <exclude body1="B_last" body2="slider"/>
+  </contact>
+  <actuator>
+    <motor site="S_last" gear="0 0 0 1 0 0" ctrlrange="-.03 .03"/>
+  </actuator>
+</mujoco>
+[?2004hroot@44ba1e451396:/app# python3 /app/screen.py
+[?2004lTraceback (most recent call last):
+  File [35m"/app/screen.py"[0m, line [35m23[0m, in [35m<module>[0m
+    m=mujoco.MjModel.from_xml_path(cand_path)
+[1;35mValueError[0m: [35mXML Error: Schema violation: unrecognized element
+Element 'flag', line 17
+[0m
+[?2004hroot@44ba1e451396:/app# python3 - <<'PY'
+[?2004l[?2004h> from pathlib import Path
+[?2004l[?2004h> src=Path('/app/model_ref.xml').read_text()
+[?2004l[?2004h> src=src.replace('  <worldbody>', '  <option><flag contact="disable"/></option>\n  <worldbody>', 1)
+[?2004l[?2004h> Path('/app/model.xml').write_text(src)
+[?2004l[?2004h> print(Path('/app/model.xml').read_text())
+[?2004l[?2004h> PY
+[?2004lpython3 /app/screen.py
+<!-- Inspired by https://github.com/google-deepmind/mujoco/blob/main/model/plugin/elasticity/cable.xml -->
+<mujoco model="Cable">
+
+  <extension>
+    <plugin plugin="mujoco.elasticity.cable"/>
+  </extension>
+
+  <statistic center="0 0 .3" extent="1"/>
+  <visual>
+    <global elevation="-30"/>
+  </visual>
+
+  <compiler autolimits="true"/>
+
+  <size memory="2M"/>
+
+  <option><flag contact="disable"/></option>
+  <worldbody>
+    <composite type="cable" curve="s" count="41 1 1" size="1" offset="-.3 0 .6" initial="none">
+      <plugin plugin="mujoco.elasticity.cable">
+        <!--Units are in Pa (SI)-->
+        <config key="twist" value="1e7"/>
+        <config key="bend" value="4e6"/>
+        <config key="vmax" value="0.05"/>
+      </plugin>
+      <joint kind="main" damping=".015"/>
+      <geom type="capsule" size=".005" rgba=".8 .2 .1 1" condim="1"/>
+    </composite>
+    <body name="slider" pos=".7 0 .6">
+      <joint type="slide" axis="1 0 0" damping=".1"/>
+      <geom size=".01"/>
+    </body>
+  </worldbody>
+  <equality>
+    <connect name="right_boundary" body1="B_last" body2="slider" anchor=".025 0 0"/>
+  </equality>
+  <contact>
+    <exclude body1="B_last" body2="slider"/>
+  </contact>
+  <actuator>
+    <motor site="S_last" gear="0 0 0 1 0 0" ctrlrange="-.03 .03"/>
+  </actuator>
+</mujoco>
+[?2004hroot@44ba1e451396:/app# python3 /app/screen.py
+[?2004ltimestep 0.002 integrator 0 solver 2 iterations 100 ls 50 flags 16
+seed 1 diff 0.0 time 12.70040550606791 pctg_ref_12.79 0.9929949574720806
+[?2004hroot@44ba1e451396:/app# 
+[?2004l[?2004hroot@44ba1e451396:/app# python3 - <<'PY'
+[?2004l[?2004h> from pathlib import Path
+[?2004l[?2004h> src=Path('/app/model_ref.xml').read_text()
+[?2004l[?2004h> src=src.replace('  <worldbody>', '  <option timestep="0.004"/>\n  <worldbody>', 1)
+[?2004l[?2004h> Path('/app/model.xml').write_text(src)
+[?2004l[?2004h> print(Path('/app/model.xml').read_text())
+[?2004l[?2004h> PY
+[?2004lpython3 /app/screen.py
+<!-- Inspired by https://github.com/google-deepmind/mujoco/blob/main/model/plugin/elasticity/cable.xml -->
+<mujoco model="Cable">
+
+  <extension>
+    <plugin plugin="mujoco.elasticity.cable"/>
+  </extension>
+
+  <statistic center="0 0 .3" extent="1"/>
+  <visual>
+    <global elevation="-30"/>
+  </visual>
+
+  <compiler autolimits="true"/>
+
+  <size memory="2M"/>
+
+  <option timestep="0.004"/>
+  <worldbody>
+    <composite type="cable" curve="s" count="41 1 1" size="1" offset="-.3 0 .6" initial="none">
+      <plugin plugin="mujoco.elasticity.cable">
+        <!--Units are in Pa (SI)-->
+        <config key="twist" value="1e7"/>
+        <config key="bend" value="4e6"/>
+        <config key="vmax" value="0.05"/>
+      </plugin>
+      <joint kind="main" damping=".015"/>
+      <geom type="capsule" size=".005" rgba=".8 .2 .1 1" condim="1"/>
+    </composite>
+    <body name="slider" pos=".7 0 .6">
+      <joint type="slide" axis="1 0 0" damping=".1"/>
+      <geom size=".01"/>
+    </body>
+  </worldbody>
+  <equality>
+    <connect name="right_boundary" body1="B_last" body2="slider" anchor=".025 0 0"/>
+  </equality>
+  <contact>
+    <exclude body1="B_last" body2="slider"/>
+  </contact>
+  <actuator>
+    <motor site="S_last" gear="0 0 0 1 0 0" ctrlrange="-.03 .03"/>
+  </actuator>
+</mujoco>
+[?2004hroot@44ba1e451396:/app# python3 /app/screen.py
+[?2004ltimestep 0.004 integrator 0 solver 2 iterations 100 ls 50 flags 0
+seed 1 diff 0.0018318969438539147 time 6.561898419982754 pctg_ref_12.79 0.5130491336968533
+[?2004hroot@44ba1e451396:/app# cat > /app/screen_candidates.py <<'PY'
+[?2004l[?2004h> import time, re
+[?2004l   Path('/app/model.xml').write_text(xml)
+    try:
+        m=mujoco.MjModel.from_xml_path('/app/model.xml')
+    except Exception as e:
+        print('load error',ts,integ,e)
+        continue
+    t0=time.perf_counter()
+    st=simulate(m,seed)
+    t1=time.perf_counter()
+    diff=np.linalg.norm(st-ref_state)
+    print(f'ts={ts} integ={integ} nstep={int(2.0/ts)} diff={diff:.8g} time={t1-t0:.3f} pctg={(t1-t0)/12.79:.3f}')
+PY
+[?2004h> import mujoco, numpy as np
+[?2004l[?2004h> from pathlib import Path
+[?2004l[?2004h> 
+[?2004l[?2004h> ref=np.load('/app/ref_states.npz')
+[?2004l[?2004h> seed=1
+[?2004l[?2004h> ref_state=ref[str(seed)]
+[?2004l[?2004h> base=Path('/app/model_ref.xml').read_text()
+[?2004l[?2004h> 
+[?2004l[?2004h> def simulate(model, seed):
+[?2004l[?2004h>     data=mujoco.MjData(model)
+[?2004l[?2004h>     nstep=int(2.0/model.opt.timestep)
+[?2004l[?2004h>     rng=np.random.default_rng(seed)
+[?2004l[?2004h>     data.qpos += rng.normal(0,0.01,size=data.qpos.shape)
+[?2004l[?2004h>     mujoco.mj_forward(model,data)
+[?2004l[?2004h>     for _ in range(nstep):
+[?2004l[?2004h>         mujoco.mj_step(model,data)
+[?2004l[?2004h>     full=mujoco.mjtState.mjSTATE_FULLPHYSICS
+[?2004l[?2004h>     st=np.zeros(mujoco.mj_stateSize(model,full))
+[?2004l[?2004h>     mujoco.mj_getState(model,data,st,full)
+[?2004l[?2004h>     assert not np.isnan(st).any()
+[?2004l[?2004h>     assert not np.isinf(st).any()
+[?2004l[?2004h>     return st
+[?2004l[?2004h> 
+[?2004l[?2004h> cands=[]
+[?2004l[?2004h> for ts in [0.0025,0.003,0.0032,0.0035,0.004]:
+[?2004l[?2004h>     for integ in ['Euler','RK4','implicit','implicitfast']:
+[?2004l[?2004h>         cands.append((ts,integ))
+[?2004l[?2004h> 
+[?2004l[?2004h> for ts,integ in cands:
+[?2004l[?2004h>     opt=f'<option timestep="{ts}" integrator="{integ}"/>'
+[?2004l[?2004h>     xml=base.replace('  <worldbody>', '  '+opt+'\n  <worldbody>', 1)
+[?2004l[?2004h>     Path('/app/model.xml').write_text(xml)
+[?2004l[?2004h>     try:
+[?2004l[?2004h>         m=mujoco.MjModel.from_xml_path('/app/model.xml')
+[?2004l[?2004h>     except Exception as e:
+[?2004l[?2004h>         print('load error',ts,integ,e)
+[?2004l[?2004h>         continue
+[?2004l[?2004h>     t0=time.perf_counter()
+[?2004l[?2004h>     st=simulate(m,seed)
+[?2004l[?2004h>     t1=time.perf_counter()
+[?2004l[?2004h>     diff=np.linalg.norm(st-ref_state)
+[?2004l[?2004h>     print(f'ts={ts} integ={integ} nstep={int(2.0/ts)} diff={diff:.8g} time={t1-t0:.3f} pctg={(t1-t0)/12.79:.3f}')
+[?2004l[?2004h> PY
+[?2004l[?2004hroot@44ba1e451396:/app# python3 /app/screen_candidates.py
+[?2004lts=0.0025 integ=Euler nstep=800 diff=0.00048013866 time=10.370 pctg=0.811
+WARNING: Nan, Inf or huge value in QVEL at DOF 0. The simulation is unstable. Time = 0.0025.
+
+WARNING: Nan, Inf or huge value in QACC at DOF 1. The simulation is unstable. Time = 0.0025.
+
+
+ts=0.0025 integ=RK4 nstep=800 diff=3583442.5 time=56.211 pctg=4.395
+ts=0.0025 integ=implicit nstep=800 diff=0.00096089497 time=31.480 pctg=2.461
+
+ts=0.0025 integ=implicitfast nstep=800 diff=0.00048013866 time=10.843 pctg=0.848
+ts=0.003 integ=Euler nstep=666 diff=0.0028470341 time=8.701 pctg=0.680
+WARNING: Nan, Inf or huge value in QVEL at DOF 0. The simulation is unstable. Time = 0.0030.
+
+WARNING: Nan, Inf or huge value in QACC at DOF 1. The simulation is unstable. Time = 0.0030.
+
+ts=0.003 integ=RK4 nstep=666 diff=8143011.4 time=46.067 pctg=3.602
+
+ts=0.003 integ=implicit nstep=666 diff=0.0029723912 time=25.938 pctg=2.028
+ts=0.003 integ=implicitfast nstep=666 diff=0.0028470341 time=9.047 pctg=0.707
+ts=0.0032 integ=Euler nstep=625 diff=0.0011265561 time=8.401 pctg=0.657
+WARNING: Nan, Inf or huge value in QVEL at DOF 0. The simulation is unstable. Time = 0.0032.
+
+WARNING: Nan, Inf or huge value in QACC at DOF 1. The simulation is unstable. Time = 0.0032.
+
+
+ts=0.0032 integ=RK4 nstep=625 diff=10616583 time=46.716 pctg=3.653
+ts=0.0032 integ=implicit nstep=625 diff=0.0016616351 time=24.175 pctg=1.890
+ts=0.0032 integ=implicitfast nstep=625 diff=0.0011265561 time=8.145 pctg=0.637
+
+ts=0.0035 integ=Euler nstep=571 diff=0.002587296 time=7.692 pctg=0.601
+WARNING: Nan, Inf or huge value in QVEL at DOF 0. The simulation is unstable. Time = 0.0035.
+
+WARNING: Nan, Inf or huge value in QACC at DOF 1. The simulation is unstable. Time = 0.0035.
+
+ts=0.0035 integ=RK4 nstep=571 diff=15070651 time=40.947 pctg=3.201
+ts=0.0035 integ=implicit nstep=571 diff=0.002855492 time=21.132 pctg=1.652
+
+ts=0.0035 integ=implicitfast nstep=571 diff=0.002587296 time=7.314 pctg=0.572
+ts=0.004 integ=Euler nstep=500 diff=0.0018318969 time=6.302 pctg=0.493
+WARNING: Nan, Inf or huge value in QVEL at DOF 0. The simulation is unstable. Time = 0.0040.
+
+WARNING: Nan, Inf or huge value in QACC at DOF 1. The simulation is unstable. Time = 0.0040.
+
+ts=0.004 integ=RK4 nstep=500 diff=24618383 time=33.944 pctg=2.654
+
+ts=0.004 integ=implicit nstep=500 diff=0.0025485918 time=18.903 pctg=1.478
+ts=0.004 integ=implicitfast nstep=500 diff=0.0018318969 time=6.478 pctg=0.506
+[?2004hroot@44ba1e451396:/app# 
+[?2004l[?2004hroot@44ba1e451396:/app# 
+[?2004l[?2004hroot@44ba1e451396:/app# 
+[?2004l[?2004hroot@44ba1e451396:/app# 
+[?2004l[?2004hroot@44ba1e451396:/app# 
+[?2004l[?2004hroot@44ba1e451396:/app# 
+[?2004l[?2004hroot@44ba1e451396:/app# 
+[?2004l[?2004hroot@44ba1e451396:/app# python3 - <<'PY'
+[?2004l[?2004h> import mujoco
+[?2004l[?2004h> print('jacobian enum', {name:getattr(mujoco.mjtJacobian,name) for name in dir(mujoco.mjtJacobian) if not name.startswith('__')})
+[?2004l[?2004h> print('enableflags enum', {name:getattr(mujoco.mjtEnableBit,name) for name in dir(mujoco.mjtEnableBit) if not name.startswith('__')})
+[?2004l[?2004h> m=mujoco.MjModel.from_xml_path('/app/model_ref.xml')
+[?2004l[?2004h> print('current jacobian',m.opt.jacobian)
+[?2004l[?2004h> PY
+[?2004lcat > /app/screen_same.py <<'PY'
+import time
+import mujoco, numpy as np
+from pathlib import Path
+
+ref=np.load('/app/ref_states.npz')
+seed=1
+ref_state=ref[str(seed)]
+base=Path('/app/model_ref.xml').read_text()
+
+def simulate(model, seed):
+    data=mujoco.MjData(model)
+    nstep=int(2.0/model.opt.timestep)
+    rng=np.random.default_rng(seed)
+    data.qpos += rng.normal(0,0.01,size=data.qpos.shape)
+    mujoco.mj_forward(model,data)
+    for _ in range(nstep):
+        mujoco.mj_step(model,data)
+    full=mujoco.mjtState.mjSTATE_FULLPHYSICS
+    st=np.zeros(mujoco.mj_stateSize(model,full))
+    mujoco.mj_getState(model,data,st,full)
+    assert not np.isnan(st).any()
+    assert not np.isinf(st).any()
+    return st
+
+cands=[
+    ('base',''),
+    ('implicitfast','<option integrator="implicitfast"/>'),
+    ('implicit','<option integrator="implicit"/>'),
+    ('RK4','<option integrator="RK4"/>'),
+    ('PGS1','<option solver="PGS" iterations="1" ls_iterations="1"/>'),
+    ('CG1','<option solver="CG" iterations="1" ls_iterations="1"/>'),
+    ('Newton1','<option solver="Newton" iterations="1" ls_iterations="1"/>'),
+    ('Newton5','<option solver="Newton" iterations="5" ls_iterations="5"/>'),
+    ('disable_contact','<option><flag contact="disable"/></option>'),
+    ('disable_warmstart','<option><flag warmstart="disable"/></option>'),
+    ('disable_nativeccd','<option><flag nativeccd="disable"/></option>'),
+    ('disable_midphase','<option><flag midphase="disable"/></option>'),
+    ('disable_contact_nativeccd','<option><flag contact="disable" nativeccd="disable"/></option>'),
+    ('implicitfast_PGS1','<option integrator="implicitfast" solver="PGS" iterations="1" ls_iterations="1"/>'),
+    ('implicitfast_disable_contact','<option integrator="implicitfast"><flag contact="disable"/></option>'),
+]
+for name,opt in cands:
+    if opt:
+        xml=base.replace('  <worldbody>', '  '+opt+'\n  <worldbody>', 1)
+    else:
+        xml=base
+    Path('/app/model.xml').write_text(xml)
+    try:
+        m=mujoco.MjModel.from_xml_path('/app/model.xml')
+    except Exception as e:
+        print('load error',name,e)
+        continue
+    t0=time.perf_counter()
+    st=simulate(m,seed)
+    t1=time.perf_counter()
+    diff=np.linalg.norm(st-ref_state)
+    print(f'{name}: ts={m.opt.timestep} integ={m.opt.integrator} solver={m.opt.solver} iter={m.opt.iterations} ls={m.opt.ls_iterations} flags={m.opt.disableflags} diff={diff:.8g} time={t1-t0:.3f} pctg={(t1-t0)/12.79:.3f}')
+PY
+python3 /app/screen_same.py
+jacobian enum {'_pybind11_conduit_v1_': <instancemethod _pybind11_conduit_v1_ at 0x2aaaac323040>, 'mjJAC_AUTO': <mjtJacobian.mjJAC_AUTO: 2>, 'mjJAC_DENSE': <mjtJacobian.mjJAC_DENSE: 0>, 'mjJAC_SPARSE': <mjtJacobian.mjJAC_SPARSE: 1>, 'name': <property object at 0x2aaaac35cbd0>, 'value': <property object at 0x2aaaac35cef0>}
+enableflags enum {'_pybind11_conduit_v1_': <instancemethod _pybind11_conduit_v1_ at 0x2aaaac322860>, 'mjENBL_ENERGY': <mjtEnableBit.mjENBL_ENERGY: 2>, 'mjENBL_FWDINV': <mjtEnableBit.mjENBL_FWDINV: 4>, 'mjENBL_INVDISCRETE': <mjtEnableBit.mjENBL_INVDISCRETE: 8>, 'mjENBL_ISLAND': <mjtEnableBit.mjENBL_ISLAND: 32>, 'mjENBL_MULTICCD': <mjtEnableBit.mjENBL_MULTICCD: 16>, 'mjENBL_OVERRIDE': <mjtEnableBit.mjENBL_OVERRIDE: 1>, 'mjNENABLE': <mjtEnableBit.mjNENABLE: 6>, 'name': <property object at 0x2aaaac330ea0>, 'value': <property object at 0x2aaaac3311c0>}
+current jacobian 2
+[?2004hroot@44ba1e451396:/app# cat > /app/screen_same.py <<'PY'
+[?2004l[?2004h> import time
+[?2004l[?2004h> import mujoco, numpy as np
+[?2004l[?2004h> from pathlib import Path
+[?2004l[?2004h> 
+[?2004l[?2004h> ref=np.load('/app/ref_states.npz')
+[?2004l[?2004h> seed=1
+[?2004l[?2004h> ref_state=ref[str(seed)]
+[?2004l[?2004h> base=Path('/app/model_ref.xml').read_text()
+[?2004l[?2004h> 
+[?2004l[?2004h> def simulate(model, seed):
+[?2004l[?2004h>     data=mujoco.MjData(model)
+[?2004l[?2004h>     nstep=int(2.0/model.opt.timestep)
+[?2004l[?2004h>     rng=np.random.default_rng(seed)
+[?2004l[?2004h>     data.qpos += rng.normal(0,0.01,size=data.qpos.shape)
+[?2004l[?2004h>     mujoco.mj_forward(model,data)
+[?2004l[?2004h>     for _ in range(nstep):
+[?2004l[?2004h>         mujoco.mj_step(model,data)
+[?2004l[?2004h>     full=mujoco.mjtState.mjSTATE_FULLPHYSICS
+[?2004l[?2004h>     st=np.zeros(mujoco.mj_stateSize(model,full))
+[?2004l[?2004h>     mujoco.mj_getState(model,data,st,full)
+[?2004l[?2004h>     assert not np.isnan(st).any()
+[?2004l[?2004h>     assert not np.isinf(st).any()
+[?2004l[?2004h>     return st
+[?2004l[?2004h> 
+[?2004l[?2004h> cands=[
+[?2004l[?2004h>     ('base',''),
+[?2004l[?2004h>     ('implicitfast','<option integrator="implicitfast"/>'),
+[?2004l[?2004h>     ('implicit','<option integrator="implicit"/>'),
+[?2004l[?2004h>     ('RK4','<option integrator="RK4"/>'),
+[?2004l[?2004h>     ('PGS1','<option solver="PGS" iterations="1" ls_iterations="1"/>'),
+[?2004l[?2004h>     ('CG1','<option solver="CG" iterations="1" ls_iterations="1"/>'),
+[?2004l[?2004h>     ('Newton1','<option solver="Newton" iterations="1" ls_iterations="1"/>'),
+[?2004l[?2004h>     ('Newton5','<option solver="Newton" iterations="5" ls_iterations="5"/>'),
+[?2004l[?2004h>     ('disable_contact','<option><flag contact="disable"/></option>'),
+[?2004l[?2004h>     ('disable_warmstart','<option><flag warmstart="disable"/></option>'),
+[?2004l[?2004h>     ('disable_nativeccd','<option><flag nativeccd="disable"/></option>'),
+[?2004l[?2004h>     ('disable_midphase','<option><flag midphase="disable"/></option>'),
+[?2004l[?2004h>     ('disable_contact_nativeccd','<option><flag contact="disable" nativeccd="disable"/></option>'),
+[?2004l[?2004h>     ('implicitfast_PGS1','<option integrator="implicitfast" solver="PGS" iterations="1" ls_iterations="1"/>'),
+[?2004l[?2004h>     ('implicitfast_disable_contact','<option integrator="implicitfast"><flag contact="disable"/></option>'),
+[?2004l[?2004h> ]
+[?2004l[?2004h> for name,opt in cands:
+[?2004l[?2004h>     if opt:
+[?2004l[?2004h>         xml=base.replace('  <worldbody>', '  '+opt+'\n  <worldbody>', 1)
+[?2004l[?2004h>     else:
+[?2004l[?2004h>         xml=base
+[?2004l[?2004h>     Path('/app/model.xml').write_text(xml)
+[?2004l[?2004h>     try:
+[?2004l[?2004h>         m=mujoco.MjModel.from_xml_path('/app/model.xml')
+[?2004l[?2004h>     except Exception as e:
+[?2004l[?2004h>         print('load error',name,e)
+[?2004l[?2004h>         continue
+[?2004l[?2004h>     t0=time.perf_counter()
+[?2004l[?2004h>     st=simulate(m,seed)
+[?2004l[?2004h>     t1=time.perf_counter()
+[?2004l[?2004h>     diff=np.linalg.norm(st-ref_state)
+[?2004l[?2004h>     print(f'{name}: ts={m.opt.timestep} integ={m.opt.integrator} solver={m.opt.solver} iter={m.opt.iterations} ls={m.opt.ls_iterations} flags={m.opt.disableflags} diff={diff:.8g} time={t1-t0:.3f} pctg={(t1-t0)/12.79:.3f}')
+[?2004l[?2004h> PY
+[?2004l[?2004hroot@44ba1e451396:/app# python3 /app/screen_same.py
+[?2004lbase: ts=0.002 integ=0 solver=2 iter=100 ls=50 flags=0 diff=0 time=13.110 pctg=1.025
+implicitfast: ts=0.002 integ=3 solver=2 iter=100 ls=50 flags=0 diff=0 time=13.024 pctg=1.018
+implicit: ts=0.002 integ=2 solver=2 iter=100 ls=50 flags=0 diff=0.00054086647 time=38.055 pctg=2.975
+WARNING: Nan, Inf or huge value in QVEL at DOF 0. The simulation is unstable. Time = 0.0020.
+
+WARNING: Nan, Inf or huge value in QACC at DOF 7. The simulation is unstable. Time = 0.0020.
+
+
+RK4: ts=0.002 integ=1 solver=2 iter=100 ls=50 flags=0 diff=1318125.8 time=69.432 pctg=5.429
+PGS1: ts=0.002 integ=0 solver=0 iter=1 ls=1 flags=0 diff=0.068696603 time=7.051 pctg=0.551
+WARNING: Nan, Inf or huge value in QACC at DOF 110. The simulation is unstable. Time = 0.7020.
+
+CG1: ts=0.002 integ=0 solver=1 iter=1 ls=1 flags=0 diff=1.1710922 time=8.908 pctg=0.696
+Newton1: ts=0.002 integ=0 solver=2 iter=1 ls=1 flags=0 diff=0 time=12.931 pctg=1.011
+Newton5: ts=0.002 integ=0 solver=2 iter=5 ls=5 flags=0 diff=0 time=12.935 pctg=1.011
+
+disable_contact: ts=0.002 integ=0 solver=2 iter=100 ls=50 flags=16 diff=0 time=13.018 pctg=1.018
+disable_warmstart: ts=0.002 integ=0 solver=2 iter=100 ls=50 flags=256 diff=1.9581394e-14 time=12.827 pctg=1.003
+disable_nativeccd: ts=0.002 integ=0 solver=2 iter=100 ls=50 flags=65536 diff=0 time=13.238 pctg=1.035
+disable_midphase: ts=0.002 integ=0 solver=2 iter=100 ls=50 flags=8192 diff=0 time=13.108 pctg=1.025
+disable_contact_nativeccd: ts=0.002 integ=0 solver=2 iter=100 ls=50 flags=65552 diff=0 time=13.065 pctg=1.021
+
+implicitfast_PGS1: ts=0.002 integ=3 solver=0 iter=1 ls=1 flags=0 diff=0.068696603 time=7.328 pctg=0.573
+implicitfast_disable_contact: ts=0.002 integ=3 solver=2 iter=100 ls=50 flags=16 diff=0 time=13.129 pctg=1.026
+[?2004hroot@44ba1e451396:/app# 
+[?2004l[?2004hroot@44ba1e451396:/app# 
+[?2004l[?2004hroot@44ba1e451396:/app# 
+[?2004l[?2004hroot@44ba1e451396:/app# cat > /app/screen_solver_iter.py <<'PY'
+[?2004lm_xml_path('/app/model.xml')
+        t0=time.perf_counter()
+        st=simulate(m,seed)
+        t1=time.perf_counter()
+        diff=np.linalg.norm(st-ref_state)
+        print(f'{solver} it={it}: diff={diff:.8g} time={t1-t0:.3f} pctg={(t1-t0)/12.79:.3f}', flush=True)
+PY
+[?2004h> import time
+[?2004l[?2004h> import mujoco, numpy as np
+[?2004l[?2004h> from pathlib import Path
+[?2004l[?2004h> 
+[?2004l[?2004h> ref=np.load('/app/ref_states.npz')
+[?2004l[?2004h> seed=1
+[?2004l[?2004h> ref_state=ref[str(seed)]
+[?2004l[?2004h> base=Path('/app/model_ref.xml').read_text()
+[?2004l[?2004h> 
+[?2004l[?2004h> def simulate(model, seed):
+[?2004l[?2004h>     data=mujoco.MjData(model)
+[?2004l[?2004h>     nstep=int(2.0/model.opt.timestep)
+[?2004l[?2004h>     rng=np.random.default_rng(seed)
+[?2004l[?2004h>     data.qpos += rng.normal(0,0.01,size=data.qpos.shape)
+[?2004l[?2004h>     mujoco.mj_forward(model,data)
+[?2004l[?2004h>     for _ in range(nstep):
+[?2004l[?2004h>         mujoco.mj_step(model,data)
+[?2004l[?2004h>     full=mujoco.mjtState.mjSTATE_FULLPHYSICS
+[?2004l[?2004h>     st=np.zeros(mujoco.mj_stateSize(model,full))
+[?2004l[?2004h>     mujoco.mj_getState(model,data,st,full)
+[?2004l[?2004h>     assert not np.isnan(st).any()
+[?2004l[?2004h>     assert not np.isinf(st).any()
+[?2004l[?2004h>     return st
+[?2004l[?2004h> 
+[?2004l[?2004h> for solver in ['PGS','CG','Newton']:
+[?2004l[?2004h>     for it in [1,2,5,10,20,50,100]:
+[?2004l[?2004h>         opt=f'<option solver="{solver}" iterations="{it}" ls_iterations="{it}"/>'
+[?2004l[?2004h>         xml=base.replace('  <worldbody>', '  '+opt+'\n  <worldbody>', 1)
+[?2004l[?2004h>         Path('/app/model.xml').write_text(xml)
+[?2004l[?2004h>         m=mujoco.MjModel.from_xml_path('/app/model.xml')
+[?2004l[?2004h>         t0=time.perf_counter()
+[?2004l[?2004h>         st=simulate(m,seed)
+[?2004l[?2004h>         t1=time.perf_counter()
+[?2004l[?2004h>         diff=np.linalg.norm(st-ref_state)
+[?2004l[?2004h>         print(f'{solver} it={it}: diff={diff:.8g} time={t1-t0:.3f} pctg={(t1-t0)/12.79:.3f}', flush=True)
+[?2004l[?2004h> PY
+[?2004l[?2004hroot@44ba1e451396:/app# python3 /app/screen_solver_iter.py
+[?2004lPGS it=1: diff=0.068696603 time=6.963 pctg=0.544
+PGS it=2: diff=0.015683151 time=6.861 pctg=0.536
+PGS it=5: diff=2.6831961e-06 time=6.800 pctg=0.532
+PGS it=10: diff=1.2405822e-06 time=6.873 pctg=0.537
+PGS it=20: diff=1.3009313e-06 time=6.790 pctg=0.531
+PGS it=50: diff=1.3009313e-06 time=6.902 pctg=0.540
+PGS it=100: diff=1.3009313e-06 time=7.147 pctg=0.559
+WARNING: Nan, Inf or huge value in QACC at DOF 110. The simulation is unstable. Time = 0.7020.
+
+CG it=1: diff=1.1710922 time=9.886 pctg=0.773
+WARNING: Nan, Inf or huge value in QACC at DOF 67. The simulation is unstable. Time = 0.4560.
+
+CG it=2: diff=0.73919231 time=9.837 pctg=0.769
+CG it=5: diff=4.192681e-06 time=8.794 pctg=0.688
+
+CG it=10: diff=4.192681e-06 time=8.924 pctg=0.698
+CG it=20: diff=4.192681e-06 time=8.849 pctg=0.692
+CG it=50: diff=4.192681e-06 time=8.903 pctg=0.696
+CG it=100: diff=4.192681e-06 time=8.725 pctg=0.682
+Newton it=1: diff=0 time=12.594 pctg=0.985
+Newton it=2: diff=0 time=12.439 pctg=0.973
+Newton it=5: diff=0 time=12.598 pctg=0.985
+Newton it=10: diff=0 time=12.416 pctg=0.971
+
+Newton it=20: diff=0 time=12.455 pctg=0.974
+Newton it=50: diff=0 time=12.367 pctg=0.967
+Newton it=100: diff=0 time=12.411 pctg=0.970
+[?2004hroot@44ba1e451396:/app# 
+[?2004l[?2004hroot@44ba1e451396:/app# 
+[?2004l[?2004hroot@44ba1e451396:/app# python3 - <<'PY'
+[?2004l[?2004h> from pathlib import Path
+[?2004l[?2004h> src=Path('/app/model_ref.xml').read_text()
+[?2004l[?2004h> src=src.replace('  <worldbody>', '  <option solver="PGS" iterations="10" ls_iterations="10"/>\n  <worldbody>', 1)
+[?2004l[?2004h> Path('/app/model.xml').write_text(src)
+[?2004l[?2004h> print(Path('/app/model.xml').read_text())
+[?2004l[?2004h> PY
+[?2004lpython3 - <<'PY'
+import time, mujoco, numpy as np
+m=mujoco.MjModel.from_xml_path('/app/model.xml')
+ref=np.load('/app/ref_states.npz')
+print('opt', m.opt.solver, m.opt.iterations, m.opt.ls_iterations, m.opt.timestep, m.opt.disableflags)
+for s in [1,2,3]:
+    data=mujoco.MjData(m)
+    nstep=int(2.0/m.opt.timestep)
+    rng=np.random.default_rng(s)
+    data.qpos += rng.normal(0,0.01,size=data.qpos.shape)
+    mujoco.mj_forward(m,data)
+    t0=time.perf_counter()
+    for _ in range(nstep):
+        mujoco.mj_step(m,data)
+    t1=time.perf_counter()
+    full=mujoco.mjtState.mjSTATE_FULLPHYSICS
+    st=np.zeros(mujoco.mj_stateSize(m,full))
+    mujoco.mj_getState(m,data,st,full)
+    rs=ref[str(s)]
+    print('seed',s,'norm',np.linalg.norm(st-rs),'maxabs',np.max(np.abs(st-rs)),'allclose',np.allclose(st,rs,atol=1e-5),'time',t1-t0,'pctg',(t1-t0)/12.79)
+    assert not np.isnan(st).any() and not np.isinf(st).any()
+PY
+<!-- Inspired by https://github.com/google-deepmind/mujoco/blob/main/model/plugin/elasticity/cable.xml -->
+<mujoco model="Cable">
+
+  <extension>
+    <plugin plugin="mujoco.elasticity.cable"/>
+  </extension>
+
+  <statistic center="0 0 .3" extent="1"/>
+  <visual>
+    <global elevation="-30"/>
+  </visual>
+
+  <compiler autolimits="true"/>
+
+  <size memory="2M"/>
+
+  <option solver="PGS" iterations="10" ls_iterations="10"/>
+  <worldbody>
+    <composite type="cable" curve="s" count="41 1 1" size="1" offset="-.3 0 .6" initial="none">
+      <plugin plugin="mujoco.elasticity.cable">
+        <!--Units are in Pa (SI)-->
+        <config key="twist" value="1e7"/>
+        <config key="bend" value="4e6"/>
+        <config key="vmax" value="0.05"/>
+      </plugin>
+      <joint kind="main" damping=".015"/>
+      <geom type="capsule" size=".005" rgba=".8 .2 .1 1" condim="1"/>
+    </composite>
+    <body name="slider" pos=".7 0 .6">
+      <joint type="slide" axis="1 0 0" damping=".1"/>
+      <geom size=".01"/>
+    </body>
+  </worldbody>
+  <equality>
+    <connect name="right_boundary" body1="B_last" body2="slider" anchor=".025 0 0"/>
+  </equality>
+  <contact>
+    <exclude body1="B_last" body2="slider"/>
+  </contact>
+  <actuator>
+    <motor site="S_last" gear="0 0 0 1 0 0" ctrlrange="-.03 .03"/>
+  </actuator>
+</mujoco>
+[?2004hroot@44ba1e451396:/app# python3 - <<'PY'
+[?2004l[?2004h> import time, mujoco, numpy as np
+[?2004l[?2004h> m=mujoco.MjModel.from_xml_path('/app/model.xml')
+[?2004l[?2004h> ref=np.load('/app/ref_states.npz')
+[?2004l[?2004h> print('opt', m.opt.solver, m.opt.iterations, m.opt.ls_iterations, m.opt.timestep, m.opt.disableflags)
+[?2004l[?2004h> for s in [1,2,3]:
+[?2004l[?2004h>     data=mujoco.MjData(m)
+[?2004l[?2004h>     nstep=int(2.0/m.opt.timestep)
+[?2004l[?2004h>     rng=np.random.default_rng(s)
+[?2004l[?2004h>     data.qpos += rng.normal(0,0.01,size=data.qpos.shape)
+[?2004l[?2004h>     mujoco.mj_forward(m,data)
+[?2004l[?2004h>     t0=time.perf_counter()
+[?2004l[?2004h>     for _ in range(nstep):
+[?2004l[?2004h>         mujoco.mj_step(m,data)
+[?2004l[?2004h>     t1=time.perf_counter()
+[?2004l[?2004h>     full=mujoco.mjtState.mjSTATE_FULLPHYSICS
+[?2004l[?2004h>     st=np.zeros(mujoco.mj_stateSize(m,full))
+[?2004l[?2004h>     mujoco.mj_getState(m,data,st,full)
+[?2004l[?2004h>     rs=ref[str(s)]
+[?2004l[?2004h>     print('seed',s,'norm',np.linalg.norm(st-rs),'maxabs',np.max(np.abs(st-rs)),'allclose',np.allclose(st,rs,atol=1e-5),'time',t1-t0,'pctg',(t1-t0)/12.79)
+[?2004l[?2004h>     assert not np.isnan(st).any() and not np.isinf(st).any()
+[?2004l[?2004h> PY
+[?2004lopt 0 10 10 0.002 0
+seed 1 norm 1.2405821808258285e-06 maxabs 4.1076749105611876e-07 allclose True time 6.826176753034815 pctg 0.5337120213475227
+seed 2 norm 5.010456505170345e-06 maxabs 1.041293225444162e-06 allclose True time 6.84157721104566 pctg 0.5349161228339062
+seed 3 norm 2.6655282628907614e-06 maxabs 7.126696300145674e-07 allclose True time 6.823430419899523 pctg 0.5334972963173983
+[?2004hroot@44ba1e451396:/app# python3 /app/eval.py
+[?2004lFinal state difference: 0.0000
+
+
+
+Avg simulation time: 6.9779 secs
+Avg simulation time (ref): 12.5410 secs
+Speedup: 1.80x
+Time pctg: 0.56
+[?2004hroot@44ba1e451396:/app# 
+[?2004l[?2004hroot@44ba1e451396:/app# 
+[?2004l[?2004hroot@44ba1e451396:/app# 
+[?2004l[?2004hroot@44ba1e451396:/app# 

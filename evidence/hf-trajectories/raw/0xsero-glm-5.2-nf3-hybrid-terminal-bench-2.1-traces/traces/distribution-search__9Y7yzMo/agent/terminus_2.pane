@@ -1,0 +1,127 @@
+[?2004hroot@d2e9c39c6034:/app# asciinema rec --stdin /logs/agent/recording.cast
+[?2004l[0;32masciinema: recording asciicast to /logs/agent/recording.cast[0m
+[0;32masciinema: press <ctrl-d> or type "exit" when you're done[0m
+[?2004hroot@d2e9c39c6034:/app# clear
+[?2004l[H[J[3J[?2004hroot@d2e9c39c6034:/app# cat > /app/solve.py <<'PY'
+[?2004l* M
+
+    sum_p_logp = q0 * np.log(q0) + 6 * q1 * np.log(q1) + m * delta * np.log(delta)
+    forward_kl = logN + sum_p_logp
+    return forward_kl - target
+
+# Find r. Larger r concentrates mass, lowers entropy, raises forward KL.
+# At r=1/7, forward KL < 10; at r=0.4, forward KL > 10.
+r = brentq(forward_kl_residual, 1.0/7.0, 0.4, xtol=1e-14, rtol=1e-14)
+delta = solve_delta_for_backward(r)
+M = 1.0 - m * delta
+
+p = np.empty(N, dtype=np.float64)
+p[0] = r * M
+p[1:7] = ((1.0 - r) / 6.0) * M
+p[7:] = delta
+
+# Ensure exact normalization in floating point.
+p /= p.sum()
+
+# Recompute KL divergences from saved array.
+U = np.full(N, 1.0 / N)
+forward_kl = np.sum(p * np.log(p / U))
+backward_kl = np.sum(U * np.log(U / p))
+
+np.save('/app/dist.npy', p)
+
+print('r =', r)
+print('delta =', delta)
+print('sum =', p.sum())
+print('min =', p.min())
+print('max =', p.max())
+print('forward KL =', forward_kl)
+print('backward KL =', backward_kl)
+print('forward error =', abs(forward_kl - 10.0))
+print('backward error =', abs(backward_kl - 10.0))
+PY
+[?2004h> import numpy as np
+[?2004l[?2004h> from scipy.optimize import brentq
+[?2004l[?2004h> 
+[?2004l[?2004h> N = 150000
+[?2004l[?2004h> m = N - 7
+[?2004l[?2004h> logN = np.log(N)
+[?2004l[?2004h> target = 10.0
+[?2004l[?2004h> 
+[?2004l[?2004h> def solve_delta_for_backward(r):
+[?2004l[?2004h>     """For a given high-mass shape parameter r, find tail delta so KL(U||P)=10."""
+[?2004l[?2004h>     # Backward KL condition:
+[?2004l[?2004h>     # -logN - (1/N) * sum(log(p_i)) = 10
+[?2004l[?2004h>     # sum(log(p_i)) = N * (-10 - logN)
+[?2004l[?2004h>     L = N * (-10.0 - logN)
+[?2004l[?2004h> 
+[?2004l[?2004h>     # p0 = r*M, p1..p6 = ((1-r)/6)*M, p7.. = delta
+[?2004l[?2004h>     # M = 1 - m*delta
+[?2004l[?2004h>     # sum log p = log(r*M) + 6*log(((1-r)/6)*M) + m*log(delta)
+[?2004l[?2004h>     C = np.log(r) + 6 * np.log((1.0 - r) / 6.0)
+[?2004l[?2004h> 
+[?2004l[?2004h>     def f(delta):
+[?2004l[?2004h>         M = 1.0 - m * delta
+[?2004l[?2004h>         if M <= 0.0 or delta <= 0.0:
+[?2004l[?2004h>             return -1e300
+[?2004l[?2004h>         return 7.0 * np.log(M) + C + m * np.log(delta) - L
+[?2004l[?2004h> 
+[?2004l[?2004h>     # delta is tiny, around exp(-21.918...). Use a wide safe bracket.
+[?2004l[?2004h>     lo, hi = 1e-40, 1e-6
+[?2004l[?2004h>     return brentq(f, lo, hi, xtol=1e-15, rtol=1e-15)
+[?2004l[?2004h> 
+[?2004l[?2004h> def forward_kl_residual(r):
+[?2004l[?2004h>     delta = solve_delta_for_backward(r)
+[?2004l[?2004h>     M = 1.0 - m * delta
+[?2004l[?2004h>     q0 = r * M
+[?2004l[?2004h>     q1 = ((1.0 - r) / 6.0) * M
+[?2004l[?2004h> 
+[?2004l[?2004h>     sum_p_logp = q0 * np.log(q0) + 6 * q1 * np.log(q1) + m * delta * np.log(delta)
+[?2004l[?2004h>     forward_kl = logN + sum_p_logp
+[?2004l[?2004h>     return forward_kl - target
+[?2004l[?2004h> 
+[?2004l[?2004h> # Find r. Larger r concentrates mass, lowers entropy, raises forward KL.
+[?2004l[?2004h> # At r=1/7, forward KL < 10; at r=0.4, forward KL > 10.
+[?2004l[?2004h> r = brentq(forward_kl_residual, 1.0/7.0, 0.4, xtol=1e-14, rtol=1e-14)
+[?2004l[?2004h> delta = solve_delta_for_backward(r)
+[?2004l[?2004h> M = 1.0 - m * delta
+[?2004l[?2004h> 
+[?2004l[?2004h> p = np.empty(N, dtype=np.float64)
+[?2004l[?2004h> p[0] = r * M
+[?2004l[?2004h> p[1:7] = ((1.0 - r) / 6.0) * M
+[?2004l[?2004h> p[7:] = delta
+[?2004l[?2004h> 
+[?2004l[?2004h> # Ensure exact normalization in floating point.
+[?2004l[?2004h> p /= p.sum()
+[?2004l[?2004h> 
+[?2004l[?2004h> # Recompute KL divergences from saved array.
+[?2004l[?2004h> U = np.full(N, 1.0 / N)
+[?2004l[?2004h> forward_kl = np.sum(p * np.log(p / U))
+[?2004l[?2004h> backward_kl = np.sum(U * np.log(U / p))
+[?2004l[?2004h> 
+[?2004l[?2004h> np.save('/app/dist.npy', p)
+[?2004l[?2004h> 
+[?2004l[?2004h> print('r =', r)
+[?2004l[?2004h> print('delta =', delta)
+[?2004l[?2004h> print('sum =', p.sum())
+[?2004l[?2004h> print('min =', p.min())
+[?2004l[?2004h> print('max =', p.max())
+[?2004l[?2004h> print('forward KL =', forward_kl)
+[?2004l[?2004h> print('backward KL =', backward_kl)
+[?2004l[?2004h> print('forward error =', abs(forward_kl - 10.0))
+[?2004l[?2004h> print('backward error =', abs(backward_kl - 10.0))
+[?2004l[?2004h> PY
+[?2004l[?2004hroot@d2e9c39c6034:/app# python3 /app/solve.py
+[?2004lls -lh /app/dist.npy
+r = 0.23252826298040735
+delta = 3.023846075227442e-10
+sum = 1.0
+min = 3.02384607522744e-10
+max = 0.23251771652746706
+forward KL = 9.99999999999997
+backward KL = 9.999999882822367
+forward error = 3.019806626980426e-14
+backward error = 1.1717763293006556e-07
+[?2004hroot@d2e9c39c6034:/app# ls -lh /app/dist.npy
+[?2004l-rw-r--r-- 1 root root 1.2M Jul 19 05:18 /app/dist.npy
+[?2004hroot@d2e9c39c6034:/app# 

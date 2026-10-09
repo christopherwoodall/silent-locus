@@ -65,27 +65,27 @@ to exist.
 
 ### Factum-managed paths
 
-- `data/corpus.json` — corpus identity and portable format.
-- `data/schema-lock.json` — active, pinned schema-pack inventory.
-- `data/schema-packs/` — installed schema contracts and type definitions.
-- `data/records/` — exported immutable batches and receipts.
-- `data/lanes/` — Factum lane definitions and optional lane documents.
-- `data/blobs/` — explicitly Git-retained artifact bytes.
-- `data/.local/` — local index, pending submissions, and local-only bytes.
+- `evidence/corpus.json` — corpus identity and portable format.
+- `evidence/schema-lock.json` — active, pinned schema-pack inventory.
+- `evidence/schema-packs/` — installed schema contracts and type definitions.
+- `evidence/records/` — exported immutable batches and receipts.
+- `evidence/lanes/` — Factum lane definitions and optional lane documents.
+- `evidence/blobs/` — explicitly Git-retained artifact bytes.
+- `evidence/.local/` — local index, pending submissions, and local-only bytes.
 
 Do not edit managed records, manifests, installed packs, or SQLite directly.
 
-`data/.local/` is ignored by Git, but it is not entirely disposable.
+`evidence/.local/` is ignored by Git, but it is not entirely disposable.
 Pending submissions and local-only evidence may be the only copies.
 
 ### Existing research paths
 
-- `data/<YYYY-MM-DD-slug>/` — established hunt event or lane directories.
+- `evidence/<YYYY-MM-DD-slug>/` — established hunt event or lane directories.
   Existing directories may contain `events.jsonl`, `PROVENANCE.md`,
   `SHA256SUMS`, `raw/`, scripts, and notes.
-- `data/transluce-api/` — tracker integration, pulls, ingest ledger,
+- `evidence/transluce-api/` — tracker integration, pulls, ingest ledger,
   investigations, and submission drafts.
-- `data/hf-trajectories/` — trajectory audits, cached datasets, farm outputs,
+- `evidence/hf-trajectories/` — trajectory audits, cached datasets, farm outputs,
   rollups, and reports.
 - `lists/` — canonical operational inventories. Read `lists/README.md`.
 - `collections/` — curated collections and cross-event material.
@@ -115,7 +115,7 @@ For example, lane tags may include:
 
 ```json
 {
-  "docs_path": "data/2026-09-28-chinese-amap-fleet/"
+  "docs_path": "evidence/2026-09-28-chinese-amap-fleet/"
 }
 ```
 
@@ -154,7 +154,7 @@ a legacy ingestion workflow.
 
 Canonical operational home: `lists/urls/urls.jsonl`.
 
-The copy at `data/transluce-api/url-inventory.jsonl` remains legacy and
+The copy at `evidence/transluce-api/url-inventory.jsonl` remains legacy and
 read-only unless an explicit maintenance task says otherwise.
 
 Preserve exact observed URLs. Any existing `canonical` field is a derived
@@ -234,7 +234,7 @@ publication.
 For Factum submissions, choose retention explicitly:
 
 - `--storage local`: preserve bytes locally; synchronize metadata.
-- `--storage git`: preserve bytes in `data/blobs/` for intended publication.
+- `--storage git`: preserve bytes in `evidence/blobs/` for intended publication.
 - Reference artifact: record an external dataset or file locator without
   claiming local preservation.
 
@@ -249,13 +249,13 @@ Before calling a find NEW:
 
 1. Search Factum's current structured corpus.
 2. Search the relevant legacy internal corpus, including:
-   - `data/2026-09-28-chinese-amap-fleet/`
-   - other relevant `data/2026-09-28-*` material
+   - `evidence/2026-09-28-chinese-amap-fleet/`
+   - other relevant `evidence/2026-09-28-*` material
 3. Query the Transluce findings database using the installed Transluce tool.
    The existing deployment may use:
    `~/workspace/skills/transluce/bin/tl.py`
 4. Check `lists/` and the legacy
-   `data/transluce-api/url-inventory.jsonl`.
+   `evidence/transluce-api/url-inventory.jsonl`.
 5. Record the searches, scope, coverage, and citations used.
 
 Diff against the internal corpus, not merely an excluded list.
@@ -319,11 +319,11 @@ An export is not a commit, and a commit is not a push.
 ## Key references
 
 - `lists/README.md` — canonical inventory locations and maintenance checks.
-- `data/transluce-api/README.md` — tracker integration and definitions.
-- `data/transluce-api/SCHEMA.md` — legacy integration shapes.
-- `data/transluce-api/LEDGER.md` — ingest history.
-- `data/transluce-api/submissions/LEDGER.md` — submission state.
-- `data/hf-trajectories/URL-KEYWORD-FARM.md` — farm report conventions.
+- `evidence/transluce-api/README.md` — tracker integration and definitions.
+- `evidence/transluce-api/SCHEMA.md` — legacy integration shapes.
+- `evidence/transluce-api/LEDGER.md` — ingest history.
+- `evidence/transluce-api/submissions/LEDGER.md` — submission state.
+- `evidence/hf-trajectories/URL-KEYWORD-FARM.md` — farm report conventions.
 - The nearest `PROVENANCE.md` — source-specific acquisition history.
 
 <!-- BEGIN FACTUM INTEGRATION -->
@@ -334,7 +334,7 @@ claims, and relationships.
 
 - Skill: `.agents/skills/factum/SKILL.md`
 - Setup and schema-pack installation: `.agents/skills/factum/INSTALL.md`
-- Host corpus: `data/`
+- Host corpus: `evidence/`
 - Command:
   `uv run .agents/skills/factum/scripts/factum.py --repo <host-repository> <command>`
 

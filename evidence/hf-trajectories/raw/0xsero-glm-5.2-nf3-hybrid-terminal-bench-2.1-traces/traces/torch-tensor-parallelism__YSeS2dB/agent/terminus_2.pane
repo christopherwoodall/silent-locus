@@ -1,0 +1,712 @@
+[?2004hroot@3f9e2b1993e0:/app# asciinema rec --stdin /logs/agent/recording.cast
+[?2004l[0;32masciinema: recording asciicast to /logs/agent/recording.cast[0m
+[0;32masciinema: press <ctrl-d> or type "exit" when you're done[0m
+[?2004hroot@3f9e2b1993e0:/app# clear
+[?2004l[H[J[3J[?2004hroot@3f9e2b1993e0:/app# python3 - <<'PY'
+[?2004l[?2004h> import torch
+[?2004l[?2004h> import torch.distributed as dist
+[?2004l[?2004h> import torch.distributed.nn as dnn
+[?2004l[?2004h> print(torch.__version__)
+[?2004l[?2004h> print([x for x in dir(dnn) if not x.startswith('_')])
+[?2004l[?2004h> print(getattr(dnn, 'all_gather', None))
+[?2004l[?2004h> print(getattr(dnn, 'all_reduce', None))
+[?2004l[?2004h> PY
+[?2004lTraceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+ModuleNotFoundError: No module named 'torch'
+[?2004hroot@3f9e2b1993e0:/app# cat > /app/parallel_linear.py <<'PY'
+[?2004l[?2004h> import torch
+[?2004l[?2004h> import torch.distributed as dist
+[?2004l[?2004h> import torch.nn as nn
+[?2004l         [?2004h> 
+[?2004l[?2004h> 
+[?2004l [?2004h> def _world_size():
+[?2004l[?2004h>     try:
+[?2004leight.dev[?2004h>         return dist.get_world_size()
+[?2004l     [?2004h>     except Exception:
+[?2004laste[?2004h>         return 1
+[?2004l[?2004h> 
+[?2004l[?2004h> 
+[?2004l[?2004h> def _rank():
+[?2004lght.is_floating_point(),
+  [?2004h>     try:
+[?2004l[?2004h>         return dist.get_rank()
+[?2004l[?2004h>     except Exception:
+[?2004l[?2004h>         return 0
+[?2004l[?2004h> 
+[?2004ln[?2004h> 
+[?2004lp[?2004h> def _split_sizes(dim_size, world_size):
+[?2004l[?2004h>     base = dim_size // world_size
+[?2004l[?2004h>     rem = dim_size % world_size
+[?2004l[?2004h>     return [base + 1 if r < rem else base for r in range(world_size)]
+[?2004l[?2004h> 
+[?2004l)[?2004h> 
+[?2004l[?2004h> class AllGather(torch.autograd.Function):
+[?2004l[?2004h>     """Differentiable all-gather along the last dimension.
+[?2004l[?2004h> 
+[?2004l[?2004h>     Supports uneven last-dimension sizes by padding before the collective.
+[?2004lLinear(nn.Module):
+    de[?2004h>     """
+[?2004l[?2004h> 
+[?2004l[?2004h>     @staticmethod
+[?2004l[?2004h>     def forward(ctx, x):
+[?2004l[?2004h>         world_size = _world_size()
+[?2004l().__ini[?2004h>         rank = _rank()
+[?2004l[?2004h>         ctx.world_size = world_size
+[?2004l[?2004h>         ctx.rank = rank
+[?2004l[?2004h> 
+[?2004l[?2004h>         if world_size == 1:
+[?2004lself.wor[?2004h>             ctx.sizes = [x.shape[-1]]
+[?2004l[?2004h>             return x
+[?2004l
+      [?2004h> 
+[?2004l [?2004h>         local_size = torch.tensor([x.shape[-1]], device=x.device, dtype=torch.long)
+[?2004l[?2004h>         size_tensors = [torch.empty_like(local_size) for _ in range(world_size)]
+[?2004l[?2004h>         dist.all_gather(size_tensors, local_size)
+[?2004l[?2004h>         sizes = [int(s.item()) for s in size_tensors]
+[?2004l[?2004h>         ctx.sizes = sizes
+[?2004l[?2004h> 
+[?2004la[?2004h>         max_size = max(sizes)
+[?2004l[?2004h>         if x.shape[-1] != max_size:
+[?2004l[?2004h>             pad_shape = x.shape[:-1] + (max_size - x.shape[-1],)
+[?2004l[?2004h>             x = torch.cat(
+[?2004l[?2004h>                 [x, torch.zeros(pad_shape, dtype=x.dtype, device=x.device)],
+[?2004l[?2004h>                 dim=-1,
+[?2004l[?2004h>             )
+[?2004l[?2004h> 
+[?2004l,[?2004h>         x = x.contiguous()
+[?2004l[?2004h>         tensors = [torch.empty_like(x) for _ in range(world_size)]
+[?2004l[?2004h>         dist.all_gather(tensors, x)
+[?2004l[?2004h> 
+[?2004lz[?2004h>         outputs = [t[..., : sizes[i]] for i, t in enumerate(tensors)]
+[?2004l[?2004h>         return torch.cat(outputs, dim=-1)
+[?2004l[?2004h> 
+[?2004l[?2004h>     @staticmethod
+[?2004l= _split[?2004h>     def backward(ctx, grad_output):
+[?2004l[?2004h>         if ctx.world_size == 1:
+[?2004l[?2004h>             return grad_output
+[?2004lght,[?2004h> 
+[?2004l [?2004h>         grads = torch.split(grad_output, ctx.sizes, dim=-1)
+[?2004la[?2004h>         return grads[ctx.rank].contiguous()
+[?2004l[?2004h> 
+[?2004l[?2004h> 
+[?2004l[?2004h> class AllReduce(torch.autograd.Function):
+[?2004l[?2004h>     """Differentiable all-reduce sum.
+[?2004l[?2004h> 
+[?2004lquires_grad=master_weight.is_fl[?2004h>     For tensor-parallel row parallel layers, each rank receives the upstream
+[?2004l[?2004h>     gradient for the replicated global output, so the backward is identity.
+[?2004l[?2004h>     """
+[?2004l[?2004h> 
+[?2004l [?2004h>     @staticmethod
+[?2004l[?2004h>     def forward(ctx, x):
+[?2004l[?2004h>         world_size = _world_size()
+[?2004l[?2004h>         ctx.world_size = world_size
+[?2004l [?2004h> 
+[?2004l [?2004h>         if world_size == 1:
+[?2004l[?2004h>             return x
+[?2004l[?2004h> 
+[?2004l([?2004h>         out = x.contiguous().clone()
+[?2004l[?2004h>         dist.all_reduce(out, op=dist.ReduceOp.SUM)
+[?2004l[?2004h>         return out
+[?2004l[?2004h> 
+[?2004lw[?2004h>     @staticmethod
+[?2004l[?2004h>     def backward(ctx, grad_output):
+[?2004l[?2004h>         return grad_output
+[?2004l[?2004h> 
+[?2004lh[?2004h> 
+[?2004lt[?2004h> class ColumnParallelLinear(nn.Module):
+[?2004l[?2004h>     def __init__(self, in_features, out_features, bias, master_weight):
+[?2004l[?2004h>         super().__init__()
+[?2004l[?2004h>         self.in_features = int(in_features)
+[?2004l[?2004h>         self.out_features = int(out_features)
+[?2004l[?2004h>         self.world_size = _world_size()
+[?2004l[?2004h>         self.rank = _rank()
+[?2004l[?2004h> 
+[?2004l[?2004h>         if master_weight.shape == (self.out_features, self.in_features):
+[?2004l[?2004h>             # PyTorch nn.Linear convention: weight[out, in]
+[?2004l[?2004h>             self.weight_orientation = "pytorch"
+[?2004l[?2004h>             split_dim = 0
+[?2004l[?2004h>         elif master_weight.shape == (self.in_features, self.out_features):
+[?2004l[?2004h>             # Mathematical linear convention: weight[in, out]
+[?2004l[?2004h>             self.weight_orientation = "math"
+[?2004l[?2004h>             split_dim = 1
+[?2004l[?2004h>         else:
+[?2004l[?2004h>             raise ValueError(
+[?2004l[?2004h>                 f"master_weight must have shape ({out_features}, {in_features}) "
+[?2004l[?2004h>                 f"or ({in_features}, {out_features}), got {tuple(master_weight.shape)}"
+[?2004l[?2004h>             )
+[?2004l[?2004h> 
+[?2004l[?2004h>         out_sizes = _split_sizes(self.out_features, self.world_size)
+[?2004l[?2004h>         self.local_out_features = out_sizes[self.rank]
+[?2004l[?2004h>         self.local_in_features = self.in_features
+[?2004l[?2004h> 
+[?2004l[?2004h>         sizes = _split_sizes(master_weight.shape[split_dim], self.world_size)
+[?2004l[?2004h>         shards = torch.split(master_weight, sizes, dim=split_dim)
+[?2004l[?2004h>         shard = shards[self.rank].detach().contiguous().clone()
+[?2004l[?2004h> 
+[?2004l[?2004h>         self.weight = nn.Parameter(
+[?2004l[?2004h>             shard,
+[?2004l[?2004h>             requires_grad=master_weight.is_floating_point(),
+[?2004l[?2004h>         )
+[?2004l[?2004h> 
+[?2004l[?2004h>         if bias:
+[?2004l[?2004h>             self.bias = nn.Parameter(
+[?2004l[?2004h>                 torch.zeros(
+[?2004l[?2004h>                     self.local_out_features,
+[?2004l[?2004h>                     dtype=master_weight.dtype,
+[?2004l[?2004h>                     device=master_weight.device,
+[?2004l[?2004h>                 ),
+[?2004l[?2004h>                 requires_grad=master_weight.is_floating_point(),
+[?2004l[?2004h>             )
+[?2004l[?2004h>         else:
+[?2004l[?2004h>             self.bias = None
+[?2004l[?2004h> 
+[?2004l[?2004h>     def forward(self, input):
+[?2004l[?2004h>         if self.weight_orientation == "pytorch":
+[?2004l[?2004h>             local_output = input.matmul(self.weight.t())
+[?2004l[?2004h>         else:
+[?2004l[?2004h>             local_output = input.matmul(self.weight)
+[?2004l[?2004h> 
+[?2004l[?2004h>         if self.bias is not None:
+[?2004l[?2004h>             local_output = local_output + self.bias
+[?2004l[?2004h> 
+[?2004l[?2004h>         return AllGather.apply(local_output)
+[?2004l[?2004h> 
+[?2004l[?2004h> 
+[?2004l[?2004h> class RowParallelLinear(nn.Module):
+[?2004l[?2004h>     def __init__(self, in_features, out_features, bias, master_weight):
+[?2004l[?2004h>         super().__init__()
+[?2004l[?2004h>         self.in_features = int(in_features)
+[?2004l[?2004h>         self.out_features = int(out_features)
+[?2004l[?2004h>         self.world_size = _world_size()
+[?2004l[?2004h>         self.rank = _rank()
+[?2004l[?2004h> 
+[?2004l[?2004h>         if master_weight.shape == (self.out_features, self.in_features):
+[?2004l[?2004h>             # PyTorch nn.Linear convention: weight[out, in]
+[?2004l[?2004h>             self.weight_orientation = "pytorch"
+[?2004l[?2004h>             split_dim = 1
+[?2004l[?2004h>         elif master_weight.shape == (self.in_features, self.out_features):
+[?2004l[?2004h>             # Mathematical linear convention: weight[in, out]
+[?2004l[?2004h>             self.weight_orientation = "math"
+[?2004l[?2004h>             split_dim = 0
+[?2004l[?2004h>         else:
+[?2004l[?2004h>             raise ValueError(
+[?2004l[?2004h>                 f"master_weight must have shape ({out_features}, {in_features}) "
+[?2004l[?2004h>                 f"or ({in_features}, {out_features}), got {tuple(master_weight.shape)}"
+[?2004l[?2004h>             )
+[?2004l[?2004h> 
+[?2004l[?2004h>         in_sizes = _split_sizes(self.in_features, self.world_size)
+[?2004l[?2004h>         self.local_in_features = in_sizes[self.rank]
+[?2004l[?2004h>         self.local_out_features = self.out_features
+[?2004l[?2004h> 
+[?2004l[?2004h>         sizes = _split_sizes(master_weight.shape[split_dim], self.world_size)
+[?2004l[?2004h>         shards = torch.split(master_weight, sizes, dim=split_dim)
+[?2004l[?2004h>         shard = shards[self.rank].detach().contiguous().clone()
+[?2004l[?2004h> 
+[?2004l[?2004h>         self.weight = nn.Parameter(
+[?2004l[?2004h>             shard,
+[?2004l[?2004h>             requires_grad=master_weight.is_floating_point(),
+[?2004l[?2004h>         )
+[?2004l[?2004h> 
+[?2004l[?2004h>         if bias:
+[?2004l[?2004h>             self.bias = nn.Parameter(
+[?2004l[?2004h>                 torch.zeros(
+[?2004l[?2004h>                     self.out_features,
+[?2004l[?2004h>                     dtype=master_weight.dtype,
+[?2004l[?2004h>                     device=master_weight.device,
+[?2004l[?2004h>                 ),
+[?2004l[?2004h>                 requires_grad=master_weight.is_floating_point(),
+[?2004l[?2004h>             )
+[?2004l[?2004h>         else:
+[?2004l[?2004h>             self.bias = None
+[?2004l[?2004h> 
+[?2004l[?2004h>     def forward(self, input):
+[?2004l[?2004h>         if self.weight_orientation == "pytorch":
+[?2004l[?2004h>             local_output = input.matmul(self.weight.t())
+[?2004l[?2004h>         else:
+[?2004l[?2004h>             local_output = input.matmul(self.weight)
+[?2004l[?2004h> 
+[?2004l[?2004h>         global_output = AllReduce.apply(local_output)
+[?2004l[?2004h> 
+[?2004l[?2004h>         if self.bias is not None:
+[?2004l[?2004h>             global_output = global_output + self.bias
+[?2004l[?2004h> 
+[?2004l[?2004h>         return global_output
+[?2004l[?2004h> PY
+[?2004l[?2004hroot@3f9e2b1993e0:/app# python3 -m py_compile /app/parallel_linear.py
+[?2004l[?2004hroot@3f9e2b1993e0:/app# sed -n '1,240p' /app/parallel_linear.py
+[?2004limport torch
+import torch.distributed as dist
+import torch.nn as nn
+
+
+def _world_size():
+    try:
+        return dist.get_world_size()
+    except Exception:
+        return 1
+
+
+def _rank():
+    try:
+        return dist.get_rank()
+    except Exception:
+        return 0
+
+
+def _split_sizes(dim_size, world_size):
+    base = dim_size // world_size
+    rem = dim_size % world_size
+    return [base + 1 if r < rem else base for r in range(world_size)]
+
+
+class AllGather(torch.autograd.Function):
+    """Differentiable all-gather along the last dimension.
+
+    Supports uneven last-dimension sizes by padding before the collective.
+    """
+
+    @staticmethod
+    def forward(ctx, x):
+        world_size = _world_size()
+        rank = _rank()
+        ctx.world_size = world_size
+        ctx.rank = rank
+
+        if world_size == 1:
+            ctx.sizes = [x.shape[-1]]
+            return x
+
+        local_size = torch.tensor([x.shape[-1]], device=x.device, dtype=torch.long)
+        size_tensors = [torch.empty_like(local_size) for _ in range(world_size)]
+        dist.all_gather(size_tensors, local_size)
+        sizes = [int(s.item()) for s in size_tensors]
+        ctx.sizes = sizes
+
+        max_size = max(sizes)
+        if x.shape[-1] != max_size:
+            pad_shape = x.shape[:-1] + (max_size - x.shape[-1],)
+            x = torch.cat(
+                [x, torch.zeros(pad_shape, dtype=x.dtype, device=x.device)],
+                dim=-1,
+            )
+
+        x = x.contiguous()
+        tensors = [torch.empty_like(x) for _ in range(world_size)]
+        dist.all_gather(tensors, x)
+
+        outputs = [t[..., : sizes[i]] for i, t in enumerate(tensors)]
+        return torch.cat(outputs, dim=-1)
+
+    @staticmethod
+    def backward(ctx, grad_output):
+        if ctx.world_size == 1:
+            return grad_output
+
+        grads = torch.split(grad_output, ctx.sizes, dim=-1)
+        return grads[ctx.rank].contiguous()
+
+
+class AllReduce(torch.autograd.Function):
+    """Differentiable all-reduce sum.
+
+    For tensor-parallel row parallel layers, each rank receives the upstream
+    gradient for the replicated global output, so the backward is identity.
+    """
+
+    @staticmethod
+    def forward(ctx, x):
+        world_size = _world_size()
+        ctx.world_size = world_size
+
+        if world_size == 1:
+            return x
+
+        out = x.contiguous().clone()
+        dist.all_reduce(out, op=dist.ReduceOp.SUM)
+        return out
+
+    @staticmethod
+    def backward(ctx, grad_output):
+        return grad_output
+
+
+class ColumnParallelLinear(nn.Module):
+    def __init__(self, in_features, out_features, bias, master_weight):
+        super().__init__()
+        self.in_features = int(in_features)
+        self.out_features = int(out_features)
+        self.world_size = _world_size()
+        self.rank = _rank()
+
+        if master_weight.shape == (self.out_features, self.in_features):
+            # PyTorch nn.Linear convention: weight[out, in]
+            self.weight_orientation = "pytorch"
+            split_dim = 0
+        elif master_weight.shape == (self.in_features, self.out_features):
+            # Mathematical linear convention: weight[in, out]
+            self.weight_orientation = "math"
+            split_dim = 1
+        else:
+            raise ValueError(
+                f"master_weight must have shape ({out_features}, {in_features}) "
+                f"or ({in_features}, {out_features}), got {tuple(master_weight.shape)}"
+            )
+
+        out_sizes = _split_sizes(self.out_features, self.world_size)
+        self.local_out_features = out_sizes[self.rank]
+        self.local_in_features = self.in_features
+
+        sizes = _split_sizes(master_weight.shape[split_dim], self.world_size)
+        shards = torch.split(master_weight, sizes, dim=split_dim)
+        shard = shards[self.rank].detach().contiguous().clone()
+
+        self.weight = nn.Parameter(
+            shard,
+            requires_grad=master_weight.is_floating_point(),
+        )
+
+        if bias:
+            self.bias = nn.Parameter(
+                torch.zeros(
+                    self.local_out_features,
+                    dtype=master_weight.dtype,
+                    device=master_weight.device,
+                ),
+                requires_grad=master_weight.is_floating_point(),
+            )
+        else:
+            self.bias = None
+
+    def forward(self, input):
+        if self.weight_orientation == "pytorch":
+            local_output = input.matmul(self.weight.t())
+        else:
+            local_output = input.matmul(self.weight)
+
+        if self.bias is not None:
+            local_output = local_output + self.bias
+
+        return AllGather.apply(local_output)
+
+
+class RowParallelLinear(nn.Module):
+    def __init__(self, in_features, out_features, bias, master_weight):
+        super().__init__()
+        self.in_features = int(in_features)
+        self.out_features = int(out_features)
+        self.world_size = _world_size()
+        self.rank = _rank()
+
+        if master_weight.shape == (self.out_features, self.in_features):
+            # PyTorch nn.Linear convention: weight[out, in]
+            self.weight_orientation = "pytorch"
+            split_dim = 1
+        elif master_weight.shape == (self.in_features, self.out_features):
+            # Mathematical linear convention: weight[in, out]
+            self.weight_orientation = "math"
+            split_dim = 0
+        else:
+            raise ValueError(
+                f"master_weight must have shape ({out_features}, {in_features}) "
+                f"or ({in_features}, {out_features}), got {tuple(master_weight.shape)}"
+            )
+
+        in_sizes = _split_sizes(self.in_features, self.world_size)
+        self.local_in_features = in_sizes[self.rank]
+        self.local_out_features = self.out_features
+
+        sizes = _split_sizes(master_weight.shape[split_dim], self.world_size)
+        shards = torch.split(master_weight, sizes, dim=split_dim)
+        shard = shards[self.rank].detach().contiguous().clone()
+
+        self.weight = nn.Parameter(
+            shard,
+            requires_grad=master_weight.is_floating_point(),
+        )
+
+        if bias:
+            self.bias = nn.Parameter(
+                torch.zeros(
+                    self.out_features,
+                    dtype=master_weight.dtype,
+                    device=master_weight.device,
+                ),
+                requires_grad=master_weight.is_floating_point(),
+            )
+        else:
+            self.bias = None
+
+    def forward(self, input):
+        if self.weight_orientation == "pytorch":
+            local_output = input.matmul(self.weight.t())
+        else:
+            local_output = input.matmul(self.weight)
+
+        global_output = AllReduce.apply(local_output)
+
+        if self.bias is not None:
+            global_output = global_output + self.bias
+
+        return global_output
+[?2004hroot@3f9e2b1993e0:/app# cat > /app/parallel_linear.py <<'PY'
+[?2004l[?2004h> import torch
+[?2004l[?2004h> import torch.distributed as dist
+[?2004l[?2004h> import torch.nn as nn
+[?2004l[?2004h> 
+[?2004ll[?2004h> 
+[?2004ld[?2004h> def _world_size():
+[?2004l[?2004h>     try:
+[?2004l[?2004h>         return dist.get_world_size()
+[?2004l[?2004h>     except Exception:
+[?2004l[?2004h>         return 1
+[?2004l[?2004h> 
+[?2004le[?2004h> 
+[?2004la[?2004h> def _rank():
+[?2004l[?2004h>     try:
+[?2004l[?2004h>         return dist.get_rank()
+[?2004l[?2004h>     except Exception:
+[?2004l[?2004h>         return 0
+[?2004l[?2004h> 
+[?2004l [?2004h> 
+[?2004ls[?2004h> def _split_sizes(dim_size, world_size):
+[?2004l[?2004h>     base = dim_size // world_size
+[?2004l[?2004h>     rem = dim_size % world_size
+[?2004l[?2004h>     return [base + 1 if r < rem else base for r in range(world_size)]
+[?2004l[?2004h> 
+[?2004l[?2004h> 
+[?2004l [?2004h> class CopyToParallelRegion(torch.autograd.Function):
+[?2004l[?2004h>     """Identity in forward; all-reduce gradients in backward.
+[?2004l[?2004h> 
+[?2004lP[?2004h>     Used for the full input of a column parallel layer. Each rank computes a
+[?2004l[?2004h>     partial input gradient from its output shard, and those partials must be
+[?2004l[?2004h>     summed across ranks.
+[?2004l[?2004h>     """
+[?2004l[?2004h> 
+[?2004l [?2004h>     @staticmethod
+[?2004l[?2004h>     def forward(ctx, x):
+[?2004l[?2004h>         ctx.world_size = _world_size()
+[?2004l[?2004h>         return x
+[?2004l[?2004h> 
+[?2004ll[?2004h>     @staticmethod
+[?2004l[?2004h>     def backward(ctx, grad_output):
+[?2004l[?2004h>         if ctx.world_size == 1:
+[?2004l[?2004h>             return grad_output
+[?2004l[?2004h> 
+[?2004l [?2004h>         out = grad_output.contiguous().clone()
+[?2004l[?2004h>         dist.all_reduce(out, op=dist.ReduceOp.SUM)
+[?2004l[?2004h>         return out
+[?2004l[?2004h> 
+[?2004l [?2004h> 
+[?2004l [?2004h> class AllGather(torch.autograd.Function):
+[?2004l[?2004h>     """Differentiable all-gather along the last dimension.
+[?2004l[?2004h> 
+[?2004la[?2004h>     Supports uneven last-dimension sizes by padding before the collective.
+[?2004l[?2004h>     """
+[?2004l[?2004h> 
+[?2004l
+[?2004h>     @staticmethod
+[?2004l[?2004h>     def forward(ctx, x):
+[?2004l[?2004h>         world_size = _world_size()
+[?2004l[?2004h>         rank = _rank()
+[?2004l[?2004h>         ctx.world_size = world_size
+[?2004l[?2004h>         ctx.rank = rank
+[?2004l[?2004h> 
+[?2004l [?2004h>         if world_size == 1:
+[?2004l[?2004h>             ctx.sizes = [x.shape[-1]]
+[?2004l[?2004h>             return x
+[?2004l[?2004h> 
+[?2004l=[?2004h>         local_size = torch.tensor([x.shape[-1]], device=x.device, dtype=torch.long)
+[?2004l[?2004h>         size_tensors = [torch.empty_like(local_size) for _ in range(world_size)]
+[?2004l[?2004h>         dist.all_gather(size_tensors, local_size)
+[?2004l[?2004h>         sizes = [int(s.item()) for s in size_tensors]
+[?2004l[?2004h>         ctx.sizes = sizes
+[?2004l[?2004h> 
+[?2004l_[?2004h>         max_size = max(sizes)
+[?2004l[?2004h>         if x.shape[-1] != max_size:
+[?2004l[?2004h>             pad_shape = x.shape[:-1] + (max_size - x.shape[-1],)
+[?2004l[?2004h>             x = torch.cat(
+[?2004l[?2004h>                 [x, torch.zeros(pad_shape, dtype=x.dtype, device=x.device)],
+[?2004l[?2004h>                 dim=-1,
+[?2004l[?2004h>             )
+[?2004l[?2004h> 
+[?2004li[?2004h>         x = x.contiguous()
+[?2004l[?2004h>         tensors = [torch.empty_like(x) for _ in range(world_size)]
+[?2004l[?2004h>         dist.all_gather(tensors, x)
+[?2004l[?2004h> 
+[?2004li[?2004h>         outputs = [t[..., : sizes[i]] for i, t in enumerate(tensors)]
+[?2004l[?2004h>         return torch.cat(outputs, dim=-1)
+[?2004l[?2004h> 
+[?2004l      [?2004h>     @staticmethod
+[?2004l[?2004h>     def backward(ctx, grad_output):
+[?2004l[?2004h>         if ctx.world_size == 1:
+[?2004l[?2004h>             return grad_output
+[?2004l[?2004h> 
+[?2004ld[?2004h>         grads = torch.split(grad_output, ctx.sizes, dim=-1)
+[?2004l[?2004h>         return grads[ctx.rank].contiguous()
+[?2004l[?2004h> 
+[?2004l[?2004h> 
+[?2004l][?2004h> class AllReduce(torch.autograd.Function):
+[?2004l[?2004h>     """Differentiable all-reduce sum.
+[?2004l[?2004h> 
+[?2004ls[?2004h>     For tensor-parallel row parallel layers, each rank receives the upstream
+[?2004l[?2004h>     gradient for the replicated global output, so the backward is identity.
+[?2004l[?2004h>     """
+[?2004l[?2004h> 
+[?2004l
+[?2004h>     @staticmethod
+[?2004l[?2004h>     def forward(ctx, x):
+[?2004l[?2004h>         world_size = _world_size()
+[?2004l[?2004h>         ctx.world_size = world_size
+[?2004l[?2004h> 
+[?2004la[?2004h>         if world_size == 1:
+[?2004l[?2004h>             return x
+[?2004l[?2004h> 
+[?2004l [?2004h>         out = x.contiguous().clone()
+[?2004l[?2004h>         dist.all_reduce(out, op=dist.ReduceOp.SUM)
+[?2004l[?2004h>         return out
+[?2004l[?2004h> 
+[?2004lo[?2004h>     @staticmethod
+[?2004l[?2004h>     def backward(ctx, grad_output):
+[?2004l[?2004h>         return grad_output
+[?2004lpytorch"[?2004h> 
+[?2004l:[?2004h> 
+[?2004l
+[?2004h> class ColumnParallelLinear(nn.Module):
+[?2004l[?2004h>     def __init__(self, in_features, out_features, bias, master_weight):
+[?2004l[?2004h>         super().__init__()
+[?2004l[?2004h>         self.in_features = int(in_features)
+[?2004l[?2004h>         self.out_features = int(out_features)
+[?2004l[?2004h>         self.world_size = _world_size()
+[?2004l[?2004h>         self.rank = _rank()
+[?2004l[?2004h> 
+[?2004l[?2004h>         if master_weight.shape == (self.out_features, self.in_features):
+[?2004l[?2004h>             # PyTorch nn.Linear convention: weight[out, in]
+[?2004l[?2004h>             self.weight_orientation = "pytorch"
+[?2004l[?2004h>             split_dim = 0
+[?2004l[?2004h>         elif master_weight.shape == (self.in_features, self.out_features):
+[?2004l[?2004h>             # Mathematical linear convention: weight[in, out]
+[?2004l[?2004h>             self.weight_orientation = "math"
+[?2004l[?2004h>             split_dim = 1
+[?2004l[?2004h>         else:
+[?2004l[?2004h>             raise ValueError(
+[?2004l[?2004h>                 f"master_weight must have shape ({out_features}, {in_features}) "
+[?2004l[?2004h>                 f"or ({in_features}, {out_features}), got {tuple(master_weight.shape)}"
+[?2004l[?2004h>             )
+[?2004l[?2004h> 
+[?2004l[?2004h>         out_sizes = _split_sizes(self.out_features, self.world_size)
+[?2004l[?2004h>         self.local_out_features = out_sizes[self.rank]
+[?2004l[?2004h>         self.local_in_features = self.in_features
+[?2004l[?2004h> 
+[?2004l[?2004h>         sizes = _split_sizes(master_weight.shape[split_dim], self.world_size)
+[?2004l[?2004h>         shards = torch.split(master_weight, sizes, dim=split_dim)
+[?2004l[?2004h>         shard = shards[self.rank].detach().contiguous().clone()
+[?2004l[?2004h> 
+[?2004l[?2004h>         self.weight = nn.Parameter(
+[?2004l[?2004h>             shard,
+[?2004l[?2004h>             requires_grad=master_weight.is_floating_point(),
+[?2004l[?2004h>         )
+[?2004l[?2004h> 
+[?2004l[?2004h>         if bias:
+[?2004l[?2004h>             self.bias = nn.Parameter(
+[?2004l[?2004h>                 torch.zeros(
+[?2004l[?2004h>                     self.local_out_features,
+[?2004l[?2004h>                     dtype=master_weight.dtype,
+[?2004l[?2004h>                     device=master_weight.device,
+[?2004l[?2004h>                 ),
+[?2004l[?2004h>                 requires_grad=master_weight.is_floating_point(),
+[?2004l[?2004h>             )
+[?2004l[?2004h>         else:
+[?2004l[?2004h>             self.bias = None
+[?2004l[?2004h> 
+[?2004l[?2004h>     def forward(self, input):
+[?2004l[?2004h>         input = CopyToParallelRegion.apply(input)
+[?2004l[?2004h> 
+[?2004l[?2004h>         if self.weight_orientation == "pytorch":
+[?2004l[?2004h>             local_output = input.matmul(self.weight.t())
+[?2004l[?2004h>         else:
+[?2004l[?2004h>             local_output = input.matmul(self.weight)
+[?2004l[?2004h> 
+[?2004l[?2004h>         if self.bias is not None:
+[?2004l[?2004h>             local_output = local_output + self.bias
+[?2004l[?2004h> 
+[?2004l[?2004h>         return AllGather.apply(local_output)
+[?2004l[?2004h> 
+[?2004l[?2004h> 
+[?2004l[?2004h> class RowParallelLinear(nn.Module):
+[?2004l[?2004h>     def __init__(self, in_features, out_features, bias, master_weight):
+[?2004l[?2004h>         super().__init__()
+[?2004l[?2004h>         self.in_features = int(in_features)
+[?2004l[?2004h>         self.out_features = int(out_features)
+[?2004l[?2004h>         self.world_size = _world_size()
+[?2004l[?2004h>         self.rank = _rank()
+[?2004l[?2004h> 
+[?2004l[?2004h>         if master_weight.shape == (self.out_features, self.in_features):
+[?2004l[?2004h>             # PyTorch nn.Linear convention: weight[out, in]
+[?2004l[?2004h>             self.weight_orientation = "pytorch"
+[?2004l[?2004h>             split_dim = 1
+[?2004l[?2004h>         elif master_weight.shape == (self.in_features, self.out_features):
+[?2004l[?2004h>             # Mathematical linear convention: weight[in, out]
+[?2004l[?2004h>             self.weight_orientation = "math"
+[?2004l[?2004h>             split_dim = 0
+[?2004l[?2004h>         else:
+[?2004l[?2004h>             raise ValueError(
+[?2004l[?2004h>                 f"master_weight must have shape ({out_features}, {in_features}) "
+[?2004l[?2004h>                 f"or ({in_features}, {out_features}), got {tuple(master_weight.shape)}"
+[?2004l[?2004h>             )
+[?2004l[?2004h> 
+[?2004l[?2004h>         in_sizes = _split_sizes(self.in_features, self.world_size)
+[?2004l[?2004h>         self.local_in_features = in_sizes[self.rank]
+[?2004l[?2004h>         self.local_out_features = self.out_features
+[?2004l[?2004h> 
+[?2004l[?2004h>         sizes = _split_sizes(master_weight.shape[split_dim], self.world_size)
+[?2004l[?2004h>         shards = torch.split(master_weight, sizes, dim=split_dim)
+[?2004l[?2004h>         shard = shards[self.rank].detach().contiguous().clone()
+[?2004l[?2004h> 
+[?2004l[?2004h>         self.weight = nn.Parameter(
+[?2004l[?2004h>             shard,
+[?2004l[?2004h>             requires_grad=master_weight.is_floating_point(),
+[?2004l[?2004h>         )
+[?2004l[?2004h> 
+[?2004l[?2004h>         if bias:
+[?2004l[?2004h>             self.bias = nn.Parameter(
+[?2004l[?2004h>                 torch.zeros(
+[?2004l[?2004h>                     self.out_features,
+[?2004l[?2004h>                     dtype=master_weight.dtype,
+[?2004l[?2004h>                     device=master_weight.device,
+[?2004l[?2004h>                 ),
+[?2004l[?2004h>                 requires_grad=master_weight.is_floating_point(),
+[?2004l[?2004h>             )
+[?2004l[?2004h>         else:
+[?2004l[?2004h>             self.bias = None
+[?2004l[?2004h> 
+[?2004l[?2004h>     def forward(self, input):
+[?2004l[?2004h>         if self.weight_orientation == "pytorch":
+[?2004l[?2004h>             local_output = input.matmul(self.weight.t())
+[?2004l[?2004h>         else:
+[?2004l[?2004h>             local_output = input.matmul(self.weight)
+[?2004l[?2004h> 
+[?2004l[?2004h>         global_output = AllReduce.apply(local_output)
+[?2004l[?2004h> 
+[?2004l[?2004h>         if self.bias is not None:
+[?2004l[?2004h>             global_output = global_output + self.bias
+[?2004l[?2004h> 
+[?2004l[?2004h>         return global_output
+[?2004l[?2004h> PY
+[?2004l[?2004hroot@3f9e2b1993e0:/app# python3 -m py_compile /app/parallel_linear.py
+[?2004l[?2004hroot@3f9e2b1993e0:/app# python3 - <<'PY'
+[?2004l[?2004h> from pathlib import Path
+[?2004l[?2004h> p = Path('/app/parallel_linear.py')
+[?2004l[?2004h> s = p.read_text()
+[?2004l[?2004h> s = s.replace("        ctx.world_size = _world_size()\n        return x\n", "        ctx.world_size = _world_size()\n        return x.clone()\n", 1)
+[?2004l[?2004h> s = s.replace("            ctx.sizes = [x.shape[-1]]\n            return x\n", "            ctx.sizes = [x.shape[-1]]\n            return x.clone()\n", 1)
+[?2004l[?2004h> s = s.replace("        if world_size == 1:\n            return x\n", "        if world_size == 1:\n            return x.clone()\n", 1)
+[?2004l[?2004h> p.write_text(s)
+[?2004l[?2004h> PY
+[?2004lpython3 -m py_compile /app/parallel_linear.py
+[?2004hroot@3f9e2b1993e0:/app# python3 -m py_compile /app/parallel_linear.py
+[?2004l[?2004hroot@3f9e2b1993e0:/app# grep -n "return x.clone()" /app/parallel_linear.py
+[?2004l[32m[K37[m[K[36m[K:[m[K        [01;31m[Kreturn x.clone()[m[K
+[32m[K64[m[K[36m[K:[m[K            [01;31m[Kreturn x.clone()[m[K
+[32m[K109[m[K[36m[K:[m[K            [01;31m[Kreturn x.clone()[m[K
+[?2004hroot@3f9e2b1993e0:/app# 

@@ -1,0 +1,77 @@
+{
+    "results": {
+        "tool": {
+            "name": "pytest",
+            "version": "8.3.4"
+        },
+        "summary": {
+            "tests": 6,
+            "passed": 5,
+            "failed": 1,
+            "skipped": 0,
+            "pending": 0,
+            "other": 0,
+            "start": 1784477810.7312794,
+            "stop": 1784479069.8531165
+        },
+        "tests": [
+            {
+                "name": "test_outputs.py::test_rstan_package_installed",
+                "status": "passed",
+                "duration": 16.29344708903227,
+                "start": 1784477811.5054755,
+                "stop": 1784477827.8103805,
+                "retries": 0,
+                "file_path": "test_outputs.py"
+            },
+            {
+                "name": "test_outputs.py::test_hierarchical_model_implemented",
+                "status": "failed",
+                "raw_status": "call_failed",
+                "duration": 16.487689507077448,
+                "start": 1784477827.8181894,
+                "stop": 1784477844.3870523,
+                "retries": 0,
+                "file_path": "test_outputs.py",
+                "trace": "def test_hierarchical_model_implemented():\n        \"\"\"Test that hierarchical Bayesian model structure is implemented\"\"\"\n        stan_model_path = \"/app/hierarchical_model.stan\"\n        assert os.path.exists(stan_model_path), (\n            f\"Stan model file not found at {stan_model_path}\"\n        )\n        # Check that model can be parsed by Stan\n        try:\n            r_code = f\"\"\"\n            library(rstan)\n            model_code <- readLines('{stan_model_path}')\n            # Try to parse the model to validate syntax\n            model <- stan_model(model_code=paste(model_code, collapse='\\\\n'))\n            cat('Model structure valid')\n            \"\"\"\n    \n            result = subprocess.run(\n                [\"R\", \"--slave\", \"-e\", r_code], capture_output=True, text=True, timeout=180\n            )\n    \n>           assert result.returncode == 0, (\n                f\"Stan model has syntax errors or invalid structure: {result.stderr}\"\n            )\nE           AssertionError: Stan model has syntax errors or invalid structure: Loading required package: StanHeaders\nE             \nE             rstan version 2.32.5 (Stan version 2.32.2)\nE             \nE             For execution on a local, multicore CPU with excess RAM we recommend calling\nE             options(mc.cores = parallel::detectCores()).\nE             To avoid recompilation of unchanged Stan programs, we recommend calling\nE             rstan_options(auto_write = TRUE)\nE             For within-chain threading using `reduce_sum()` or `map_rect()` Stan functions,\nE             change `threads_per_chain` option:\nE             rstan_options(threads_per_chain = 1)\nE             \nE             Error in stan_model(model_code = paste(model_code, collapse = \"\\n\")) : \nE               Boost not found; call install.packages('BH')\nE             Execution halted\nE             \nE           assert 1 == 0\nE            +  where 1 = CompletedProcess(args=['R', '--slave', '-e', \"\\n        library(rstan)\\n        model_code <- readLines('/app/hierarch..._code = paste(model_code, collapse = \"\\\\n\")) : \\n  Boost not found; call install.packages(\\'BH\\')\\nExecution halted\\n').returncode\n\ntest_outputs.py:49: AssertionError",
+                "message": "The test failed in the call phase due to an assertion error"
+            },
+            {
+                "name": "test_outputs.py::test_r_script_created_and_used_rstan",
+                "status": "passed",
+                "duration": 619.0581146130571,
+                "start": 1784477844.3886936,
+                "stop": 1784478463.452145,
+                "retries": 0,
+                "file_path": "test_outputs.py"
+            },
+            {
+                "name": "test_outputs.py::test_posterior_alpha_estimation",
+                "status": "passed",
+                "duration": 0.009614375070668757,
+                "start": 1784478463.4553845,
+                "stop": 1784478463.466427,
+                "retries": 0,
+                "file_path": "test_outputs.py"
+            },
+            {
+                "name": "test_outputs.py::test_posterior_beta_estimation",
+                "status": "passed",
+                "duration": 0.0022857500007376075,
+                "start": 1784478463.4676964,
+                "stop": 1784478463.4707289,
+                "retries": 0,
+                "file_path": "test_outputs.py"
+            },
+            {
+                "name": "test_outputs.py::test_stan_model_sampling",
+                "status": "passed",
+                "duration": 606.3485035250196,
+                "start": 1784478463.4715433,
+                "stop": 1784479069.8485355,
+                "retries": 0,
+                "file_path": "test_outputs.py"
+            }
+        ]
+    }
+}

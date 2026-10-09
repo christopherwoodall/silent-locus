@@ -1,0 +1,564 @@
+[?2004hroot@f19c555b612b:/app# asciinema rec --stdin /logs/agent/recording.cast
+[?2004l[0;32masciinema: recording asciicast to /logs/agent/recording.cast[0m
+[0;32masciinema: press <ctrl-d> or type "exit" when you're done[0m
+[?2004hroot@f19c555b612b:/app# clear
+[?2004l[H[J[3J[?2004hroot@f19c555b612b:/app# ls -l /app
+[?2004ltotal 87052
+-rw-r--r-- 1 root root 38066688 Sep 13  2025 expected.csv
+-rw-r--r-- 1 root root 51066691 Sep 13  2025 input.csv
+[?2004hroot@f19c555b612b:/app# head -5 /app/input.csv
+[?2004l  alpha1  ,    BeTa1   ,  GaMmA1  
+   lorem2   ,  IpsUm2   ,   dolor2   
+ north3   ,   EaSt3    ,    west3   
+  begin4    ,    MiDdLe4    ,  end4 
+   first5    ,  seCond5  ,   third5 
+[?2004hroot@f19c555b612b:/app# head -5 /app/expected.csv
+[?2004lGAMMA1;BETA1;ALPHA1;OK
+DOLOR2;IPSUM2;LOREM2;OK
+WEST3;EAST3;NORTH3;OK
+END4;MIDDLE4;BEGIN4;OK
+THIRD5;SECOND5;FIRST5;OK
+[?2004hroot@f19c555b612b:/app# cmp /app/input.csv /app/expected.csv | head -5
+[?2004l/app/input.csv /app/expected.csv differ: char 1, line 1
+[?2004hroot@f19c555b612b:/app# wc -l /app/input.csv /app/expected.csv
+[?2004l 1000000 /app/input.csv
+ 1000000 /app/expected.csv
+ 2000000 total
+[?2004hroot@f19c555b612b:/app# tail -5 /app/input.csv
+[?2004l alpha999996  ,   BeTa999996  ,    GaMmA999996  
+  lorem999997  ,    IpsUm999997   ,  dolor999997  
+   north999998   ,  EaSt999998   ,   west999998   
+ begin999999   ,   MiDdLe999999    ,    end999999   
+  first1000000    ,    seCond1000000    ,  third1000000 
+[?2004hroot@f19c555b612b:/app# tail -5 /app/expected.csv
+[?2004lGAMMA999996;BETA999996;ALPHA999996;OK
+DOLOR999997;IPSUM999997;LOREM999997;OK
+WEST999998;EAST999998;NORTH999998;OK
+END999999;MIDDLE999999;BEGIN999999;OK
+THIRD1000000;SECOND1000000;FIRST1000000;OK
+[?2004hroot@f19c555b612b:/app# python3 - <<'PY'
+[?2004l[?2004h> import csv
+[?2004l[?2004h> with open('/app/input.csv', newline='') as f:
+[?2004l[?2004h>     r=csv.reader(f)
+[?2004l[?2004h>     for i,row in enumerate(r):
+[?2004l[?2004h>         if i>=5: break
+[?2004l[?2004h>         print([repr(x) for x in row])
+[?2004l[?2004h> PY
+[?2004l["'  alpha1  '", "'    BeTa1   '", "'  GaMmA1  '"]
+["'   lorem2   '", "'  IpsUm2   '", "'   dolor2   '"]
+["' north3   '", "'   EaSt3    '", "'    west3   '"]
+["'  begin4    '", "'    MiDdLe4    '", "'  end4 '"]
+["'   first5    '", "'  seCond5  '", "'   third5 '"]
+[?2004hroot@f19c555b612b:/app# python3 - <<'PY'
+[?2004l[?2004h> import csv
+[?2004l[?2004h> from collections import Counter
+[?2004l[?2004h> c=Counter()
+[?2004l[?2004h> bad=[]
+[?2004l[?2004h> with open('/app/input.csv', newline='') as f:
+[?2004l[?2004h>     for i,row in enumerate(csv.reader(f)):
+[?2004l[?2004h>         c[len(row)]+=1
+[?2004l[?2004h>         if len(bad)<10 and any(' ' in x.strip() for x in row):
+[?2004l[?2004h>             bad.append((i+1,row))
+[?2004l[?2004h> print(c)
+[?2004l[?2004h> print(bad)
+[?2004l[?2004h> PY
+[?2004lCounter({3: 1000000})
+[]
+[?2004hroot@f19c555b612b:/app# ^C[?2004l[?2004h[?2004l
+[?2004hroot@f19c555b612b:/app# cat > /app/apply_macros.vim <<'EOF'
+[?2004l[?2004h> call setreg('a', ":s/^\\s*\\(\\S\\+\\)\\s*,\\s*\\(\\S\\+\\)\\s*,\\s*\\(\\S\\+\\)\\s*$/\\3;\\2;\\1/e\r")
+[?2004l[?2004h> call setreg('b', ":s/.*/\\U&/e\r")
+[?2004l[?2004h> call setreg('c', ":s/$/;OK/e\r")
+[?2004l[?2004h> :%normal! @a
+[?2004l[?2004h> :%normal! @b
+[?2004l[?2004h> :%normal! @c
+[?2004l[?2004h> :wq
+[?2004l[?2004h> EOF
+[?2004l[?2004hroot@f19c555b612b:/app# cat -A /app/apply_macros.vim
+[?2004lcall setreg('a', ":s/^\\s*\\(\\S\\+\\)\\s*,\\s*\\(\\S\\+\\)\\s*,\\s*\\(\\S\\+\\)\\s*$/\\3;\\2;\\1/e\r")$
+call setreg('b', ":s/.*/\\U&/e\r")$
+call setreg('c', ":s/$/;OK/e\r")$
+:%normal! @a$
+:%normal! @b$
+:%normal! @c$
+:wq$
+[?2004hroot@f19c555b612b:/app# cat > /tmp/sample.csv <<'EOF'
+[?2004l[?2004h>   alpha1  ,    BeTa1   ,  GaMmA1
+[?2004l[?2004h>    lorem2   ,  IpsUm2   ,   dolor2
+[?2004l[?2004h>  north3   ,   EaSt3    ,    west3
+[?2004l[?2004h> EOF
+[?2004l[?2004hroot@f19c555b612b:/app# vim -Nu NONE -n -Es /tmp/sample.csv -S /app/apply_macros.vim
+[?2004l[?2004hroot@f19c555b612b:/app# cat /tmp/sample.csv
+[?2004lGAMMA1;BETA1;ALPHA1;OK
+DOLOR2;IPSUM2;LOREM2;OK
+WEST3;EAST3;NORTH3;OK
+[?2004hroot@f19c555b612b:/app# cp /app/input.csv /tmp/input_backup.csv
+[?2004l[?2004hroot@f19c555b612b:/app# vim -Nu NONE -n -Es /app/input.csv -S /app/apply_macros.vim
+[?2004lhead -5 /app/input.csv
+cmp /app/input.csv /app/expected.csv && echo "MATCH"
+^Ccp /tmp/input_backup.csv /app/input.csv
+cat > /app/apply_macros.vim <<'EOF'
+call setreg('a', ":s/^\\s*\\(\\S\\+\\)\\s*,\\s*\\(\\S\\+\\)\\s*,\\s*\\(\\S\\+\\)\\s*$/\\U\\3;\\2;\\1;OK/e\r")
+call setreg('b', "0")
+call setreg('c', "$")
+:%normal! @a
+:%normal! @b
+:%normal! @c
+:wq
+EOF
+cat -A /app/apply_macros.vim
+cp /tmp/input_backup.csv /tmp/sample.csv
+printf '  alpha1  ,    BeTa1   ,  GaMmA1\n   lorem2   ,  IpsUm2   ,   dolor2\n north3   ,   EaSt3    ,    west3\n' >> /tmp/sample.csv
+vim -Nu NONE -n -Es /tmp/sample.csv -S /app/apply_macros.vim
+cat /tmp/sample.csv
+^C:q!
+[?2004hroot@f19c555b612b:/app# echo __READY__
+[?2004l__READY__
+[?2004hroot@f19c555b612b:/app# cp /tmp/input_backup.csv /app/input.csv
+[?2004l[?2004hroot@f19c555b612b:/app# cat > /app/apply_macros.vim <<'EOF'
+[?2004l[?2004h> call setreg('a', ":s/\\v\\s*(\\S+)\\s*,\\s*(\\S+)\\s*,\\s*(\\S+).*/\\U\\3;\\2;\\1;OK/e\r")
+[?2004l[?2004h> call setreg('b', "0")
+[?2004l[?2004h> call setreg('c', "$")
+[?2004l[?2004h> :%normal! @a
+[?2004l[?2004h> :%normal! @b
+[?2004l[?2004h> :%normal! @c
+[?2004l[?2004h> :wq
+[?2004l[?2004h> EOF
+[?2004l[?2004hroot@f19c555b612b:/app# cat -A /app/apply_macros.vim
+[?2004lcall setreg('a', ":s/\\v\\s*(\\S+)\\s*,\\s*(\\S+)\\s*,\\s*(\\S+).*/\\U\\3;\\2;\\1;OK/e\r")$
+call setreg('b', "0")$
+call setreg('c', "$")$
+:%normal! @a$
+:%normal! @b$
+:%normal! @c$
+:wq$
+[?2004hroot@f19c555b612b:/app# printf '  alpha1  ,    BeTa1   ,  GaMmA1\n   lorem2   ,  IpsUm2   ,   dolor2\n north3   ,   EaSt3    ,    west3\n' > /tmp/sample.csv
+[?2004l[?2004hroot@f19c555b612b:/app# vim -Nu NONE -n -Es /tmp/sample.csv -S /app/apply_macros.vim
+[?2004l[?2004hroot@f19c555b612b:/app# cat /tmp/sample.csv
+[?2004lGAMMA1;BETA1;ALPHA1;OK
+DOLOR2;IPSUM2;LOREM2;OK
+WEST3;EAST3;NORTH3;OK
+[?2004hroot@f19c555b612b:/app# time vim -Nu NONE -n -Es /app/input.csv -S /app/apply_macros.vim
+[?2004lhead -5 /app/input.csv
+cmp /app/input.csv /app/expected.csv && echo "MATCH"
+C-c
+:q!
+echo __READY__
+cp /tmp/input_backup.csv /app/input.csv
+cat > /app/apply_macros.vim <<'EOF'
+call setreg('a', ":%s/\\v\\s*(\\S+)\\s*,\\s*(\\S+)\\s*,\\s*(\\S+).*/\\U\\3;\\2;\\1;OK/e\r")
+call setreg('b', "0")
+call setreg('c', "$")
+:%normal! @a
+:%normal! @b
+:%normal! @c
+:wq
+EOF
+cat -A /app/apply_macros.vim
+printf '  alpha1  ,    BeTa1   ,  GaMmA1\n   lorem2   ,  IpsUm2   ,   dolor2\n north3   ,   EaSt3    ,    west3\n' > /tmp/sample.csv
+vim -Nu NONE -n -Es /tmp/sample.csv -S /app/apply_macros.vim
+cat /tmp/sample.csv
+^Cecho __READY__
+^C
+echo __READY__
+^Cpwd
+^Z
+[1]+  Stopped                 vim -Nu NONE -n -Es /app/input.csv -S /app/apply_macros.vim
+
+real	3m49.167s
+user	0m0.005s
+sys	0m0.001s
+[?2004hroot@f19c555b612b:/app# kill %1
+[?2004l[?2004hroot@f19c555b612b:/app# echo __READY__
+[?2004l__READY__
+[1]+  Terminated              vim -Nu NONE -n -Es /app/input.csv -S /app/apply_macros.vim
+[?2004hroot@f19c555b612b:/app# cp /tmp/input_backup.csv /app/input.csv
+[?2004l[?2004hroot@f19c555b612b:/app# cat > /app/apply_macros.vim <<'EOF'
+[?2004l[?2004h> call setreg('a', ":%s/\\v\\s*(\\S+)\\s*,\\s*(\\S+)\\s*,\\s*(\\S+).*/\\U\\3;\\2;\\1;OK/e\\rqaq")
+[?2004l[?2004h> call setreg('b', "qbq")
+[?2004l[?2004h> call setreg('c', "qcq")
+[?2004l[?2004h> :%normal! @a
+[?2004l[?2004h> :%normal! @b
+[?2004l[?2004h> :%normal! @c
+[?2004l[?2004h> :wq
+[?2004l[?2004h> EOF
+[?2004l[?2004hroot@f19c555b612b:/app# cat -A /app/apply_macros.vim
+[?2004lcall setreg('a', ":%s/\\v\\s*(\\S+)\\s*,\\s*(\\S+)\\s*,\\s*(\\S+).*/\\U\\3;\\2;\\1;OK/e\\rqaq")$
+call setreg('b', "qbq")$
+call setreg('c', "qcq")$
+:%normal! @a$
+:%normal! @b$
+:%normal! @c$
+:wq$
+[?2004hroot@f19c555b612b:/app# printf '  alpha1  ,    BeTa1   ,  GaMmA1\n   lorem2   ,  IpsUm2   ,   dolor2\n north3   ,   EaSt3    ,    west3\n' > /tmp/sample.csv
+[?2004l[?2004hroot@f19c555b612b:/app# vim -Nu NONE -n -Es /tmp/sample.csv -S /app/apply_macros.vim
+[?2004l[?2004hroot@f19c555b612b:/app# cat /tmp/sample.csv
+[?2004l  alpha1  ,    BeTa1   ,  GaMmA1
+   lorem2   ,  IpsUm2   ,   dolor2
+ north3   ,   EaSt3    ,    west3
+[?2004hroot@f19c555b612b:/app# time timeout 60s vim -Nu NONE -n -Es /app/input.csv -S /app/apply_macros.vim
+[?2004lhead -5 /app/input.csv
+cmp /app/input.csv /app/expected.csv && echo "MATCH"
+
+real	1m0.043s
+user	0m58.968s
+sys	0m0.067s
+[?2004hroot@f19c555b612b:/app# ^C[?2004l[?2004h[?2004l
+[?2004hroot@f19c555b612b:/app# echo __READY__
+[?2004l__READY__
+[?2004hroot@f19c555b612b:/app# cp /tmp/input_backup.csv /app/input.csv
+[?2004l[?2004hroot@f19c555b612b:/app# cat > /app/apply_macros.vim <<'EOF'
+[?2004l[?2004h> call setreg('a', ":%s/\\v\\s*(\\S+)\\s*,\\s*(\\S+)\\s*,\\s*(\\S+).*/\\U\\3;\\2;\\1;OK/e\\r:let @a=\\"0\\"\\r")
+[?2004l[?2004h> call setreg('b', ":let @b=\\"0\\"\\r")
+[?2004l[?2004h> call setreg('c', ":let @c=\\"0\\"\\r")
+[?2004l[?2004h> :%normal! @a
+[?2004l[?2004h> :%normal! @b
+[?2004l[?2004h> :%normal! @c
+[?2004l[?2004h> :wq
+[?2004l[?2004h> EOF
+[?2004l[?2004hroot@f19c555b612b:/app# cat -A /app/apply_macros.vim
+[?2004lcall setreg('a', ":%s/\\v\\s*(\\S+)\\s*,\\s*(\\S+)\\s*,\\s*(\\S+).*/\\U\\3;\\2;\\1;OK/e\\r:let @a=\\"0\\"\\r")$
+call setreg('b', ":let @b=\\"0\\"\\r")$
+call setreg('c', ":let @c=\\"0\\"\\r")$
+:%normal! @a$
+:%normal! @b$
+:%normal! @c$
+:wq$
+[?2004hroot@f19c555b612b:/app# printf '  alpha1  ,    BeTa1   ,  GaMmA1\n   lorem2   ,  IpsUm2   ,   dolor2\n north3   ,   EaSt3    ,    west3\n' > /tmp/sample.csv
+[?2004l[?2004hroot@f19c555b612b:/app# vim -Nu NONE -n -Es /tmp/sample.csv -S /app/apply_macros.vim
+[?2004l[?2004hroot@f19c555b612b:/app# cat /tmp/sample.csv
+[?2004l  alpha1  ,    BeTa1   ,  GaMmA1
+   lorem2   ,  IpsUm2   ,   dolor2
+ north3   ,   EaSt3    ,    west3
+[?2004hroot@f19c555b612b:/app# cat > /app/apply_macros.vim <<'EOF'
+[?2004l[?2004h> call setreg('a', ":s/\v^\s*(\S+)\s*,\s*(\S+)\s*,\s*(\S+).*/\U\3;\2;\1;OK/e\r")
+[?2004l[?2004h> call setreg('b', "0")
+[?2004l[?2004h> call setreg('c', "$")
+[?2004l[?2004h> :%normal! @a
+[?2004l[?2004h> :%normal! @b
+[?2004l[?2004h> :%normal! @c
+[?2004l[?2004h> :wq
+[?2004l[?2004h> EOF
+[?2004l[?2004hroot@f19c555b612b:/app# cat -A /app/apply_macros.vim
+[?2004lcall setreg('a', ":s/\v^\s*(\S+)\s*,\s*(\S+)\s*,\s*(\S+).*/\U\3;\2;\1;OK/e\r")$
+call setreg('b', "0")$
+call setreg('c', "$")$
+:%normal! @a$
+:%normal! @b$
+:%normal! @c$
+:wq$
+[?2004hroot@f19c555b612b:/app# printf '  alpha1  ,    BeTa1   ,  GaMmA1\n   lorem2   ,  IpsUm2   ,   dolor2\n north3   ,   EaSt3    ,    west3\n' > /tmp/sample.csv
+[?2004l[?2004hroot@f19c555b612b:/app# vim -Nu NONE -n -Es /tmp/sample.csv -S /app/apply_macros.vim
+[?2004l[?2004hroot@f19c555b612b:/app# cat /tmp/sample.csv
+[?2004l  alpha1  ,    BeTa1   ,  GaMmA1
+   lorem2   ,  IpsUm2   ,   dolor2
+ north3   ,   EaSt3    ,    west3
+[?2004hroot@f19c555b612b:/app# head -100000 /tmp/input_backup.csv > /tmp/subset.csv
+[?2004l[?2004hroot@f19c555b612b:/app# time timeout 60s vim -Nu NONE -n -Es /tmp/subset.csv -S /app/apply_macros.vim
+[?2004lhead -5 /tmp/subset.csv
+cmp /tmp/subset.csv <(head -100000 /app/expected.csv) && echo "SUBSET_MATCH"
+^Cecho __READY__
+cat > /app/apply_macros.vim <<'EOF'
+call setreg('a', ":s/^\\s*\\(\\S\\+\\)\\s*,\\s*\\(\\S\\+\\)\\s*,\\s*\\(\\S\\+\\)\\s*$/\\U\\3;\\2;\\1;OK/e\r")
+call setreg('b', "0")
+call setreg('c', "$")
+:%normal! @a
+:%normal! @b
+:%normal! @c
+:wq
+EOF
+cat -A /app/apply_macros.vim
+printf '  alpha1  ,    BeTa1   ,  GaMmA1\n   lorem2   ,  IpsUm2   ,   dolor2\n north3   ,   EaSt3    ,    west3\n' > /tmp/sample.csv
+vim -Nu NONE -n -Es /tmp/sample.csv -S /app/apply_macros.vim
+cat /tmp/sample.csv
+head -100000 /tmp/input_backup.csv > /tmp/subset.csv
+time timeout 60s vim -Nu NONE -n -Es /tmp/subset.csv -S /app/apply_macros.vim
+head -5 /tmp/subset.csv
+cmp /tmp/subset.csv <(head -100000 /app/expected.csv) && echo "SUBSET_MATCH"
+^Cecho __READY__
+cat > /app/apply_macros.vim <<'EOF'
+call setreg('a', ":%s/^\\s*\\(\\S\\+\\)\\s*,\\s*\\(\\S\\+\\)\\s*,\\s*\\(\\S\\+\\)\\s*$/\\U\\3;\\2;\\1;OK/e\rqa0q")
+call setreg('b', "0")
+call setreg('c', "$")
+:%normal! @a
+:%normal! @b
+:%normal! @c
+:wq
+EOF
+cat -A /app/apply_macros.vim
+printf '  alpha1  ,    BeTa1   ,  GaMmA1\n   lorem2   ,  IpsUm2   ,   dolor2\n north3   ,   EaSt3    ,    west3\n' > /tmp/sample.csv
+vim -Nu NONE -n -Es /tmp/sample.csv -S /app/apply_macros.vim
+cat /tmp/sample.csv
+cp /tmp/input_backup.csv /app/input.csv
+time vim -Nu NONE -n -Es /app/input.csv -S /app/apply_macros.vim
+head -5 /app/input.csv
+cmp /app/input.csv /app/expected.csv && echo "MATCH"
+^C^Z
+[1]+  Stopped                 timeout 60s vim -Nu NONE -n -Es /tmp/subset.csv -S /app/apply_macros.vim
+
+real	6m59.729s
+user	0m0.002s
+sys	0m0.000s
+[?2004hroot@f19c555b612b:/app# kill %1 2>/dev/null; echo __READY__
+[?2004l__READY__
+[?2004hroot@f19c555b612b:/app# printf 'foo\nbar\nbaz\n' > /tmp/qtest.csv
+[?2004l[1]+  Exit 124                timeout 60s vim -Nu NONE -n -Es /tmp/subset.csv -S /app/apply_macros.vim
+[?2004hroot@f19c555b612b:/app# cat > /tmp/qtest.vim <<'EOF'
+[?2004l[?2004h> call setreg('a', ":%s/foo/FOO/e\rqa0q")
+[?2004l[?2004h> call setreg('b', "0")
+[?2004l[?2004h> call setreg('c', "$")
+[?2004l[?2004h> :%normal! @a
+[?2004l[?2004h> :%normal! @b
+[?2004l[?2004h> :%normal! @c
+[?2004l[?2004h> :wq
+[?2004l[?2004h> EOF
+[?2004l[?2004hroot@f19c555b612b:/app# vim -Nu NONE -n -Es /tmp/qtest.csv -S /tmp/qtest.vim; echo exit=$?
+[?2004lexit=0
+[?2004hroot@f19c555b612b:/app# cat /tmp/qtest.csv
+[?2004lF0qOO
+b0qar
+b0qaz
+[?2004hroot@f19c555b612b:/app# echo __READY__
+[?2004l__READY__
+[?2004hroot@f19c555b612b:/app# cat > /app/apply_macros.vim <<'EOF'
+[?2004l[?2004h> call setreg('a', ":s/^\s*\(\S\+\)\s*,\s*\(\S\+\)\s*,\s*\(\S\+\)\s*$/\U\3;\2;\1;OK/e
+[?2004l[?2004h> ")
+[?2004l[?2004h> call setreg('b', "0")
+[?2004l[?2004h> call setreg('c', "$")
+[?2004l[?2004h> :%normal! @a
+[?2004l[?2004h> :%normal! @b
+[?2004l[?2004h> :%normal! @c
+[?2004l[?2004h> :wq
+[?2004l[?2004h> EOF
+[?2004l[?2004hroot@f19c555b612b:/app# cat -A /app/apply_macros.vim
+[?2004lcall setreg('a', ":s/^\s*\(\S\+\)\s*,\s*\(\S\+\)\s*,\s*\(\S\+\)\s*$/\U\3;\2;\1;OK/e$
+")$
+call setreg('b', "0")$
+call setreg('c', "$")$
+:%normal! @a$
+:%normal! @b$
+:%normal! @c$
+:wq$
+[?2004hroot@f19c555b612b:/app# printf '  alpha1  ,    BeTa1   ,  GaMmA1\n   lorem2   ,  IpsUm2   ,   dolor2\n north3   ,   EaSt3    ,    west3\n' > /tmp/sample.csv
+[?2004l[?2004hroot@f19c555b612b:/app# vim -Nu NONE -n -Es /tmp/sample.csv -S /app/apply_macros.vim; echo exit=$?
+[?2004lcat /tmp/sample.csv
+exit=1
+[?2004hroot@f19c555b612b:/app# cat /tmp/sample.csv
+[?2004l 0q alpha1  ,    BeTa1   ,  GaMmA1
+ 0q  lorem2   ,  IpsUm2   ,   dolor2
+ 0qnorth3   ,   EaSt3    ,    west3
+[?2004hroot@f19c555b612b:/app# head -10000 /tmp/input_backup.csv > /tmp/subset10k.csv
+[?2004l[?2004hroot@f19c555b612b:/app# time vim -Nu NONE -n -Es /tmp/subset10k.csv -S /app/apply_macros.vim
+[?2004lcmp /tmp/subset10k.csv <(head -10000 /app/expected.csv) && echo "10K_MATCH"
+
+real	2m12.166s
+user	2m10.832s
+sys	0m0.018s
+[?2004hroot@f19c555b612b:/app# cmp /tmp/subset10k.csv <(head -10000 /app/expected.csv) && echo "10K_MATCH"
+[?2004l/tmp/subset10k.csv /dev/fd/63 differ: char 1, line 1
+[?2004hroot@f19c555b612b:/app# ^C[?2004l[?2004h[?2004l
+[?2004hroot@f19c555b612b:/app# echo __READY__
+[?2004l__READY__
+[?2004hroot@f19c555b612b:/app# python3 - <<'PY'
+[?2004l[?2004h> b=chr(92)
+[?2004l[?2004h> lines = [
+[?2004l[?2004h>  'call setreg(' + "'" + 'a' + "'" + ', "%' + 's/^' + b*2 + 's*' + b*2 + '(' + b*2 + 'S' + b*2 + '+' + ')' + b*2 + 's*,' + b*2 + 's*' + b*2 + '(' + b*2 + 'S' + b*2 + '+' + ')' + b*2 + 's*,' + b*2 + 's*' + b*2 + '(' + b*2 + 'S' + b*2 + '+' + ')' + b*2 + 's*$/' + b*2 + 'U' + b*2 + '3;' + b*2 + '2;' + b*2 + '1;OK/e' + b + 'r:let @a=' + b + '"' + '0' + b + '"' + b + 'r")',
+[?2004l[?2004h>  'call setreg(' + "'" + 'b' + "'" + ', "0")',
+[?2004l[?2004h>  'call setreg(' + "'" + 'c' + "'" + ', "$")',
+[?2004l[?2004h>  ':%normal! @a',
+[?2004l[?2004h>  ':%normal! @b',
+[?2004l[?2004h>  ':%normal! @c',
+[?2004l[?2004h>  ':wq',
+[?2004l[?2004h> ]
+[?2004l[?2004h> open('/app/apply_macros.vim','w').write('\n'.join(lines)+'\n')
+[?2004l[?2004h> PY
+[?2004lcat -A /app/apply_macros.vim
+[?2004hroot@f19c555b612b:/app# cat -A /app/apply_macros.vim
+[?2004lcall setreg('a', "%s/^\\s*\\(\\S\\+)\\s*,\\s*\\(\\S\\+)\\s*,\\s*\\(\\S\\+)\\s*$/\\U\\3;\\2;\\1;OK/e\r:let @a=\"0\"\r")$
+call setreg('b', "0")$
+call setreg('c', "$")$
+:%normal! @a$
+:%normal! @b$
+:%normal! @c$
+:wq$
+[?2004hroot@f19c555b612b:/app# printf '  alpha1  ,    BeTa1   ,  GaMmA1\n   lorem2   ,  IpsUm2   ,   dolor2\n north3   ,   EaSt3    ,    west3\n' > /tmp/sample.csv
+[?2004l[?2004hroot@f19c555b612b:/app# vim -Nu NONE -n -Es /tmp/sample.csv -S /app/apply_macros.vim; echo exit=$?
+[?2004lexit=0
+[?2004hroot@f19c555b612b:/app# cat /tmp/sample.csv
+[?2004l  alpha1  ,    BeTa1   ,  GaMmA1
+   lorem2   ,  IpsUm2   ,   dolor2
+ north3   ,   EaSt3    ,    west3
+[?2004hroot@f19c555b612b:/app# head -100000 /tmp/input_backup.csv > /tmp/subset.csv
+[?2004l[?2004hroot@f19c555b612b:/app# time vim -Nu NONE -n -Es /tmp/subset.csv -S /app/apply_macros.vim
+[?2004l
+real	0m4.646s
+user	0m4.568s
+sys	0m0.008s
+[?2004hroot@f19c555b612b:/app# cmp /tmp/subset.csv <(head -100000 /app/expected.csv) && echo "SUBSET_MATCH"
+[?2004l/tmp/subset.csv /dev/fd/63 differ: char 1, line 1
+[?2004hroot@f19c555b612b:/app# cat > /app/apply_macros.vim <<'EOF'
+[?2004l[?2004h> call setreg('a', ":s/^\\s*\\(\\S\\+\\)\\s*,\\s*\\(\\S\\+\\)\\s*,\\s*\\(\\S\\+\\)\\s*$/\\U\\3;\\2;\\1;OK/e\r")
+[?2004l[?2004h> call setreg('b', "0")
+[?2004l[?2004h> call setreg('c', "$")
+[?2004l[?2004h> :%normal! @a
+[?2004l[?2004h> :%normal! @b
+[?2004l[?2004h> :%normal! @c
+[?2004l[?2004h> :wq
+[?2004l[?2004h> EOF
+[?2004l[?2004hroot@f19c555b612b:/app# cat -A /app/apply_macros.vim
+[?2004lcall setreg('a', ":s/^\\s*\\(\\S\\+\\)\\s*,\\s*\\(\\S\\+\\)\\s*,\\s*\\(\\S\\+\\)\\s*$/\\U\\3;\\2;\\1;OK/e\r")$
+call setreg('b', "0")$
+call setreg('c', "$")$
+:%normal! @a$
+:%normal! @b$
+:%normal! @c$
+:wq$
+[?2004hroot@f19c555b612b:/app# printf '  alpha1  ,    BeTa1   ,  GaMmA1\n   lorem2   ,  IpsUm2   ,   dolor2\n north3   ,   EaSt3    ,    west3\n' > /tmp/sample.csv
+[?2004l[?2004hroot@f19c555b612b:/app# vim -Nu NONE -n -Es /tmp/sample.csv -S /app/apply_macros.vim; echo exit=$?
+[?2004lexit=0
+[?2004hroot@f19c555b612b:/app# cat /tmp/sample.csv
+[?2004lGAMMA1;BETA1;ALPHA1;OK
+DOLOR2;IPSUM2;LOREM2;OK
+WEST3;EAST3;NORTH3;OK
+[?2004hroot@f19c555b612b:/app# head -100000 /tmp/input_backup.csv > /tmp/subset.csv
+[?2004l[?2004hroot@f19c555b612b:/app# time timeout 60s vim -Nu NONE -n -Es /tmp/subset.csv -S /app/apply_macros.vim
+[?2004lhead -5 /tmp/subset.csv
+cmp /tmp/subset.csv <(head -100000 /app/expected.csv) && echo "SUBSET_MATCH"
+
+real	0m53.405s
+user	0m52.725s
+sys	0m0.058s
+[?2004hroot@f19c555b612b:/app# head -5 /tmp/subset.csv
+[?2004lGAMMA1;BETA1;ALPHA1;OK
+DOLOR2;IPSUM2;LOREM2;OK
+WEST3;EAST3;NORTH3;OK
+END4;MIDDLE4;BEGIN4;OK
+THIRD5;SECOND5;FIRST5;OK
+[?2004hroot@f19c555b612b:/app# cmp /tmp/subset.csv <(head -100000 /app/expected.csv) && echo "SUBSET_MATCH"
+[?2004lSUBSET_MATCH
+[?2004hroot@f19c555b612b:/app# python3 - <<'PY'
+[?2004l[?2004h> b=chr(92)
+[?2004l[?2004h> lines = [
+[?2004l[?2004h>  'call setreg(' + "'" + 'a' + "'" + ', ":%' + 's/^' + b*2 + 's*' + b*2 + '(' + b*2 + 'S' + b*2 + '+' + ')' + b*2 + 's*,' + b*2 + 's*' + b*2 + '(' + b*2 + 'S' + b*2 + '+' + ')' + b*2 + 's*,' + b*2 + 's*' + b*2 + '(' + b*2 + 'S' + b*2 + '+' + ')' + b*2 + 's*$/' + b*2 + 'U' + b*2 + '3;' + b*2 + '2;' + b*2 + '1;OK/e' + b + 'r:let @a=' + b + '"' + '0' + b + '"' + b + 'r")',
+[?2004l[?2004h>  'call setreg(' + "'" + 'b' + "'" + ', "0")',
+[?2004l[?2004h>  'call setreg(' + "'" + 'c' + "'" + ', "$")',
+[?2004l[?2004h>  ':%normal! @a',
+[?2004l[?2004h>  ':%normal! @b',
+[?2004l[?2004h>  ':%normal! @c',
+[?2004l[?2004h>  ':wq',
+[?2004l[?2004h> ]
+[?2004l[?2004h> open('/app/apply_macros.vim','w').write('\n'.join(lines)+'\n')
+[?2004l[?2004h> PY
+[?2004lcat -A /app/apply_macros.vim
+[?2004hroot@f19c555b612b:/app# cat -A /app/apply_macros.vim
+[?2004lcall setreg('a', ":%s/^\\s*\\(\\S\\+)\\s*,\\s*\\(\\S\\+)\\s*,\\s*\\(\\S\\+)\\s*$/\\U\\3;\\2;\\1;OK/e\r:let @a=\"0\"\r")$
+call setreg('b', "0")$
+call setreg('c', "$")$
+:%normal! @a$
+:%normal! @b$
+:%normal! @c$
+:wq$
+[?2004hroot@f19c555b612b:/app# printf '  alpha1  ,    BeTa1   ,  GaMmA1\n   lorem2   ,  IpsUm2   ,   dolor2\n north3   ,   EaSt3    ,    west3\n' > /tmp/sample.csv
+[?2004l[?2004hroot@f19c555b612b:/app# vim -Nu NONE -n -Es /tmp/sample.csv -S /app/apply_macros.vim; echo exit=$?
+[?2004lexit=1
+[?2004hroot@f19c555b612b:/app# cat /tmp/sample.csv
+[?2004l  alpha1  ,    BeTa1   ,  GaMmA1
+   lorem2   ,  IpsUm2   ,   dolor2
+ north3   ,   EaSt3    ,    west3
+[?2004hroot@f19c555b612b:/app# head -100000 /tmp/input_backup.csv > /tmp/subset.csv
+[?2004l[?2004hroot@f19c555b612b:/app# time timeout 60s vim -Nu NONE -n -Es /tmp/subset.csv -S /app/apply_macros.vim
+[?2004lhead -5 /tmp/subset.csv
+cmp /tmp/subset.csv <(head -100000 /app/expected.csv) && echo "SUBSET_MATCH"
+
+real	0m43.133s
+user	0m42.326s
+sys	0m0.015s
+[?2004hroot@f19c555b612b:/app# head -5 /tmp/subset.csv
+[?2004l  alpha1  ,    BeTa1   ,  GaMmA1  
+   lorem2   ,  IpsUm2   ,   dolor2   
+ north3   ,   EaSt3    ,    west3   
+  begin4    ,    MiDdLe4    ,  end4 
+   first5    ,  seCond5  ,   third5 
+[?2004hroot@f19c555b612b:/app# cmp /tmp/subset.csv <(head -100000 /app/expected.csv) && echo "SUBSET_MATCH"
+[?2004l/tmp/subset.csv /dev/fd/63 differ: char 1, line 1
+[?2004hroot@f19c555b612b:/app# ^C[?2004l[?2004h[?2004l
+[?2004hroot@f19c555b612b:/app# echo __READY__
+[?2004l__READY__
+[?2004hroot@f19c555b612b:/app# printf 'foo\nbar\nbaz\n' > /tmp/foo.csv
+[?2004l[?2004hroot@f19c555b612b:/app# cat > /tmp/test1.vim <<'EOF'
+[?2004l[?2004h> call setreg('a', ":%s/foo/FOO/e\r")
+[?2004l[?2004h> :%normal! @a
+[?2004l[?2004h> :wq
+[?2004l[?2004h> EOF
+[?2004l[?2004hroot@f19c555b612b:/app# cp /tmp/foo.csv /tmp/foo1.csv; vim -Nu NONE -n -Es /tmp/foo1.csv -S /tmp/test1.vim; echo exit=$?; cat /tmp/foo1.csv
+[?2004lexit=0
+FOO
+bar
+baz
+[?2004hroot@f19c555b612b:/app# cat > /tmp/test2.vim <<'EOF'
+[?2004l[?2004h> call setreg('a', ":%s/foo/FOO/e\r:let @a=0\r")
+[?2004l[?2004h> :%normal! @a
+[?2004l[?2004h> :wq
+[?2004l[?2004h> EOF
+[?2004l[?2004hroot@f19c555b612b:/app# cp /tmp/foo.csv /tmp/foo2.csv; vim -Nu NONE -n -Es /tmp/foo2.csv -S /tmp/test2.vim; echo exit=$?; cat /tmp/foo2.csv
+[?2004lexit=0
+FOO
+bar
+baz
+[?2004hroot@f19c555b612b:/app# python3 - <<'PY'
+[?2004l[?2004h> b=chr(92)
+[?2004l[?2004h> lines = [
+[?2004l[?2004h>  'call setreg(' + "'" + 'a' + "'" + ', ":%' + 's/' + b*2 + 'v^' + b*2 + 's*(' + b*2 + 'S+)' + b*2 + 's*,' + b*2 + 's*(' + b*2 + 'S+)' + b*2 + 's*,' + b*2 + 's*(' + b*2 + 'S+)' + b*2 + 's*$/' + b*2 + 'U' + b*2 + '3;' + b*2 + '2;' + b*2 + '1;OK/e' + b + 'r:let @a=0' + b + 'r")',
+[?2004l[?2004h>  'call setreg(' + "'" + 'b' + "'" + ', "0")',
+[?2004l[?2004h>  'call setreg(' + "'" + 'c' + "'" + ', "$")',
+[?2004l[?2004h>  ':%normal! @a',
+[?2004l[?2004h>  ':%normal! @b',
+[?2004l[?2004h>  ':%normal! @c',
+[?2004l[?2004h>  ':wq',
+[?2004l[?2004h> ]
+[?2004l[?2004h> open('/app/apply_macros.vim','w').write('\n'.join(lines)+'\n')
+[?2004l[?2004h> PY
+[?2004lcat -A /app/apply_macros.vim
+[?2004hroot@f19c555b612b:/app# cat -A /app/apply_macros.vim
+[?2004lcall setreg('a', ":%s/\\v^\\s*(\\S+)\\s*,\\s*(\\S+)\\s*,\\s*(\\S+)\\s*$/\\U\\3;\\2;\\1;OK/e\r:let @a=0\r")$
+call setreg('b', "0")$
+call setreg('c', "$")$
+:%normal! @a$
+:%normal! @b$
+:%normal! @c$
+:wq$
+[?2004hroot@f19c555b612b:/app# printf '  alpha1  ,    BeTa1   ,  GaMmA1\n   lorem2   ,  IpsUm2   ,   dolor2\n north3   ,   EaSt3    ,    west3\n' > /tmp/sample.csv
+[?2004l[?2004hroot@f19c555b612b:/app# vim -Nu NONE -n -Es /tmp/sample.csv -S /app/apply_macros.vim; echo exit=$?
+[?2004lexit=0
+[?2004hroot@f19c555b612b:/app# cat /tmp/sample.csv
+[?2004lGAMMA1;BETA1;ALPHA1;OK
+DOLOR2;IPSUM2;LOREM2;OK
+WEST3;EAST3;NORTH3;OK
+[?2004hroot@f19c555b612b:/app# head -100000 /tmp/input_backup.csv > /tmp/subset.csv
+[?2004l[?2004hroot@f19c555b612b:/app# time timeout 60s vim -Nu NONE -n -Es /tmp/subset.csv -S /app/apply_macros.vim
+[?2004l
+real	0m8.696s
+user	0m8.538s
+sys	0m0.045s
+[?2004hroot@f19c555b612b:/app# head -5 /tmp/subset.csv
+[?2004lGAMMA1;BETA1;ALPHA1;OK
+DOLOR2;IPSUM2;LOREM2;OK
+WEST3;EAST3;NORTH3;OK
+END4;MIDDLE4;BEGIN4;OK
+THIRD5;SECOND5;FIRST5;OK
+[?2004hroot@f19c555b612b:/app# cmp /tmp/subset.csv <(head -100000 /app/expected.csv) && echo "SUBSET_MATCH"
+[?2004lSUBSET_MATCH
+[?2004hroot@f19c555b612b:/app# cp /tmp/input_backup.csv /app/input.csv
+[?2004l[?2004hroot@f19c555b612b:/app# time timeout 120s vim -Nu NONE -n -Es /app/input.csv -S /app/apply_macros.vim; echo exit=$?; head -5 /app/input.csv; cmp /app/input.csv /app/expected.csv && echo "MATCH"
+[?2004l
+real	1m37.358s
+user	1m36.179s
+sys	0m0.453s
+exit=0
+GAMMA1;BETA1;ALPHA1;OK
+DOLOR2;IPSUM2;LOREM2;OK
+WEST3;EAST3;NORTH3;OK
+END4;MIDDLE4;BEGIN4;OK
+THIRD5;SECOND5;FIRST5;OK
+MATCH
+[?2004hroot@f19c555b612b:/app# 
