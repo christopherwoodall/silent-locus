@@ -20,11 +20,27 @@ def test_author_tag_set_from_bundle_actor(state, bundle):
     assert record["tags"][store.AUTHOR_TAG] == "agent:synthetic"
 
 
-def test_author_tag_overwrites_submitter_value(state, bundle):
+def test_author_tag_rejects_submitter_value(state, bundle):
     bundle["records"][0]["tags"] = {store.AUTHOR_TAG: "agent:impostor"}
-    result = add_bundle(state, bundle)
-    record = State(state.repo).load().records[result["ids"]["value"]]
-    assert record["tags"][store.AUTHOR_TAG] == "agent:synthetic"
+    with pytest.raises(FactumError) as excinfo:
+        add_bundle(state, bundle)
+    assert excinfo.value.code == "EVIDENCE_EDIT"
+
+
+def test_reserved_tag_prefix_rejected_at_creation(state, bundle):
+    bundle["records"][0]["tags"] = {"factum.custom": "nope"}
+    with pytest.raises(FactumError) as excinfo:
+        add_bundle(state, bundle)
+    assert excinfo.value.code == "EVIDENCE_EDIT"
+
+
+def test_make_record_rejects_reserved_tags():
+    with pytest.raises(FactumError) as excinfo:
+        store.make_record(
+            "observation", {"type": "t"}, "agent:synthetic",
+            {"factum.author": "agent:impostor"},
+        )
+    assert excinfo.value.code == "EVIDENCE_EDIT"
 
 
 def test_author_tag_covered_by_fingerprint(state, bundle):

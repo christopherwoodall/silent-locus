@@ -386,26 +386,37 @@ CREATE TABLE receipts(
 
 
 # Reserved system-assigned tag key. Set at record creation from the bundle
-# actor; any submitter-provided value is overwritten, not trusted. Immutable
-# record metadata: the future `update` command must reject changes to this
-# key with EVIDENCE_EDIT.
+# actor; submitter-provided factum.* tags are rejected, not trusted.
+# Immutable record metadata: the `update` command rejects changes to any
+# factum.* key with EVIDENCE_EDIT.
 AUTHOR_TAG = "factum.author"
+
+# Prefix for all system-assigned tag keys. Submitters may not set or
+# delete these; update_record rejects them with EVIDENCE_EDIT.
+RESERVED_TAG_PREFIX = "factum."
 
 
 def make_record(kind, body, actor, tags=None, record_id=None):
     if not actor:
         fail("IDENTITY", "Record actor must be a non-empty string.")
+    submitted = dict(tags) if tags else {}
+    for key in submitted:
+        if key.startswith(RESERVED_TAG_PREFIX):
+            fail(
+                "EVIDENCE_EDIT",
+                f"Reserved tag is system-assigned: {key}",
+            )
     record = {
         "schema": CORE[kind],
         "record_kind": kind,
         "id": record_id or new_id(kind),
         "@timestamp": now(),
         "actor": actor,
-        "tags": dict(tags) if tags else {},
+        "tags": submitted,
         "body": body,
     }
-    # System-assigned: overwrites any submitter-provided value. Covered by
-    # the fingerprint because tags are part of the signed envelope.
+    # System-assigned. Covered by the fingerprint because tags are part of
+    # the signed envelope.
     record["tags"][AUTHOR_TAG] = actor
     record["fingerprint"] = digest(record)
     return record
@@ -1441,10 +1452,14 @@ def add_bundle(state, submitted):
         "tags": bundle.get("tags", {}),
     }
 
+    pending_path = f"data/.local/pending/{batch_id}.json"
     write_json_atomic(
         state.local / "pending" / f"{batch_id}.json",
         pending,
     )
+
+    for record in records:
+        state.record_sources[record["id"]] = ("pending", pending_path)
 
     # Pending data is already durable. If projection fails, rebuild
     # can recover the accepted submission from this file.
@@ -1531,11 +1546,9 @@ def export_pending(state):
     }
 
 # System-assigned update audit tags. Set by update_record itself on every
-# effective change; submitters may not set or delete any factum.* tag
-# (rejected with EVIDENCE_EDIT, covering Dev 1's AUTHOR_TAG contract).
+# effective change. RESERVED_TAG_PREFIX is defined near AUTHOR_TAG above.
 UPDATED_AT_TAG = "factum.updated_at"
 UPDATED_BY_TAG = "factum.updated_by"
-RESERVED_TAG_PREFIX = "factum."
 
 # Guards the read-modify-write inside update_record so concurrent
 # in-process updates to the same record merge instead of clobbering each
@@ -1819,9 +1832,14 @@ def update_record(state, record_id, actor, changes):
 
     The write re-reads the owning file under a guard and applies the
     changes to the latest bytes, so concurrent updates to different
-    fields merge instead of clobbering each other. A no-op returns the
-    current record unchanged. After an effective change the fingerprint
-    is recomputed and the projection rebuilt, as lane edit does.
+    fields merge instead of clobbering each other. The guard also covers
+    the subsequent reload and re-projection, so no other in-process
+    writer can land between the file write and the new projection. A
+    no-op returns the current record unchanged. After an effective change
+    the fingerprint is recomputed, the owning file is rewritten, the
+    projection is rebuilt, and the passed-in state's records entry is
+    synced to the updated record (record_sources is unchanged: the
+    rewrite is in place in the same file).
     """
     if not actor:
         fail("IDENTITY", "An actor is required to update a record.")
@@ -1852,12 +1870,20 @@ def update_record(state, record_id, actor, changes):
         if updated is not None:
             _write_stored(state, source, record_id, updated)
 
-    if updated is None:
-        return current
+        if updated is None:
+            return current
 
-    # Full reload plus rebuild, as lane edit and bundle acceptance do:
-    # the fresh load revalidates references and the manifest hashes.
-    refreshed = State(state.repo).load()
-    refreshed.project()
+        # Full reload plus rebuild inside the guard, as lane edit and
+        # bundle acceptance do: the fresh load revalidates references and
+        # the manifest hashes. Keeping load+project under the guard closes
+        # the window where another in-process writer could land between
+        # our file write and the re-projection.
+        refreshed = State(state.repo).load()
+        refreshed.project()
+
+        # Sync the caller's state so it is not left stale: the record
+        # itself is replaced with the updated version. record_sources is
+        # unchanged because the rewrite is in place in the same file.
+        state.records[record_id] = updated
 
     return updated

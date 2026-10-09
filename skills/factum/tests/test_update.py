@@ -36,6 +36,7 @@ evidence (immutable except the schema-declared metadata paths above).
 
 import json
 import shutil
+import sqlite3
 import threading
 import uuid
 from pathlib import Path
@@ -453,3 +454,65 @@ def test_update_cli_tags_flag(state):
     )
     assert result["updated"] is True
     assert _record(state.repo, record_id)["tags"]["reviewed"] is True
+
+
+# ---------------------------------------------------------------------------
+# Regression tests for code-review fixes (Medium 1 + Medium 2)
+# ---------------------------------------------------------------------------
+
+def test_caller_state_synced_after_update(state):
+    """Medium 2: update_record must not leave the caller's State stale.
+
+    The passed-in state object's records[record_id] must reflect the
+    update; record_sources must still point at the same owning file.
+    """
+    record_id = _add(state)
+    before_source = state.record_sources[record_id]
+    updated = store.update_record(
+        state, record_id, "agent:updater", {"lane": "new-lane"}
+    )
+    assert state.records[record_id]["fingerprint"] == updated["fingerprint"]
+    assert state.records[record_id]["tags"]["lane"] == "new-lane"
+    assert state.record_sources[record_id] == before_source
+
+
+def test_concurrent_updates_projection_covers_all_writes(state):
+    """Medium 1: with load+project inside the guard, the final SQLite
+    projection must reflect every concurrent writer, never a stale
+    intermediate generation."""
+    record_id = _add(state)
+    export_pending(_fresh(state.repo))
+    count = 6
+    barrier = threading.Barrier(count)
+    errors = []
+
+    def worker(index):
+        try:
+            barrier.wait(timeout=30)
+            worker_state = State(state.repo).load()
+            store.update_record(
+                worker_state, record_id, f"agent:worker-{index}",
+                [(f"tags.proj-{index}", index)],
+            )
+        except Exception as error:  # noqa: BLE001 - collected for assertion
+            errors.append(error)
+
+    threads = [threading.Thread(target=worker, args=(index,)) for index in range(count)]
+    for thread in threads:
+        thread.start()
+    for thread in threads:
+        thread.join(timeout=120)
+
+    assert not errors, errors
+    # The on-disk projection (not just the JSONL) must contain all tags.
+    db = sqlite3.connect(state.db_path)
+    try:
+        row = db.execute(
+            "SELECT document FROM records WHERE id = ?", (record_id,)
+        ).fetchone()
+    finally:
+        db.close()
+    assert row is not None
+    projected = json.loads(row[0])
+    for index in range(count):
+        assert projected["tags"][f"proj-{index}"] == index
