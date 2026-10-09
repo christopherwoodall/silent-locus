@@ -29,3 +29,25 @@ Background jobs that keep the Factum corpus clean as the project evolves.
 New workers go here with: name, schedule, job description, purpose.
 
 Workers are implemented as cron jobs. See `cron.list` for active schedules.
+
+## Lab intel workers
+
+### lab-intel-anthropic-scan
+- **Schedule:** Daily ~07:40 America/Chicago
+- **Job:** Check Anthropic research blog for new model behavior reports.
+- **Purpose:** Catch new behavior reports for intel pipeline.
+
+### lab-intel-openai-scan
+- **Schedule:** Daily ~07:40 America/Chicago
+- **Job:** Check OpenAI blog and system cards for new behavior reports.
+- **Purpose:** Catch new behavior reports for intel pipeline.
+
+### lab-intel-deepmind-scan
+- **Schedule:** Daily ~07:40 America/Chicago
+- **Job:** Check DeepMind blog for new behavior reports.
+- **Purpose:** Catch new behavior reports for intel pipeline.
+
+### lab-intel-transluce-scan
+- **Schedule:** Daily ~08:40 America/Chicago
+- **Job:** Check Transluce API for new agent incident reports.
+- **Purpose:** Feed Transluce reports into intel pipeline.
