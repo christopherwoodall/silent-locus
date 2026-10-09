@@ -18,7 +18,10 @@ def test_exact_strings_round_trip(state, bundle, value):
     after = State(state.repo).load()
     after.project()
     assert after.records[result["ids"]["value"]]["body"]["value"] == value
-    assert after.records[result["ids"]["value"]]["tags"] == bundle["records"][0]["tags"]
+    assert after.records[result["ids"]["value"]]["tags"] == {
+        **bundle["records"][0]["tags"],
+        store.AUTHOR_TAG: "agent:synthetic",
+    }
     after.project()
     assert after.state_digest == before.state_digest
 

@@ -1,0 +1,121 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:factum:core:common:1",
+  "$defs": {
+    "id": {
+      "type": "string",
+      "pattern": "^(source|artifact|observation|observable|sighting|event|claim|edge|assessment|run|retraction|lane)_[0-9a-f]{32}$"
+    },
+    "reference": {
+      "$ref": "#/$defs/id",
+      "x-factum-target-kinds": ["*"]
+    },
+    "time": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "tags": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "basis": {
+      "enum": ["OBSERVED", "UPSTREAM", "INFERENCE"]
+    },
+    "time_basis": {
+      "enum": [
+        "collector_clock",
+        "source_metadata",
+        "source_text",
+        "legacy_documented",
+        "received_by_factum",
+        "unknown"
+      ]
+    },
+    "citations": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "$ref": "#/$defs/id",
+        "x-factum-target-kinds": [
+          "observation",
+          "sighting",
+          "artifact",
+          "claim",
+          "run"
+        ]
+      }
+    },
+    "range": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["start", "end"],
+      "properties": {
+        "start": {"type": "integer", "minimum": 0},
+        "end": {"type": "integer", "minimum": 0}
+      }
+    },
+    "locator": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["artifact"],
+      "properties": {
+        "artifact": {
+          "$ref": "#/$defs/id",
+          "x-factum-target-kinds": ["artifact"]
+        },
+        "whole": {
+          "const": true
+        },
+        "quote": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["exact"],
+          "properties": {
+            "exact": {"type": "string", "minLength": 1},
+            "prefix": {"type": "string"},
+            "suffix": {"type": "string"}
+          }
+        },
+        "text_pos": {
+          "$ref": "#/$defs/range"
+        },
+        "bytes": {
+          "$ref": "#/$defs/range"
+        },
+        "json_pointer": {
+          "type": "string",
+          "pattern": "^(?:/(?:[^~/]|~[01])*)*$"
+        },
+        "row": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["index"],
+          "properties": {
+            "index": {"type": "integer", "minimum": 0},
+            "key": {"type": "string"},
+            "column": {"type": "string"},
+            "member": {"type": "string"}
+          }
+        },
+        "page": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "anyOf": [
+        {"required": ["whole"]},
+        {"required": ["quote"]},
+        {"required": ["text_pos"]},
+        {"required": ["bytes"]},
+        {"required": ["json_pointer"]},
+        {"required": ["row"]},
+        {"required": ["page"]}
+      ]
+    }
+  }
+}

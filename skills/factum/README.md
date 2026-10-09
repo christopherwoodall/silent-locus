@@ -14,7 +14,7 @@ Factum is not a crawler, agent runtime, or backend service.
 - **Installing or upgrading:** [INSTALL.md](INSTALL.md)
 - **Using Factum as an agent:** [SKILL.md](SKILL.md)
 - **Developing Factum:** [AGENTS.md](AGENTS.md)
-- **Data contracts, schema packs, and testing:** [ARCHITECTURE.md](ARCHITECTURE.md)
+- **Data contracts, schema packs, and testing:** [ARCHITECTURE.md](docs/ARCHITECTURE.md)
 
 ## Quick installation
 
@@ -44,7 +44,7 @@ your-repository/
 │       └── factum/
 │           ├── SKILL.md
 │           ├── INSTALL.md
-│           ├── ARCHITECTURE.md
+│           ├── docs/ARCHITECTURE.md
 │           ├── scripts/
 │           └── scripts/factum_lib/assets/packs/
 │

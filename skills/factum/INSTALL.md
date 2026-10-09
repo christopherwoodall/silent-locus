@@ -14,7 +14,7 @@ It covers:
 For everyday evidence work, read [SKILL.md](SKILL.md).
 
 For pack design, architecture, and testing, read
-[ARCHITECTURE.md](ARCHITECTURE.md).
+[ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
 ## Scope and authorization
 
@@ -502,7 +502,7 @@ schema-proposals/
             └── webhook-capture.schema.json
 ```
 
-See [ARCHITECTURE.md](ARCHITECTURE.md) for manifest and definition contracts.
+See [ARCHITECTURE.md](docs/ARCHITECTURE.md) for manifest and definition contracts.
 
 The agent handles obtaining the pack. Factum does not download packs.
 

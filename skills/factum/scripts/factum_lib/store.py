@@ -8,6 +8,8 @@ import shutil
 import sqlite3
 import subprocess
 import tempfile
+import threading
+import time
 import uuid
 from datetime import datetime, timezone
 from pathlib import Path
@@ -383,16 +385,39 @@ CREATE TABLE receipts(
 """
 
 
+# Reserved system-assigned tag key. Set at record creation from the bundle
+# actor; submitter-provided factum.* tags are rejected, not trusted.
+# Immutable record metadata: the `update` command rejects changes to any
+# factum.* key with EVIDENCE_EDIT.
+AUTHOR_TAG = "factum.author"
+
+# Prefix for all system-assigned tag keys. Submitters may not set or
+# delete these; update_record rejects them with EVIDENCE_EDIT.
+RESERVED_TAG_PREFIX = "factum."
+
+
 def make_record(kind, body, actor, tags=None, record_id=None):
+    if not actor:
+        fail("IDENTITY", "Record actor must be a non-empty string.")
+    submitted = dict(tags) if tags else {}
+    for key in submitted:
+        if key.startswith(RESERVED_TAG_PREFIX):
+            fail(
+                "EVIDENCE_EDIT",
+                f"Reserved tag is system-assigned: {key}",
+            )
     record = {
         "schema": CORE[kind],
         "record_kind": kind,
         "id": record_id or new_id(kind),
         "@timestamp": now(),
         "actor": actor,
-        "tags": {} if tags is None else tags,
+        "tags": submitted,
         "body": body,
     }
+    # System-assigned. Covered by the fingerprint because tags are part of
+    # the signed envelope.
+    record["tags"][AUTHOR_TAG] = actor
     record["fingerprint"] = digest(record)
     return record
 
@@ -443,6 +468,10 @@ class State:
         self.lanes = {}
         self.receipts = {}
         self.pending = []
+        # Physical location of each accepted record: ("batch", batch_id)
+        # for exported records.jsonl, ("pending", path) for pending files.
+        # Used by update_record to rewrite the owning file in place.
+        self.record_sources = {}
 
         self.catalog = None
         self.corpus = None
@@ -596,6 +625,74 @@ class State:
 
         self.receipts[receipt["key"]] = receipt
 
+    def _read_batch(self, path):
+        """
+        Read one exported batch, retrying transient content mismatches.
+
+        update_record replaces records.jsonl and manifest.json as two
+        atomic file swaps; a concurrent load can straddle them and see a
+        torn pair. Such mismatches are transient: the next read observes
+        a complete generation. Genuine corruption fails on every attempt
+        and still raises.
+        """
+        attempts = 10
+
+        while True:
+            try:
+                manifest = self.json(path)
+
+                expected = {
+                    "format_version",
+                    "batch_id",
+                    "corpus_id",
+                    "records_sha256",
+                    "record_count",
+                    "receipt",
+                    "tags",
+                }
+
+                if (
+                    not isinstance(manifest, dict)
+                    or set(manifest) != expected
+                ):
+                    fail("MANIFEST", path)
+
+                if manifest["format_version"] != FORMAT_VERSION:
+                    fail("FORMAT", path)
+
+                if manifest["corpus_id"] != self.corpus["corpus_id"]:
+                    fail("CORPUS", path)
+
+                if Path(path).parent.name != manifest["batch_id"]:
+                    fail(
+                        "MANIFEST",
+                        "Batch ID and directory disagree.",
+                    )
+
+                record_path = (
+                    str(Path(path).parent / "records.jsonl")
+                    .replace("\\", "/")
+                )
+
+                raw = self.read(record_path)
+
+                if sha256(raw) != manifest["records_sha256"]:
+                    fail("HASH", record_path)
+
+                lines = raw.splitlines()
+
+                if len(lines) != manifest["record_count"]:
+                    fail("COUNT", record_path)
+
+                return manifest, lines, record_path
+            except FactumError as error:
+                attempts -= 1
+
+                if error.code not in {"HASH", "COUNT"} or attempts <= 0:
+                    raise
+
+                time.sleep(0.01)
+
     def load(self):
         check_layout(self.repo)
         self.corpus = self.json("data/corpus.json")
@@ -624,53 +721,14 @@ class State:
         consumed = set()
 
         for path in self.paths("records", "manifest.json"):
-            manifest = self.json(path)
-
-            expected = {
-                "format_version",
-                "batch_id",
-                "corpus_id",
-                "records_sha256",
-                "record_count",
-                "receipt",
-                "tags",
-            }
-
-            if (
-                not isinstance(manifest, dict)
-                or set(manifest) != expected
-            ):
-                fail("MANIFEST", path)
-
-            if manifest["format_version"] != FORMAT_VERSION:
-                fail("FORMAT", path)
-
-            if manifest["corpus_id"] != self.corpus["corpus_id"]:
-                fail("CORPUS", path)
-
-            if Path(path).parent.name != manifest["batch_id"]:
-                fail(
-                    "MANIFEST",
-                    "Batch ID and directory disagree.",
-                )
-
-            record_path = (
-                str(Path(path).parent / "records.jsonl")
-                .replace("\\", "/")
-            )
-
-            raw = self.read(record_path)
-
-            if sha256(raw) != manifest["records_sha256"]:
-                fail("HASH", record_path)
-
-            lines = raw.splitlines()
-
-            if len(lines) != manifest["record_count"]:
-                fail("COUNT", record_path)
+            manifest, lines, record_path = self._read_batch(path)
 
             for line in lines:
-                self.insert_record(parse_json(line))
+                stored = parse_json(line)
+                self.insert_record(stored)
+                self.record_sources[stored["id"]] = (
+                    "batch", manifest["batch_id"]
+                )
 
             self.insert_receipt(manifest["receipt"])
             consumed.add(record_path)
@@ -704,6 +762,7 @@ class State:
 
                 for record in document["records"]:
                     self.insert_record(record)
+                    self.record_sources[record["id"]] = ("pending", path)
 
                 self.insert_receipt(document["receipt"])
                 self.pending.append((path, document))
@@ -866,11 +925,25 @@ class State:
             return [("sha256", body["sha256"])]
 
         if kind == "observation":
-            return [
-                ("url", body["data"][key])
+            data = body.get("data", {})
+            entries = [
+                ("url", data[key])
                 for key in ("requested_url", "final_url")
-                if isinstance(body["data"].get(key), str)
+                if isinstance(data.get(key), str)
             ]
+            # Generic: index all other top-level string values and string
+            # arrays in the data payload as text, so custom observation
+            # types (e.g. infra.* packs) are searchable via match --text.
+            for key, value in data.items():
+                if key in ("requested_url", "final_url"):
+                    continue
+                if isinstance(value, str) and value:
+                    entries.append(("text", value))
+                elif isinstance(value, list):
+                    for item in value:
+                        if isinstance(item, str) and item:
+                            entries.append(("text", item))
+            return entries
 
         if kind == "event":
             return [("text", body["title"])]
@@ -1379,10 +1452,14 @@ def add_bundle(state, submitted):
         "tags": bundle.get("tags", {}),
     }
 
+    pending_path = f"data/.local/pending/{batch_id}.json"
     write_json_atomic(
         state.local / "pending" / f"{batch_id}.json",
         pending,
     )
+
+    for record in records:
+        state.record_sources[record["id"]] = ("pending", pending_path)
 
     # Pending data is already durable. If projection fails, rebuild
     # can recover the accepted submission from this file.
@@ -1467,3 +1544,346 @@ def export_pending(state):
         "pending": 0,
         "state_digest": refreshed.state_digest,
     }
+
+# System-assigned update audit tags. Set by update_record itself on every
+# effective change. RESERVED_TAG_PREFIX is defined near AUTHOR_TAG above.
+UPDATED_AT_TAG = "factum.updated_at"
+UPDATED_BY_TAG = "factum.updated_by"
+
+# Guards the read-modify-write inside update_record so concurrent
+# in-process updates to the same record merge instead of clobbering each
+# other. Cross-process writes are serialized by the CLI writer lock.
+_UPDATE_GUARD = threading.Lock()
+
+
+def _declared_properties(catalog, schema_id):
+    """
+    Map top-level property names to their subschemas for a schema document,
+    following $ref and allOf composition. Used to check which metadata
+    fields (provenance, status) the record's assigned schema declares,
+    instead of guessing fixed paths.
+    """
+    seen = set()
+
+    def collect(node, base):
+        declared = {}
+
+        if isinstance(node, dict):
+            if "$ref" in node:
+                key = (base, node["$ref"])
+
+                if key not in seen:
+                    seen.add(key)
+                    target, target_base = catalog.resolve(node["$ref"], base)
+                    declared.update(collect(target, target_base))
+
+            for child in node.get("allOf", []):
+                declared.update(collect(child, base))
+
+            for name, subschema in node.get("properties", {}).items():
+                declared.setdefault(name, subschema)
+
+        return declared
+
+    return collect(catalog.documents[schema_id], schema_id)
+
+
+def _update_body_paths(state, record):
+    """
+    Schema-driven allowlist of editable body paths for a record.
+
+    body.provenance is editable when the core body schema declares it;
+    body.data.provenance and body.data.status are editable when the
+    record's assigned data_schema declares them.
+    """
+    kind = record["record_kind"]
+    body = record["body"]
+    paths = set()
+
+    if "provenance" in _declared_properties(state.catalog, CORE[kind]):
+        paths.add("body.provenance")
+
+    if kind in {"observation", "event"}:
+        declared = _declared_properties(state.catalog, body["data_schema"])
+
+        if "provenance" in declared:
+            paths.add("body.data.provenance")
+
+        if "status" in declared:
+            paths.add("body.data.status")
+
+    return paths
+
+
+def _normalize_changes(changes):
+    """
+    Normalize the update payload to a list of (path, value) pairs.
+
+    A dict maps tag keys to values (bare keys; a leading "tags." is
+    stripped). Body paths and reserved keys are rejected here with
+    EVIDENCE_EDIT. A list already holds (path, value) pairs in the
+    --set <path>=<value> shape and passes through unchanged.
+    """
+    if isinstance(changes, dict):
+        normalized = []
+
+        for key, value in changes.items():
+            if not isinstance(key, str) or not key:
+                fail("EVIDENCE_EDIT", f"Invalid change key: {key!r}")
+
+            if key == "body" or key.startswith("body."):
+                fail("EVIDENCE_EDIT", f"Body is immutable: {key}")
+
+            if key.startswith("tags."):
+                key = key[len("tags."):]
+
+            normalized.append((f"tags.{key}", value))
+
+        return normalized
+
+    return [(path, value) for path, value in changes]
+
+
+def _check_update_path(path, allowed):
+    """Reject any path that is not an editable tag or allowlisted body path."""
+    if path.startswith("tags."):
+        key = path[len("tags."):]
+
+        if not key:
+            fail("EVIDENCE_EDIT", f"Not an editable path: {path}")
+
+        if key.startswith(RESERVED_TAG_PREFIX):
+            fail(
+                "EVIDENCE_EDIT",
+                f"Reserved tag is immutable: {path}",
+            )
+
+        return
+
+    if path not in allowed:
+        fail("EVIDENCE_EDIT", f"Not an editable path: {path}")
+
+
+def _without_paths(body, paths):
+    """Return a copy of body with the final key of each dotted path removed."""
+    result = copy.deepcopy(body)
+
+    for path in paths:
+        segments = path.split(".")
+        target = result
+
+        for segment in segments[1:-1]:
+            if not isinstance(target, dict) or segment not in target:
+                target = None
+                break
+
+            target = target[segment]
+
+        if isinstance(target, dict):
+            target.pop(segments[-1], None)
+
+    return result
+
+
+def _retracted(state, record_id):
+    return any(
+        candidate["record_kind"] == "retraction"
+        and candidate["body"].get("target") == record_id
+        for candidate in state.records.values()
+    )
+
+
+def _read_stored(state, source, record_id):
+    """Re-read the latest stored copy of a record from its owning file."""
+    location, reference = source
+
+    if location == "pending":
+        candidates = state.json(reference)["records"]
+    else:
+        candidates = [
+            parse_json(line)
+            for line in (
+                state.data / "records" / reference / "records.jsonl"
+            ).read_bytes().splitlines()
+        ]
+
+    for candidate in candidates:
+        if candidate["id"] == record_id:
+            return candidate
+
+    fail("NOT_FOUND", record_id)
+
+
+def _write_stored(state, source, record_id, updated):
+    """
+    Replace one record in its owning physical file. Pending files are
+    rewritten as whole JSON documents; exported batches keep their batch
+    ID and record order, with the manifest hash recomputed.
+    """
+    location, reference = source
+
+    if location == "pending":
+        document = state.json(reference)
+        document["records"] = [
+            updated if candidate["id"] == record_id else candidate
+            for candidate in document["records"]
+        ]
+        write_json_atomic(state.repo / reference, document)
+        return
+
+    directory = state.data / "records" / reference
+    records_path = directory / "records.jsonl"
+    lines = []
+
+    for line in records_path.read_bytes().splitlines():
+        candidate = parse_json(line)
+        lines.append(
+            canonical(updated if candidate["id"] == record_id else candidate)
+        )
+
+    raw = ("\n".join(lines) + "\n").encode("utf-8")
+
+    # Two atomic file swaps. A concurrent State.load can straddle them
+    # and observe a torn (records.jsonl, manifest.json) pair; load()
+    # retries transient HASH/COUNT mismatches, so readers converge on a
+    # complete generation. Genuine corruption fails persistently.
+    atomic_bytes(records_path, raw)
+
+    manifest_path = directory / "manifest.json"
+    manifest = read_json(manifest_path)
+    manifest["records_sha256"] = sha256(raw)
+    write_json_atomic(manifest_path, manifest)
+
+
+def _apply_update(state, current, actor, assignments, allowed):
+    """
+    Apply assignments to the latest stored copy. Returns the updated
+    record, or None when nothing effectively changed (no fingerprint
+    churn, no audit stamps).
+    """
+    updated = copy.deepcopy(current)
+
+    for path, value in assignments:
+        if path.startswith("tags."):
+            key = path[len("tags."):]
+
+            if value is None:
+                updated["tags"].pop(key, None)
+            else:
+                updated["tags"][key] = value
+
+            continue
+
+        if path == "body.data.status":
+            declared = _declared_properties(
+                state.catalog, current["body"]["data_schema"]
+            )
+            subschema = declared.get("status", {})
+            enum = subschema.get("enum") if isinstance(subschema, dict) else None
+
+            if enum is not None and value not in enum:
+                fail(
+                    "UPDATE_VALUE",
+                    f"status must be one of {enum}.",
+                )
+
+        target = updated["body"]
+        segments = path.split(".")[1:]
+
+        for segment in segments[:-1]:
+            target = target[segment]
+
+        if value is None:
+            target.pop(segments[-1], None)
+        else:
+            target[segments[-1]] = value
+
+    # Defense in depth: the body outside the allowlisted metadata paths
+    # must be identical to the stored record.
+    if _without_paths(updated["body"], allowed) != _without_paths(
+        current["body"], allowed
+    ):
+        fail("EVIDENCE_EDIT", current["id"])
+
+    if updated == current:
+        return None
+
+    updated["tags"][UPDATED_AT_TAG] = now()
+    updated["tags"][UPDATED_BY_TAG] = actor
+    updated["actor"] = actor
+    del updated["fingerprint"]
+    updated["fingerprint"] = digest(updated)
+
+    state.catalog.validate(CORE["record"], updated)
+    state.catalog.validate_body(updated["record_kind"], updated["body"])
+
+    return updated
+
+
+def update_record(state, record_id, actor, changes):
+    """
+    Edit record metadata in place.
+
+    changes is either a dict of tag key to value (a None value deletes
+    the tag) or a list of (path, value) pairs in --set <path>=<value>
+    shape. Editable: tags.* except reserved factum.* keys, plus the
+    schema-declared body paths (provenance, status). Anything else fails
+    with EVIDENCE_EDIT.
+
+    The write re-reads the owning file under a guard and applies the
+    changes to the latest bytes, so concurrent updates to different
+    fields merge instead of clobbering each other. The guard also covers
+    the subsequent reload and re-projection, so no other in-process
+    writer can land between the file write and the new projection. A
+    no-op returns the current record unchanged. After an effective change
+    the fingerprint is recomputed, the owning file is rewritten, the
+    projection is rebuilt, and the passed-in state's records entry is
+    synced to the updated record (record_sources is unchanged: the
+    rewrite is in place in the same file).
+    """
+    if not actor:
+        fail("IDENTITY", "An actor is required to update a record.")
+
+    record = state.records.get(record_id)
+
+    if record is None:
+        fail("NOT_FOUND", record_id)
+
+    if _retracted(state, record_id):
+        fail("RETRACTED", f"Record is retracted: {record_id}")
+
+    assignments = _normalize_changes(changes)
+    allowed = _update_body_paths(state, record)
+
+    for path, _value in assignments:
+        _check_update_path(path, allowed)
+
+    source = state.record_sources.get(record_id)
+
+    if source is None:
+        fail("SOURCE", f"No physical source for record: {record_id}")
+
+    with _UPDATE_GUARD:
+        current = _read_stored(state, source, record_id)
+        updated = _apply_update(state, current, actor, assignments, allowed)
+
+        if updated is not None:
+            _write_stored(state, source, record_id, updated)
+
+        if updated is None:
+            return current
+
+        # Full reload plus rebuild inside the guard, as lane edit and
+        # bundle acceptance do: the fresh load revalidates references and
+        # the manifest hashes. Keeping load+project under the guard closes
+        # the window where another in-process writer could land between
+        # our file write and the re-projection.
+        refreshed = State(state.repo).load()
+        refreshed.project()
+
+        # Sync the caller's state so it is not left stale: the record
+        # itself is replaced with the updated version. record_sources is
+        # unchanged because the rewrite is in place in the same file.
+        state.records[record_id] = updated
+
+    return updated

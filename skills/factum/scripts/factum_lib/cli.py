@@ -19,7 +19,7 @@ from .schemas import (
 )
 from .store import (
     FactumError, State, add_bundle, atomic_bytes, export_pending,
-    fail, head, initialize, new_id, now, resolve_repo,
+    fail, head, initialize, new_id, now, resolve_repo, update_record,
 )
 
 
@@ -499,6 +499,32 @@ def lane_command(state, args):
     return add_bundle(state, bundle)
 
 
+def update_command(state, args):
+    assignments = []
+    if args.tags is not None:
+        for key, value in parse_tags(args.tags).items():
+            if key.startswith("tags."):
+                key = key[len("tags."):]
+            assignments.append((f"tags.{key}", value))
+    for item in args.set:
+        path, separator, raw = item.partition("=")
+        path = path.strip()
+        if not separator or not path:
+            fail("SET", "Use --set <path>=<value>.")
+        try:
+            value = parse_json(raw)
+        except (SchemaError, ValueError):
+            fail("SET", f"Value is not valid JSON: {path}.")
+        assignments.append((path, value))
+    before = state.records.get(args.record_id)
+    before_fingerprint = before["fingerprint"] if before else None
+    record = update_record(state, args.record_id, args.actor, assignments)
+    return {
+        "updated": record["fingerprint"] != before_fingerprint,
+        "record": record,
+    }
+
+
 def parser():
     p = argparse.ArgumentParser(prog="factum")
     p.add_argument("--repo")
@@ -531,6 +557,12 @@ def parser():
 
     template = sub.add_parser("template")
     template.add_argument("--type", default="web.capture")
+    template.add_argument(
+        "--bare",
+        action="store_true",
+        help="Print only the submittable bundle (no CLI envelope). "
+        "Pipe directly to a file for use with `add --input`.",
+    )
 
     def submission(command):
         command.add_argument("--key", required=True)
@@ -605,6 +637,22 @@ def parser():
     link = submission(ls.add_parser("link"))
     link.add_argument("lane")
     link.add_argument("ids", nargs="+")
+
+    update_p = sub.add_parser("update")
+    update_p.add_argument("record_id")
+    update_p.add_argument("--actor", required=True)
+    update_p.add_argument(
+        "--set",
+        action="append",
+        default=[],
+        help="Metadata assignment as <path>=<value>; repeatable. "
+        "Values are JSON; null on a tags.* path deletes the key.",
+    )
+    update_p.add_argument(
+        "--tags",
+        help="JSON object of tag assignments merged with --set; "
+        "null values delete the tag.",
+    )
     return p
 
 
@@ -626,7 +674,7 @@ def dispatch(repo, args):
 
     state = State(repo, args.at).load()
     mutating = (
-        args.command in {"add", "capture", "extract", "note", "export"}
+        args.command in {"add", "capture", "extract", "note", "export", "update"}
         or args.command == "lane" and args.action in {"new", "edit", "link"}
         or args.command == "schema" and args.action == "install"
     )
@@ -698,37 +746,43 @@ def dispatch(repo, args):
 
     if args.command == "template":
         definition = state.catalog.definition("observation", args.type)
+        bundle = {
+            "bundle": FORMAT_VERSION,
+            "idempotency_key": "replace-with-stable-request-key",
+            "actor": "agent:researcher",
+            "tags": {},
+            "records": [
+                {
+                    "ref": "source",
+                    "kind": "source",
+                    "body": {
+                        "source_type": "submitted",
+                        "locator": "replace-with-source-locator",
+                    },
+                },
+                {
+                    "ref": "observation",
+                    "kind": "observation",
+                    "body": {
+                        "type": args.type,
+                        "source": "@source",
+                        "files": [],
+                        "data_schema": definition["schema"],
+                        "data": {},
+                    },
+                    "tags": {},
+                },
+            ],
+        }
+        if args.bare:
+            print(canonical(bundle))
+            return None
         return {
-            "note": "Fill data using the assigned schema; this is a scaffold, not a valid capture.",
+            "note": "Fill data using the assigned schema; this is a scaffold, not a valid capture. "
+            "The submittable bundle is the value under 'bundle'; "
+            "use --bare to print only the bundle.",
             "data_schema": state.catalog.documents[definition["schema"]],
-            "bundle": {
-                "bundle": FORMAT_VERSION,
-                "idempotency_key": "replace-with-stable-request-key",
-                "actor": "agent:researcher",
-                "tags": {},
-                "records": [
-                    {
-                        "ref": "source",
-                        "kind": "source",
-                        "body": {
-                            "source_type": "submitted",
-                            "locator": "replace-with-source-locator",
-                        },
-                    },
-                    {
-                        "ref": "observation",
-                        "kind": "observation",
-                        "body": {
-                            "type": args.type,
-                            "source": "@source",
-                            "files": [],
-                            "data_schema": definition["schema"],
-                            "data": {},
-                        },
-                        "tags": {},
-                    },
-                ],
-            },
+            "bundle": bundle,
         }
 
     if args.command == "add":
@@ -745,6 +799,9 @@ def dispatch(repo, args):
         return graph(state, args)
     if args.command == "lane":
         return lane_command(state, args)
+
+    if args.command == "update":
+        return update_command(state, args)
 
     if args.command == "note":
         bundle = base_bundle(args)
@@ -796,7 +853,9 @@ def main():
         lock = checked_path(repo, "data/.local/writer.lock")
         durable_mkdir(lock.parent)
         with FileLock(str(lock), timeout=30):
-            emit(dispatch(repo, args))
+            result = dispatch(repo, args)
+            if result is not None:
+                emit(result)
     except FactumError as error:
         emit({"error": {"code": error.code, "message": str(error)}}, ok=False)
         raise SystemExit(1)
