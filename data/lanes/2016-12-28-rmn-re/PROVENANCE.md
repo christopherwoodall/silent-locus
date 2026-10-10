@@ -78,3 +78,14 @@ Normalization-wave build scripts moved from `temp/` to the collection root
 per the 2026-09-29 convention (single-collection build scripts live in the
 collection dir; schema/collections.md). `temp/` removed. SHA256SUMS
 regenerated; `sha256sum -c` green.
+
+## 2026-10-10 — Factum ingest (lane `2016-12-28-rmn-re`)
+
+- Moved lane artifacts `evidence/2016-12-28-rmn-re/` ->
+  `data/lanes/2016-12-28-rmn-re/`; tombstone at
+  `evidence/remove-2016-12-28-rmn-re/`.
+- SHA256SUMS fix: the committed manifest's three `raw/` entries did not
+  match the committed raw bytes (stale entries carried in by the 2026-10-09
+  locus reconstruction commit bcb00e6f; the raw/decoded/events content
+  itself verified intact: 764 records, slug sets and fields aligned).
+  Regenerated SHA256SUMS from actual bytes; `sha256sum -c` green.
