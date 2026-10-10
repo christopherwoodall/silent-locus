@@ -148,17 +148,20 @@ def test_stale_missing_index_errors(state, bundle):
     add_bundle(state, bundle)
     current = State(state.repo).load()
     current.db_path.unlink()
-    with pytest.raises(FactumError, match="Run rebuild"):
-        invoke(state.repo, "match", "--value", "absent")
-    current.project()
+    # Read commands auto-rebuild a missing index instead of failing.
+    result = invoke(state.repo, "match", "--value", "absent")
+    assert result["status"] == "not_found"
+    assert current.db_path.exists()
     # An external portable change must invalidate the projection.
     corpus = state.repo / "data/corpus.json"
     document = json.loads(corpus.read_bytes())
     document["tags"]["external_change"] = True
     write_json_atomic(corpus, document)
     assert invoke(state.repo, "status")["stale"]
-    with pytest.raises(FactumError, match="Run rebuild"):
-        invoke(state.repo, "match", "--value", "absent")
+    # Read commands auto-rebuild a stale index instead of failing.
+    result = invoke(state.repo, "match", "--value", "absent")
+    assert result["status"] == "not_found"
+    assert not invoke(state.repo, "status")["stale"]
 
 
 def capture_fixture(repo, tmp_path, raw):
@@ -226,3 +229,75 @@ def test_historical_state_does_not_require_current_corpus(installed, tmp_path):
     assert commit in historical["database"]
     assert cli(skill, host, "--at", commit, "get", result["ids"]["v"])["record"]["body"]["value"] == "Example.COM"
     assert git(host, "rev-parse", "HEAD").stdout.strip() == commit
+
+
+def test_read_load_skips_reference_validation(state, bundle):
+    """load(validate=False) skips reference validation but still computes digest."""
+    add_bundle(state, bundle)
+    # Full validation passes on clean state.
+    State(state.repo).load(validate=True)
+    # Read-mode load also succeeds and computes a digest for index checks.
+    read_state = State(state.repo).load(validate=False)
+    assert read_state.state_digest is not None
+    assert read_state.state_digest == State(state.repo).load(validate=True).state_digest
+
+
+def test_match_sightings_index_correctness(state, bundle):
+    """match() returns sightings via the precomputed index (not per-candidate scan)."""
+    # The bundle fixture creates one observable; match should return it with
+    # an empty sightings list (no sightings exist yet). This exercises the
+    # precomputed sightings_by_observable index path in match().
+    from factum_lib.store import add_bundle
+    add_bundle(State(state.repo).load(), bundle)
+    result = invoke(state.repo, "match", "--value", "Example.COM")
+    assert result["status"] == "found"
+    assert len(result["matches"]) == 1
+    assert result["matches"][0]["sightings"] == []
+    # Key-mode also exercises the same result-assembly path.
+    result = invoke(state.repo, "match", "--value", "Example.COM",
+                    "--type", "domain", "--mode", "key")
+    assert result["status"] == "found"
+
+
+def test_is_mutating_classifies_commands():
+    """is_mutating() correctly identifies mutating vs read-only commands."""
+    from factum_lib.cli import is_mutating, parser
+    p = parser()
+    # Mutating commands
+    assert is_mutating(p.parse_args(["add", "--input", "x"]))
+    assert is_mutating(p.parse_args(["export"]))
+    assert is_mutating(p.parse_args(["update", "id", "--actor", "a"]))
+    assert is_mutating(p.parse_args(["lane", "new", "mytitle"]))
+    assert is_mutating(p.parse_args(["lane", "edit", "mylane"]))
+    assert is_mutating(p.parse_args(["lane", "link", "mylane", "--key", "k", "--actor", "a", "id1"]))
+    assert is_mutating(p.parse_args(["schema", "install", "d", "--approve"]))
+    # Read-only commands
+    assert not is_mutating(p.parse_args(["match", "--value", "x"]))
+    assert not is_mutating(p.parse_args(["query", "--input", "x"]))
+    assert not is_mutating(p.parse_args(["get", "id"]))
+    assert not is_mutating(p.parse_args(["graph", "mynode"]))
+    assert not is_mutating(p.parse_args(["status"]))
+    assert not is_mutating(p.parse_args(["verify"]))
+    assert not is_mutating(p.parse_args(["lane", "list"]))
+
+
+def test_record_tags_table_populated(state, bundle):
+    """project() populates the record_tags table for fast tag filtering."""
+    from factum_lib.store import add_bundle
+    add_bundle(State(state.repo).load(), bundle)
+    st = State(state.repo).load()
+    st.project()
+    db = st.connect()
+    try:
+        # The bundle fixture sets tags; verify they're in record_tags.
+        rows = db.execute("SELECT key, value FROM record_tags").fetchall()
+        assert len(rows) > 0
+        # Every record_tags entry references a real record.
+        orphans = db.execute(
+            "SELECT COUNT(*) FROM record_tags rt "
+            "LEFT JOIN records r ON rt.record_id = r.id "
+            "WHERE r.id IS NULL"
+        ).fetchone()[0]
+        assert orphans == 0
+    finally:
+        db.close()

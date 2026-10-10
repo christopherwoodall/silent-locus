@@ -225,6 +225,14 @@ def match(state, args):
                             candidates.append(dict(entry))
 
         matches = {}
+        # Precompute sightings by observable once: the per-candidate scan
+        # over all records was O(candidates x N). This is O(N).
+        sightings_by_observable = {}
+        for record in state.records.values():
+            if record["record_kind"] == "sighting":
+                sightings_by_observable.setdefault(
+                    record["body"]["observable"], []
+                ).append(record)
         for item in candidates:
             rid = item["node_id"]
             exact = item["raw_value"] == value
@@ -237,11 +245,7 @@ def match(state, args):
                     (rid,),
                 )
             ]
-            sightings = [
-                record for record in state.records.values()
-                if record["record_kind"] == "sighting"
-                and record["body"]["observable"] == rid
-            ][:10]
+            sightings = sightings_by_observable.get(rid, [])[:10]
             matches[rid] = {
                 "id": rid,
                 "record_kind": state.records[rid]["record_kind"],
@@ -683,14 +687,26 @@ def dispatch(repo, args):
             return {"initialized": False, "next": "init"}
         fail("NOT_INITIALIZED", "Run init.")
 
-    state = State(repo, args.at).load()
-    mutating = (
-        args.command in {"add", "capture", "extract", "note", "export", "update"}
-        or args.command == "lane" and args.action in {"new", "edit", "link"}
-        or args.command == "schema" and args.action == "install"
-    )
+    mutating = is_mutating(args)
+    # Read-only commands skip reference validation: writes already validate
+    # before mutating, so re-validating the entire corpus on every read is
+    # redundant. The state digest is still computed for index-freshness checks.
+    state = State(repo, args.at).load(validate=mutating)
     if args.at and mutating:
         fail("READ_ONLY", "--at is read-only.")
+
+    if not mutating and args.command in {"match", "query", "graph"}:
+        # Read-only index consumers rebuild a stale or missing index
+        # automatically instead of failing. Write commands keep the hard
+        # failure so index problems surface loudly before mutation.
+        try:
+            db = state.connect()
+            db.close()
+        except FactumError as error:
+            if error.code in {"INDEX_STALE", "INDEX_MISSING"}:
+                state.project()
+            else:
+                raise
 
     if args.command in {"status", "doctor"}:
         stale = True
@@ -857,13 +873,30 @@ def dispatch(repo, args):
     fail("COMMAND", "Unsupported command.")
 
 
+def is_mutating(args):
+    """Return True if this command mutates corpus state."""
+    return (
+        args.command in {"add", "capture", "extract", "note", "export", "update"}
+        or args.command == "lane" and args.action in {"new", "edit", "link"}
+        or args.command == "schema" and args.action == "install"
+    )
+
+
 def main():
     args = parser().parse_args()
     try:
         repo = resolve_repo(args.repo)
-        lock = checked_path(repo, "data/.local/writer.lock")
-        durable_mkdir(lock.parent)
-        with FileLock(str(lock), timeout=30):
+        # Only mutating commands take the writer lock. Reads open SQLite in
+        # read-only mode and never modify corpus state, so serializing them
+        # against writers only adds latency and LOCK_TIMEOUT failures.
+        if is_mutating(args):
+            lock = checked_path(repo, "data/.local/writer.lock")
+            durable_mkdir(lock.parent)
+            with FileLock(str(lock), timeout=30):
+                result = dispatch(repo, args)
+                if result is not None:
+                    emit(result)
+        else:
             result = dispatch(repo, args)
             if result is not None:
                 emit(result)
