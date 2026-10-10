@@ -30,3 +30,12 @@ deduped/mapped traces, of which 14,940 are `zz=oai<digits>`-tagged DoE captures
 **Grading context:** `notes/transluce-us-canada-gov-2026-10-01.md` (incl.
 2026-10-03 addendum); hypothesis "Same provider, different agents, different
 evals." Scope: agents and agent infrastructure only.
+
+**Addendum 2026-10-09 (broken-symlink repair):** the original `events.jsonl`
+symlink target `openai-agent-traces/data/traces.jsonl` (a sibling worktree)
+no longer exists. `events.jsonl` now points to `raw/traces.jsonl`, cached in
+this lane on 2026-10-08 (589,972 lines). The target content is byte-identical
+to the recorded manifest: sha256 `afd22d6d7aa8939b2b691967db3e16df2de41fc9c5df79140517e3cccfa66ee3`
+matches `SHA256SUMS`. The `dataset_override` (`openai-agent-traces`) and the
+"no copy — copies drift" policy are unchanged: there is still exactly one
+copy of the data in this lane.
