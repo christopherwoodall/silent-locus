@@ -131,6 +131,11 @@ Choose storage explicitly:
 
 Use `--observed-at` when the real acquisition time is known.
 
+`capture` creates three records: the artifact, a source for `--url`, and a
+`web.capture` observation linking them. Pass `--tags '{"lane":"<lane>"}'` so
+all three carry the lane tag. `--lane` is different: it creates `in_lane`
+edge records and does not set `tags.lane`.
+
 Use actor/run-scoped idempotency keys. Reuse a key only when retrying the same
 request. File retries require the original submitted files to remain available.
 
@@ -158,12 +163,16 @@ add --input <bundle.json>
 Bundle rules:
 
 - Use `"bundle": 2`.
+- Set top-level `"actor"` and `"idempotency_key"` (both required; a bundle
+  without them fails schema validation).
 - Use `records[].ref` for bundle-local names.
 - Use `"@name"` only in declared reference fields.
 - Put miscellaneous record metadata in `records[].tags`.
 - Submit local bytes through `files[]`.
 - Do not compute record IDs or fingerprints.
 - Scripts assign registered `data_schema` and `value_schema` fields.
+- A top-level `"lane"` creates `in_lane` edge records; it does not set
+  `tags.lane`. Keep setting the lane tag on every record.
 
 If explicitly supplied schema assignments disagree with the registered type,
 the submission fails.

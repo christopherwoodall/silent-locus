@@ -189,6 +189,24 @@ reset can orphan the sibling's commit instead.
 7. **Commit and push.** Run `export`, then `verify --blobs`, then review,
    then commit, then push when authorized.
 
+**Batch-ingest notes (learned 2026-10-09).**
+
+- `lane new` creates `data/lanes/<date>-<slug>-<id>/`. The lane-dir
+  convention is the plain slug: `mv` the created directory to
+  `data/lanes/<lane>/`, then set `docs_path` to the new path and add a
+  `legacy_path` tag via `lane edit`.
+- `export` exports **all** pending batches in `data/.local/`, including
+  sibling workers'. Commit only your own `data/records/<batch>/` batch
+  directory; leave sibling batches uncommitted for their owners.
+- `git commit --only <paths>` fails on untracked files with "pathspec did
+  not match any file(s) known to git". For new files, `git add` the explicit
+  pathspecs first, then `git commit --only <same paths>`.
+- `capture` makes three records (artifact + source + web.capture observation).
+  Pass `--tags '{"lane":"<lane>"}'` so all three carry the lane tag; `--lane`
+  only creates `in_lane` edges and does not set `tags.lane` (verified in
+  `store.py`: bundle-level `lane` appends edge records, never tags).
+- Bundle `add --input` requires top-level `"actor"` and `"idempotency_key"`.
+
 ### Lane tagging
 
 Every submitted record gets the tag `{"lane": "<lane-name>"}`. The tag
