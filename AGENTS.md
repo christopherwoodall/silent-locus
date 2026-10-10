@@ -214,6 +214,15 @@ reset can orphan the sibling's commit instead.
   observation/sighting/artifact/claim/run (REFERENCE_TYPE failure at
   submit). Claims cite observations; link the source record through
   `observation.body.source` instead. (Found 2026-10-10, urlquery-marker-sweep.)
+- `lane edit --tags` REPLACES the whole tag map, it does not merge. Pass the
+  complete intended tag set every time or you will silently drop `docs_path`,
+  `grade`, and `lane` (hit 2026-10-10, amap-fleet: first edit wiped three tags;
+  restored with a full-set second edit).
+- Under concurrent-writer lock contention, a DB-query validator can take 10+
+  minutes for a handful of queries; validate the immutable exported batch
+  files (`data/records/<batch>/records.jsonl`) instead — same byte-level
+  checks, no locks, and it is the artifact that actually gets committed.
+  (Found 2026-10-10, amap-fleet.)
 - Multi-row entities must merge ALL passes (2026-10-10): when legacy rows
   repeat a key across passes (e.g. a gem in both the initial and retry
   Diffend sweeps), the merged record must carry every pass's evidence, not
