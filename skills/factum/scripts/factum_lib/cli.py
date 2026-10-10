@@ -18,7 +18,7 @@ from .schemas import (
     durable_mkdir,
 )
 from .store import (
-    FactumError, State, add_bundle, atomic_bytes, export_pending,
+    FactumError, ReadState, State, add_bundle, atomic_bytes, export_pending,
     fail, head, initialize, new_id, now, resolve_repo, update_record,
 )
 
@@ -225,21 +225,11 @@ def match(state, args):
                             candidates.append(dict(entry))
 
         matches = {}
-        # Sightings are fetched via SQL indexed by observable. In light mode
-        # (SQLite-only reads), state.records is empty, so we query the
-        # records table for sighting records referencing each candidate.
-        # In full mode, use the precomputed in-memory index (Team B fix).
-        if getattr(state, "_light", False):
-            sightings_by_observable = None  # fetched per-candidate via SQL below
-        else:
-            # Precompute sightings by observable once: the per-candidate scan
-            # over all records was O(candidates x N). This is O(N).
-            sightings_by_observable = {}
-            for record in state.records.values():
-                if record["record_kind"] == "sighting":
-                    sightings_by_observable.setdefault(
-                        record["body"]["observable"], []
-                    ).append(record)
+        # Batch-fetch all candidate documents and sightings with uniform
+        # interface (works for both State and ReadState).
+        candidate_ids = list(dict.fromkeys(item["node_id"] for item in candidates))
+        documents = state.get_records(candidate_ids)
+        sightings_by_observable = state.get_sightings(candidate_ids)
         for item in candidates:
             rid = item["node_id"]
             exact = item["raw_value"] == value
@@ -252,22 +242,8 @@ def match(state, args):
                     (rid,),
                 )
             ]
-            if sightings_by_observable is None:
-                # Light mode: fetch sightings from SQLite
-                sightings = [
-                    parse_json(row[0])
-                    for row in db.execute(
-                        "SELECT document FROM records WHERE kind='sighting' "
-                        "AND json_extract(document, '$.body.observable')=? "
-                        "LIMIT 10",
-                        (rid,),
-                    )
-                ]
-            else:
-                sightings = sightings_by_observable.get(rid, [])[:10]
-            # Fetch the full record document from SQLite in light mode;
-            # in full mode use the in-memory dict.
-            record = state.get_record(rid)
+            sightings = sightings_by_observable.get(rid, [])[:10]
+            record = documents.get(rid)
             if record is None:
                 continue
             matches[rid] = {
@@ -379,22 +355,9 @@ def extract(state, args):
 
 
 def graph(state, args):
-    # In light mode, check node existence via SQLite instead of state.records
-    if getattr(state, "_light", False):
-        db_check = state.connect()
-        try:
-            if args.node in state.lanes:
-                node_kind = "lane"
-            else:
-                row = db_check.execute(
-                    "SELECT kind FROM records WHERE id=?",
-                    (args.node,),
-                ).fetchone()
-                node_kind = row[0] if row else None
-        finally:
-            db_check.close()
-        if node_kind is None:
-            fail("NOT_FOUND", args.node)
+    # state.kind() works for both State (in-memory) and ReadState (SQLite).
+    if state.kind(args.node) is None:
+        fail("NOT_FOUND", args.node)
     elif state.kind(args.node) is None:
         fail("NOT_FOUND", args.node)
     if not 0 <= args.depth <= 10 or not 1 <= args.limit <= 2000:
@@ -759,17 +722,17 @@ def dispatch(repo, args):
         fail("NOT_INITIALIZED", "Run init.")
 
     mutating = is_mutating(args)
-    # Read-only commands use SQLite-only light mode: the records table
-    # already holds full JSON documents, so there is no need to parse
-    # 99k records from JSONL into Python memory. Write commands use the
-    # full load path with reference validation.
-    if mutating:
+    # Read-only commands use ReadState (SQLite-native): the records table
+    # already holds full JSON documents, so there is no need to parse 99k
+    # records from JSONL into Python memory. Write commands and --at
+    # historical reads use the full State load path.
+    if not mutating and not args.at and args.command in ReadState.READ_COMMANDS:
+        state = ReadState(repo).load()
+    else:
         # Read-only commands skip reference validation: writes already validate
         # before mutating, so re-validating the entire corpus on every read is
         # redundant. The state digest is still computed for index-freshness checks.
-        state = State(repo, args.at).load(validate=True)
-    else:
-        state = State(repo, args.at).load_light()
+        state = State(repo, args.at).load(validate=mutating)
     if args.at and mutating:
         fail("READ_ONLY", "--at is read-only.")
 
