@@ -76,3 +76,47 @@ left in place pending the centralized reference patch.
 ## Historical loader relocation (2026-09-30)
 
 Preserved `es_ingest_wiki.py` at `raw/scripts/legacy/es_ingest_wiki.py` as a historical, optional Elasticsearch loader; it is not an active collection event builder. Its local path resolution now targets the same collection and repository inputs from the archived location. No source evidence, `events.jsonl`, or `rollup.jsonl` was changed; no network or ES actions were run. The SHA256SUMS entry records the relocated script bytes.
+
+## Factum aggregation ingest (2026-10-10)
+
+Per operator approval of aggregation (no 1:1 ingest of the 19,913 wiki
+events), the lane was aggregated into Factum as lane `collusion-wiki`.
+
+Method:
+1. Read docs/taxonomy (TTP taxonomy + behavior categories) before shaping
+   records.
+2. Computed full aggregates from
+   `evidence/2026-05-17-collusion-wiki/events.jsonl` (19,913 rows, sha256
+   136efac16eb4a40f6d87395bc261af7b5cfefa3ec5dfcf8ea6ab28a53cdfec62,
+   verified against SHA256SUMS above):
+   - event_type distribution (probe / save / delete / revert)
+   - request_action distribution (only the 5,322 probe + delete events
+     carry request_action; save events carry none)
+   - param_family distribution (only the 101 probe events carry
+     param_family)
+   - success_observed true / false / absent counts (absent = save events)
+   - unique ip16 count (50 non-null; 14,591 save events carry no ip16)
+   - temporal range from labels.time; time_grade distribution
+   - actor_label and relation_type distributions
+3. Pre-ingest dedup: searched committed Factum batches for
+   "collusion-wiki", the XSS payload term, and "OpenAIResearchHelper".
+   No existing aggregate of this events.jsonl. Matches found are
+   incidental cross-references in other lanes only; the 5,217 delete
+   events were previously aggregated as a dataset.snapshot in lane
+   `2026-06-04-admin-deletions` (annotated as overlap in the source
+   record). The XSS payload term had no prior infra.ioc.
+4. Submitted one bundle: 1 source record (lane locator + raw/ contents
+   note + overlap annotation), 1 dataset.snapshot observation (row
+   count, sha256 revision), 10 OBSERVED-grade aggregate claims, and 1
+   infra.ioc for the single XSS probe payload
+   (`<script>alert('XSS')</script>`, 2026-06-29, attacklog_raw_dse_2606,
+   ip16 52.159). No 20k event ingest.
+5. Exported, verified (verify --blobs), committed explicit pathspecs,
+   pushed.
+6. Retained bytes copied to `data/lanes/collusion-wiki/` (PROVENANCE.md,
+   SHA256SUMS, events.jsonl, raw/). Legacy directory renamed to
+   `evidence/remove-2026-05-17-collusion-wiki/`.
+
+Aggregation script: deterministic re-derivation from events.jsonl; every
+count above was recomputed from the raw rows, not carried from
+summaries.
