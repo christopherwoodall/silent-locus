@@ -119,3 +119,21 @@ Moved script-consumed transform inputs into raw layer (upstream names preserved,
 ## Historical loader relocation (2026-09-30)
 
 Preserved `es_ingest_paste_archive.py` at `raw/scripts/legacy/es_ingest_paste_archive.py` as a historical, optional Elasticsearch loader; it is not an active collection event builder. Its local path resolution now targets the same collection and repository inputs from the archived location. No source evidence, `events.jsonl`, or `rollup.jsonl` was changed; no network or ES actions were run. The SHA256SUMS entry records the relocated script bytes.
+
+## Factum ingest 2026-10-09 (lane worker)
+
+- Ingested into Factum corpus as lane `2026-05-27-paste-archive`
+  (lane id `lane_79d04ebb39f94478833a7f63ee4ba0d8`).
+- Batch `e0017c5728c94f91969b909b4de6d031`: 83 records — 1 run record
+  (`run_3f3e4219e9704915893917a02438edf9`, the 2026-09-28 recovery sweep),
+  3 venue sources, 76 `infra.message` paste observations
+  (schema `urn:factum:infra:message:1`, full verbatim bodies, sha256 of each
+  body re-checked against this file's SHA256SUMS before ingest),
+  3 `dataset.snapshot` venue rollups (schema `urn:factum:datasets:snapshot:1`).
+- Dedup: `match --text "<venue|id>" --mode fuzzy` over the corpus before
+  submit — no true duplicates; 5 near-matches on `pastebin.k4be.pl` were
+  other lanes' pastes (thecolony-ai relay_paste records, 2018-05-09
+  paste-archive-gap probes), not these paste IDs.
+- Legacy dir renamed to `evidence/remove-2026-05-27-paste-archive/`;
+  artifacts live at `data/lanes/2026-05-27-paste-archive/` (paths here are
+  relative to that lane directory).
