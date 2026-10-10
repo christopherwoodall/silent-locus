@@ -15,12 +15,13 @@ import time
 import os
 
 # Operations to benchmark: (name, argv)
-# Each uses --repo <repo> prefix added at runtime
+# Each uses --repo <repo> prefix added at runtime.
+# NB: match --mode key is omitted -- it requires a valid observable type and
+# fails closed otherwise; exact/fuzzy are the critical perf paths.
 OPERATIONS = [
     # match modes
     ("match_exact", ["match", "--text", "da.gd", "--mode", "exact", "--limit", "25"]),
     ("match_fuzzy", ["match", "--text", "exploitgym", "--mode", "fuzzy", "--limit", "25"]),
-    ("match_key", ["match", "--text", "da.gd", "--mode", "key", "--type", "infra.ioc", "--limit", "25"]),
     # query with tag filter (count only, fast path)
     ("query_tag_count", None),  # special-cased: needs --input file
     # graph on a node (node ID resolved at runtime from match_exact)
