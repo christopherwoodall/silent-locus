@@ -745,7 +745,12 @@ def dispatch(repo, args):
             db.close()
         except FactumError as error:
             if error.code in {"INDEX_STALE", "INDEX_MISSING"}:
+                # project() needs the full record set, so do a full load.
+                state = State(repo, args.at).load(validate=False)
                 state.project()
+                # Re-enter ReadState for the actual command if applicable.
+                if not args.at and args.command in ReadState.READ_COMMANDS:
+                    state = ReadState(repo).load()
             else:
                 raise
 
