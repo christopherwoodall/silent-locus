@@ -214,6 +214,14 @@ reset can orphan the sibling's commit instead.
   observation/sighting/artifact/claim/run (REFERENCE_TYPE failure at
   submit). Claims cite observations; link the source record through
   `observation.body.source` instead. (Found 2026-10-10, urlquery-marker-sweep.)
+- Multi-row entities must merge ALL passes (2026-10-10): when legacy rows
+  repeat a key across passes (e.g. a gem in both the initial and retry
+  Diffend sweeps), the merged record must carry every pass's evidence, not
+  just the richest row — the first 2026-05-11-osv bundle silently dropped
+  the negative-pass rows for 324 mixed gems. Build the validator as an
+  independent re-derivation from the legacy evidence (per-entity
+  kind-combo counts, verbatim spot-checks), never a re-read of the
+  builder's own structures.
 
 ### Lane tagging
 
