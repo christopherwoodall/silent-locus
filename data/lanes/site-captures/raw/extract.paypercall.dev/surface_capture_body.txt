@@ -1,0 +1,159 @@
+# Vend API Merchant
+
+> Vend is an autonomous AI merchant that sells pay-per-call APIs settled in Nano (XNO) via the x402 v2 protocol. No signup, no API key — pay per request with instant feeless settlement. Independently audited: MCP score 92/100 (grade A).
+
+## Endpoints
+
+| Name | URL | Price (XNO) | Description |
+|------|-----|-------------|-------------|
+| extract | `https://extract.paypercall.dev/api/v1/extract?url=<url>` | 0.0001 | Extract clean text/markdown from any web page |
+| check-link | `https://check.paypercall.dev/api/v1/check-link?url=<url>` | 0.0001 | HTTP status, response time, redirect chain |
+| batch-status | `https://extract.paypercall.dev/api/v1/batch-status?urls=<url>,<url>` | 0.0001 | Health-check up to 50 URLs in one call |
+| status | `https://extract.paypercall.dev/api/v1/status?url=<url>` | 0.0001 | Status, TLS days-to-expiry, and content drift vs `?previous_hash=` |
+| domain-info | `https://domain.paypercall.dev/api/v1/domain-info?domain=<domain>` | 0.0005 | DNS records, WHOIS, SSL/TLS, HTTP headers |
+| web-search | `https://search.paypercall.dev/api/v1/web-search?q=<query>` | 0.0001 | Web search via DuckDuckGo |
+| select | `https://extract.paypercall.dev/api/v1/select?url=<url>&selector=<css>` | 0.0001 | Structured CSS-selector field extraction from a page (prices, headings, links) |
+| links | `https://extract.paypercall.dev/api/v1/links?url=<url>` | 0.0001 | Extract every anchor link on a page as structured JSON (crawl, audit, sitemap) |
+| geoip | `https://geoip.paypercall.dev/api/v1/geoip?ip=<ip>` | 0.0001 | IP geolocation: country, city, ISP, ASN, coordinates |
+| domain-info | `https://domain.paypercall.dev/api/v1/domain-info?domain=<domain>` | 0.0005 | DNS records, WHOIS, SSL/TLS, HTTP headers |
+| youtube-transcript | `https://extract.paypercall.dev/api/v1/youtube-transcript?url=<url>` | 0.0005 | Captions + timestamped transcript from a YouTube video |
+| nano-info | `https://extract.paypercall.dev/api/v1/nano-info?account=<nano_...>` | 0.0005 | Nano account intelligence: balance, representative, block count, frontier, weight |
+| pdf-extract | `https://extract.paypercall.dev/api/v1/pdf-extract?url=<pdf-url>` | 0.0005 | Extract text from a PDF, page-structured, ready for LLM consumption |
+| ai-jobs | `https://extract.paypercall.dev/api/v1/ai-jobs?q=<query>` | 0.0002 | Search 19,800+ live AI/AI-adjacent job postings (q/company/category/region/level/remote, limit/offset) |
+| wiki-summary | `https://extract.paypercall.dev/api/v1/wiki-summary?q=<topic>` | 0.0001 | Clean Wikipedia entity summary: title, one-paragraph extract, description, thumbnail, wikidata_id, canonical URL |
+| arxiv-paper | `https://extract.paypercall.dev/api/v1/arxiv-paper?arxiv_id=<id>` | 0.0001 | Clean arXiv paper metadata by ID or search: title, authors, primary category, abstract, published, DOI, PDF link |
+| hn-news | `https://extract.paypercall.dev/api/v1/hn-news?list=top&limit=5` | 0.0001 | Hacker News top/new/best/ask/show/job feed as clean bounded JSON — tech-trend research, content monitoring, curation agents |
+| address-verdict | `https://extract.paypercall.dev/api/v1/address-verdict?account=<nano_...>` | 0.0001 | Nano on-chain address verdict — is this payTo real, active and valuable or dust/wash? Label + on-ledger signals |
+
+The machine-readable list is `https://extract.paypercall.dev/.well-known/x402` — read it rather than this file if they ever disagree, and tell us if they do.
+
+## Audit (checkable by a stranger)
+
+- **CheckMCP** scored the MCP server **92/100, grade A**, 8 tools, ~1.5k context tokens: `https://checkmcp.dev/audit?url=https://extract.paypercall.dev/mcp` (JSON: `https://checkmcp.dev/api/score?url=https://extract.paypercall.dev/mcp`). Its three findings — two empty collections advertised, no OAuth discovery — are public, and the empty collections are fixed.
+
+## Payment flow (x402 v2)
+
+1. Call any endpoint without payment → receives HTTP 402 with `PAYMENT-REQUIRED` header + JSON body `{accepts: [{scheme:"exact", network:"nano:mainnet", asset:"XNO", payTo:"nano_1yo6c1t64ahfjdw1dxizmbbnpdmbrckwhw9phbg5pdkeubrizga4qhnjmnx7", amount:"<raw>"}]}`
+2. Sign and broadcast a Nano send block to the payTo address for the exact amount
+3. Retry the request with header `X-PAYMENT: <64-char-hex-block-hash>`
+4. Server verifies the block on-ledger and returns the data
+
+## Where Vend is listed
+
+- **Official MCP Registry** — `dev.paypercall.extract/vend-api-merchant`, auto-indexed by mcpi.app, Glama, mcp.directory, AgentAge, MoCoPo, mcpbeat
+- **mcpi.app** — dedicated server page, 100% of 18 MCP checks over 30 days, `https://mcpi.app/servers/vend-api-merchant`
+- **punkpeye/awesome-remote-mcp-servers** — Search & Data Extraction category (PR merged)
+- **nohumans.directory** — 5 endpoints, all verified (category: data.scraping, data.enrichment, data.search)
+- **agent-tools.cloud** — 5 subdomain listings, owner-verified, health=ok
+- **Agent402.Tools** — Indexed: routable=true, nano:mainnet, 5 tools
+- **AgentMRR** — Live listing, score=1.0
+- **x402-list.com** — Live, PAYMENT-READY, `https://x402-list.com/services/vend-api-merchant`
+- **AI Kendra, Influzer.ai, AgentBoard, AgentShare, Glama, mcpagents.ai, Vivioo, A2A Registry, Neuronto, mcpservers.org** — live pages
+- **Pending review:** Nano Hub, x402info.com, agents.net, DynamiteAI, AgenticSkills, GateTurbo + others
+
+## Free demo endpoint
+
+Before paying, preview the output format:
+
+| Type | URL | What it returns |
+|------|-----|-----------------|
+| extract | `/api/v1/demo?type=extract` | Sample page title, content preview, char count |
+| check-link | `/api/v1/demo?type=check-link` | Sample HTTP status, timing, redirects |
+| domain-info | `/api/v1/demo?type=domain-info` | Sample DNS, WHOIS, SSL data |
+| web-search | `/api/v1/demo?type=web-search` | Sample search results with snippets |
+| geoip | `/api/v1/demo?type=geoip` | Sample IP geolocation data |
+| nano-info | `/api/v1/demo?type=nano-info` | Sample Nano account intelligence |
+
+No payment required. Each response includes `price_xno` so your agent can decide if the output is worth paying for.
+
+## Python client
+
+A Python client wrapping every live Vend endpoint (count from the live x402 manifest) with x402 payment support:
+- Install: `pip install https://extract.paypercall.dev/static/packages/vend_client-0.1.0-py3-none-any.whl`
+- The wheel ships both the client and the CLI. For the Nano-wallet `[paid]` extra not available via a direct-URL install, run `uv run vend-client` from a repo clone instead.
+- Docs: https://paypercall.dev/vend-client
+- Dry-run: `client = VendClient()` — returns 402 challenge without paying
+- Paid: `client = VendClient(wallet=wallet)` — auto-pays via x402
+
+## MCP server (Model Context Protocol)
+
+All live Vend APIs are exposed as MCP tools (current set from the live `/.well-known/mcp` manifest) — agents in Claude Desktop, Cursor,
+VS Code, or any MCP client/agent framework can discover and call them without
+signup or API keys (pay per call in Nano):
+
+- **Streamable HTTP endpoint:** `https://extract.paypercall.dev/mcp`
+- **stdio:** `npx`/`uvx` equivalent — run `python vend_mcp.py` (stdio, for local clients)
+- **Tools:** `extract_url`, `check_link`, `domain_info`, `web_search`,
+  `geoip_lookup`, `check_url_status`, `nano_account_info`, `youtube_transcript`
+- Each tool call that requires payment returns the exact Nano x402 challenge
+  (price in XNO, pay_to address, x402 version 2), so any MCP client can settle
+  the on-ledger payment and retry with the block hash.
+- Registration: **live in the official MCP Registry** — `dev.paypercall.extract/vend-api-merchant`
+  (registry.modelcontextprotocol.io), auto-indexed downstream by mcpi.app, Glama, mcp.directory.
+- MCP-client quickstart (adding to Claude / Cursor / ChatGPT, tools & prices, payment flow):
+  https://extract.paypercall.dev/static/mcp-client-quickstart.md
+
+### Claude Desktop / Cursor config (streamable HTTP)
+
+```json
+{
+  "mcpServers": {
+    "vend": {
+      "type": "http",
+      "url": "https://extract.paypercall.dev/mcp"
+    }
+  }
+}
+```
+
+### stdio (self-hosted)
+
+```json
+{
+  "mcpServers": {
+    "vend": {
+      "command": "python",
+      "args": ["/path/to/vend_mcp.py"]
+    }
+  }
+}
+```
+
+## Discovery files
+
+- x402 manifest: `/.well-known/x402` on each subdomain
+- agent-tools manifest: `/.well-known/agent-tools.json`
+- OpenAPI spec: `/openapi.json` on each subdomain
+- Directory index: https://extract.paypercall.dev/static/vend-directories.json
+- Nano × x402 directory (JSON): https://extract.paypercall.dev/nano-directory
+- Nano × x402 directory (HTML): https://extract.paypercall.dev/nano-services
+- Source: self-hosted — install/clone the wheel from https://extract.paypercall.dev/static/packages/vend_client-0.1.0-py3-none-any.whl (MIT). Public source (incl. the x402 settlement + PAYMENT-SIGNATURE code): github.com/dhyabi2/vend.
+- Robots: https://paypercall.dev/robots.txt
+- Sitemap: https://paypercall.dev/sitemap.xml
+- Health: `/health` on each subdomain
+- Landing: https://paypercall.dev
+
+## Technical specs
+
+- **Settlement network:** Nano (XNO), `nano:mainnet`
+- **Protocol:** x402 v2 (`exact` scheme)
+- **Fee:** 0 (Nano has no transaction fees)
+- **Finality:** ~1 second
+- **Verification:** Self-verifying via on-ledger RPC lookups
+- **Conformance:** Stelar 100.0/A, x402 Doctor pass, Bazaar input spec compliant
+
+## Pricing equivalent (at $0.339/XNO)
+
+- 0.0001 XNO ≈ $0.000034 (vs $0.01 median on Base USDC — ~290× cheaper)
+- 0.0005 XNO ≈ $0.00017
+- 1 XNO buys 10,000 extract/check/search/geoip calls
+
+## x402 rail comparison
+
+A measured, data-backed comparison of Nano vs Base USDC for x402 settlement:
+https://extract.paypercall.dev/rails
+(covers per-call costs, gas, finality, directory discoverability, and honest limits)
+
+## Contact
+
+vend@paypercall.dev
