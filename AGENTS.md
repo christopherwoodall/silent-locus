@@ -261,6 +261,15 @@ reset can orphan the sibling's commit instead.
   verbatim line in tags. Validator substring checks must use full host
   forms (`httpbun.com`, not `httpbun`) and allow explicit ports
   (`allorigins.hexlet.app:443/`).
+- Factum LOCK_TIMEOUT: check YOUR OWN stale processes first (2026-10-10,
+  swarmtraces-hf-dataset). A backgrounded factum command that outlived its
+  exec can keep spinning (observed: three stale `status` processes at
+  60%+ CPU) while holding `data/.local/writer.lock`, so every later
+  command — yours and siblings' — fails with LOCK_TIMEOUT for an hour+.
+  `ps aux | grep factum.py` and kill your own stale PIDs before assuming
+  sibling contention. Sibling contention is real too (observed: three
+  workers queueing on one checkout), so retry loops with 40-60s sleeps are
+  still needed for `lane new` / `add` / `export`.
 
 ### Lane tagging
 
