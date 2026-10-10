@@ -1126,12 +1126,13 @@ class State:
                 temporary.unlink()
 
     def batch_digest(self):
-        """Fingerprint of exported batches + pending files + corpus/lock.
+        """Fingerprint of exported batches + corpus/lock.
 
         Uses manifest records_sha256 values (not record parsing), plus
-        pending file hashes, plus corpus.json and schema-lock.json.
-        Written to the meta table by project() so ReadState can detect
-        staleness without parsing records.
+        corpus.json and schema-lock.json hashes. Written to the meta
+        table by project() so ReadState can detect staleness without
+        parsing records. Pending files are NOT included: ReadState
+        serves them from memory.
         """
         entries = []
         # Corpus and lock: detect external modifications
@@ -1143,10 +1144,6 @@ class State:
         for path in self.paths("records", "manifest.json"):
             manifest = self.json(path)
             entries.append(("batch", manifest["batch_id"], manifest["records_sha256"]))
-        for path in self.paths(".local/pending", ".json"):
-            # Use basename for consistency with ReadState.batch_digest()
-            name = path.rsplit("/", 1)[-1]
-            entries.append(("pending", name, sha256(self.read(path))))
         return digest({"sources": sorted(entries)})
 
     def get_record(self, record_id):
@@ -1349,6 +1346,7 @@ class ReadState:
         self.catalog = None
         self.lanes = {}
         self.pending = []  # list of (path, batch_id, record_count)
+        self._pending_records = {}  # id -> record (parsed from pending files)
         self.state_digest = None
         self._stored_batch_digest = None
 
@@ -1361,21 +1359,23 @@ class ReadState:
         return parse_json(path.read_bytes())
 
     def batch_digest(self):
-        """Fingerprint of exported batches + pending files.
+        """Fingerprint of exported batches + corpus/lock.
 
         Uses manifest records_sha256 values (not record parsing), plus
-        pending file hashes. Changes iff the underlying JSONL state
-        changed. Fast: only small manifest files are read.
-
-        Computes identically to State.batch_digest() so the stored
-        digest (written by project()) matches.
+        corpus.json and schema-lock.json hashes. Computes identically
+        to State.batch_digest() so the stored digest (written by
+        project()) matches. Pending files are NOT included: they are
+        served from memory.
         """
         entries = []
+        for rel in ("data/corpus.json", "data/schema-lock.json"):
+            try:
+                entries.append((rel, sha256((self.repo / rel).read_bytes())))
+            except Exception:
+                pass
         for rel in self._paths("records", "manifest.json"):
             manifest = parse_json((self.repo / rel).read_bytes())
             entries.append(("batch", manifest["batch_id"], manifest["records_sha256"]))
-        for rel in self._paths(".local/pending", ".json"):
-            entries.append(("pending", rel, sha256((self.repo / rel).read_bytes())))
         return digest({"sources": sorted(entries)})
 
     def _paths(self, prefix, suffix):
@@ -1424,8 +1424,10 @@ class ReadState:
                 rel = str(lane_path.relative_to(self.repo)).replace("\\", "/")
                 self.lanes[lane["id"]] = {"record": lane, "path": rel}
 
-        # Pending metadata only (not full records): enough for scope().
-        # Full pending records are in the SQLite index after project().
+        # Pending records are parsed (they're small) so they are
+        # searchable via ReadState even before export/project. This
+        # matches State behavior where pending records are in memory.
+        self._pending_records = {}
         pending_root = self.local / "pending"
         if pending_root.exists():
             for pending_path in sorted(pending_root.glob("*.json")):
@@ -1435,6 +1437,8 @@ class ReadState:
                 self.pending.append(
                     (str(pending_path), document["batch_id"], len(document["records"]))
                 )
+                for record in document["records"]:
+                    self._pending_records[record["id"]] = record
 
         # Read stored digests from the SQLite meta table (written by
         # project()). The state_digest was computed from the full record
@@ -1509,6 +1513,8 @@ class ReadState:
         """Fetch one record document by ID (cached)."""
         if record_id in self._doc_cache:
             return self._doc_cache[record_id]
+        if record_id in self._pending_records:
+            return self._pending_records[record_id]
         db = self._open_db()
         row = db.execute(
             "SELECT document FROM records WHERE id=?", (record_id,)
@@ -1529,7 +1535,14 @@ class ReadState:
         result = {
             rid: self._doc_cache[rid] for rid in unique_ids if rid in self._doc_cache
         }
-        missing = [rid for rid in unique_ids if rid not in self._doc_cache]
+        # Pending records are already in memory
+        for rid in unique_ids:
+            if rid not in result and rid in self._pending_records:
+                result[rid] = self._pending_records[rid]
+        missing = [
+            rid for rid in unique_ids
+            if rid not in self._doc_cache and rid not in self._pending_records
+        ]
         if missing:
             db = self._open_db()
             for chunk_start in range(0, len(missing), 900):
@@ -1554,6 +1567,13 @@ class ReadState:
         result = {oid: [] for oid in unique_ids}
         if not unique_ids:
             return result
+        # Check pending records first (in-memory)
+        for record in self._pending_records.values():
+            if record["record_kind"] != "sighting":
+                continue
+            observable = record["body"]["observable"]
+            if observable in result and len(result[observable]) < limit:
+                result[observable].append(record)
         db = self._open_db()
         for chunk_start in range(0, len(unique_ids), 900):
             chunk = unique_ids[chunk_start : chunk_start + 900]
@@ -1570,15 +1590,17 @@ class ReadState:
         return result
 
     def count_records(self):
-        """Number of records in the SQLite index."""
+        """Number of records in the SQLite index plus pending."""
         db = self._open_db()
         row = db.execute("SELECT COUNT(*) FROM records").fetchone()
-        return row[0]
+        return row[0] + len(self._pending_records)
 
     def kind(self, node_id):
-        """Node kind via lanes dict + nodes table (no record parsing)."""
+        """Node kind via lanes dict + pending + nodes table."""
         if node_id in self.lanes:
             return "lane"
+        if node_id in self._pending_records:
+            return self._pending_records[node_id]["record_kind"]
         db = self._open_db()
         row = db.execute(
             "SELECT kind FROM nodes WHERE id=?", (node_id,)
