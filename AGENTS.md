@@ -206,6 +206,14 @@ reset can orphan the sibling's commit instead.
   only creates `in_lane` edges and does not set `tags.lane` (verified in
   `store.py`: bundle-level `lane` appends edge records, never tags).
 - Bundle `add --input` requires top-level `"actor"` and `"idempotency_key"`.
+- `template --bare` scaffolds are incomplete: the observation schema
+  REQUIRES `observed_at` + `time_basis` (ground the value, e.g. in lane
+  `event.created` with `time_basis: "source_metadata"`), and the scaffold's
+  `"source": "@source"` is fine but claims' `cites` may NOT target
+  source-kind records — the citations def only accepts
+  observation/sighting/artifact/claim/run (REFERENCE_TYPE failure at
+  submit). Claims cite observations; link the source record through
+  `observation.body.source` instead. (Found 2026-10-10, urlquery-marker-sweep.)
 
 ### Lane tagging
 
@@ -499,9 +507,9 @@ claims, and relationships.
 - Host corpus: `data/`
 - Command:
   `uv run skills/factum/scripts/factum.py --repo <host-repository> <command>`
-  (`uv` is not installed on this VM — verified 2026-10-09 — so run
-  `python3 skills/factum/scripts/factum.py` instead; all script deps are
-  present in system python3.)
+  (`uv` is at `~/.local/bin/uv` but not on PATH — verified 2026-10-10 — so
+  either `export PATH="$HOME/.local/bin:$PATH"` or call it by absolute
+  path; `python3 skills/factum/scripts/factum.py` also works directly.)
 
 Read the skill at the start of evidence-storage work. Run `status` before
 submitting or searching data.
