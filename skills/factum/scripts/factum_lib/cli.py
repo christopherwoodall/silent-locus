@@ -8,7 +8,7 @@ from datetime import date
 from pathlib import Path
 
 from filelock import FileLock, Timeout
-from rapidfuzz.fuzz import ratio
+from rapidfuzz.fuzz import partial_ratio, ratio
 
 from . import FORMAT_VERSION, TOOLKIT_VERSION
 from .schemas import (
@@ -142,6 +142,17 @@ def capture(state, args):
     return add_bundle(state, bundle)
 
 
+def fuzzy_score(query, raw_value):
+    """Best alignment score between a query and a candidate value.
+
+    ``ratio`` handles similar-length strings; ``partial_ratio`` handles
+    short queries against longer values (substring matches). The gate and
+    the reported score both use the best of the two, so a short query can
+    no longer miss a value that contains it verbatim.
+    """
+    return max(ratio(query, raw_value), partial_ratio(query, raw_value))
+
+
 def match(state, args):
     query = read_json(args.input) if args.input else {
         "value": args.value or args.url or args.sha256 or args.text,
@@ -210,7 +221,7 @@ def match(state, args):
                     ):
                         if value_type and entry["value_type"] != value_type:
                             continue
-                        if ratio(value, entry["raw_value"]) >= 65:
+                        if fuzzy_score(value, entry["raw_value"]) >= 65:
                             candidates.append(dict(entry))
 
         matches = {}
@@ -237,7 +248,7 @@ def match(state, args):
                 "value": item["raw_value"],
                 "value_type": item["value_type"],
                 "match_type": "exact" if exact else mode,
-                "score": ratio(value, item["raw_value"]) if mode == "fuzzy" else None,
+                "score": fuzzy_score(value, item["raw_value"]) if mode == "fuzzy" else None,
                 "tags": state.records[rid]["tags"],
                 "lanes": lanes,
                 "sightings": sightings,

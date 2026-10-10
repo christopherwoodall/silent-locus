@@ -90,6 +90,60 @@ def test_no_match_and_truncation(state, bundle):
     assert absent["status"] == "not_found" and absent["searched"]["coverage"]
 
 
+def test_fuzzy_substring_match(state):
+    """Short queries must match longer values that contain them.
+
+    Regression test: ratio("exploitgym", "sunblaze-ucb/exploitgym") is 62.5,
+    below the 65 gate, so the old code missed genuine substring hits.
+    """
+    bundle = {
+        "bundle": 2, "actor": "agent:synthetic", "idempotency_key": "test/fuzzy-sub",
+        "tags": {},
+        "records": [{
+            "ref": "obs", "kind": "observable",
+            "body": {"type": "domain", "value": "sunblaze-ucb/exploitgym"},
+            "tags": {},
+        }],
+    }
+    add_bundle(state, bundle)
+    result = invoke(
+        state.repo, "match", "--value", "exploitgym",
+        "--type", "domain", "--mode", "fuzzy",
+    )
+    assert result["status"] == "found"
+    assert result["matches"][0]["value"] == "sunblaze-ucb/exploitgym"
+    assert result["matches"][0]["score"] >= 65
+
+
+def test_fuzzy_similar_length_still_matches(state, bundle):
+    """Existing similar-length fuzzy behavior is preserved."""
+    add_bundle(state, bundle)
+    result = invoke(
+        state.repo, "match", "--value", "Example.CO",
+        "--type", "domain", "--mode", "fuzzy",
+    )
+    assert result["status"] == "found"
+    assert result["matches"][0]["value"] == "Example.COM"
+
+
+def test_fuzzy_unrelated_still_rejected(state, bundle):
+    """Unrelated values must not match, even with substring scoring."""
+    add_bundle(state, bundle)
+    result = invoke(
+        state.repo, "match", "--value", "zzzqqq",
+        "--type", "domain", "--mode", "fuzzy",
+    )
+    assert result["status"] == "not_found"
+
+
+def test_fuzzy_score_prefers_best_alignment(state):
+    """The reported score reflects the best alignment found."""
+    from factum_lib.cli import fuzzy_score
+    assert fuzzy_score("exploitgym", "sunblaze-ucb/exploitgym") == 100.0
+    assert fuzzy_score("abc", "abc") == 100.0
+    assert fuzzy_score("zzz", "qqq") < 65
+
+
 def test_stale_missing_index_errors(state, bundle):
     add_bundle(state, bundle)
     current = State(state.repo).load()

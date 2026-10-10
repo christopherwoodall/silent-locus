@@ -226,6 +226,9 @@ Report either:
 
 Do not turn `not_found` into a claim of originality or global novelty.
 
+Fuzzy mode matches on best alignment (whole-string or substring), so a
+short query finds longer values that contain it.
+
 Search covers structured Factum records, not every file in the repository or
 all external sources.
 
