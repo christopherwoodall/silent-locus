@@ -301,3 +301,50 @@ def test_record_tags_table_populated(state, bundle):
         assert orphans == 0
     finally:
         db.close()
+
+
+
+def test_readstate_interface_parity(state, bundle):
+    """ReadState exposes the same read interface as State."""
+    from factum_lib.store import ReadState, State, add_bundle, export_pending
+    # Set up: add, export, project using State
+    st = State(state.repo).load()
+    add_bundle(st, bundle)
+    export_pending(State(state.repo).load())
+    State(state.repo).load().project()
+
+    rs = ReadState(state.repo).load()
+    try:
+        # count_records matches
+        assert rs.count_records() == State(state.repo).load(validate=False).count_records()
+        # get_record returns the same document
+        st2 = State(state.repo).load(validate=False)
+        some_id = next(iter(st2.records))
+        assert rs.get_record(some_id) == st2.records[some_id]
+        # get_records batch fetch matches
+        ids = list(st2.records.keys())[:5]
+        assert rs.get_records(ids) == {i: st2.records[i] for i in ids}
+        # kind works
+        assert rs.kind(some_id) == st2.kind(some_id)
+        # state_digest matches
+        assert rs.state_digest == st2.state_digest
+    finally:
+        rs.close()
+
+
+def test_readstate_batch_digest_stable(state, bundle):
+    """batch_digest is stable across calls."""
+    from factum_lib.store import ReadState, State, add_bundle, export_pending
+    st = State(state.repo).load()
+    add_bundle(st, bundle)
+    export_pending(State(state.repo).load())
+    State(state.repo).load().project()
+
+    rs = ReadState(state.repo).load()
+    try:
+        d1 = rs.batch_digest()
+        d2 = rs.batch_digest()
+        assert d1 == d2
+        assert isinstance(d1, str) and len(d1) > 0
+    finally:
+        rs.close()

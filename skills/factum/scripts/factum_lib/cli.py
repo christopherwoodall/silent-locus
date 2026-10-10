@@ -18,7 +18,7 @@ from .schemas import (
     durable_mkdir,
 )
 from .store import (
-    FactumError, State, add_bundle, atomic_bytes, export_pending,
+    FactumError, ReadState, State, add_bundle, atomic_bytes, export_pending,
     fail, head, initialize, new_id, now, resolve_repo, update_record,
 )
 
@@ -225,14 +225,11 @@ def match(state, args):
                             candidates.append(dict(entry))
 
         matches = {}
-        # Precompute sightings by observable once: the per-candidate scan
-        # over all records was O(candidates x N). This is O(N).
-        sightings_by_observable = {}
-        for record in state.records.values():
-            if record["record_kind"] == "sighting":
-                sightings_by_observable.setdefault(
-                    record["body"]["observable"], []
-                ).append(record)
+        # Batch-fetch all candidate documents and sightings with uniform
+        # interface (works for both State and ReadState).
+        candidate_ids = list(dict.fromkeys(item["node_id"] for item in candidates))
+        documents = state.get_records(candidate_ids)
+        sightings_by_observable = state.get_sightings(candidate_ids)
         for item in candidates:
             rid = item["node_id"]
             exact = item["raw_value"] == value
@@ -246,17 +243,20 @@ def match(state, args):
                 )
             ]
             sightings = sightings_by_observable.get(rid, [])[:10]
+            record = documents.get(rid)
+            if record is None:
+                continue
             matches[rid] = {
                 "id": rid,
-                "record_kind": state.records[rid]["record_kind"],
+                "record_kind": record["record_kind"],
                 "value": item["raw_value"],
                 "value_type": item["value_type"],
                 "match_type": "exact" if exact else mode,
                 "score": fuzzy_score(value, item["raw_value"]) if mode == "fuzzy" else None,
-                "tags": state.records[rid]["tags"],
+                "tags": record["tags"],
                 "lanes": lanes,
                 "sightings": sightings,
-                "record": state.records[rid],
+                "record": record,
             }
 
         ordered = sorted(
@@ -355,7 +355,10 @@ def extract(state, args):
 
 
 def graph(state, args):
+    # state.kind() works for both State (in-memory) and ReadState (SQLite).
     if state.kind(args.node) is None:
+        fail("NOT_FOUND", args.node)
+    elif state.kind(args.node) is None:
         fail("NOT_FOUND", args.node)
     if not 0 <= args.depth <= 10 or not 1 <= args.limit <= 2000:
         fail("LIMIT", "Depth must be 0..10 and limit 1..2000.")
@@ -427,23 +430,54 @@ def query_records(state, args):
 
     db = state.connect()
     try:
-        sql = "SELECT document FROM records"
-        params = []
-        if kind:
-            sql += " WHERE kind=?"
-            params.append(kind)
-        sql += " ORDER BY id"
-        count, records = 0, []
-        for row in db.execute(sql, params):
-            record = parse_json(row[0])
-            if any(
-                key not in record["tags"] or record["tags"][key] != value
-                for key, value in tags.items()
-            ):
-                continue
-            if offset <= count < offset + limit:
-                records.append(record)
-            count += 1
+        # Use the record_tags index for tag filtering when tags are given.
+        # This avoids JSON-parsing every record document in Python.
+        # Falls back to document scan only if the tags table is empty
+        # (e.g., index built before the tags table was added).
+        use_tag_index = bool(tags) and db.execute(
+            "SELECT COUNT(*) FROM record_tags"
+        ).fetchone()[0] > 0
+
+        if use_tag_index:
+            # Build a query that joins records with tag filters
+            sql = "SELECT DISTINCT r.document FROM records r"
+            params = []
+            if kind:
+                sql += " WHERE r.kind=?"
+                params.append(kind)
+            for i, (key, value) in enumerate(tags.items()):
+                alias = f"t{i}"
+                sql += (
+                    f" {'AND' if (kind or i > 0) else 'WHERE'}"
+                    f" EXISTS (SELECT 1 FROM record_tags {alias}"
+                    f" WHERE {alias}.record_id=r.id"
+                    f" AND {alias}.key=? AND {alias}.value=?)"
+                )
+                params.extend([key, str(value)])
+            sql += " ORDER BY r.id"
+            count, records = 0, []
+            for row in db.execute(sql, params):
+                if offset <= count < offset + limit:
+                    records.append(parse_json(row[0]))
+                count += 1
+        else:
+            sql = "SELECT document FROM records"
+            params = []
+            if kind:
+                sql += " WHERE kind=?"
+                params.append(kind)
+            sql += " ORDER BY id"
+            count, records = 0, []
+            for row in db.execute(sql, params):
+                record = parse_json(row[0])
+                if any(
+                    key not in record["tags"] or record["tags"][key] != value
+                    for key, value in tags.items()
+                ):
+                    continue
+                if offset <= count < offset + limit:
+                    records.append(record)
+                count += 1
         return {
             "records": [] if query.get("count") else records,
             "count": count,
@@ -688,10 +722,17 @@ def dispatch(repo, args):
         fail("NOT_INITIALIZED", "Run init.")
 
     mutating = is_mutating(args)
-    # Read-only commands skip reference validation: writes already validate
-    # before mutating, so re-validating the entire corpus on every read is
-    # redundant. The state digest is still computed for index-freshness checks.
-    state = State(repo, args.at).load(validate=mutating)
+    # Read-only commands use ReadState (SQLite-native): the records table
+    # already holds full JSON documents, so there is no need to parse 99k
+    # records from JSONL into Python memory. Write commands and --at
+    # historical reads use the full State load path.
+    if not mutating and not args.at and args.command in ReadState.READ_COMMANDS:
+        state = ReadState(repo).load()
+    else:
+        # Read-only commands skip reference validation: writes already validate
+        # before mutating, so re-validating the entire corpus on every read is
+        # redundant. The state digest is still computed for index-freshness checks.
+        state = State(repo, args.at).load(validate=mutating)
     if args.at and mutating:
         fail("READ_ONLY", "--at is read-only.")
 
@@ -704,7 +745,12 @@ def dispatch(repo, args):
             db.close()
         except FactumError as error:
             if error.code in {"INDEX_STALE", "INDEX_MISSING"}:
+                # project() needs the full record set, so do a full load.
+                state = State(repo, args.at).load(validate=False)
                 state.project()
+                # Re-enter ReadState for the actual command if applicable.
+                if not args.at and args.command in ReadState.READ_COMMANDS:
+                    state = ReadState(repo).load()
             else:
                 raise
 
@@ -721,7 +767,7 @@ def dispatch(repo, args):
             "repo": str(repo),
             "version": TOOLKIT_VERSION,
             "format_version": FORMAT_VERSION,
-            "records": len(state.records),
+            "records": state.count_records(),
             "lanes": len(state.lanes),
             "pending": len(state.pending),
             "stale": stale,
@@ -736,7 +782,7 @@ def dispatch(repo, args):
     if args.command == "verify":
         result = {
             "verified": True,
-            "records": len(state.records),
+            "records": state.count_records(),
             "pending": len(state.pending),
             "searched": scope(state),
         }
@@ -847,7 +893,7 @@ def dispatch(repo, args):
         return add_bundle(state, bundle)
 
     if args.command == "get":
-        record = state.records.get(args.id)
+        record = state.get_record(args.id)
         if record is None:
             fail("NOT_FOUND", args.id)
         result = {"record": record}

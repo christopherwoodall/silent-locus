@@ -487,6 +487,11 @@ class State:
         self.corpus = None
         self.lock = None
         self.state_digest = None
+        # Light mode: True when load_light() was used (SQLite-only reads).
+        # In light mode, self.records stays empty and records are fetched
+        # on-demand via get_record().
+        self._light = False
+        self._stored_batch_digest = None
 
     @property
     def db_path(self):
@@ -982,6 +987,10 @@ class State:
                     "toolkit_version": TOOLKIT_VERSION,
                     "state_digest": self.state_digest,
                     "corpus_id": self.corpus["corpus_id"],
+                    # Lightweight fingerprint of the batch manifests for
+                    # staleness detection in SQLite-only read mode. Computed
+                    # from manifest records_sha256 without parsing records.
+                    "batch_digest": self.batch_digest(),
                 }
 
                 for key, value in metadata.items():
@@ -1116,6 +1125,57 @@ class State:
             if temporary.exists():
                 temporary.unlink()
 
+    def batch_digest(self):
+        """Fingerprint of exported batches + corpus/lock.
+
+        Uses manifest records_sha256 values (not record parsing), plus
+        corpus.json and schema-lock.json hashes. Written to the meta
+        table by project() so ReadState can detect staleness without
+        parsing records. Pending files are NOT included: ReadState
+        serves them from memory.
+        """
+        entries = []
+        # Corpus and lock: detect external modifications
+        for rel in ("data/corpus.json", "data/schema-lock.json"):
+            try:
+                entries.append((rel, sha256(self.read(rel))))
+            except Exception:
+                pass
+        for path in self.paths("records", "manifest.json"):
+            manifest = self.json(path)
+            entries.append(("batch", manifest["batch_id"], manifest["records_sha256"]))
+        return digest({"sources": sorted(entries)})
+
+    def get_record(self, record_id):
+        """Fetch one record document by ID (in-memory for State)."""
+        return self.records.get(record_id)
+
+    def get_records(self, record_ids):
+        """Batch-fetch record documents (in-memory for State)."""
+        return {
+            rid: self.records[rid]
+            for rid in dict.fromkeys(record_ids)
+            if rid in self.records
+        }
+
+    def get_sightings(self, observable_ids, limit=10):
+        """Fetch sighting documents for observables (in-memory for State)."""
+        result = {oid: [] for oid in dict.fromkeys(observable_ids)}
+        for record in self.records.values():
+            if record["record_kind"] != "sighting":
+                continue
+            observable = record["body"]["observable"]
+            if observable in result and len(result[observable]) < limit:
+                result[observable].append(record)
+        return result
+
+    def count_records(self):
+        """Number of records (in-memory for State)."""
+        return len(self.records)
+
+    def close(self):
+        """No-op for State (no persistent connection)."""
+
     def connect(self):
         no_symlink_path(self.db_path)
         if not self.db_path.exists():
@@ -1128,12 +1188,28 @@ class State:
         db.row_factory = sqlite3.Row
 
         try:
-            row = db.execute(
-                "SELECT value FROM meta WHERE key='state_digest'"
-            ).fetchone()
+            if getattr(self, "_light", False):
+                # Light mode: check staleness via batch manifests instead of
+                # the full record set. The manifests' records_sha256 values
+                # change if and only if the underlying JSONL changed.
+                # This avoids parsing 99k records just to verify freshness.
+                row = db.execute(
+                    "SELECT value FROM meta WHERE key='batch_digest'"
+                ).fetchone()
+                if row is None:
+                    # Old index without batch_digest: fall back to rebuild.
+                    # This happens once after upgrading; project() writes it.
+                    fail("INDEX_STALE", "Run rebuild.")
+                current = self.batch_digest()
+                if row[0] != current:
+                    fail("INDEX_STALE", "Run rebuild.")
+            else:
+                row = db.execute(
+                    "SELECT value FROM meta WHERE key='state_digest'"
+                ).fetchone()
 
-            if row is None or row[0] != self.state_digest:
-                fail("INDEX_STALE", "Run rebuild.")
+                if row is None or row[0] != self.state_digest:
+                    fail("INDEX_STALE", "Run rebuild.")
 
         except Exception:
             db.close()
@@ -1227,6 +1303,334 @@ class State:
             "verified_hashes": len(verified),
             "missing": missing,
         }
+
+
+class ReadState:
+    """SQLite-native read-only state for fast queries.
+
+    Unlike State.load(), this does NOT parse records JSONL into memory.
+    The SQLite index holds full JSON documents in the records table;
+    this class fetches them on demand through a persistent read-only
+    connection with a bounded document cache.
+
+    How this differs from a "light mode" flag on State:
+    - Separate class, not a mode: dispatch() chooses ReadState or State
+      up front. No _light checks scattered through callers.
+    - Single persistent SQLite connection per command lifetime, with
+      automatic reopen if a caller closes it.
+    - Batch document fetching (WHERE id IN) instead of N single queries.
+    - SQL-native sightings lookup (json_extract + IN), no Python scan.
+    - Pending batches ARE loaded (metadata only) so scope() is correct.
+
+    Use for read-only commands: match, query, get, graph, status.
+    Write commands and --at historical reads must use State.
+    """
+
+    # Commands that can use ReadState (SQLite-only reads).
+    READ_COMMANDS = {"match", "query", "get", "graph", "status"}
+
+    # Bounded document cache size.
+    _CACHE_MAX = 1000
+
+    def __init__(self, repo):
+        self.repo = Path(repo)
+        self.data = self.repo / "data"
+        self.local = self.data / ".local"
+        self.revision = None  # ReadState does not support --at
+        self._db = None
+        self._doc_cache = {}
+        self._cache_order = []
+
+        self.corpus = None
+        self.lock = None
+        self.catalog = None
+        self.lanes = {}
+        self.pending = []  # list of (path, batch_id, record_count)
+        self._pending_records = {}  # id -> record (parsed from pending files)
+        self.state_digest = None
+        self._stored_batch_digest = None
+
+    @property
+    def db_path(self):
+        return self.local / "factum.db"
+
+    def _read_json(self, relative):
+        path = checked_path(self.repo, relative)
+        return parse_json(path.read_bytes())
+
+    def batch_digest(self):
+        """Fingerprint of exported batches + corpus/lock.
+
+        Uses manifest records_sha256 values (not record parsing), plus
+        corpus.json and schema-lock.json hashes. Computes identically
+        to State.batch_digest() so the stored digest (written by
+        project()) matches. Pending files are NOT included: they are
+        served from memory.
+        """
+        entries = []
+        for rel in ("data/corpus.json", "data/schema-lock.json"):
+            try:
+                entries.append((rel, sha256((self.repo / rel).read_bytes())))
+            except Exception:
+                pass
+        for rel in self._paths("records", "manifest.json"):
+            manifest = parse_json((self.repo / rel).read_bytes())
+            entries.append(("batch", manifest["batch_id"], manifest["records_sha256"]))
+        return digest({"sources": sorted(entries)})
+
+    def _paths(self, prefix, suffix):
+        """Replicate State.paths() for ReadState (repo-relative, sorted)."""
+        prefix = "data/" + prefix
+        root = checked_path(self.repo, prefix)
+        if not root.exists():
+            return []
+        result = []
+        for path in root.rglob("*"):
+            if path.is_symlink():
+                fail("SYMLINK", str(path))
+            if path.is_file() and path.name.endswith(suffix):
+                result.append(path.relative_to(self.repo).as_posix())
+        return sorted(result)
+
+    def load(self):
+        """Load minimal state: corpus, catalog, lanes, pending metadata.
+
+        Does NOT parse any records JSONL. Record documents are fetched
+        on demand from SQLite via get_record()/get_records().
+        """
+        check_layout(self.repo)
+        self.corpus = self._read_json("data/corpus.json")
+
+        if self.corpus.get("format_version") != FORMAT_VERSION:
+            fail(
+                "FORMAT",
+                "Unsupported corpus format; explicit migration required.",
+            )
+
+        self.lock = self._read_json("data/schema-lock.json")
+        self.catalog = Catalog(
+            lambda path: checked_path(self.repo, path).read_bytes(), self.lock
+        )
+
+        lanes_root = self.data / "lanes"
+        if lanes_root.exists():
+            for lane_path in sorted(lanes_root.rglob("lane.json")):
+                if lane_path.is_symlink():
+                    fail("SYMLINK", str(lane_path))
+                lane = parse_json(lane_path.read_bytes())
+                self.catalog.validate(CORE["lane"], lane)
+                if lane["id"] in self.lanes:
+                    fail("LANE_CONFLICT", lane["id"])
+                rel = str(lane_path.relative_to(self.repo)).replace("\\", "/")
+                self.lanes[lane["id"]] = {"record": lane, "path": rel}
+
+        # Pending records are parsed (they're small) so they are
+        # searchable via ReadState even before export/project. This
+        # matches State behavior where pending records are in memory.
+        self._pending_records = {}
+        pending_root = self.local / "pending"
+        if pending_root.exists():
+            for pending_path in sorted(pending_root.glob("*.json")):
+                if pending_path.is_symlink():
+                    fail("SYMLINK", str(pending_path))
+                document = parse_json(pending_path.read_bytes())
+                self.pending.append(
+                    (str(pending_path), document["batch_id"], len(document["records"]))
+                )
+                for record in document["records"]:
+                    self._pending_records[record["id"]] = record
+
+        # Stored digests (state_digest, batch_digest) are read
+        # lazily on first connect() so dispatch() can catch
+        # INDEX_MISSING/INDEX_STALE and auto-rebuild.
+        self._stored_digests_loaded = False
+        self._stored_state_digest = None
+        self._stored_batch_digest = None
+
+        return self
+
+    def _open_db(self):
+        """Return the persistent read-only connection, reopening if closed."""
+        no_symlink_path(self.db_path)
+        if not self.db_path.exists():
+            fail("INDEX_MISSING", "Run rebuild.")
+        if self._db is not None:
+            try:
+                self._db.execute("SELECT 1").fetchone()
+                return self._db
+            except Exception:
+                pass
+        # (Re)open and verify freshness on first connect
+        self._db = sqlite3.connect(str(self.db_path))
+        self._db.row_factory = sqlite3.Row
+        if not self._stored_digests_loaded:
+            row = self._db.execute(
+                "SELECT value FROM meta WHERE key='state_digest'"
+            ).fetchone()
+            if row is None:
+                fail("INDEX_MISSING", "Run rebuild.")
+            self._stored_state_digest = row[0]
+            self.state_digest = row[0]
+            row = self._db.execute(
+                "SELECT value FROM meta WHERE key='batch_digest'"
+            ).fetchone()
+            # batch_digest may be missing on indexes built before it existed
+            self._stored_batch_digest = row[0] if row else None
+            self._stored_digests_loaded = True
+        # Staleness check: exported batches changed since project()
+        if self._stored_batch_digest is not None:
+            if self.batch_digest() != self._stored_batch_digest:
+                fail("INDEX_STALE", "Run rebuild.")
+        return self._db
+
+    def connect(self):
+        """Return the persistent connection, checking index freshness.
+
+        Staleness is detected via batch_digest comparison (manifest
+        hashes, not record parsing). Raises INDEX_STALE if the JSONL
+        state changed since the index was built.
+        """
+        db = self._open_db()
+        if self._stored_batch_digest is None:
+            fail("INDEX_STALE", "Run rebuild.")
+        if self.batch_digest() != self._stored_batch_digest:
+            fail("INDEX_STALE", "Run rebuild.")
+        return db
+
+    def close(self):
+        """Close the persistent connection and clear the cache."""
+        if self._db is not None:
+            try:
+                self._db.close()
+            except Exception:
+                pass
+            self._db = None
+        self._doc_cache.clear()
+        self._cache_order.clear()
+
+    def _cache_put(self, record_id, document):
+        if record_id in self._doc_cache:
+            return
+        if len(self._doc_cache) >= self._CACHE_MAX:
+            oldest = self._cache_order.pop(0)
+            self._doc_cache.pop(oldest, None)
+        self._doc_cache[record_id] = document
+        self._cache_order.append(record_id)
+
+    def get_record(self, record_id):
+        """Fetch one record document by ID (cached)."""
+        if record_id in self._doc_cache:
+            return self._doc_cache[record_id]
+        if record_id in self._pending_records:
+            return self._pending_records[record_id]
+        db = self._open_db()
+        row = db.execute(
+            "SELECT document FROM records WHERE id=?", (record_id,)
+        ).fetchone()
+        if row is None:
+            return None
+        document = parse_json(row[0])
+        self._cache_put(record_id, document)
+        return document
+
+    def get_records(self, record_ids):
+        """Batch-fetch documents with a single WHERE id IN query.
+
+        Returns dict of id -> document for found records. Chunked to
+        respect SQLite's variable limit.
+        """
+        unique_ids = list(dict.fromkeys(record_ids))
+        result = {
+            rid: self._doc_cache[rid] for rid in unique_ids if rid in self._doc_cache
+        }
+        # Pending records are already in memory
+        for rid in unique_ids:
+            if rid not in result and rid in self._pending_records:
+                result[rid] = self._pending_records[rid]
+        missing = [
+            rid for rid in unique_ids
+            if rid not in self._doc_cache and rid not in self._pending_records
+        ]
+        if missing:
+            db = self._open_db()
+            for chunk_start in range(0, len(missing), 900):
+                chunk = missing[chunk_start : chunk_start + 900]
+                placeholders = ",".join("?" for _ in chunk)
+                for row in db.execute(
+                    f"SELECT id, document FROM records WHERE id IN ({placeholders})",
+                    chunk,
+                ):
+                    document = parse_json(row["document"])
+                    self._cache_put(row["id"], document)
+                    result[row["id"]] = document
+        return result
+
+    def get_sightings(self, observable_ids, limit=10):
+        """Fetch sighting documents for observables via SQL.
+
+        Single query per chunk using json_extract; no Python-side scan
+        over all records. Returns dict of observable_id -> [documents].
+        """
+        unique_ids = list(dict.fromkeys(observable_ids))
+        result = {oid: [] for oid in unique_ids}
+        if not unique_ids:
+            return result
+        # Check pending records first (in-memory)
+        for record in self._pending_records.values():
+            if record["record_kind"] != "sighting":
+                continue
+            observable = record["body"]["observable"]
+            if observable in result and len(result[observable]) < limit:
+                result[observable].append(record)
+        db = self._open_db()
+        for chunk_start in range(0, len(unique_ids), 900):
+            chunk = unique_ids[chunk_start : chunk_start + 900]
+            placeholders = ",".join("?" for _ in chunk)
+            for row in db.execute(
+                "SELECT document FROM records WHERE kind='sighting' "
+                f"AND json_extract(document, '$.body.observable') IN ({placeholders})",
+                chunk,
+            ):
+                document = parse_json(row["document"])
+                observable = document["body"]["observable"]
+                if observable in result and len(result[observable]) < limit:
+                    result[observable].append(document)
+        return result
+
+    def count_records(self):
+        """Number of records in the SQLite index plus pending."""
+        db = self._open_db()
+        row = db.execute("SELECT COUNT(*) FROM records").fetchone()
+        return row[0] + len(self._pending_records)
+
+    def kind(self, node_id):
+        """Node kind via lanes dict + pending + nodes table."""
+        if node_id in self.lanes:
+            return "lane"
+        if node_id in self._pending_records:
+            return self._pending_records[node_id]["record_kind"]
+        db = self._open_db()
+        row = db.execute(
+            "SELECT kind FROM nodes WHERE id=?", (node_id,)
+        ).fetchone()
+        return row[0] if row else None
+
+    def artifact_bytes(self, artifact_id):
+        """Read artifact bytes via get_records (SQLite, no full load)."""
+        record = self.get_record(artifact_id)
+        if record is None or record["record_kind"] != "artifact":
+            fail("ARTIFACT", artifact_id)
+        body = record["body"]
+        if "sha256" not in body:
+            fail("REFERENCE_ONLY", artifact_id)
+        value = body["sha256"]
+        relative = f"blobs/sha256/{value[:2]}/{value}"
+        # ReadState does not support --at; check data/ then .local/
+        for root in (self.data, self.local):
+            path = root / relative
+            if path.is_file():
+                return path.read_bytes()
+        fail("ARTIFACT", artifact_id)
 
 
 def store_file(state, filename, storage):
