@@ -236,6 +236,31 @@ reset can orphan the sibling's commit instead.
   independent re-derivation from the legacy evidence (per-entity
   kind-combo counts, verbatim spot-checks), never a re-read of the
   builder's own structures.
+- Type names are pack-inconsistent (2026-10-10, rmn-re-history): the
+  factum-web reachability check is registered as `reachability.check`
+  (no `web.` prefix) while its sibling is `web.capture`; `add` rejects
+  the guessed `web.reachability.check` with "Unknown observation type".
+  Verify exact type names with `schema assigned observation <type>` or
+  against corpus precedent before submitting.
+- No symlinks under data/, ever (2026-10-10, rmn-re-history): the store
+  loader scans data/lanes and data/records with a fail-closed symlink
+  check, so ONE stray symlink (a sibling's in-progress
+  `data/lanes/openai-agent-traces/events.jsonl -> raw/traces.jsonl`)
+  hard-fails every Factum command that opens the store (`add`, `export`,
+  `rebuild`, ...) for ALL workers on the shared branch. Use real files;
+  if blocked by someone else's symlink, do not touch their tree --
+  wait or escalate, and record the blocker.
+- Percent-encoded relay URLs in sweep samples (2026-10-10,
+  2026-10-01-intermediary-relays): relay invocation URLs often sit
+  URL-encoded inside wrapper-service query strings
+  (`jqp.vercel.app/api/v0?...&url=https%3A%2F%2Fmd.succ.ai%2F...`, sometimes
+  double-encoded). Extract chains from a JSON-unescape + repeated
+  percent-decode copy of the sample line, and anchor the extraction regex
+  AT the relay host -- otherwise the proxy_service gets set to the inner
+  host while target_url keeps the outer wrapper URL. Keep the original
+  verbatim line in tags. Validator substring checks must use full host
+  forms (`httpbun.com`, not `httpbun`) and allow explicit ports
+  (`allorigins.hexlet.app:443/`).
 
 ### Lane tagging
 
