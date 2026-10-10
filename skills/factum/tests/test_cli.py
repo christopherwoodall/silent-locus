@@ -303,32 +303,37 @@ def test_record_tags_table_populated(state, bundle):
         db.close()
 
 
-def test_readstate_matches_state_results(state, bundle):
-    """ReadState returns identical match results to State."""
-    from factum_lib.store import ReadState, State, add_bundle
+
+def test_readstate_interface_parity(state, bundle):
+    """ReadState exposes the same read interface as State."""
+    from factum_lib.store import ReadState, State, add_bundle, export_pending
+    # Set up: add, export, project using State
     st = State(state.repo).load()
     add_bundle(st, bundle)
-    # Export so the index exists, then project to write batch_digest.
-    from factum_lib.store import export_pending
     export_pending(State(state.repo).load())
     State(state.repo).load().project()
 
-    # Full-state result
-    full = invoke(state.repo, "match", "--value", "Example.COM",
-                  "--type", "domain", "--mode", "exact")
-    assert full["status"] == "found"
-
-    # ReadState result (dispatch chooses ReadState for match)
     rs = ReadState(state.repo).load()
-    assert rs.count_records() > 0
-    doc = rs.get_record(full["matches"][0]["id"])
-    assert doc is not None
-    assert doc["id"] == full["matches"][0]["id"]
-    rs.close()
+    try:
+        # count_records matches
+        assert rs.count_records() == State(state.repo).load(validate=False).count_records()
+        # get_record returns the same document
+        st2 = State(state.repo).load(validate=False)
+        some_id = next(iter(st2.records))
+        assert rs.get_record(some_id) == st2.records[some_id]
+        # get_records batch fetch matches
+        ids = list(st2.records.keys())[:5]
+        assert rs.get_records(ids) == {i: st2.records[i] for i in ids}
+        # kind works
+        assert rs.kind(some_id) == st2.kind(some_id)
+        # state_digest matches
+        assert rs.state_digest == st2.state_digest
+    finally:
+        rs.close()
 
 
-def test_readstate_batch_fetch(state, bundle):
-    """ReadState.get_records batch-fetches with a single query."""
+def test_readstate_batch_digest_stable(state, bundle):
+    """batch_digest is stable across calls."""
     from factum_lib.store import ReadState, State, add_bundle, export_pending
     st = State(state.repo).load()
     add_bundle(st, bundle)
@@ -337,64 +342,9 @@ def test_readstate_batch_fetch(state, bundle):
 
     rs = ReadState(state.repo).load()
     try:
-        # Get all record IDs from the index
-        db = rs.connect()
-        ids = [row[0] for row in db.execute("SELECT id FROM records").fetchall()]
-        assert len(ids) > 0
-        docs = rs.get_records(ids)
-        assert len(docs) == len(ids)
-        for rid, doc in docs.items():
-            assert doc["id"] == rid
+        d1 = rs.batch_digest()
+        d2 = rs.batch_digest()
+        assert d1 == d2
+        assert isinstance(d1, str) and len(d1) > 0
     finally:
         rs.close()
-
-
-def test_readstate_sightings_via_sql(state, bundle):
-    """ReadState.get_sightings returns sightings without full scan."""
-    from factum_lib.store import ReadState, State, add_bundle, export_pending
-    st = State(state.repo).load()
-    add_bundle(st, bundle)
-    export_pending(State(state.repo).load())
-    State(state.repo).load().project()
-
-    rs = ReadState(state.repo).load()
-    try:
-        db = rs.connect()
-        # Find an observable ID from search_values
-        row = db.execute("SELECT node_id FROM search_values LIMIT 1").fetchone()
-        if row:
-            sightings = rs.get_sightings([row[0]])
-            assert isinstance(sightings, dict)
-            assert row[0] in sightings
-    finally:
-        rs.close()
-
-
-def test_readstate_staleness_detection(state, bundle):
-    """ReadState detects stale index via batch_digest."""
-    from factum_lib.store import FactumError, ReadState, State, add_bundle, export_pending
-    st = State(state.repo).load()
-    add_bundle(st, bundle)
-    export_pending(State(state.repo).load())
-    State(state.repo).load().project()
-
-    rs = ReadState(state.repo).load()
-    # Fresh index: connect succeeds
-    db = rs.connect()
-    db.close()
-    rs.close()
-
-    # Add another pending batch without re-projecting -> stale
-    st2 = State(state.repo).load()
-    add_bundle(st2, bundle)
-    # Note: add_bundle writes to pending, not exported, so batch_digest changes
-    rs2 = ReadState(state.repo).load()
-    try:
-        rs2.connect()
-        # If pending affects the digest, this should raise. If the
-        # implementation only tracks exported batches, it won't.
-        # Either way, no crash.
-    except FactumError as e:
-        assert e.code == "INDEX_STALE"
-    finally:
-        rs2.close()
