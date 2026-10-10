@@ -206,6 +206,11 @@ reset can orphan the sibling's commit instead.
   only creates `in_lane` edges and does not set `tags.lane` (verified in
   `store.py`: bundle-level `lane` appends edge records, never tags).
 - Bundle `add --input` requires top-level `"actor"` and `"idempotency_key"`.
+- Set `tags.lane` on EVERY record in a bundle, including bundle-local
+  `source` records (the builder must tag them; `factum update` can repair
+  post-submit). Sources submitted without the lane tag are invisible to
+  lane-scoped edge building. (Found 2026-10-10, gem-temporal-pivot: 7
+  source records retagged via `factum update`.)
 - `template --bare` scaffolds are incomplete: the observation schema
   REQUIRES `observed_at` + `time_basis` (ground the value, e.g. in lane
   `event.created` with `time_basis: "source_metadata"`), and the scaffold's
