@@ -242,7 +242,11 @@ Do not inspect raw files unless the task requires interpreting them.
 
 ## Claims, lanes, and documents
 
-Use `note` or a bundle for cited claims.
+Use `note` or a bundle for cited claims. A claim's `subject` must be a
+Factum record ID (pattern `<kind>_[0-9a-f]{32}`), not free text — in
+bundles, use `"@ref"` to the bundle-local record (e.g. the observation or
+run the claim is about). `cites` likewise takes record IDs or `@refs`.
+Free-text subjects fail schema validation.
 
 Use `lane new`, `lane show`, `lane edit`, and `lane link` for work contexts.
 
