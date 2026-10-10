@@ -306,3 +306,39 @@ Preserved `es_ingest_gems.py` at `raw/scripts/legacy/es_ingest_gems.py` as a his
 ## Historical loader relocation (2026-09-30)
 
 Preserved `es_ingest_jfrog.py` at `raw/scripts/legacy/es_ingest_jfrog.py` as a historical, optional Elasticsearch loader; it is not an active collection event builder. Its local path resolution now targets the same collection and repository inputs from the archived location. No source evidence, `events.jsonl`, or `rollup.jsonl` was changed; no network or ES actions were run. The SHA256SUMS entry records the relocated script bytes.
+
+## Factum aggregation ingest (2026-10-10, branch factum-shaping)
+
+BigSexyWarlock69 approved aggregation: the 10,873 legacy event rows were NOT
+1:1 ingested. Builder: `data/lanes/rubygems-goimport-campaign/build_aggregation.py`
+(bundle format 2, 21 records).
+
+Re-derivation from `events.jsonl` (independent of the builder's structures):
+- record_kinds: graph_node 2830, campaign_specimen 3640, corpus_hit 2339,
+  extraction 635, diffend_harvest 624, ioc_inventory_entry 334, wiki_ioc_pivot 334,
+  finding 57, pattern_sweep_rollup 56, wayback_capture 16, download 3, run_shape 5.
+- Gem nodes: 565 distinct Diffend graph-node names (615 rows: 40 multi-version;
+  all status dead except the 3 live reference gems json/oai/thor).
+- JFrog GemStuffer inventory: 3640 rows, 3,025 distinct names, all 0.0.1.
+- Union dedup by exact gem name: 3,028 distinct packages (3,025 campaign + 3 live
+  reference gems excluded from the campaign set).
+- Pre-ingest dedup per SKILL.md against committed Factum records
+  (data/records/*/records.jsonl): all 3,025 campaign package names already exist
+  as infra.package observations (3,027 in lane 2026-09-29-gem-temporal-pivot,
+  1,289 in 2026-05-11-osv, 12 webhook-deaddrops, 2 2026-03-07-march7-rce-modality,
+  1 2026-08-10-wayback-gem-capture). Zero package records resubmitted.
+- Indicators: 1,248 graph-node indicator rows (council-domain 313, go-import 434,
+  go-import-vcs 6, go-import-repo 301, r-jina-proxy 189, zz-token 1, probe-name 4)
+  collapsed by host-level dedup into 14 notable infra.ioc observations:
+  4 council domains, s.jina.ai, 20.49.140.101, lbs-tm-prod.trafficmanager.net,
+  httpbin.org, lat2search1, zzak, 4 probe names. 1,234 URL-path/encoding variants
+  and 6 bare go-import VCS keywords (bzr/fossil/git/hg/mod/svn) skipped as
+  low-value.
+
+Submitted bundle: 1 source (lane locator) + 1 run (aggregation coverage
+10,873/10,873) + 14 infra.ioc observations + 5 OBSERVED-grade summary claims
+citing the run record. All records tagged {"lane":"rubygems-goimport-campaign"}.
+
+The legacy directory evidence/2025-03-04-rubygems-goimport-campaign/ was renamed
+to evidence/remove-2025-03-04-rubygems-goimport-campaign/ (empty; artifacts now
+live under data/lanes/rubygems-goimport-campaign/).
