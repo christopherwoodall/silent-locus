@@ -1126,18 +1126,27 @@ class State:
                 temporary.unlink()
 
     def batch_digest(self):
-        """Fingerprint of exported batches + pending files.
+        """Fingerprint of exported batches + pending files + corpus/lock.
 
         Uses manifest records_sha256 values (not record parsing), plus
-        pending file hashes. Written to the meta table by project() so
-        ReadState can detect staleness without parsing records.
+        pending file hashes, plus corpus.json and schema-lock.json.
+        Written to the meta table by project() so ReadState can detect
+        staleness without parsing records.
         """
         entries = []
+        # Corpus and lock: detect external modifications
+        for rel in ("data/corpus.json", "data/schema-lock.json"):
+            try:
+                entries.append((rel, sha256(self.read(rel))))
+            except Exception:
+                pass
         for path in self.paths("records", "manifest.json"):
             manifest = self.json(path)
             entries.append(("batch", manifest["batch_id"], manifest["records_sha256"]))
         for path in self.paths(".local/pending", ".json"):
-            entries.append(("pending", path, sha256(self.read(path))))
+            # Use basename for consistency with ReadState.batch_digest()
+            name = path.rsplit("/", 1)[-1]
+            entries.append(("pending", name, sha256(self.read(path))))
         return digest({"sources": sorted(entries)})
 
     def get_record(self, record_id):
@@ -1357,26 +1366,31 @@ class ReadState:
         Uses manifest records_sha256 values (not record parsing), plus
         pending file hashes. Changes iff the underlying JSONL state
         changed. Fast: only small manifest files are read.
+
+        Computes identically to State.batch_digest() so the stored
+        digest (written by project()) matches.
         """
         entries = []
-        records_root = self.data / "records"
-        if records_root.exists():
-            for manifest_path in sorted(records_root.rglob("manifest.json")):
-                if manifest_path.is_symlink():
-                    fail("SYMLINK", str(manifest_path))
-                manifest = parse_json(manifest_path.read_bytes())
-                entries.append(
-                    ("batch", manifest["batch_id"], manifest["records_sha256"])
-                )
-        pending_root = self.local / "pending"
-        if pending_root.exists():
-            for pending_path in sorted(pending_root.glob("*.json")):
-                if pending_path.is_symlink():
-                    fail("SYMLINK", str(pending_path))
-                entries.append(
-                    ("pending", pending_path.name, sha256(pending_path.read_bytes()))
-                )
-        return digest({"sources": entries})
+        for rel in self._paths("records", "manifest.json"):
+            manifest = parse_json((self.repo / rel).read_bytes())
+            entries.append(("batch", manifest["batch_id"], manifest["records_sha256"]))
+        for rel in self._paths(".local/pending", ".json"):
+            entries.append(("pending", rel, sha256((self.repo / rel).read_bytes())))
+        return digest({"sources": sorted(entries)})
+
+    def _paths(self, prefix, suffix):
+        """Replicate State.paths() for ReadState (repo-relative, sorted)."""
+        prefix = "data/" + prefix
+        root = checked_path(self.repo, prefix)
+        if not root.exists():
+            return []
+        result = []
+        for path in root.rglob("*"):
+            if path.is_symlink():
+                fail("SYMLINK", str(path))
+            if path.is_file() and path.name.endswith(suffix):
+                result.append(path.relative_to(self.repo).as_posix())
+        return sorted(result)
 
     def load(self):
         """Load minimal state: corpus, catalog, lanes, pending metadata.
@@ -1570,6 +1584,23 @@ class ReadState:
             "SELECT kind FROM nodes WHERE id=?", (node_id,)
         ).fetchone()
         return row[0] if row else None
+
+    def artifact_bytes(self, artifact_id):
+        """Read artifact bytes via get_records (SQLite, no full load)."""
+        record = self.get_record(artifact_id)
+        if record is None or record["record_kind"] != "artifact":
+            fail("ARTIFACT", artifact_id)
+        body = record["body"]
+        if "sha256" not in body:
+            fail("REFERENCE_ONLY", artifact_id)
+        value = body["sha256"]
+        relative = f"blobs/sha256/{value[:2]}/{value}"
+        # ReadState does not support --at; check data/ then .local/
+        for root in (self.data, self.local):
+            path = root / relative
+            if path.is_file():
+                return path.read_bytes()
+        fail("ARTIFACT", artifact_id)
 
 
 def store_file(state, filename, storage):
