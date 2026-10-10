@@ -499,6 +499,9 @@ claims, and relationships.
 - Host corpus: `data/`
 - Command:
   `uv run skills/factum/scripts/factum.py --repo <host-repository> <command>`
+  (`uv` is not installed on this VM — verified 2026-10-09 — so run
+  `python3 skills/factum/scripts/factum.py` instead; all script deps are
+  present in system python3.)
 
 Read the skill at the start of evidence-storage work. Run `status` before
 submitting or searching data.
