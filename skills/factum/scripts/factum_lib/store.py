@@ -1440,21 +1440,13 @@ class ReadState:
                 for record in document["records"]:
                     self._pending_records[record["id"]] = record
 
-        # Read stored digests from the SQLite meta table (written by
-        # project()). The state_digest was computed from the full record
-        # set at index time; we trust it for read-only use.
-        db = self._open_db()
-        row = db.execute(
-            "SELECT value FROM meta WHERE key='state_digest'"
-        ).fetchone()
-        if row is None:
-            fail("INDEX_MISSING", "Run rebuild.")
-        self.state_digest = row[0]
+        # Stored digests (state_digest, batch_digest) are read
+        # lazily on first connect() so dispatch() can catch
+        # INDEX_MISSING/INDEX_STALE and auto-rebuild.
+        self._stored_digests_loaded = False
+        self._stored_state_digest = None
+        self._stored_batch_digest = None
 
-        row = db.execute(
-            "SELECT value FROM meta WHERE key='batch_digest'"
-        ).fetchone()
-        self._stored_batch_digest = row[0] if row else None
         return self
 
     def _open_db(self):
@@ -1467,12 +1459,28 @@ class ReadState:
                 self._db.execute("SELECT 1").fetchone()
                 return self._db
             except Exception:
-                self._db = None
-        self._db = sqlite3.connect(
-            self.db_path.resolve().as_uri() + "?mode=ro",
-            uri=True,
-        )
+                pass
+        # (Re)open and verify freshness on first connect
+        self._db = sqlite3.connect(str(self.db_path))
         self._db.row_factory = sqlite3.Row
+        if not self._stored_digests_loaded:
+            row = self._db.execute(
+                "SELECT value FROM meta WHERE key='state_digest'"
+            ).fetchone()
+            if row is None:
+                fail("INDEX_MISSING", "Run rebuild.")
+            self._stored_state_digest = row[0]
+            self.state_digest = row[0]
+            row = self._db.execute(
+                "SELECT value FROM meta WHERE key='batch_digest'"
+            ).fetchone()
+            # batch_digest may be missing on indexes built before it existed
+            self._stored_batch_digest = row[0] if row else None
+            self._stored_digests_loaded = True
+        # Staleness check: exported batches changed since project()
+        if self._stored_batch_digest is not None:
+            if self.batch_digest() != self._stored_batch_digest:
+                fail("INDEX_STALE", "Run rebuild.")
         return self._db
 
     def connect(self):
