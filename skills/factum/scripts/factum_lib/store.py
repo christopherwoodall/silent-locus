@@ -382,6 +382,16 @@ CREATE TABLE receipts(
     request_hash TEXT NOT NULL,
     result TEXT NOT NULL CHECK(json_valid(result))
 );
+
+-- Denormalized tag index for fast tag filtering without JSON-parsing
+-- every record document. Populated at rebuild/project time.
+CREATE TABLE record_tags(
+    record_id TEXT NOT NULL REFERENCES records(id),
+    key TEXT NOT NULL,
+    value TEXT NOT NULL
+);
+CREATE INDEX record_tags_key_value ON record_tags(key, value);
+CREATE INDEX record_tags_record ON record_tags(record_id);
 """
 
 
@@ -693,7 +703,7 @@ class State:
 
                 time.sleep(0.01)
 
-    def load(self):
+    def load(self, validate=True):
         check_layout(self.repo)
         self.corpus = self.json("data/corpus.json")
 
@@ -767,7 +777,10 @@ class State:
                 self.insert_receipt(document["receipt"])
                 self.pending.append((path, document))
 
-        self.validate_references()
+        # Reference validation is write-path work: add/export/update validate
+        # before mutating. Read commands skip it via load(validate=False).
+        if validate:
+            self.validate_references()
 
         self.state_digest = digest(
             {
@@ -1010,6 +1023,12 @@ class State:
                             canonical(record),
                         ),
                     )
+                    # Populate denormalized tag index for fast tag filtering.
+                    for tag_key, tag_value in record.get("tags", {}).items():
+                        db.execute(
+                            "INSERT INTO record_tags VALUES (?,?,?)",
+                            (record["id"], tag_key, str(tag_value)),
+                        )
 
                 for record in self.records.values():
                     record_id = record["id"]
