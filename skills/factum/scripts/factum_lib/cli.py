@@ -727,7 +727,16 @@ def dispatch(repo, args):
     # records from JSONL into Python memory. Write commands and --at
     # historical reads use the full State load path.
     if not mutating and not args.at and args.command in ReadState.READ_COMMANDS:
-        state = ReadState(repo).load()
+        try:
+            state = ReadState(repo).load()
+        except FactumError as error:
+            if error.code in {"INDEX_STALE", "INDEX_MISSING"}:
+                # Auto-rebuild: full load needed to project the index.
+                full = State(repo, args.at).load(validate=False)
+                full.project()
+                state = ReadState(repo).load()
+            else:
+                raise
     else:
         # Read-only commands skip reference validation: writes already validate
         # before mutating, so re-validating the entire corpus on every read is
@@ -745,7 +754,13 @@ def dispatch(repo, args):
             db.close()
         except FactumError as error:
             if error.code in {"INDEX_STALE", "INDEX_MISSING"}:
-                state.project()
+                # project() needs the full State; ReadState can't project.
+                if isinstance(state, ReadState):
+                    full = State(repo, args.at).load(validate=False)
+                    full.project()
+                    state = ReadState(repo).load()
+                else:
+                    state.project()
             else:
                 raise
 
