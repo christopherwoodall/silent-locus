@@ -1,5 +1,12 @@
 # PROVENANCE — rmn-re-history
 
+> **Date note (added 2026-10-10):** The lane name `2016-12-28-rmn-re-history`
+> follows the repository lane-naming convention (`YYYY-MM-DD-slug`).
+> It is NOT an activity date. The growth curve in this lane spans
+> 2016-12 → 2026-09 (YOURLS-authoritative slug creation dates), but the
+> hunt activity focus is **November 2025 onward** per BigSexyWarlock69's
+> directive. Do not read the lane-name date as an event date.
+
 Reconstruction of the rmn.re YOURLS shortener's link-table evolution, built
 2026-09-28 (dataset dated 2026-09-27).
 

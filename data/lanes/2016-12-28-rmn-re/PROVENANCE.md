@@ -1,5 +1,14 @@
 # Provenance — rmn-re
 
+> **Date note (added 2026-10-10):** The lane name `2016-12-28-rmn-re`
+> follows the repository lane-naming convention (`YYYY-MM-DD-slug`).
+> It is NOT an activity date. The rmn.re YOURLS shortener has operated
+> since December 2016 (earliest slug creation date in its own records),
+> but the hunt activity focus is **November 2025 onward** per
+> BigSexyWarlock69's directive. Key activity windows in this lane:
+> June 2026 burst (+484 slugs), August–September 2026 systematic testing
+> burst (slugs `lm`→`lz`). Do not read the lane-name date as an event date.
+
 Source table for the rmn.re YOURLS shortener; derived collections are
 `rmn-re-history` and `rmn-re-linktable`.
 
