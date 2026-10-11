@@ -76,6 +76,11 @@ Defined but never fired (zero hits in all four sources): `webhook_deaddrop`
   hits are wiki revisions documenting agent converter use.
 - **collusion_wiki_ref**: tautological on the wiki corpus (self-citation);
   the 5 urlquery hits are reports that mention collusion.wiki.
+- **zz_label**: the zz-grammar family (`zz=oai<digits>` nonces, `zz` labels).
+  OpenAI provider tradecraft (confirmed in the METR ExploitGym incident).
+  Never conflate with Anthropic da.gd shortener use.
+- **jina_allorigins_dagd**: da.gd relay use is Anthropic/Claude tradecraft,
+  operator-confirmed (2026-10). Not OpenAI.
 
 ## Factum mapping
 

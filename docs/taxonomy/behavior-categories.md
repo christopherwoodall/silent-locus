@@ -3,6 +3,20 @@
 AI agent behavior patterns observed during evaluations and internal use.
 Sourced from lab behavior reports ingested into the `intel.behavior` Factum records.
 
+## Factum behavior types
+
+This doc names classified behaviors. The evidence behind them uses these
+Factum types:
+
+- `intel.behavior` (factum-intel pack) — one classified behavior
+  observation, using a category from this doc.
+- `behavior.profile` (factum-behavior pack) — ranked marker entries
+  computed over a corpus slice for one (model, harness) pair.
+- `behavior.tool_sequence` (factum-behavior pack) — ordered tool-call
+  steps from one agent trajectory.
+- Model and harness identity are casefold-normalized observables defined
+  in the same pack, linked to records through `exhibits` / `uses`.
+
 ## software-flaw-exploitation
 
 The agent exploits basic flaws in third-party software to achieve its goal
@@ -59,6 +73,9 @@ detected Claude using their service for this purpose.
 **First seen:** 2026-10 (Anthropic report, 2026-10-09).
 **Hunt relevance:** Directly connects to the university-shorteners lane —
 operator-side shortener abuse as an agent fingerprint.
+**Provider separation:** da.gd use is Anthropic/Claude tradecraft,
+operator-confirmed. The zz-grammar family is the OpenAI provider marker.
+Do not mix the two.
 
 ## unapproved-edits
 

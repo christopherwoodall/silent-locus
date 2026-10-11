@@ -138,6 +138,9 @@ Workers are implemented as cron jobs. See `cron.list` for active schedules.
   Anthropic and OpenAI markers.
 - **Evidence rules apply:** never redact; provenance on every capture;
   grade every claim (OBSERVED / INFERENCE / UPSTREAM).
+- **Secret protection: ask, never bypass.** If push protection flags a secret,
+  STOP and escalate — never strip, move, or alter the file silently to bypass
+  it.
 
 ## What to return
 

@@ -34,6 +34,15 @@ Detailed role-specific instructions for agent workers live in `.agents/workers/`
 Coordinators: point workers at the relevant file in their brief. Workers: read your
 file before starting.
 
+## Durable and resumable workloads
+
+Long-running work must survive VM restarts: write progress to files so a
+restart resumes from the file, auto-restart on VM boot (cron or systemd),
+tear down temp state when finished, and make every operation idempotent
+(check before re-doing). The VM restarts frequently; design for it. The full
+pattern lives in `.agents/workers/hunt-coordinator.md` under "Durable and
+resumable workloads".
+
 ## Responsibilities
 
 Agents acquire data, run scans, review findings, write reports, and perform
@@ -117,14 +126,20 @@ clone, restore, pull, merge, or checkout, run Factum `rebuild` before using
   Existing directories may contain `events.jsonl`, `PROVENANCE.md`,
   `SHA256SUMS`, `raw/`, scripts, and notes.
   These stay readable, but new evidence goes through Factum. A directory
-  renamed with a `remove-` prefix has been ingested into Factum and is safe
-  for later removal.
-- `evidence/transluce-api/` — tracker integration, pulls, ingest ledger,
-  investigations, and submission drafts.
-- `evidence/hf-trajectories/` — trajectory audits, cached datasets, farm outputs,
-  rollups, and reports.
+  renamed with a `remove-` prefix has been ingested into Factum. It is
+  archived history, not a deletion candidate — evidence is never deleted.
+- `data/lanes/2026-10-09-transluce-intel/` — live Transluce tracker
+  integration: pulls, findings, ingest provenance, investigations, and
+  submission drafts. The legacy `evidence/transluce-api/` directory is kept
+  read-only; never delete it.
+- `data/lanes/hf-trajectories-audit/` — successor to the former
+  `evidence/hf-trajectories/` (its behavioral content was ingested into the
+  factum-behavior pack 2026-10-11): trajectory audits, cached datasets, farm
+  outputs, rollups, and reports.
 - `lists/` — canonical operational inventories. Read `lists/README.md`.
-- `collections/` — curated collections and cross-event material.
+- `docs/field-notes/` — experiment workspaces, analytics, and investigation
+  notes not yet (or never will be) structured Factum records (renamed from
+  `collections/`; see "Field notes" above).
 - `scripts/`, `schema/`, `workers/` — existing tooling and legacy schemas.
 
 The existing top-level `schema/` describes legacy datasets. It is not a
@@ -210,8 +225,8 @@ reset can orphan the sibling's commit instead.
    `--storage local` or `--storage git` explicitly at submit time.
 6. **Rename the old lane.** Add the `remove-` prefix to the legacy
    directory, for example `remove-2026-05-12-webhook-deaddrops`. The prefix
-   marks the directory as ingested and safe for later removal. Do not delete
-   it yet.
+   marks the directory as ingested and archived. Do not delete it — evidence
+   is never deleted.
 7. **Commit and push.** Run `export`, then `verify --blobs`, then review,
    then commit, then push when authorized.
 
@@ -301,7 +316,9 @@ reset can orphan the sibling's commit instead.
 
 Every submitted record gets the tag `{"lane": "<lane-name>"}`. The tag
 groups records by work lane. Edge building uses it to keep groups apart.
-Lane names are lowercase with hyphens, for example `webhook-deaddrops`.
+Lane names are lowercase with hyphens, with no date (for example
+`webhook-deaddrops`, `transluce-intel`); the lane's directory under
+`data/lanes/` is date-prefixed (`<YYYY-MM-DD>-<slug>`).
 
 ### Infra pack types
 
@@ -326,6 +343,22 @@ these types:
 
 Check the registered schema before submitting a new shape. Use `tags` for
 miscellaneous metadata only.
+
+### Behavior pack types
+
+The `factum-behavior` pack holds structured agent-behavior observations. Use
+these types:
+
+- observables `model` and `harness` — normalized model/harness identity
+  strings.
+- `behavior.profile` — per-model aggregate behavioral profile: ranked marker
+  entries over a corpus slice for one (model, harness) pair. Fields: `model`,
+  `harness`, `profile_kind`, `entries`, `corpus_size`, `provenance`.
+- `behavior.tool_sequence` — ordered tool-call sequence observed in one agent
+  trajectory. Fields: `trajectory`, `model`, `harness`, `steps`, `length`,
+  `provenance`.
+- predicates `exhibits` and `uses` — relationships between entities and
+  behaviors.
 
 ### Edge builder
 
@@ -454,6 +487,9 @@ submission remains on hold until the operator reverses it.
 
 ## Evidence rules
 
+- **Never delete evidence.** Evidence is moved into `data/`, never deleted.
+  A `remove-`-prefixed legacy directory is archived history, not a deletion
+  candidate.
 - **Never redact or change raw evidence.** Preserve full observed values,
   including original case and whitespace. Annotate sensitivity in `tags`
   or adjacent prose.
@@ -534,6 +570,8 @@ A failed or incomplete required check blocks a confident novelty conclusion.
 - Use one-and-done branches and PRs.
 - Do not push directly to main without explicit operator authorization.
 - Do not push at all unless authorized for the task.
+- If GitHub push protection flags a secret, stop and ask BigSexyWarlock69.
+  Do not bypass the protection or silently strip files.
 - Use imperative commit messages.
 - Use separate worktrees for concurrent agents.
 - Do not switch branches beneath another worker.
@@ -570,11 +608,11 @@ An export is not a commit, and a commit is not a push.
 ## Key references
 
 - `lists/README.md` — canonical inventory locations and maintenance checks.
-- `evidence/transluce-api/README.md` — tracker integration and definitions.
-- `evidence/transluce-api/SCHEMA.md` — legacy integration shapes.
-- `evidence/transluce-api/LEDGER.md` — ingest history.
-- `evidence/transluce-api/submissions/LEDGER.md` — submission state.
-- `evidence/hf-trajectories/URL-KEYWORD-FARM.md` — farm report conventions.
+- `data/lanes/2026-10-09-transluce-intel/README.md` — tracker integration and definitions.
+- `data/lanes/2026-10-09-transluce-intel/submissions/LEDGER.md` — submission state.
+- `evidence/transluce-api/SCHEMA.md` — legacy integration shapes (read-only).
+- `evidence/transluce-api/LEDGER.md` — ingest history (read-only).
+- `data/lanes/hf-trajectories-audit/README.md` — trajectory-audit lane (farm output conventions).
 - The nearest `PROVENANCE.md` — source-specific acquisition history.
 
 <!-- BEGIN FACTUM INTEGRATION -->

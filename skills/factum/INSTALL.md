@@ -161,6 +161,11 @@ workflow.
 Choose either the plain-clone or submodule approach. Do not create a nested
 clone and accidentally stage it as an unmanaged embedded repository.
 
+This host repository (silent-locus) uses neither: Factum stays absorbed as a
+plain directory (`skills/factum/`), not a nested clone or submodule. See
+[docs/DUAL-GIT.md](docs/DUAL-GIT.md) for that workflow. Option A and Option B
+above remain the guidance for other host projects.
+
 ### Option C: Python console command
 
 To install the CLI from an approved local Factum source directory:

@@ -103,7 +103,9 @@ assignments are unchanged.
 ## Limitations and untested scenarios
 
 - Synthetic small corpora only; no production-scale memory/latency benchmark.
-- Full in-memory loading and SQLite rebuilds remain intentional.
+- Full in-memory loading on writes and full SQLite rebuilds remain intentional;
+  read-only commands (`status`, `match`, `query`, `get`, `graph`) read SQLite
+  directly without a full in-memory load.
 - General ingestion checks locator structure, not every quote/selector.
 - Fuzzy retrieval is heuristic, not an exhaustive absence test.
 - Local-only bytes do not synchronize through Git. Missing bytes are disclosed.

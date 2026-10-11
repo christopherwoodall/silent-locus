@@ -60,8 +60,28 @@ debugging integrity issues, or changing implementation details.
 
 ## Code and schema versions
 
-Seed schema packs are bundled with the toolkit. Initialization can load them
-through either supported entry point.
+Seed schema packs are bundled with the toolkit (all at version 1.0.0; early
+alpha, no version chains yet). Initialization can load them through either
+supported entry point.
+
+Bundled seed packs:
+
+- `factum-core`: core observables (`text`, `quote`, `term`, `ngram`,
+  `sha256`, `api_key`, `external_id`), event profiles (including
+  `incident.reported`), and base predicates.
+- `factum-web`: `web.capture` and `reachability.check` observations; `url`,
+  `domain`, `hostname`, `ipv4`, `email` observables.
+- `factum-datasets`: `dataset.snapshot` and `dataset.record` observations;
+  `dataset_id` observable.
+
+A fourth pack, `factum-behavior` 1.0.0, ships as a candidate under
+`packs/factum-behavior/` (it is not a seed pack and is not installed by
+default): `model` and `harness` observables plus the
+`intel.behavioral_profile` observation (behavior profiles such as
+`command_histogram`, `tool_sequence`, `ngram`, and `refusal_matrix` with
+mandatory derivation provenance). The earlier draft remains under
+`schema-proposals/behavior/`. Install only through the authorized
+`schema install --approve` workflow in INSTALL.md.
 
 After initialization, the corpus's installed packs and lock are authoritative:
 
@@ -95,6 +115,22 @@ missing or stale.
 
 Read command JSON. Failures return `ok: false`. Help and argument-parser errors
 are CLI output, not operation results.
+
+## Performance characteristics
+
+Reads are cheap. Read-only commands (`status`, `match`, `query`, `get`,
+`graph`) read directly from SQLite without parsing the full portable record
+set into Python memory.
+
+Writes are expensive. `add`, `capture`, `note`, `extract`, `update`,
+`export`, `init`, and `rebuild` load the full record set into memory and
+perform full SQLite rebuilds. Do not expect instant results on a large
+corpus.
+
+Known issue: `export` unconditionally runs a full record-set reload and a
+full SQLite rebuild, even when there are zero pending batches to export.
+Treat `export` as a rebuild-speed operation regardless of its output; do not
+poll it expecting a fast no-op.
 
 ## Evidence rules
 

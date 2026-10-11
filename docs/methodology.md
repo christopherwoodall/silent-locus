@@ -1,7 +1,7 @@
 # Hunt methodology (distilled)
 
 This is the onboarding-friendly distillation of the full hunt manual:
-[`../data/2026-09-28-chinese-amap-fleet/METHODOLOGY.md`](../data/2026-09-28-chinese-amap-fleet/METHODOLOGY.md).
+[`../data/lanes/2026-09-28-chinese-amap-fleet/METHODOLOGY.md`](../data/lanes/2026-09-28-chinese-amap-fleet/METHODOLOGY.md).
 The manual is the authority; this page is the map. Section numbers (§)
 below refer to the manual.
 
@@ -72,6 +72,12 @@ below refer to the manual.
 - **Platform-default UA as fingerprint.** ~99% of observed reports use
   the scanner's stock UA; zero organic custom agent UAs. The *absence* of
   customization is itself the fingerprint.
+- **Provider-marker separation.** da.gd shortener use is Anthropic/Claude
+  tradecraft (operator-confirmed). The zz-grammar family
+  (`zz=oai<digits>`, `zz` labels, `oai*` tags) is OpenAI provider tradecraft
+  (confirmed in the METR ExploitGym incident). Never conflate the two.
+- **Name from the taxonomy.** Name behaviors, indicators, and TTPs from
+  `docs/taxonomy/`; add new categories only through the documented process.
 
 ## Collection methods (highlights)
 

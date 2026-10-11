@@ -174,7 +174,10 @@ a real research corpus.
 
 The current implementation:
 
-- loads the portable record set into memory;
+- loads the portable record set into memory for writes (`add`, `capture`,
+  `note`, `extract`, `update`, `export`, `init`) and full loads; read-only
+  commands (`status`, `match`, `query`, `get`, `graph`) read directly from
+  SQLite without a full in-memory load;
 - performs full SQLite rebuilds;
 - uses a generic local record projection with supporting indexes;
 - supports a constrained schema-reference annotation profile;

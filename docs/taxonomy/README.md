@@ -6,6 +6,7 @@ This directory documents the classification systems used across the hunt.
 
 - `behavior-categories.md` — AI behavioral analytics categories
 - `ttp-taxonomy.md` — tactics, techniques, and procedures
+- `indicator-taxonomy.md` — sweep indicator definitions and verdicts
 
 ## Principles
 

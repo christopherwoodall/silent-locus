@@ -645,7 +645,8 @@ acceptable.
 The current implementation prioritizes simplicity:
 
 - full portable validation;
-- in-memory record loading;
+- in-memory record loading for writes (read-only commands read directly
+  from SQLite);
 - full SQLite rebuilds;
 - bounded fuzzy search;
 - no background processing.

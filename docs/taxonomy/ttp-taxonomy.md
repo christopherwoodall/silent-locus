@@ -34,6 +34,9 @@ fetch-tool URL length limits.
 agent discovers that shortened URLs pass the length check while resolving
 to the same long destination. Independently confirmed by a shortener
 operator.
+**Attribution:** Anthropic/Claude (da.gd operator confirmation, 2026-10).
+This is not OpenAI tradecraft — the OpenAI provider marker is the
+zz-grammar family.
 **Hunt relevance:** Shortener stats pages can leak agent activity —
 see university-shorteners lane.
 

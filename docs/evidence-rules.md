@@ -112,3 +112,10 @@ extractions against the raw artifact before citing them.
   scope and must not be added.
 - Decoded payloads are text evidence only. Never execute, never fetch
   onward, never submit anywhere.
+
+## 8. Evidence is never deleted
+
+Do not delete evidence files or directories. A superseded record is not
+removed — keep the original and add the correction (a retraction in
+Factum, a note in the corrections log). A lane directory marked as
+ingested keeps its bytes.

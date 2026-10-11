@@ -53,6 +53,28 @@ not just the extractor — build the behavioral picture.
 6. **Cross-provider comparison.** If both providers used the same surface differently,
    document the difference explicitly. This is high-value intelligence.
 
+## Behavior schema pack (`factum-behavior`)
+
+The installed `factum-behavior` pack (1.0.0, requires `factum-core`) holds
+structured behavioral data alongside the `intel.behavior` / `intel.ttp`
+observations above:
+
+- **Observables** (casefold-normalized): `model` (model identity string),
+  `harness` (harness identity string, mirrors the linked harness observable).
+- **Predicates**: `exhibits` (model exhibits a behavior), `uses`
+  (model/harness uses a tool or surface).
+- **Observations**: `behavior.profile` (per-model aggregate behavioral profile:
+  ranked marker entries — term/count/rank — computed over a corpus slice for
+  one (model, harness) pair, with `profile_kind` of ngram/url/slug/command),
+  `behavior.tool_sequence` (ordered tool-call sequence — index/tool/command
+  steps — observed in one agent trajectory, with a trajectory locator).
+
+Use these when attribution ties a behavior to a model/harness pair: submit
+`behavior.profile` / `behavior.tool_sequence` records and link model and
+harness observables through `exhibits` / `uses` predicates, rather than
+putting model names in free text. Check assigned types with
+`schema assigned` before submitting.
+
 ## Constraints
 
 - **Grade every claim.** No ungraded assertions.

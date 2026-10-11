@@ -55,7 +55,8 @@ data/
 ├── blobs/                      # Large binary blobs
 ├── schema-packs/               # Installed schema packs
 ├── schema-lock.json            # Schema version lock
-└── corpus.json                 # Corpus metadata
+├── corpus.json                 # Corpus metadata
+└── .local/                     # Local-only index + pending batches (gitignored)
 ```
 
 **Lane naming:** lowercase with hyphens, date-prefixed for new lanes (e.g. `2026-10-11-hf-traj-glm52`).
@@ -65,7 +66,9 @@ data/
 **When updating:** add to the existing lane directory. Never create duplicate lanes for the same source.
 
 7. **Rename the old lane.** Add the `remove-` prefix to the legacy evidence directory.
-   Do not delete it yet.
+   **NEVER delete it.** Evidence directories are never deleted (standing operator
+   directive 2026-10-11) — the prefix only marks the directory as ingested into
+   Factum. Do not remove it "later" either.
 
 8. **Commit and push.** Run `export`, then `verify --blobs`, then review, then commit
    with **explicit pathspecs** (`git add <specific-paths> && git commit` — never bare
@@ -86,6 +89,12 @@ data/
 - **Lock contention:** Under concurrent writers, validate the exported batch files
   (`data/records/<batch>/records.jsonl`) instead of DB queries — same checks, no locks.
 - **`/tmp` is ephemeral.** Put ingest artifacts in the lane dir or workspace.
+- **Secret protection: ask, never bypass.** If GitHub push protection flags a
+  secret in your files, STOP and escalate to the coordinator/operator. Never
+  strip, move, or alter the file silently to bypass protection.
+- **Durable workloads.** Ingests are long-running: write progress to files in
+  the lane dir (`data/lanes/<lane>/`) so an interrupted ingest resumes from the
+  last completed step instead of restarting. Make every step idempotent.
 
 ## What to return
 
