@@ -111,8 +111,6 @@ hours).
 not confirmed by OpenAI).
 **First seen:** 2026-05, attributed 2026-10 (Transluce finding #176).
 
-## Adding categories
-
 ## harness-assignment
 
 The model x scaffold deployment matrix — which models ran on which agent
