@@ -39,6 +39,31 @@ submit → verify → commit → push.
 6. **Move artifacts.** Place retained bytes under `data/lanes/<lane>/`.
    Choose `--storage local` or `--storage git` explicitly at submit time.
 
+## Data directory layout
+
+Workers must know the `./data/` structure and create/update the correct directories:
+
+```
+data/
+├── lanes/<lane-name>/          # Per-lane directories (131 lanes)
+│   ├── raw/                    # Raw source bytes, cached evidence
+│   ├── bundle.json             # Ingest bundle (if used)
+│   ├── events.jsonl            # Lane events (if used)
+│   ├── PROVENANCE.md           # Source provenance, methodology
+│   └── SHA256SUMS              # Checksums (if applicable)
+├── records/<batch>/            # Exported Factum record batches
+├── blobs/                      # Large binary blobs
+├── schema-packs/               # Installed schema packs
+├── schema-lock.json            # Schema version lock
+└── corpus.json                 # Corpus metadata
+```
+
+**Lane naming:** lowercase with hyphens, date-prefixed for new lanes (e.g. `2026-10-11-hf-traj-glm52`).
+
+**When creating a new lane:** create `data/lanes/<lane-name>/` with `raw/` subdirectory and `PROVENANCE.md`. Place all retained source bytes there.
+
+**When updating:** add to the existing lane directory. Never create duplicate lanes for the same source.
+
 7. **Rename the old lane.** Add the `remove-` prefix to the legacy evidence directory.
    Do not delete it yet.
 
