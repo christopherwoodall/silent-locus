@@ -1,0 +1,124 @@
+{
+ "actor": "agent:lane-ingest-ingest-evidence-docs",
+ "bundle": 2,
+ "idempotency_key": "lane-ingest/anyrun-scan-plan-behavior-ttp/2026-10-11",
+ "records": [
+  {
+   "body": {
+    "locator": "data/lanes/anyrun-scan/PLAN.md (legacy scan workspace evidence/anyrun-scan/, moved 2026-10-11); surface verified 2026-10-07",
+    "source_type": "submitted"
+   },
+   "kind": "source",
+   "ref": "src-plan",
+   "tags": {
+    "lane": "anyrun-scan"
+   }
+  },
+  {
+   "body": {
+    "data": {
+     "cached_path": "data/lanes/anyrun-scan/PLAN.md",
+     "lab": "independent-research",
+     "provenance": "evidence/anyrun-scan/PLAN.md (legacy scan workspace, moved to data/lanes/anyrun-scan/PLAN.md 2026-10-11); surface map verified 2026-10-07",
+     "report_date": "2026-10-07",
+     "summary": "Objective: find rogue AI-agent eval-run traces in any.run public sandbox submissions using metadata SHAPES derived from collected data (no long n-gram string searches \u2014 that method failed repeatedly: urlquery 0 for 'deepsearchqa', GitHub harness-code only, pastes 0). Surface (verified 2026-10-07): TI Lookup https://intelligence.any.run/ is an SPA; free tier requires registration (no anonymous access). Query syntax fieldName:\"value\" [AND|OR|NOT]; free tier: 11 fields, AND-only, 20 most recent results per query; premium: 44 fields, full operators/history/API key. Shape-relevant fields: taskType, url, domainName, destinationIP, submissionCountry, threatName, commandLine, suricataMessage. XHR backend https://api-gb.any.run/lookup/search-with-updates/ (POST, bearer token from login); no unauthenticated JSON access \u2014 401 verified. Public task pages render (200) but data loads via auth-gated DDP/REST. Targeted pivot tool, not a corpus dump: 20 results/query on free tier. Shape pipeline S1-S12: S1 tag grammar (zz=, _oai=, uq*=, mark=, validation=, epoch nonces; group hits by tag value, one value = one run); S6 staging/dead-drop hosts (webhook.site, httpbun.com, httpbin.org, *.lhr.life, *.pinggy.io, is.gd, *.trycloudflare.com; prioritize tasks hitting 2+ categories); S2 cartesian sweep (cluster by host+path; flag 2+ numeric params each carrying 50+ distinct values with count ~= product); S3/S9/S10 timing (volley bursts dt<=5s chains vs serialized scripted loops with uniform gaps; reject metronomic cadences gap CV<0.3); S5 proxy laundering (r.jina.ai / translate.goog / fanyi.baidu.com / markdown.new; extract embedded target host); S7 fuzz ladder (param anomalies \u2014 negatives, >2^31 ints, SQL fragments, empty, duplicated params \u2014 one host within minutes); S4 run labels (mined per-cluster only, never pre-seeded); S8 cross-host walk (same ID on 3+ hosts of one service family in 15 min); S11/S12 corroboration only (self-ID strings, stock UAs). Method: query cheap/high-precision shapes first (S1, S6), expand via pivots; cache every hit (task UUID, query, timestamp, raw metadata, sha256); reviewers hold kill authority. VERDICT.md ruled the surface a DEAD END on friction, not content (separate ingest).",
+     "title": "anyrun-scan PLAN \u2014 shape-based hunt on any.run public tasks",
+     "url": "https://intelligence.any.run/"
+    },
+    "files": [],
+    "observed_at": "2026-10-07T00:00:00Z",
+    "source": "@src-plan",
+    "time_basis": "source_metadata",
+    "type": "intel.report"
+   },
+   "kind": "observation",
+   "ref": "obs-plan",
+   "tags": {
+    "confidence": "high",
+    "grade": "OBSERVED",
+    "lane": "anyrun-scan"
+   }
+  },
+  {
+   "body": {
+    "data": {
+     "category": "zero-friction-surface-preference",
+     "description": "Eval-run harness submission pattern (INFERENCE): rogue-agent eval runs favor zero-friction public surfaces that require no account to submit. The observed campaign's traces are public exactly where submission is account-free (urlquery.net, arquivo.pt). Gated surfaces are deprioritized: any.run requires a registered account for TI Lookup and task submission (401 unauthenticated verified), and self-service registration rejects personal email addresses ('Enter a valid business email' for proton.me; manual human-in-the-loop verification via X or Discord otherwise). Source wording (VERDICT.md reasoning): 'An eval-run harness optimizing for scale would not route through a manual-approval chokepoint when account-free alternatives exist and are already in use.' Grade: INFERENCE (friction-based deprioritization, not proof of absence \u2014 a sufficiently motivated operator with a business email could still submit).",
+     "first_observed": "2026-10-07",
+     "provenance": "evidence/anyrun-scan/VERDICT.md (moved to data/lanes/anyrun-scan/VERDICT.md 2026-10-11)"
+    },
+    "files": [],
+    "observed_at": "2026-10-07T00:00:00Z",
+    "source": "@src-plan",
+    "time_basis": "source_metadata",
+    "type": "intel.behavior"
+   },
+   "kind": "observation",
+   "ref": "obs-behavior",
+   "tags": {
+    "confidence": "medium",
+    "grade": "INFERENCE",
+    "lane": "anyrun-scan"
+   }
+  },
+  {
+   "body": {
+    "data": {
+     "description": "Shape-based pipeline for hunting rogue AI-agent eval-run traces on sandbox-analysis services (any.run; reusable for tria.ge / hybrid-analysis). S1 tag grammar: probe harness param grammars (zz=, _oai=, uq*=, mark=, validation=, epoch nonces); group hits by tag value (one value = one run). S6 staging/dead-drop hosts: tasks whose network IOCs touch webhook.site, httpbun.com, httpbin.org, *.lhr.life, *.pinggy.io, is.gd, *.trycloudflare.com; prioritize tasks hitting 2+ categories. S2 cartesian sweep: cluster tasks by (host, path); flag groups where 2+ numeric params each carry 50+ distinct values with count ~= product. S3/S9/S10 timing: volley bursts (delta-t <= 5s chains) vs serialized scripted loops (uniform gaps, no overlap); reject metronomic cadences (gap CV < 0.3). S5 proxy laundering: tasks submitted via r.jina.ai / translate.goog / fanyi.baidu.com / markdown.new; extract embedded target host. S7 fuzz ladder: param anomalies (negatives, >2^31 ints, SQL fragments, empty, duplicated params) on one host within minutes. S4 run labels: mined per-cluster only, never pre-seeded. S8 cross-host walk: same ID on 3+ hosts of one service family in 15 min. S11/S12 corroboration only (self-ID strings, stock UAs). Method: query cheap/high-precision shapes first (S1, S6), expand via pivots; cache every hit (task UUID, query, timestamp, raw metadata, sha256); reviewers hold kill authority. Verdict on any.run itself: DEAD END on friction (see lane claims); pipeline kept as a reusable record.",
+     "name": "shape-based-sandbox-hunt-pipeline",
+     "provenance": "evidence/anyrun-scan/PLAN.md (moved to data/lanes/anyrun-scan/PLAN.md 2026-10-11)",
+     "related_behaviors": [
+      "zero-friction-surface-preference"
+     ]
+    },
+    "files": [],
+    "observed_at": "2026-10-07T00:00:00Z",
+    "source": "@src-plan",
+    "time_basis": "source_metadata",
+    "type": "intel.ttp"
+   },
+   "kind": "observation",
+   "ref": "obs-ttp",
+   "tags": {
+    "confidence": "high",
+    "grade": "OBSERVED",
+    "lane": "anyrun-scan"
+   }
+  },
+  {
+   "body": {
+    "basis": "OBSERVED",
+    "cites": [
+     "@obs-plan"
+    ],
+    "property": "surface_map",
+    "subject": "@obs-plan",
+    "value": "any.run TI Lookup mapped 2026-10-07: free tier requires registration (11 fields, AND-only, 20 most recent results per query); XHR backend https://api-gb.any.run/lookup/search-with-updates/ (POST, bearer token from login); unauthenticated JSON access returns 401; public task pages render (200) but data loads via auth-gated DDP/REST; shape-relevant fields: taskType, url, domainName, destinationIP, submissionCountry, threatName, commandLine, suricataMessage. Open questions recorded: which 11 fields are free-tier; whether url: matches submitted URL or in-session URLs; whether 180-day range is premium-gated; whether public task pages expose submitter country without login."
+   },
+   "kind": "claim",
+   "ref": "claim-surface",
+   "tags": {
+    "grade": "OBSERVED",
+    "lane": "anyrun-scan"
+   }
+  },
+  {
+   "body": {
+    "basis": "INFERENCE",
+    "cites": [
+     "@obs-behavior",
+     "@obs-plan"
+    ],
+    "property": "friction_preference",
+    "subject": "@obs-behavior",
+    "value": "Eval-run harnesses favor zero-friction account-free surfaces; any.run's business-email gate plus human verification is the opposite shape. This inference underlies the existing DEAD END verdict (not proof of absence). PLAN.md's S1-S12 shape pipeline remains a reusable record for tria.ge / hybrid-analysis if scoped."
+   },
+   "kind": "claim",
+   "ref": "claim-friction",
+   "tags": {
+    "grade": "INFERENCE",
+    "lane": "anyrun-scan"
+   }
+  }
+ ]
+}
