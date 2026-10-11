@@ -8,6 +8,16 @@ documents in the established investigation directories.
 When in doubt, read `lists/README.md`, the nearest `PROVENANCE.md`, and the
 installed Factum `SKILL.md`.
 
+## Field notes
+
+`docs/field-notes/` holds experiment workspaces, analytics, and investigation notes that are not yet (or never will be) structured Factum records. Each subdirectory is a working area with its own collectors, state, and probe logs.
+
+Keep field notes updated with relevant experiments and analytics. Use the proper directory layout:
+- Each experiment/hunt gets its own subdirectory
+- Include a README.md or charter describing the purpose
+- Collectors, state files, and probe logs live in the subdirectory
+- When findings solidify, ingest them into Factum via the lane-ingest worker
+
 ## Worker instructions
 
 Detailed role-specific instructions for agent workers live in `.agents/workers/`:
