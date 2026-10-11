@@ -61,3 +61,7 @@ Tags on every record: `lane=2026-10-11-hf-traj-tbench`,
   instances as structured records.
 - `jina-evidence-pack.zip` and `glm-evidence-pack.zip` in
   `evidence/hf-trajectories/`: prior evidence packs (not re-ingested).
+
+## Raw source removal (2026-10-11)
+Behavioral extraction complete. All extractable signals ingested into Factum.
+Raw source files removed from evidence/hf-trajectories/ after verification.

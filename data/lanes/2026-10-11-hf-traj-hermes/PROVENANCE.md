@@ -91,3 +91,7 @@ term+type duplicates found; nothing skipped.
 - `events.jsonl` in this lane is the extraction-run ledger (5 aggregate
   events), not a duplicate of the Factum observations.
 - Do NOT push (task directive). Commit state: <pending; filled at ingest>.
+
+## Raw source removal (2026-10-11)
+Behavioral extraction complete. All extractable signals ingested into Factum.
+Raw source files removed from evidence/hf-trajectories/ after verification.

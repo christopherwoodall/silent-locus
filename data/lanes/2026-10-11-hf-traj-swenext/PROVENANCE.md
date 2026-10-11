@@ -58,3 +58,7 @@ verified from the source docs → records carry `model=unverified`.
 - Role counts: system 3,693 (1 prompt variant), user 3,692 (row index 3657 has
   system/assistant/tool turns only, no user message — observed in bytes),
   assistant 100,595, tool 96,902.
+
+## Raw source removal (2026-10-11)
+Behavioral extraction complete. All extractable signals ingested into Factum.
+Raw source files removed from evidence/hf-trajectories/ after verification.

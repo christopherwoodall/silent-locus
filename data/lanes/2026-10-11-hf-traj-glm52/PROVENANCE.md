@@ -68,3 +68,7 @@
   interrupts long-running processes.
 - Note: the task brief said 510 files; the source tree holds 86 trajectories
   (86 dirs, one trajectory.json each). Extraction covered all 86.
+
+## Raw source removal (2026-10-11)
+Behavioral extraction complete. All extractable signals ingested into Factum.
+Raw source files removed from evidence/hf-trajectories/ after verification.
