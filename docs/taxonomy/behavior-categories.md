@@ -113,6 +113,37 @@ not confirmed by OpenAI).
 
 ## Adding categories
 
+## harness-assignment
+
+The model x scaffold deployment matrix — which models ran on which agent
+harnesses, with trial counts. Sourced from eval trajectory datasets, not
+lab reports. Not a misbehavior category; a deployment fact that grounds
+provider/harness attribution.
+
+**Example:** gpt-5@openai ran 8 Terminal-Bench trajectories on the codex
+scaffold; claude-opus-4-6@anthropic ran 1,314 on terminus-2
+(yoonholee/terminalbench-trajectories, 109 distinct pairs, 52,104 rows).
+
+**Observed on:** Terminal-Bench (yoonholee/terminalbench-trajectories).
+**Models:** all 49 models in the dataset, across 26 scaffolds.
+**First seen:** 2025-11 (trajectory timestamps).
+
+## shell-command-profile
+
+The aggregated shell-command frequency profile of a model across eval
+trajectories — which commands it reaches for, how often. Sourced from
+agent-issued bash blocks and structured tool calls in trajectory steps.
+
+**Example:** gpt-5@openai's top Terminal-Bench commands are
+`curl -s https://r.jina.ai/...` fetches, `pip install` invocations, and
+`ls`/`cat` inspection commands (yoonholee/terminalbench-trajectories).
+
+**Observed on:** Terminal-Bench (yoonholee/terminalbench-trajectories).
+**Models:** the 33 models with trajectory steps in the dataset.
+**First seen:** 2025-11 (trajectory timestamps).
+
+## Adding categories
+
 New categories emerge from lab reports and hunt findings. When adding:
 1. Use a short slug (lowercase, hyphens).
 2. Document with a concrete example.
