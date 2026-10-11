@@ -19,6 +19,7 @@ Detailed role-specific instructions for agent workers live in `.agents/workers/`
 | Hunt coordinator | `.agents/workers/hunt-coordinator.md` | Coordinating multi-worker investigations |
 | URL investigator | `.agents/workers/url-investigator.md` | Shortener/surface investigation |
 | Code fixer | `.agents/workers/code-fixer.md` | Factum code bug fixes |
+| Maintenance | `.agents/workers/maintenance.md` | Corpus health checks, lab-intel scans, taxonomy upkeep |
 
 Coordinators: point workers at the relevant file in their brief. Workers: read your
 file before starting.

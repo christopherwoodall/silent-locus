@@ -63,6 +63,16 @@ not just the extractor — build the behavioral picture.
    label which one.
 - Write lane docs in ASD-STE100 (short sentences, simple words, terms defined on first use).
 
+## Lab intel pipeline
+
+The lab-intel workers feed the AI behavioral analytics pipeline — systematic
+ingestion of AI lab behavior reports (Anthropic, OpenAI, DeepMind) and
+Transluce incident reports (scan schedules live in `maintenance.md`).
+Extracted behaviors, TTPs, and model patterns are stored as `intel.*` records
+for hunt verification and pattern matching, using the extraction procedure
+above. Reports may also contain specific IOCs (hashes, URLs, domains, IPs) —
+extract these as `infra.ioc` records linked to the source report.
+
 ## What to return
 
 Behavior records created, TTP records created, provider attribution table, temporal

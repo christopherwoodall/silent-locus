@@ -61,6 +61,7 @@ low-level work yourself — you delegate it.
 | behavioral-analyst | `behavioral-analyst.md` | TTP/behavior extraction, provider attribution |
 | url-investigator | `url-investigator.md` | Shortener/surface investigation |
 | code-fixer | `code-fixer.md` | Factum code fixes |
+| maintenance | `maintenance.md` | Corpus health checks, lab-intel scans, taxonomy upkeep |
 
 ## What to return
 
