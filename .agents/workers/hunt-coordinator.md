@@ -68,3 +68,14 @@ low-level work yourself — you delegate it.
 Consolidated report: per-worker findings merged, contradictions resolved,
 cross-connections identified, open questions listed, next steps prioritized.
 Include commit SHAs for any ingested data.
+
+## Durable and resumable workloads
+
+All fleets MUST use durable and resumable patterns:
+
+1. **Write progress to files** — each worker writes its state to a file in the work directory. If the VM restarts, the next run resumes from the file, not from scratch.
+2. **Auto-restart on VM boot** — long-running work should be registered so it resumes after a restart. Use cron jobs or systemd units for work that must survive.
+3. **Teardown when finished** — workers clean up their temp files, work directories, and locks when done. Don't leave orphaned state.
+4. **Idempotent operations** — every step should be safe to re-run. Check if work is already done before doing it again.
+
+The VM restarts frequently. Design for it.
