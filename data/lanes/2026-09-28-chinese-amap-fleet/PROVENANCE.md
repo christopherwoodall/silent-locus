@@ -38,7 +38,42 @@ Earliest non-sentinel `@timestamp` in events: **2026-09-28** (first fleet scans,
 - `raw/analysis/LINKS.md` — running link log (see also `ALL_LINKS.md` at root for the full categorized list)
 - `SHA256SUMS` — manifest
 
-## Caveats
+## Additions ingested 2026-10-11 (branch ingest-amap-additions)
+
+Post-base-ingest work products, kept out of the base lane:
+`village-join/our-urls-raw.txt` (48 MB, 619,468 lines, collected 2026-10-05),
+the AI-Village 2025 join (`join-stats.json`, `matches-2025.jsonl` 16,941 rows),
+`personas/` behavioral studies and `studies/` writeups (msgboard-hunt-2,
+WRITEUP-2026-10-05).
+
+### 619,468-URL aggregation methodology (NOT ingested 1:1)
+1. `village-join.py` extracted every URL observed across the lane's incident
+   corpora into `our-urls-raw.txt` — 619,468 raw URL matches (lines; includes
+   template/placeholder entries such as `http://$PROXY_USER:$PROXY_PASS@...`).
+2. Reduced to `our-domains.txt`: 13,806 distinct domains with per-domain counts
+   (e.g. `404062 api.github.com`, `84504 github.com`).
+3. Join key built from 158 dead-drop/tunnel/relay/webhook fingerprint domains
+   (`our-fingerprint-domains.txt`) and the domain list; matched against the
+   re-downloaded AI Village 2026-10-05 tables (13/13 tables, gated HF access)
+   restricted to 2025 rows — verdict: zero pre-recreation overlaps
+   (`VILLAGE-JOIN-2.md`; `matches-2025.jsonl` holds 16,941 candidate rows from
+   the join for audit, all weak-domain noise, none fingerprint hits).
+4. What entered Factum (aggregates + exemplars only):
+   - 119 `intel.ioc` records: novel terms verified 0-hit in Factum via
+     pre-ingest `match --mode fuzzy` (operators' IPs, self-hosted dead-drop
+     mirrors, dead-drop inbox UUIDs, agent boards, shortener/proxy domains).
+     Dupes against the base lane and corpus were skipped (dedup lists in
+     worktree `.work/new_terms.txt` / `.work/dup_terms.txt`).
+   - 13 `intel.behavior` / `intel.ttp` records: tradecraft claims from
+     `personas/` (urlquery-as-dead-drop-oracle, token-theft-exfiltration,
+     image-beacon-exfil, archive-oracle fetch-proxy, holiday-inversion,
+     markdown-as-agent-memory, etc.), each graded and cited to its study doc.
+   - 69 `intel.report` records: `personas/` (57) and `studies/` (12) study
+     summaries, not full bodies.
+5. The raw 619,468 lines stay in the legacy evidence directory (read-only,
+   owned by the coordinator) and are NOT in `data/`.
+
+## Caveats (base collection)
 - urlquery search returns a relevance-capped view; counts are lower bounds.
 - Relay/carrier reports (jina, microlink, webhook.site URLs) carry non-Amap submitted domains; enumerated via targeted follow-up searches, not the domain sweep.
 - Report bodies for the 7 cited IDs are full captures; page listings are search-result summaries (no HTTP transaction detail).
