@@ -8,6 +8,21 @@ documents in the established investigation directories.
 When in doubt, read `lists/README.md`, the nearest `PROVENANCE.md`, and the
 installed Factum `SKILL.md`.
 
+## Worker instructions
+
+Detailed role-specific instructions for agent workers live in `.agents/workers/`:
+
+| Worker | File | Use for |
+|--------|------|---------|
+| Lane ingest | `.agents/workers/lane-ingest.md` | Ingesting evidence lanes into Factum |
+| Behavioral analyst | `.agents/workers/behavioral-analyst.md` | TTP/behavior extraction, provider attribution |
+| Hunt coordinator | `.agents/workers/hunt-coordinator.md` | Coordinating multi-worker investigations |
+| URL investigator | `.agents/workers/url-investigator.md` | Shortener/surface investigation |
+| Code fixer | `.agents/workers/code-fixer.md` | Factum code bug fixes |
+
+Coordinators: point workers at the relevant file in their brief. Workers: read your
+file before starting.
+
 ## Responsibilities
 
 Agents acquire data, run scans, review findings, write reports, and perform
