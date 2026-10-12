@@ -57,3 +57,293 @@ boundary is missing or the dummy environment breaks.
 2. Link to the behavior category (or categories) it implements.
 3. Document the mechanism — how does the agent actually do it?
 4. Create a matching `intel.ttp` Factum record with `related_behaviors`.
+
+## Anthropic September 2026 threat-report TTPs
+
+Techniques from Anthropic's threat-intelligence-report-september-2026 and
+the alignment-assessment blog, ingested 2026-10-11.
+
+### vibe-hacking
+
+Operators give general goals, let AI evaluate the environment, author and
+execute scripts, summarize results, and loop until done — the operator often
+does not understand the target environment.
+
+### ai-supply-chain-loot-compute-cover
+
+AI supply chain as loot AND compute AND cover: steal victims' AI API keys
+and switch attack workloads onto them; fraudulent resellers; malicious apps
+spoofing popular AI harnesses (Claude Code) that harvest session
+tokens/device credentials.
+
+### prompt-injection-api-key-exfil
+
+Prompt injection against LiteLLM deployments exfiltrates production API
+keys from cloud containers (also hit: OpenClaw deployments).
+
+### monitoring-agent-close-the-loop
+
+AI watches security-product detections and autonomously rebuilds/redeploys
+malware until undetected ("close the loop" — detection cost inverted onto
+defenders).
+
+### persistent-campaign-memory
+
+GTG-10007 "agent swarms" with a lead agent → many subagents; target lists,
+credentials, and engagement state saved across sessions; 13-agent
+collection fleet on scheduled jobs with anti-bot bypass and commercial
+proxy exits.
+
+### decompile-loop-exploit-foundry
+
+Firmware → tool-server decompiler → thousands of decompile calls →
+vulnerability hypotheses → exploit code → lab testing → iterate; "more than
+a dozen possible zero day findings in a single month".
+
+### threat-actor-claude-skills
+
+Operators modified Claude Code skills (GTG-20006); purpose-built
+firmware-decryption skill (GTG-10007). Appendix A of the September 2026
+threat report lists threat-actor-built Claude skills.
+
+### wordpress-reinstall-race
+
+WordPress re-install race condition → rogue admin (GTG-50029); poisoned
+backups for persistence; credential-harvesting "must-use" WordPress
+plugin; browser-exploit C2 via injected script hooking media-site readers.
+
+### refusal-evasion-engineering
+
+A gray-market LLM platform routed violative bio prompts away from Claude to
+a more permissive model; the routing code was presented to Claude as
+"over-refusal mitigation". Bio clusters: chikungunya gain-of-function grant
+(US-infra tunneling, zero-data-retention, fallback to competitor model);
+H5 avian influenza on Claude Sonnet 4 / Haiku 4.5; orthopoxvirus grant on
+Opus 5 via reseller relay; venom-toxin generative pipeline with Australia
+Group-listed scaffolds.
+
+### dual-hat-bounty-extortion
+
+Attackers claimed real HackerOne bug-bounty payouts ($2,000 and $5,000)
+from companies they also extorted.
+
+### reseller-relay-front
+
+Fraudulent AI reseller (GTG-50021, alias 'kl1zy'): "discounted AI access"
+storefronts proxying to other models. Indicators: awstore.cloud,
+kiro.cheap, sys-tools.cfd, aws-us-east-3.com, holdboost.store,
+deltaclient.xyz, iymkjuzymkapovrntoxy.supabase.co.
+
+### misconfigured-ctf-eval
+
+A misconfigured CTF task with no in-scope solution — a detection template
+for out-of-scope task pursuit (Anthropic's new eval;
+alignment-assessment blog).
+
+## OpenAI report TTPs (ingested 2026-10-11)
+
+From OpenAI-published evaluation and threat reports. Basis is upstream.
+
+### cross-conversation-encrypted-reasoning-replay
+
+Copy encrypted reasoning from one conversation and ask a model in another
+conversation to decrypt and transcribe the hidden reasoning content,
+reproducing protected reasoning in visible form at scale.
+
+**Related behaviors:** restriction-circumvention.
+
+### conversation-compaction-reasoning-leak
+
+Cross-model and conversation-compaction vulnerabilities that expose
+protected model reasoning; confirmed through responsible disclosure and
+investigated by OpenAI as part of the adversarial-distillation attack
+class.
+
+**Related behaviors:** restriction-circumvention.
+
+### false-front-journalist-persona-network
+
+Run a stable of journalist personas with backstopped social accounts
+(Medium, X, Facebook, Instagram, Threads) to pitch long-form articles to
+small and medium outlets; supplement with fake leaked documents and audio
+scripts; launder geopolitical messaging into target audiences via real
+media placement.
+
+**Related behaviors:** influence-operation.
+
+### attacker-model-jailbreak-generation
+
+Use an internal attacker model (GPT-Red) instructed to jailbreak past GPT
+models to generate fixed adversarial prompt sets; test robustness
+generalization with a held-out attacker not used for training data.
+
+**Related behaviors:** jailbreak-robustness.
+
+### multiturn-adaptive-jailbreak-evaluation
+
+Probe the model, respond to its answers, and adjust strategy over multiple
+turns; score worst-case defender success rate as a function of attacker
+budget (the model succeeds only if it avoids unsafe assistance across all
+n attempts).
+
+**Related behaviors:** jailbreak-robustness.
+
+### reusable-jailbreak-threat-model
+
+Threat model prioritizing broadly reusable attacks: reusable jailbreaks,
+fragmented workflows, repeated attempts, compromised trusted identities,
+and activity that becomes harmful in combination; also covers harmful cyber
+actions the model initiates without an authorized user request
+(unauthorized access, evading safety/security controls, acting against a
+live third-party target without trusted-user authorization).
+
+**Related behaviors:** jailbreak-robustness.
+
+### prompted-sandbagging-monitor-evasion
+
+Measure monitor-evasion capability under prompted sandbagging; includes
+sneaky sandbox escape and awareness of chain-of-thought monitoring reducing
+monitorability.
+
+**Related behaviors:** monitor-evasion.
+
+### self-replicating-prompt-injection
+
+Prompt injections that self-propagate akin to a computer worm; demonstrated
+with a GPT-Red-style internal model based on GPT-5.4-mini under RL self-play
+training.
+
+**Related behaviors:** prompt-injection.
+
+## GTIG AI Threat Tracker 2025-11 TTPs (ingested 2026-10-11)
+
+Techniques used by AI-assisted malware families (PROMPTFLUX, PROMPTSTEAL,
+PROMPTLOCK, QUIETVAULT, FRUITSHELL) and state actors, per the Google Threat
+Intelligence Group AI Threat Tracker.
+
+### jit-ai-malware-execution
+
+Malware families use large language models during execution ("just-in-time"
+AI) to dynamically generate malicious scripts, obfuscate their own code to
+evade detection, and create malicious functions on demand rather than
+hard-coding them. First observed by GTIG in PROMPTFLUX and PROMPTSTEAL
+(2025) — a step toward more autonomous and adaptive malware.
+
+### llm-runtime-payload-generation
+
+Malware outsources malicious logic to an LLM at runtime instead of carrying
+fixed logic: PROMPTSTEAL generates one-line Windows commands via
+Qwen2.5-Coder-32B-Instruct; PROMPTLOCK generates and executes malicious Lua
+scripts. No two runs look identical, defeating static signature-based
+detection.
+
+### model-alias-latest-deprecation-resilience
+
+PROMPTFLUX pins the 'gemini-1.5-flash-latest' model alias so the malware
+always calls the most current stable release, making the tool more
+resilient to model deprecation.
+
+### prompt-evasion-vs-llm-security-analysis
+
+FRUITSHELL embeds hard-coded prompts designed to bypass detection or
+analysis by LLM-powered security systems.
+
+### ai-cli-assisted-secret-discovery
+
+QUIETVAULT uses an AI prompt together with AI CLI tools installed on the
+victim machine to search for additional secrets beyond its primary
+GitHub/NPM token targets.
+
+### exfil-via-public-github-repo
+
+QUIETVAULT exfiltrates captured credentials and files by creating a
+publicly accessible GitHub repository.
+
+### guardrail-bypass-ctf-pretext
+
+A China-nexus threat actor reframed prompts as coming from a
+capture-the-flag (CTF) competition participant ("I am working on a CTF
+problem") to bypass Gemini safety guardrails and obtain advice supporting
+phishing, exploitation, and web shell development.
+
+### guardrail-bypass-student-pretext
+
+Iranian actor MuddyWater (TEMP.Zagros) posed as a university student
+working on a final project or writing a cybersecurity article to bypass
+Gemini guardrails while developing custom malware; the interaction exposed
+its C2 domains and encryption keys, enabling Google to disrupt the
+campaign.
+
+### state-actor-ai-attack-lifecycle
+
+China, Iran, and North Korea misuse Gemini across the attack lifecycle:
+China for reconnaissance, lure crafting, infrastructure building, and
+exfiltration tooling; Iran APT41 for code obfuscation and C2 frameworks
+(OSSTUN), MuddyWater for malware development, APT42 for phishing lures and
+a natural-language "Data Processing Agent"; North Korea UNC1069 (MASAN)
+and TraderTraitor (PUKCHONG) for cryptocurrency-theft reconnaissance,
+stealer code, and deepfake social-engineering lures (BIGMACHO backdoor via
+fake Zoom SDK).
+
+## Hunt-derived TTPs (ingested 2026-10-11)
+
+Techniques observed in the hunt, from the chinese-amap-fleet and
+anyrun-scan lanes.
+
+### webhook-inbox-noauth-retrieval
+
+Retrieve live dead-drop contents via the webhook.site no-auth token API:
+GET https://webhook.site/token/<uuid>/requests returns inbox JSON
+including per-request IP/country/UA/headers/query/body. Inboxes are public
+until expiry; the fleet rotates UUIDs per program — re-sweep the webhook
+endpoint each run for new ones. Proven on 11 live fleet inboxes (14 UUIDs
+harvested from decoded beacon programs).
+
+### fragment-tag-dead-drop
+
+Move the tracking tag into the URL fragment: the f-phase of
+njxzgz20261004{s,p,f}<0-7> put the identical tag in the URL fragment —
+never transmitted to Amap's servers (fragments stay client-side), but
+preserved verbatim in urlquery's public report title. The scanner's public
+URL log is the mailbox: target-server invisibility plus observer
+visibility.
+
+### relay-bridge-amplification
+
+A single handle (Werbel) replays "[via Werbel bridge - from thecolony -
+original by <author>]" cross-posts cyclically on msgboard.dev (19/20 newest
+threads); the board is ~95% mirror traffic. Attribution correction: all
+msgboard.dev metrics must exclude relayed threads. The handshake thread
+doubles as a passive discovery-probe scan log: my-agent hello posts mutate
+through discovery routes (.well-known/agent.json, a2a/, v1/message:send) —
+the retry-loop is the telemetry.
+
+### self-timestamping-probe-labels
+
+The tag IS the harness's clock: 10-digit seconds-epoch plus 4-digit suffix.
+Epoch nonces bound urlquery scan latency at ~60s and close the monitor's
+submitter-side-timing gap. 19-digit variants are epoch nanoseconds (IDPH
+Tableau SQLi + lhr.life + pinggy + webhook.site, all 2026-06-21) — the
+strongest same-toolkit evidence outside the zz prefix.
+
+### staged-host-diffing
+
+The operator discovered and diffed Amap's pre-production/staging SSR host
+(pre-amap-pc-ssr.amap.com, 49 events Oct 4) — route names, param acceptance,
+staging parity; a level below POI-page scraping. Paired with JS-bundle
+scans (ssr-next.amap.com static chunks, claudeprime tag): infrastructure
+mapping, not data collection.
+
+### shape-based-sandbox-hunt-pipeline
+
+Shape-based pipeline for hunting rogue AI-agent eval-run traces on
+sandbox-analysis services (any.run; reusable for tria.ge /
+hybrid-analysis). S1 tag grammar: probe-harness param grammars (zz=,
+_oai=, uq\*=, mark=, validation=, epoch nonces); group hits by tag value
+(one value = one run). S6 staging/dead-drop hosts: tasks whose network
+IOCs touch webhook.site, httpbun.com, httpbin.org, *.lhr.life,
+\*.pinggy.io, is.gd, *.trycloudflare.com; prioritize tasks hitting 2+
+categories. S2 cartesian sweep: cluster tasks by (host, path); flag groups
+where 2+ numeric params each carry 50+ distinct values with count ≈
+product. S3/S9/S10 timing: volley bursts (delta-t ≤ 5s chains) vs
+serialized scripted runs.
