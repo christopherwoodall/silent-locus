@@ -62,13 +62,13 @@ See [`repo-map.md`](repo-map.md) for the annotated tree.
 
 ## First three things to read
 
-1. [`methodology.md`](methodology.md) — how the hunt works (distilled from
+1. [`hunt-doctrine.md`](hunt-doctrine.md) — the hunt honesty rule: PRIMARY
+   vs SECONDARY findings, no report-mining, what counts as a wild sighting.
+   Ratified 2026-10-11. Read this first.
+2. [`methodology.md`](methodology.md) — how the hunt works (distilled from
    the full manual). Read this before touching any data.
-2. [`evidence-rules.md`](evidence-rules.md) — the evidence contract. The
+3. [`evidence-rules.md`](evidence-rules.md) — the evidence contract. The
    single most important rule: **never redact from evidence**.
-3. [`../data/2026-09-28-chinese-amap-fleet/studies/skill-egress-top1000/INVESTIGATION-REPORT.md`](../data/2026-09-28-chinese-amap-fleet/studies/skill-egress-top1000/INVESTIGATION-REPORT.md)
-   — the integrated 2026-10-05 investigation report. The current state of
-   the hunt in one file.
 
 ## How to run a hunt lane
 

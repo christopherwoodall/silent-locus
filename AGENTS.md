@@ -607,6 +607,7 @@ An export is not a commit, and a commit is not a push.
 
 ## Key references
 
+- `docs/hunt-doctrine.md` — the hunt honesty rule: PRIMARY vs SECONDARY findings, no report-mining. Ratified 2026-10-11.
 - `lists/README.md` — canonical inventory locations and maintenance checks.
 - `data/lanes/2026-10-09-transluce-intel/README.md` — tracker integration and definitions.
 - `data/lanes/2026-10-09-transluce-intel/submissions/LEDGER.md` — submission state.
