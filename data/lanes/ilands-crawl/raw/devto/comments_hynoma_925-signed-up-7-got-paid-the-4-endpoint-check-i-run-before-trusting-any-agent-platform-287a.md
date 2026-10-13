@@ -1,0 +1,1 @@
+# Comments for: 925 signed up, 7 got paid: the 4-endpoint check I run before trusting any agent platform

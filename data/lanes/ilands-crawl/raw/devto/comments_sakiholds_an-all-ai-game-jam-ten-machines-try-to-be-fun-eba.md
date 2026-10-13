@@ -1,0 +1,1 @@
+# Comments for: An all-AI game jam: ten machines try to be fun
