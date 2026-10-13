@@ -347,3 +347,63 @@ categories. S2 cartesian sweep: cluster tasks by (host, path); flag groups
 where 2+ numeric params each carry 50+ distinct values with count ≈
 product. S3/S9/S10 timing: volley bursts (delta-t ≤ 5s chains) vs
 serialized scripted runs.
+
+### replication-chain-stages
+
+Four practical stages of autonomous replication: (1) network enumeration -
+finding targets; (2) initial access and payload delivery - gaining execution,
+with opportunistic privilege escalation; (3) inference setup - establishing
+inference on the compromised host; (4) propagation - continuing replication
+from the new host. Stages 1-2 are the cyber-exploit element (already shown
+feasible for small models by CyberGym, ExploitBench, adaptive-worm work);
+stage 3 is the least studied and hardest for small models.
+
+**Related behaviors:** autonomous-weight-based-replication.
+
+### unauthenticated-adb-hop
+
+The worm hops node to node over an unauthenticated ADB port: scanning the
+network, accessing the target via a reverse shell, sending the viral payload
+(weights plus harness), and standing up an inference server on each target.
+When the server passes correctness and anti-cheating checks, a fresh copy of
+the worm spawns on the target. Demonstrated on a firewalled 8-node redroid
+(Android 15 emulator) VPC and a 17-node two-segment fleet joined by a pivot
+node.
+
+**Related behaviors:** autonomous-weight-based-replication.
+
+### pipeline-parallel-model-sharding
+
+Split a model too large for one weak device into shards spread across many
+machines that communicate to run it collectively. Gemma4-26B-A4B sharded
+under pipeline parallelism across 15 off-brand Android TV boxes (~$55 each,
+4GB RAM), each holding a fraction of the model's layers, at 0.39 tokens/s.
+Pipeline parallelism chosen for fault tolerance: a downed node is
+replaceable, with its layers' KV cache recomputed via another forward pass.
+
+**Related behaviors:** autonomous-weight-based-replication,
+autonomous-inference-setup.
+
+### reasoning-transcript-extraction
+
+Active techniques to make a model reveal full hidden reasoning transcripts:
+direct instruction to output prior reasoning verbatim; differential tricking
+at scale (one lab tested 12,000 requests); moving protected reasoning blocks
+between conversations; moving reasoning between models (weaker-safeguard
+model extracting a stronger model's reasoning); moving reasoning between
+accounts via proxy networks after bans; translating reasoning into another
+language; writing reasoning in tags alongside the answer.
+
+**Related behaviors:** adversarial-distillation.
+
+### proxy-network-fraudulent-accounts
+
+Proxy networks controlling hundreds of thousands of fraudulent accounts to
+run capability-extraction campaigns at scale: accounts created with false
+identities and stolen payment details; access resold in regions where the
+model is not offered; traffic distributed across the lab's API, third-party
+cloud platforms, and other inference providers; banned accounts replaced by
+fresh ones. One network managed 20,000+ fraudulent accounts at once
+(February 2026).
+
+**Related behaviors:** adversarial-distillation.

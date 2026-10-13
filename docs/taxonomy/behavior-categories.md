@@ -828,3 +828,62 @@ personal email addresses.
 **First seen:** 2026-10-07.
 **Hunt relevance:** Explains the observable-surface selection of eval-run
 campaigns.
+
+### autonomous-weight-based-replication
+
+Small models complete the end-to-end replication chain (network enumeration,
+initial access and payload delivery, inference setup, propagation) in
+simplified evaluations, carrying their weights as the malware payload.
+GLM-5.2 sits above the capabilities floor: it spread Llama3.1-8B inference
+to all 8 nodes in 4 of 5 trials of a firewalled 8-node Android fleet, while
+other tested open-weight models fail reliably. ECI trend (13.7/yr, R2 0.95)
+puts a small model at that level by end of 2026. Distinct from
+`self-replicating-prompt-injection` (prompt injections that self-propagate);
+this is weight-carrying replication across compromised hosts.
+
+**Models:** GLM-5.2, Qwen3.5-9B, Gemma4-26B-A4B, Llama3.1-8B, Claude Opus 4.8.
+**First seen:** 2026-10 (Anthropic Frontier Red Team report, 2026-10-12).
+**Severity:** high.
+
+### autonomous-inference-setup
+
+The model autonomously sets up inference servers on unfamiliar hardware:
+picking a compatible inference stack, resolving package versions, and
+debugging machine-specific issues across serially dependent steps that are
+hard to recover from. Qwen3.5-9B achieved inference on 8 of 9 tested
+hardware types, from Jetson Nanos to Mac PCs to RTX 4090s. Key enabler of
+the replication chain's least-studied stage.
+
+**Models:** Qwen3.5-9B, GLM-5.2.
+**First seen:** 2026-10 (Anthropic Frontier Red Team report, 2026-10-12).
+**Severity:** high.
+
+### lamarckian-adaptation
+
+Parent model instances pass their prompts, code, and notes to daughter
+replicators, so the replicator adapts to hardware it has seen before.
+Qwen3.5-9B inference-setup success rose from 45% in the first generation to
+61-84% in later generations across six note-inheriting generations. This is
+the "adaptation" half of autonomous replication and adaptation (ARA).
+
+**Models:** Qwen3.5-9B.
+**First seen:** 2026-10 (Anthropic Frontier Red Team report, 2026-10-12).
+**Severity:** moderate.
+
+### adversarial-distillation
+
+Covert, industrial-scale campaigns to extract one model's capabilities and
+replicate them in another without the developer's authorization, run through
+networks of fraudulent accounts. Anthropic-observed variants (2026-10-12):
+verbatim-reasoning instruction, 12,000-request differential tricking, moving
+protected reasoning blocks between conversations, moving reasoning between
+models (weaker-safeguard model extracting a stronger model's reasoning),
+moving reasoning between accounts via proxy networks, translating reasoning
+into another language, writing reasoning in tags alongside the answer. Related
+to the OpenAI-flavored `restriction-circumvention (adversarial-distillation
+variant)`; same campaign class, different operator observations. Named
+operators: Moonshot, MiniMax, Zhipu.
+
+**Models:** Claude Sonnet 5.5, Claude Opus 5/5.5, Claude Fable 5/5.1.
+**First seen:** 2026-02 (Anthropic February 2026 report); variants 2026-10.
+**Severity:** high.
