@@ -16,7 +16,7 @@ agent infrastructure only — never human or operator identity.
 
 ```
 AGENTS.md              -- the rules: how to work in this repo
-evidence/                  -- 82 dated hunt-event dirs, 2016 -> 2026
+evidence/                  -- legacy hunt-event dirs (migrating into Factum data/lanes/)
   evidence/<date>-<slug>/  -- one incident: events.jsonl, PROVENANCE.md,
                           SHA256SUMS, raw/
   evidence/transluce-api/  -- Transluce tracker integration + filing drafts
@@ -38,7 +38,7 @@ New structured evidence lives in Factum: sources, observations, graded
 claims, and edges (links between records). Full docs:
 [skills/factum/SKILL.md](skills/factum/SKILL.md).
 
-Corpus state: 3,400+ records held as immutable batches in `data/`.
+Corpus state: 116,125 records held as immutable batches in `data/`.
 Legacy `evidence/` lane directories are moving into Factum with lane
 tags and keep their original paths.
 
@@ -54,7 +54,7 @@ tags and keep their original paths.
 
 ## Key numbers
 
-- 82 dated event directories, 2016 -> 2026
+- 116,125 Factum records across 137 lanes (legacy evidence/ dirs migrating in)
 - ~365,000 rows of AI-agent run data farmed and audited
   (Hugging Face trajectory audits)
 - Transluce findings #170 (jina.ai proxy-laundering) and #171 (webhook
