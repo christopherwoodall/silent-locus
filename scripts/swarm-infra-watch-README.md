@@ -157,3 +157,39 @@ Per 6h run:
 - No POSTs, no auth bypass, no intrusive scanning.
 - Hunt scope: swarms and rogue agents only.
 - Inbox UUIDs stay in workspace-local state, never published.
+
+## Base Rate Measurement (2026-10-14)
+
+**Question:** How many benign webhook.site inboxes are created from Tencent
+Cloud IPs? Without this, tier-2 (cloud) hits have unknown false-positive rate.
+
+**Method attempted:** Sample webhook.site inbox URLs from urlquery searches
+unrelated to fleet indicators, extract creator IPs, classify.
+
+**Result:** Only 1 non-fleet-search inbox found with a retrievable UUID
+(`00544500-5e78-4eb9-bf19-9085a9ddf74c`, from generic "webhook.site" query).
+Creator IP: `43.163.128.176` → Tier 2 (CLOUD_SERVICE), Tencent Cloud HK
+(AS132203), swarm_linked=true. UA: `curl/8.14.1` (matches fleet UA from
+swarmcha.se report). Created 2026-10-08 (within fleet window).
+
+**This sample is NOT benign** — it exhibits fleet indicators (Tencent HK IP
+in 43.163.128.x near known fleet IP 43.163.128.105, fleet UA, fleet timeframe).
+It was found via a generic search, suggesting fleet inboxes are discoverable
+outside fleet-specific queries.
+
+**Limitation:** urlquery htmx search returned minimal webhook.site results for
+benign queries ("discord webhook", "slack webhook", "test webhook",
+"api callback" all returned 0 UUIDs). A statistically meaningful base rate
+cannot be established from manual sampling.
+
+**Recommendation:** The crawler itself will build the base rate empirically.
+As it processes inboxes over days/weeks, the ratio of tier-2 hits with vs
+without corroborating fleet indicators (fleet UA, tag grammar, Amap URLs)
+will establish the background rate. Until then:
+- Tier-1 (KNOWN_SWARM): alert immediately (exact IP match, near-zero FP)
+- Tier-2 (CLOUD_SERVICE): require corroboration (fleet UA OR found via
+  fleet-indicator search) before alerting; log all for base-rate building
+- The `swarm_linked` flag distinguishes Tencent/Alibaba ASNs from generic cloud
+
+**Status:** Base rate UNKNOWN — will be measured empirically by crawler operation.
+Do not treat tier-2 hits as standalone findings without corroboration.
