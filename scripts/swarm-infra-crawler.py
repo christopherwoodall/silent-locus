@@ -18,7 +18,8 @@ Pipeline:
   2. For each NEW inbox, GET token metadata -> extract creator IP + UA
   3. Classify creator IP (4 tiers via ip_classifier)
   4. Check factum for existing records (dedup)
-  5. Write factum-ready JSONL for the lane-ingest worker
+  5. Write factum bundle v2 JSON (directly submittable via
+     `factum add --input`)
 
 Passive only: GET requests to public APIs. No POSTs (except the one-time
 API structure verification, documented separately). No intrusive scanning.
@@ -31,7 +32,9 @@ State:
 
 Output:
   ~/workspace/silent-locus/data/lanes/swarm-infra-watch/crawl-<timestamp>.json
-  (factum-ready; the lane-ingest worker handles submission)
+  ~/workspace/silent-locus/data/lanes/swarm-infra-watch/crawl-<timestamp>.bundle.json
+  (bundle v2 — submit via `factum add --input <bundle>`; no separate
+  lane-ingest worker needed)
 """
 
 import argparse
@@ -475,13 +478,36 @@ def module_creator_ips(inboxes, state, config):
 # Factum output
 # ---------------------------------------------------------------------------
 
-def build_factum_records(findings):
+def build_factum_records(findings, run_id=None):
     """
-    Build factum-ready records from findings.
+    Build a factum bundle v2 from creator-IP findings.
+
+    Bundle v2 shape (matches orchestrator._build_factum_bundle and the
+    factum skill's bundle.json example):
+        {
+            "bundle": 2,
+            "idempotency_key": ...,
+            "actor": ...,
+            "tags": {...},
+            "records": [
+                {"ref": ..., "kind": "source"|"observation"|"observable",
+                 "body": {...}},
+            ],
+        }
+
     Only MEDIUM+ confidence creator-IP extractions become records.
     LOW findings stay in the run log for analyst review.
+
+    NOTE (2026-10-14 fix): the previous version emitted a custom
+    {"type": "observation", "lane": ..., "grade": ...} shape that factum
+    does not accept. There is no separate "lane-ingest worker" — the
+    bundle must be directly submittable via `factum add --input`.
     """
+    if run_id is None:
+        run_id = datetime.datetime.now(datetime.timezone.utc).strftime(
+            "%Y%m%dT%H%M%SZ")
     records = []
+    n = 0
     for f in findings:
         if f.get("rule") != "creator-ip":
             continue
@@ -492,37 +518,48 @@ def build_factum_records(findings):
         # creator_ip is a full classified ip_record() dict (standing rule:
         # every stored IP carries its classification tier).
         cip = f["creator_ip"]
+        sref, oref = f"swc-source-{n}", f"swc-obs-{n}"
+        # Source: the webhook.site inbox
         records.append({
-            "type": "observation",
-            "lane": LANE_TAG,
-            "grade": "OBSERVED",
-            "observed_at": f["extracted_at"],
+            "ref": sref,
+            "kind": "source",
+            "body": {
+                "source_type": "scanner",
+                "locator": f"webhook.site inbox {f['uuid']}",
+                "title": (
+                    f"webhook.site inbox creator-IP extraction "
+                    f"({f['uuid'][:8]}…)"
+                ),
+            },
+            "tags": {
+                "lane": LANE_TAG,
+                "scanner": True,
+            },
+        })
+        # Observation: the creator-IP extraction
+        data = {
             "summary": (
                 f"webhook.site inbox creator IP: {cip['ip']} "
                 f"({cip['tier_label']})"
             ),
-            "data": {
-                "inbox_uuid": f["uuid"],
-                "inbox_url": f["inbox_url"],
-                # Classified IP record — tier always present (standing rule)
-                "creator_ip": cip,
-                # Flat copies for query convenience (backward compat)
-                "creator_ip_str": cip["ip"],
-                "creator_ip_tier": cip["tier"],
-                "creator_ip_tier_label": cip["tier_label"],
-                "creator_ua": f["creator_ua"],
-                "classification_tier": f["classification_tier"],
-                "classification_label": f["classification_label"],
-                "classification_detail": f["classification_detail"],
-                "swarm_linked": f["swarm_linked"],
-                "has_fleet_ua": f["has_fleet_ua"],
-                "inbox_created_at": f.get("created_at"),
-                "source_report": f["source_report"],
-                "source_url": f["source_url"],
-                "harvest_rule": f["harvest_rule"],
-                "signals": f["signals"],
-                "confidence": f["confidence"],
-            },
+            "confidence": f["confidence"],
+            "grade": "OBSERVED",
+            "inbox_uuid": f["uuid"],
+            # Classified IP record — tier always present (standing rule)
+            "creator_ip": cip,
+            # Flat copies for query convenience
+            "creator_ip_str": cip["ip"],
+            "creator_ip_tier": cip["tier"],
+            "creator_ip_tier_label": cip["tier_label"],
+            "creator_ua": f["creator_ua"],
+            "classification_tier": f["classification_tier"],
+            "classification_label": f["classification_label"],
+            "classification_detail": f["classification_detail"],
+            "swarm_linked": f["swarm_linked"],
+            "has_fleet_ua": f["has_fleet_ua"],
+            "inbox_created_at": f.get("created_at"),
+            "harvest_rule": f["harvest_rule"],
+            "signals": f["signals"],
             "provenance": {
                 "method": (
                     "GET https://webhook.site/token/<uuid> with "
@@ -534,8 +571,57 @@ def build_factum_records(findings):
                     "(/requests endpoint per-request source IPs)"
                 ),
             },
+        }
+        if f.get("source_report"):
+            data["source_report"] = f["source_report"]
+        if f.get("source_url"):
+            data["source_url"] = f["source_url"]
+        records.append({
+            "ref": oref,
+            "kind": "observation",
+            "body": {
+                "type": "network.infra",
+                "source": f"@{sref}",
+                "observed_at": f["extracted_at"],
+                "data": data,
+            },
+            "tags": {
+                "lane": LANE_TAG,
+                "scanner": True,
+                "tier": cip["tier"],
+                "tier_label": cip["tier_label"],
+            },
         })
-    return records
+        # Observable: inbox URL
+        records.append({
+            "ref": f"swc-url-{n}",
+            "kind": "observable",
+            "body": {"type": "url", "value": f["inbox_url"]},
+        })
+        # Observable: creator IP
+        ip = cip["ip"]
+        records.append({
+            "ref": f"swc-ip-{n}",
+            "kind": "observable",
+            "body": {
+                "type": "ipv4" if "." in ip else "ipv6",
+                "value": ip,
+            },
+            "tags": {
+                "tier": cip["tier"],
+                "tier_label": cip["tier_label"],
+                "asn": cip.get("asn"),
+            },
+        })
+        n += 1
+    return {
+        "bundle": 2,
+        "idempotency_key": f"swarm-infra-crawler/{run_id}",
+        "actor": "agent:swarm-infra-crawler",
+        "tags": {"swarm_infra_crawler": True, "run_id": run_id,
+                 "lane": LANE_TAG},
+        "records": records,
+    }
 
 
 # ---------------------------------------------------------------------------
@@ -570,9 +656,12 @@ def run(dry_run=False, since_days=7, modules=None):
     elif "creator" in modules:
         print("[2/3] No new inboxes to process.")
 
-    # Module 3: Build factum records
-    print("[3/3] Building factum records...")
-    factum_records = build_factum_records(all_findings)
+    # Module 3: Build factum bundle (bundle v2, directly submittable
+    # via `factum add --input`)
+    print("[3/3] Building factum bundle...")
+    run_id = run_utc.replace(":", "").replace("-", "")[:15]
+    factum_bundle = build_factum_records(all_findings, run_id=run_id)
+    n_bundle_records = len(factum_bundle["records"])
 
     # Summary with denominator logging (adversarial review C2:
     # "fleet leaving webhook.site looks identical to fleet dormant" —
@@ -596,7 +685,7 @@ def run(dry_run=False, since_days=7, modules=None):
     print(f"    Tier 2 (CLOUD_SERVICE): {len(tier2)}")
     print(f"  Inboxes gone (404/410): {len(gone)}")
     print(f"  Transient failures (will retry): {len(transient)}")
-    print(f"  Factum records (MEDIUM+): {len(factum_records)}")
+    print(f"  Factum bundle records (MEDIUM+): {n_bundle_records}")
     if not inboxes and not extracted:
         print(f"  NOTE: Zero new inboxes. This is expected if the fleet "
               f"is dormant OR has moved off webhook.site. "
@@ -605,13 +694,13 @@ def run(dry_run=False, since_days=7, modules=None):
     # Write output
     if not dry_run:
         os.makedirs(OUTPUT_DIR, exist_ok=True)
-        run_id = run_utc.replace(":", "").replace("-", "")[:15]
         out_path = os.path.join(OUTPUT_DIR, f"crawl-{run_id}.json")
+        bundle_path = os.path.join(OUTPUT_DIR, f"crawl-{run_id}.bundle.json")
         output = {
             "run_utc": run_utc,
-            "crawler_version": "2.0",
+            "crawler_version": "2.1",
             "findings": all_findings,
-            "factum_records": factum_records,
+            "factum_bundle": factum_bundle,
             "summary": {
                 "urlquery_searches": search_count,
                 "inboxes_harvested": len(inboxes),
@@ -621,14 +710,21 @@ def run(dry_run=False, since_days=7, modules=None):
                 "tier2": len(tier2),
                 "gone": len(gone),
                 "transient_failures": len(transient),
-                "factum_records": len(factum_records),
+                "factum_bundle_records": n_bundle_records,
             },
         }
         tmp = out_path + ".tmp"
         with open(tmp, "w") as f:
             json.dump(output, f, indent=1)
         os.rename(tmp, out_path)
+        # Standalone bundle file for `factum add --input`
+        btmp = bundle_path + ".tmp"
+        with open(btmp, "w") as f:
+            json.dump(factum_bundle, f, indent=1)
+        os.rename(btmp, bundle_path)
         print(f"Output: {out_path}")
+        print(f"Factum bundle: {bundle_path} "
+              f"(submit via: factum add --input {bundle_path})")
 
         state["last_run_utc"] = run_utc
         state["run_count"] += 1
@@ -636,7 +732,7 @@ def run(dry_run=False, since_days=7, modules=None):
     else:
         print("[dry-run] No state changes.")
 
-    return all_findings, factum_records
+    return all_findings, factum_bundle
 
 
 def main():
