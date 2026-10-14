@@ -28,6 +28,8 @@ Kill switch: create `~/workspace/silent-locus/scripts/scanners/state/SELF-MOD-DI
 ### Step 0: Check kill switch
 If `~/workspace/silent-locus/scripts/scanners/state/SELF-MOD-DISABLED`
 exists, stop immediately. Report that you are disabled.
+**Re-check before every mutation** (not just at run start) — if the file
+appears mid-run, stop before committing.
 
 ### Step 1: Read the error log
 Read `~/workspace/silent-locus/scripts/scanners/state/error-log.jsonl`.
@@ -71,9 +73,19 @@ following the template in SELF-MODIFIER-GUARDRAILS.md. Commit the proposal
 file. Then STOP.
 
 ### Step 5: Enhancement (only if error log is empty)
-If no unaddressed errors exist, you may apply ONE enhancement from your own
-analysis — subject to the MAY/MAY-NOT boundaries in the guardrails doc.
-Enhancements are held to a higher bar: when in doubt, PROPOSE.
+If no unaddressed errors exist, write your best enhancement idea to the
+review queue as a proposal (`state/proposed-changes/`). Do NOT apply
+enhancements autonomously — idle-run ideas are propose-only, always.
+(Adversarial 2026-10-14: a self-held "higher bar" is not a bar.)
+
+### Propose-only list (never auto-apply)
+- Shared modules: `_common.py`, `orchestrator.py`, `ip_classifier.py`,
+  `swarm-infra-crawler.py`
+- Detection patterns: regexes, indicator lists, confidence thresholds,
+  tier boundaries
+- `swarm-infra-config.json`
+- All enhancements
+- Recurring errors (traceback_hash seen after a prior self-mod fix)
 
 ### Hard boundaries (non-negotiable)
 - NEVER break the factum ingest contract (hit dict shape, bundle format, grading)

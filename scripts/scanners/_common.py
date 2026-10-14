@@ -52,11 +52,24 @@ def report_error(module: str, error_type: str, message: str,
     a scanner catches an exception or encounters a degraded state --
     a silent failure is worse than a logged one.
 
-    Do NOT log secrets, credentials, or full request bodies here.
-    Keep messages to error type + affected input identifier.
+    Hardening (adversarial 2026-10-14):
+    - Message truncated to 500 chars; context bounded to 10 keys,
+      each value truncated to 200 chars (prevents log-bloat attacks).
+    - Values are coerced to str -- no nested objects that could carry
+      attacker-controlled structures into the fixer's instruction surface.
+    - Log rotates at 1000 entries (oldest dropped). Prevents disk-fill.
+    - Do NOT log secrets, credentials, full request bodies, or raw
+      attacker-influenced input. Log identifiers, not content.
+
+    Note: the error log is an instruction surface for the self-modifier.
+    Treat context values as untrusted. The self-modifier must not copy
+    "suggested" values from error context into code without independent
+    verification.
     """
     import hashlib
     import traceback as tb_mod
+
+    MAX_LOG_ENTRIES = 1000
 
     # Hash the current traceback for dedup (empty if none active)
     tb_text = "".join(tb_mod.format_exc()) if sys.exc_info()[0] else ""
@@ -64,21 +77,42 @@ def report_error(module: str, error_type: str, message: str,
         f"{module}:{error_type}:{tb_text[-500:]}".encode()
     ).hexdigest()[:16]
 
+    # Bound and sanitize context (adversarial: unbounded context is
+    # a log-bloat / instruction-injection surface)
+    safe_context = {}
+    if context:
+        for k in list(context.keys())[:10]:
+            try:
+                v = str(context[k])[:200]
+            except Exception:
+                v = "<unprintable>"
+            safe_context[str(k)[:50]] = v
+
     entry = {
         "timestamp": utcnow_iso(),
-        "module": module,
-        "error_type": error_type,
+        "module": str(module)[:100],
+        "error_type": str(error_type)[:100],
         "message": str(message)[:500],
         "traceback_hash": tb_hash,
-        "context": context or {},
+        "context": safe_context,
     }
     try:
         os.makedirs(os.path.dirname(ERROR_LOG_PATH), exist_ok=True)
-        with open(ERROR_LOG_PATH, "a", encoding="utf-8") as f:
-            f.write(json.dumps(entry, ensure_ascii=False) + "\n")
+        # Rotate: keep last MAX_LOG_ENTRIES
+        lines = []
+        if os.path.exists(ERROR_LOG_PATH):
+            with open(ERROR_LOG_PATH, "r", encoding="utf-8") as f:
+                lines = f.readlines()
+        lines.append(json.dumps(entry, ensure_ascii=False) + "\n")
+        lines = lines[-MAX_LOG_ENTRIES:]
+        tmp = ERROR_LOG_PATH + ".tmp"
+        with open(tmp, "w", encoding="utf-8") as f:
+            f.writelines(lines)
+        os.rename(tmp, ERROR_LOG_PATH)
     except OSError:
-        # Error logging must never crash the scanner
-        print(f"[report_error] failed to write: {module}/{error_type}",
+        # Error logging must never crash the scanner -- but be LOUD
+        # about it (adversarial: silent logging failure = blind spot)
+        print(f"[report_error] FAILED to write: {module}/{error_type}",
               file=sys.stderr)
 
 

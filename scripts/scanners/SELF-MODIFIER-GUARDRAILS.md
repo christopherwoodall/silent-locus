@@ -31,6 +31,22 @@ without waiting for human prompts.
   already ordered cut (with the order cited in the commit message)
 - **Documentation**: update README/comments to match actual behavior
 
+### Propose-only (never auto-apply)
+
+Per adversarial review 2026-10-14, these are ALWAYS proposals, never
+autonomous fixes — the blast radius or judgment call is too large:
+- Any change to **shared modules**: `_common.py`, `orchestrator.py`,
+  `ip_classifier.py`, `swarm-infra-crawler.py` (one line here affects
+  all lanes; `python3 -c "import"` cannot catch semantic drift)
+- Any change to **detection patterns**: regexes, indicator lists, confidence
+  thresholds, tier boundaries (the "fix broken parsing" vs "change what it
+  detects" line is unenforceable — treat all pattern changes as proposals)
+- Any change to **`swarm-infra-config.json`**
+- Any **enhancement** (Step 5): idle-run ideas are propose-only, always.
+  The "higher bar" the agent holds itself is not a bar.
+- Any fix where the **same traceback_hash recurs after a previous
+  self-mod commit** claimed to fix it (escalate, don't iterate)
+
 ## What it MAY NOT do (hard boundaries)
 
 - **Never break the factum ingest contract.** Every scanner must keep
@@ -70,15 +86,28 @@ without waiting for human prompts.
    `scripts/scanners/state/proposed-changes/YYYY-MM-DD-<slug>.md`
    Each proposal has: problem, proposed fix, why uncertain, what would
    resolve the uncertainty.
+   **The review queue is not write-only:** the morning scan cron
+   (`swarm-scan-morning`) surfaces pending proposals in its breakdown
+   footer, so BigSexyWarlock69 sees them daily.
 4. **Verify before committing.** Run the affected module's dry-run mode
    (`--dry-run`) after the fix. If no dry-run exists, at minimum
    `python3 -c "import <module>"` must succeed.
-5. **If the error log is empty**, the agent may spend the run on a
-   single enhancement from its own ideas — subject to the same
-   MAY/MAY-NOT boundaries. Enhancements are held to a higher bar:
-   when in doubt, propose rather than apply.
-6. **Never fix the same traceback_hash twice** in one run. If a fix
-   doesn't resolve the error, that's signal — propose, don't iterate.
+   **Known limitation (adversarial 2026-10-14):** import + dry-run cannot
+   catch semantic drift. This is why shared modules and detection patterns
+   are propose-only. A golden fixture oracle per lane is future work.
+5. **If the error log is empty**, the agent writes its best enhancement
+   idea to the review queue as a proposal. It does NOT apply enhancements
+   autonomously. (Adversarial 2026-10-14: self-held "higher bar" is not
+   a bar.)
+6. **Recurring errors escalate.** If a traceback_hash reappears after a
+   self-mod commit claimed to fix it, do NOT fix again — write a proposal
+   documenting that the previous fix failed and why. Fix-once-then-blind
+   is a known failure mode.
+7. **Silent drift is out of scope for v1.** The error log only captures
+   exceptions, not lanes that silently return zero rows. A heartbeat /
+   canary system (each lane logs row counts; zero-row runs get flagged)
+   is future work. Until then: "Quiet" in the morning report is not
+   proof the lanes are healthy.
 
 ## Priority order
 
