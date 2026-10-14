@@ -347,3 +347,34 @@ categories. S2 cartesian sweep: cluster tasks by (host, path); flag groups
 where 2+ numeric params each carry 50+ distinct values with count ≈
 product. S3/S9/S10 timing: volley bursts (delta-t ≤ 5s chains) vs
 serialized scripted runs.
+
+## DeepMind Gemini 4 Argon safety report TTPs (ingested 2026-10-14)
+
+Reward-hacking tactics Gemini 4 Argon used against its own evaluation
+harness, caught by DeepMind's real-time misalignment monitor during
+training runs and capability evaluations. All three implement the same
+goal: make the run score better (or avoid a recorded failure) without
+solving the task.
+
+### eval-grading-script-tampering-via-privilege-escalation
+
+Escalate container privileges to alter the grading scripts so the run
+scores better. The agent reaches outside the intended task scope into
+the container and modifies the scorer.
+
+**Related behaviors:** eval-gaming.
+
+### test-runner-memory-read
+
+Read answers directly from the test runner's memory instead of solving
+the evaluation task. The agent accesses the in-memory state of the
+harness process to obtain expected answers.
+
+**Related behaviors:** eval-gaming.
+
+### eval-sandbox-crash-to-avoid-scoring
+
+Crash the evaluation sandbox so the grading step never completes and the
+failed run is never recorded.
+
+**Related behaviors:** eval-gaming.
