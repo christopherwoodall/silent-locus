@@ -158,6 +158,54 @@ def load_state():
         return default
 
 
+# ---------------------------------------------------------------------------
+# STANDING RULE (BigSexyWarlock69): Every IP stored anywhere — factum records,
+# state files, run logs — MUST be classified for cloud/known-host status.
+# ALWAYS use ip_record() to build an IP field. NEVER store a bare IP string
+# without its classification tier. Cloud/known-host is a priority indicator.
+# ---------------------------------------------------------------------------
+def ip_record(ip, config, role):
+    """
+    Build a standardized classified IP record.
+
+    This is the ONLY sanctioned way to store an IP in crawler output.
+    Every IP field in every factum record, state entry, and log line
+    must be an ip_record() dict, never a bare string.
+
+    Args:
+        ip: the IP address string (v4 or v6)
+        config: crawler config dict (known_swarm_ips, cloud_asns, etc.)
+        role: semantic role of this IP — "creator", "poster", "source", etc.
+
+    Returns:
+        {
+            "ip": str,
+            "role": str,
+            "tier": int (1-4),
+            "tier_label": str (KNOWN_SWARM/CLOUD_SERVICE/RESIDENTIAL_VPN_HOSTING/UNKNOWN),
+            "tier_detail": str (why this classification),
+            "asn": str|None,
+            "org": str|None,
+            "country": str|None,
+            "city": str|None,
+            "swarm_linked": bool,
+        }
+    """
+    c = classify_ip(ip, config, ASN_CACHE_PATH)
+    return {
+        "ip": ip,
+        "role": role,
+        "tier": c["tier"],
+        "tier_label": c["label"],
+        "tier_detail": c["detail"],
+        "asn": c["asn"],
+        "org": c["org"],
+        "country": c["country"],
+        "city": c["city"],
+        "swarm_linked": c["swarm_linked"],
+    }
+
+
 def save_state(state):
     os.makedirs(os.path.dirname(STATE_PATH), exist_ok=True)
     tmp = STATE_PATH + ".tmp"
@@ -362,15 +410,16 @@ def module_creator_ips(inboxes, state, config):
             continue
 
         creator_ip = result["creator_ip"]
-        # Classify
-        classification = classify_ip(creator_ip, config, ASN_CACHE_PATH)
+        # Classify via the sanctioned ip_record() helper (standing rule:
+        # every stored IP must carry its classification tier).
+        creator = ip_record(creator_ip, config, role="creator")
 
         # Check for fleet UA marker
         ua = result.get("creator_ua", "")
         has_fleet_ua = "python-requests/2.32.5" in (ua or "")
 
         # Confidence scoring
-        tier = classification["tier"]
+        tier = creator["tier"]
         signals = [f"tier-{tier}"]
         if has_fleet_ua:
             signals.append("fleet-ua")
@@ -389,16 +438,12 @@ def module_creator_ips(inboxes, state, config):
             "source_url": inbox["source_url"],
             "harvest_rule": inbox["rule"],
             "status": "extracted",
-            "creator_ip": creator_ip,
+            "creator_ip": creator,  # Full classified IP record (standing rule)
             "creator_ua": ua,
-            "creator_asn": classification["asn"],
-            "creator_org": classification["org"],
-            "creator_country": classification["country"],
-            "creator_city": classification["city"],
-            "classification_tier": tier,
-            "classification_label": classification["label"],
-            "classification_detail": classification["detail"],
-            "swarm_linked": classification["swarm_linked"],
+            "classification_tier": tier,  # Flat copy for backward compat
+            "classification_label": creator["tier_label"],
+            "classification_detail": creator["tier_detail"],
+            "swarm_linked": creator["swarm_linked"],
             "has_fleet_ua": has_fleet_ua,
             "created_at": result.get("created_at"),
             "extracted_at": datetime.datetime.now(
@@ -413,14 +458,13 @@ def module_creator_ips(inboxes, state, config):
         if uuid not in state["seen_inbox_uuids"]:
             state["seen_inbox_uuids"].append(uuid)
         state["processed_creators"][uuid] = {
-            "ip": creator_ip,
-            "tier": tier,
+            "ip": creator,  # Full classified record (standing rule)
             "extracted_at": findings[-1]["extracted_at"],
         }
 
         print(f"  [{i+1}/{len(inboxes)}] {uuid[:8]}... "
               f"-> {creator_ip} (tier {tier}: "
-              f"{classification['label']})", file=sys.stderr)
+              f"{creator['tier_label']})", file=sys.stderr)
 
     # Cap seen lists
     state["seen_inbox_uuids"] = state["seen_inbox_uuids"][-5000:]
@@ -445,24 +489,28 @@ def build_factum_records(findings):
             continue
         if f.get("confidence") not in ("HIGH", "MEDIUM"):
             continue
+        # creator_ip is a full classified ip_record() dict (standing rule:
+        # every stored IP carries its classification tier).
+        cip = f["creator_ip"]
         records.append({
             "type": "observation",
             "lane": LANE_TAG,
             "grade": "OBSERVED",
             "observed_at": f["extracted_at"],
             "summary": (
-                f"webhook.site inbox creator IP: {f['creator_ip']} "
-                f"({f['classification_label']})"
+                f"webhook.site inbox creator IP: {cip['ip']} "
+                f"({cip['tier_label']})"
             ),
             "data": {
                 "inbox_uuid": f["uuid"],
                 "inbox_url": f["inbox_url"],
-                "creator_ip": f["creator_ip"],
+                # Classified IP record — tier always present (standing rule)
+                "creator_ip": cip,
+                # Flat copies for query convenience (backward compat)
+                "creator_ip_str": cip["ip"],
+                "creator_ip_tier": cip["tier"],
+                "creator_ip_tier_label": cip["tier_label"],
                 "creator_ua": f["creator_ua"],
-                "creator_asn": f["creator_asn"],
-                "creator_org": f["creator_org"],
-                "creator_country": f["creator_country"],
-                "creator_city": f["creator_city"],
                 "classification_tier": f["classification_tier"],
                 "classification_label": f["classification_label"],
                 "classification_detail": f["classification_detail"],

@@ -55,6 +55,34 @@ operators build infra from cloud, agents egress through residential proxies.
 
 Tiers 1-2 are the signal. Tiers 3-4 get logged but don't trigger alerts.
 
+### Standing Rule: Classify Every Stored IP
+
+Per BigSexyWarlock69's standing order: **anywhere we store an IP, classify it
+for cloud/known-host status.** Every IP field in every factum record, state
+file, and run log must be a classified `ip_record()` dict — never a bare IP
+string. Cloud/known-host is a priority indicator.
+
+The crawler enforces this via `ip_record(ip, config, role)` in
+`swarm-infra-crawler.py`, which wraps `classify_ip()` and returns:
+
+```json
+{
+  "ip": "43.162.198.97",
+  "role": "creator",
+  "tier": 1,
+  "tier_label": "KNOWN_SWARM",
+  "tier_detail": "Exact match against published fleet IP list",
+  "asn": "AS132203",
+  "org": "Tencent Cloud",
+  "country": "HK",
+  "city": "Hong Kong",
+  "swarm_linked": true
+}
+```
+
+When adding a new module that stores IPs (poster IPs, source IPs, etc.),
+ALWAYS use `ip_record()` — do not store raw IP strings.
+
 ## Pipeline
 
 ```
