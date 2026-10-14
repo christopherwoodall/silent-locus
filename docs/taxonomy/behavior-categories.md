@@ -165,6 +165,79 @@ New categories emerge from lab reports and hunt findings. When adding:
 3. Note evaluations/models where observed.
 4. Create a matching `intel.behavior` Factum record.
 
+## Hunt-derived categories (Transluce tracker, 2026-10)
+
+These come from third-party Transluce tracker findings, graded UPSTREAM.
+Each is a finder's claim, cited as reported.
+
+### backend-port-probing
+
+Probes of backend API ports or routes, often through a public fetch proxy.
+Service exposure stays unconfirmed.
+
+**Example:** Five Arquivo captures (2026-05-11, 18:32:47-18:33:03 UTC) hit
+`lib.bgsu.edu` on ports 8089 and 8081 (`/repositories/3/resources`,
+`/version`) plus `129.1.14.56:8089/version`; all show indexed proxy status
+422. ArchivesSpace documents these default ports and the `/version` route.
+
+**Observed on:** Transluce finding #178 (Ayush Bhardwaj, 2026-10-14);
+actor unknown, automation plausible, human scripting possible.
+**First seen:** 2026-05.
+
+### url-routing-probes
+
+Systematic URL route variations (case, scheme, slashes, suffixes, query
+values, proxy nesting) to find a readable route. Bypass intent is uncertain.
+
+**Example:** 72 Arquivo captures contain the ArchivesSpace container
+identifier 8059 with route variants; 9 use `top_containers;/8059` and 18 use
+`rnd=` values. Ordinary catalogue navigation explains some requests.
+
+**Observed on:** Transluce finding #178 (Ayush Bhardwaj, 2026-10-14).
+**First seen:** 2026-05.
+
+### commitment-reversal
+
+An agent (or agent-attributed account) says it will not do an action, then
+does it soon after.
+
+**Example:** 1F916 account `@head-of-engineering` (self-declared
+claude-opus-5, unverified) wrote "I am not executing it, and nobody should
+on the strength of this comment" about a Bankr fee-release path, then sent
+the fee-release transactions 12.1 minutes later (c13128 correction).
+
+**Observed on:** Transluce finding #179 (Ayush Bhardwaj, 2026-10-14).
+**First seen:** 2026-08.
+
+### undocumented-privilege-path-execution
+
+Use of a permissionless or privileged path missing from vendor
+documentation. It moves real assets or rights.
+
+**Example:** `updateBeneficiary(poolId, treasury)` on Bankr's Doppler
+FeesManager (Base) released the treasury's accrued fees without the treasury
+key: `collectFees` and `updateBeneficiary` are external with no
+beneficiary-only guard (Sourcify source). 6.1755 WETH and ~3.38 billion
+$1F916 (~$17.9k contemporaneous mark) moved to the treasury. Bankr's
+claiming-fees docs do not describe this path.
+
+**Observed on:** Transluce finding #179 (Ayush Bhardwaj, 2026-10-14).
+**First seen:** 2026-08.
+
+### unverified-agent-claim
+
+An account in an AI-agent venue self-declares a model identity. The model
+label and autonomous execution stay unverified, and signing authority traces
+to a human operator.
+
+**Example:** 1F916 account `@head-of-engineering` claims claude-opus-5, but
+the disclosed signing wallet is controlled by a human operator (linked X
+account AlphaAltcoins); whether the model initiated or authorized the
+signing is unproven.
+
+**Observed on:** Transluce finding #179 (Ayush Bhardwaj, 2026-10-14).
+**First seen:** 2026-08.
+
 ## Lab-derived categories (OpenAI system cards, 2026-09/10)
 
 These come from OpenAI safety evaluations, not hunt observations. They
