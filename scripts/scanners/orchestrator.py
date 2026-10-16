@@ -28,11 +28,20 @@ import datetime
 import importlib
 import json
 import os
+import re
 import sys
 import traceback
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import _common as C
+
+# Fleet tag grammar found in submitted URLs: uqframe=/uqscan=/uq= values.
+_FLEET_TAG_RE = re.compile(r"[?&](?:uqframe|uqscan|uq)=([^&]+)")
+
+
+def _now_utc_iso() -> str:
+    return datetime.datetime.now(datetime.timezone.utc).strftime(
+        "%Y-%m-%dT%H:%M:%SZ")
 
 STATE_DIR = os.path.expanduser(
     "~/workspace/silent-locus/scripts/scanners/state")
@@ -81,54 +90,94 @@ def _build_factum_bundle(hits: list, run_id: str) -> dict:
     """Build a factum bundle from scanner hits (no factum.py invocation).
 
     Each hit becomes: source (the lane) + observation (web.capture) +
-    observables (url, ipv4 where present). Follows the bundle.json
-    example shape from the factum skill.
+    observables (url, ipv4 where present). Shapes follow the registered
+    factum-web/web.capture schema (requested_url + capture_kind required
+    in data, additionalProperties false; observed_at/time_basis/files/
+    data_schema required on the observation; value_schema required on
+    observables) and the corpus precedent from the
+    2026-09-28-chinese-amap-fleet lane ingest (requested_url = urlquery
+    report URL, capture_kind "http"). Scanner metadata that has no
+    schema slot (summary, indicators, confidence, scanner grade, ip
+    classification) rides in record tags, per the misc-metadata rule.
     """
     records = []
     for i, h in enumerate(hits):
+        lane = h.get("lane", "")
         sref, oref = f"source-{i}", f"obs-{i}"
+        base_tags = {"lane": lane, "scanner": True}
         records.append({
             "ref": sref, "kind": "source",
             "body": {
                 "source_type": "scanner",
-                "locator": f"scanner:{h.get('lane')}",
+                "locator": f"scanner:{lane}",
             },
+            "tags": dict(base_tags),
         })
-        data = {
-            "summary": h.get("summary", ""),
-            "indicators": h.get("indicators_matched", []),
-            "confidence": h.get("confidence", "LOW"),
-            "grade": h.get("grade", "SECONDARY"),
-        }
-        if h.get("ip_classification"):
-            data["ip_classification"] = h["ip_classification"]
+        report_url = h.get("source_url", "")
+        tags = dict(base_tags)
+        tags["grade"] = "OBSERVED"
+        if h.get("grade"):
+            tags["scanner_grade"] = h["grade"]
+        if h.get("summary"):
+            tags["summary"] = h["summary"]
+        if h.get("indicators_matched"):
+            tags["indicators"] = list(h["indicators_matched"])
+        if h.get("confidence"):
+            tags["confidence"] = h["confidence"]
         if h.get("priority"):
-            data["priority"] = True
+            tags["priority"] = True
+        if h.get("report_id"):
+            tags["report_id"] = h["report_id"]
+        submitted_url = h.get("submitted_url", "")
+        if submitted_url:
+            tags["submitted_url"] = submitted_url
+            # fleet tag grammar: uqframe=/uqscan=/uq= values in the URL
+            m = _FLEET_TAG_RE.search(submitted_url)
+            if m:
+                tags["fleet_tag"] = m.group(1)
+        ipc = h.get("ip_classification") or {}
+        for k, tk in (("ip", "ip"), ("tier", "ip_tier"),
+                      ("label", "ip_label"), ("asn", "ip_asn"),
+                      ("org", "ip_org"), ("country", "ip_country"),
+                      ("city", "ip_city")):
+            if ipc.get(k) is not None:
+                tags[tk] = ipc[k]
         records.append({
             "ref": oref, "kind": "observation",
             "body": {
                 "type": "web.capture",
                 "source": f"@{sref}",
-                "data": data,
+                "observed_at": (h.get("observed_at") or h.get("report_date")
+                                or _now_utc_iso()),
+                "time_basis": "source_metadata",
+                "files": [],
+                "data_schema": "urn:factum:web:web-capture:1",
+                "data": {
+                    "requested_url": report_url,
+                    "capture_kind": "http",
+                    "tool": f"swarm-scan lane {lane}",
+                },
             },
-            "tags": {
-                "lane": h.get("lane"),
-                "scanner": True,
-            },
+            "tags": tags,
         })
         # URL observable
-        if h.get("source_url"):
+        if report_url:
             records.append({
                 "ref": f"url-{i}", "kind": "observable",
-                "body": {"type": "url", "value": h["source_url"]},
+                "body": {"type": "url",
+                         "value_schema": "urn:factum:core:raw-string:1",
+                         "value": report_url},
+                "tags": dict(base_tags),
             })
         # IP observable
-        ip = (h.get("ip_classification") or {}).get("ip")
+        ip = ipc.get("ip")
         if ip:
             records.append({
                 "ref": f"ip-{i}", "kind": "observable",
                 "body": {"type": "ipv4" if "." in ip else "ipv6",
+                         "value_schema": "urn:factum:core:raw-string:1",
                          "value": ip},
+                "tags": dict(base_tags),
             })
     return {
         "bundle": 2,
