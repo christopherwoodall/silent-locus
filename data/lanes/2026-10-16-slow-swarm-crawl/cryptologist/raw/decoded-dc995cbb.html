@@ -1,0 +1,24 @@
+<!doctype html><meta charset="utf-8"><title>amap fetch</title><body>running</body>
+<script>
+var results = [];
+function report(){ document.title = results.join(' || ').slice(0,1900); document.body.innerText = results.join('\n').slice(0,1900); }
+function tryAPI(name, url){
+  var cbname = '__cb_' + name.replace(/[^a-z0-9]/gi,'_');
+  window[cbname] = function(j){
+    try{ 
+      var a = j && j.data && j.data.sub_poi_navi;
+      if(a && a.length){ results.push(name + ':OK ' + a.map(function(v){return (v.shortname||v.name)+'='+v.clk_ratio}).join(',')); }
+      else { results.push(name + ':NAV ' + JSON.stringify(j).slice(0,500)); }
+    }catch(e){ results.push(name + ':ERR ' + e.message); }
+    report();
+  };
+  var s = document.createElement('script');
+  s.onerror = function(){  results.push(name + ':load-error'); report(); };
+  s.src = url + (url.indexOf('?')>=0 ? '&' : '?') + 'callback=' + cbname;
+  document.head.appendChild(s);
+}   
+setTimeout(function(){ tryAPI('detail', 'https://www.amap.com/detail/get/detail?id=B0138027SQ'); }, 1500);
+setTimeout(function(){ tryAPI('ssr', 'https://amap-pc-ssr.amap.com/ssr/api/getPoiInfo?id=B0138027SQ'); }, 5000);
+setTimeout(function(){ report (); }, 10000);
+</script>
+<iframe style="display:none" src="https://www.amap.com/service/switchVersion?enable=1&src=auto_new_gray"></iframe>
