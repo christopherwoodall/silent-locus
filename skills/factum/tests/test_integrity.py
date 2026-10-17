@@ -186,3 +186,37 @@ def test_retraction_preserves_target(state, bundle):
     bundle["records"] = [{"kind": "retraction", "body": {"target": original, "reason": "synthetic withdrawal"}}]
     add_bundle(State(state.repo).load(), bundle)
     assert original in State(state.repo).load().records
+
+
+def test_add_bundle_does_not_reload_state(state, bundle, monkeypatch):
+    """add_bundle must project from in-memory state, not reload the corpus.
+
+    Regression test for the 2026-10-17 write-path fix: add_bundle used to
+    call State.load() a second time, re-parsing and re-validating every
+    record before projecting.
+    """
+    calls = []
+    original_load = store.State.load
+
+    def counting_load(self, validate=True):
+        calls.append(1)
+        return original_load(self, validate=validate)
+
+    monkeypatch.setattr(store.State, "load", counting_load)
+    add_bundle(state, bundle)
+    assert calls == []
+
+
+def test_export_pending_does_not_reload_state(state, bundle, monkeypatch):
+    """export_pending must project from in-memory state, not reload."""
+    add_bundle(state, bundle)
+    calls = []
+    original_load = store.State.load
+
+    def counting_load(self, validate=True):
+        calls.append(1)
+        return original_load(self, validate=validate)
+
+    monkeypatch.setattr(store.State, "load", counting_load)
+    export_pending(state)
+    assert calls == []

@@ -2,7 +2,7 @@ import json
 
 import pytest
 
-from factum_lib.cli import dispatch, parser
+from factum_lib.cli import dispatch, is_mutating, parser
 from factum_lib.schemas import SchemaError, write_json_atomic
 from factum_lib.store import FactumError, State, add_bundle
 from tools.validation_support import cli, git, install_skill, snapshot
@@ -271,6 +271,8 @@ def test_is_mutating_classifies_commands():
     assert is_mutating(p.parse_args(["lane", "edit", "mylane"]))
     assert is_mutating(p.parse_args(["lane", "link", "mylane", "--key", "k", "--actor", "a", "id1"]))
     assert is_mutating(p.parse_args(["schema", "install", "d", "--approve"]))
+    # rebuild swaps factum.db via os.replace: it must hold the writer lock.
+    assert is_mutating(p.parse_args(["rebuild"]))
     # Read-only commands
     assert not is_mutating(p.parse_args(["match", "--value", "x"]))
     assert not is_mutating(p.parse_args(["query", "--input", "x"]))
@@ -348,3 +350,56 @@ def test_readstate_batch_digest_stable(state, bundle):
         assert isinstance(d1, str) and len(d1) > 0
     finally:
         rs.close()
+
+
+def test_reads_bypass_writer_lock(installed):
+    """Read-only commands must not wait on writer.lock (2026-10-17)."""
+    from filelock import FileLock
+
+    host, skill = installed
+    cli(skill, host, "init")
+    lock_path = host / "data/.local/writer.lock"
+    lock_path.parent.mkdir(parents=True, exist_ok=True)
+    with FileLock(str(lock_path), timeout=0):
+        result = cli(skill, host, "status")
+    assert result["initialized"] is True
+
+
+def test_rebuild_honors_lock_timeout_flag(installed):
+    """rebuild takes the writer lock; --lock-timeout controls the wait."""
+    from filelock import FileLock
+
+    host, skill = installed
+    cli(skill, host, "init")
+    lock_path = host / "data/.local/writer.lock"
+    lock_path.parent.mkdir(parents=True, exist_ok=True)
+    with FileLock(str(lock_path), timeout=0):
+        result = cli(skill, host, "rebuild", "--lock-timeout", "0.5", ok=False)
+    assert result["error"]["code"] == "LOCK_TIMEOUT"
+
+
+def test_factum_lock_timeout_env_overrides_default(installed):
+    """FACTUM_LOCK_TIMEOUT env sets the writer-lock wait (2026-10-17)."""
+    from filelock import FileLock
+
+    host, skill = installed
+    cli(skill, host, "init")
+    lock_path = host / "data/.local/writer.lock"
+    lock_path.parent.mkdir(parents=True, exist_ok=True)
+    with FileLock(str(lock_path), timeout=0):
+        result = cli(
+            skill, host, "rebuild", ok=False, env={"FACTUM_LOCK_TIMEOUT": "0.5"},
+        )
+    assert result["error"]["code"] == "LOCK_TIMEOUT"
+
+
+def test_is_mutating_still_rejects_at_for_writes():
+    """--at never downgrades a mutating command (2026-10-17).
+
+    is_mutating must stay True for `add --at`: dispatch() rejects the
+    combination explicitly, and the writer lock must be taken first.
+    """
+    p = parser()
+    assert is_mutating(p.parse_args(["add", "--input", "x", "--at", "abc123"]))
+    assert is_mutating(p.parse_args(["rebuild", "--at", "abc123"]))
+    assert not is_mutating(p.parse_args(["status", "--at", "abc123"]))

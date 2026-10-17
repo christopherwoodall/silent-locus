@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import copy
+import os
 import re
 import sqlite3
 from datetime import date
@@ -516,8 +517,12 @@ def lane_command(state, args):
             "FINDINGS.md": "# Findings\n\nGrade claims OBSERVED, UPSTREAM, or INFERENCE.\n",
         }.items():
             atomic_bytes(directory / filename, text.encode("utf-8"))
-        State(state.repo).load().project()
-        return {"lane": lane, "path": directory.relative_to(state.repo).as_posix()}
+        rel = directory.relative_to(state.repo).as_posix()
+        state.lanes[lane["id"]] = {"record": lane, "path": f"{rel}/lane.json"}
+        state.validate_references()
+        state.compute_state_digest()
+        state.project()
+        return {"lane": lane, "path": rel}
 
     lane_id = state.lane_id(args.lane)
     lane = state.lanes[lane_id]
@@ -532,7 +537,10 @@ def lane_command(state, args):
             document["tags"] = parse_tags(args.tags)
         state.catalog.validate(CORE["lane"], document)
         write_json_atomic(state.repo / lane["path"], document)
-        State(state.repo).load().project()
+        state.lanes[lane_id]["record"] = document
+        state.validate_references()
+        state.compute_state_digest()
+        state.project()
         return {"lane": document}
 
     bundle = base_bundle(args)
@@ -578,6 +586,12 @@ def parser():
     p = argparse.ArgumentParser(prog="factum")
     p.add_argument("--repo")
     p.add_argument("--at")
+    p.add_argument(
+        "--lock-timeout",
+        type=float,
+        default=None,
+        help="Seconds to wait for writer.lock (defaults to FACTUM_LOCK_TIMEOUT or 30).",
+    )
     sub = p.add_subparsers(dest="command", required=True)
 
     for name in ("init", "status", "doctor", "rebuild", "export"):
@@ -921,11 +935,32 @@ def dispatch(repo, args):
 
 def is_mutating(args):
     """Return True if this command mutates corpus state."""
+    # rebuild swaps factum.db via os.replace; it must hold the writer
+    # lock or it races concurrent adds' own projections (2026-10-17).
+    # NOTE: --at does NOT make a command non-mutating. dispatch() rejects
+    # mutating commands with --at explicitly ("--at is read-only"); if
+    # is_mutating returned False here, `add --at` would skip the lock and
+    # project a historical revision into the live database.
+    if args.command == "rebuild":
+        return True
     return (
-        args.command in {"add", "capture", "extract", "note", "export", "update"}
+        args.command in {"init", "add", "capture", "extract", "note", "export", "update"}
         or args.command == "lane" and args.action in {"new", "edit", "link"}
         or args.command == "schema" and args.action == "install"
     )
+
+
+def resolve_lock_timeout(args):
+    """Seconds to wait for writer.lock: flag > env > 30s default."""
+    if getattr(args, "lock_timeout", None) is not None:
+        return args.lock_timeout
+    env_val = os.environ.get("FACTUM_LOCK_TIMEOUT")
+    if env_val is not None:
+        try:
+            return float(env_val)
+        except ValueError:
+            fail("LOCK_TIMEOUT", "FACTUM_LOCK_TIMEOUT must be a number.")
+    return 30.0
 
 
 def main():
@@ -938,7 +973,8 @@ def main():
         if is_mutating(args):
             lock = checked_path(repo, "data/.local/writer.lock")
             durable_mkdir(lock.parent)
-            with FileLock(str(lock), timeout=30):
+            timeout = resolve_lock_timeout(args)
+            with FileLock(str(lock), timeout=timeout, poll_interval=0.25):
                 result = dispatch(repo, args)
                 if result is not None:
                     emit(result)
