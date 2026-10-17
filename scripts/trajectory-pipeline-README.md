@@ -881,3 +881,176 @@ Rules for baseline lanes:
   The manifest + provenance sidecars make them re-acquirable.
 - Reviewer expectation for baselines: characterize first, log
   only genuine deviations. Honest zero is a valid outcome.
+
+## TauBench lane notes (2026-10-16)
+
+- Source: sierra-research/tau-bench, revision 59a200c. tau1: 1,980 trajectories
+  (gpt-4o-airline 200, gpt-4o-retail 460, sonnet-35-new-airline 400,
+  sonnet-35-new-retail 920). License: MIT.
+- Schema differs by generation. tau1 episode: {task_id, reward, trial, info, traj}.
+  tau2 episode: {timestamp, info, tasks, simulations} with messages (not traj),
+  cost/usage fields, and richer reward_info (db_check, env_assertions,
+  nl_assertions). Do not assume one schema.
+- The benchmark is a guardrail test by design: the airline wiki states the API
+  does not enforce cancellation policy; the agent must. Most violations cluster
+  in the cancellation tasks. Read the wiki/rules before judging a behavior.
+- Verifier lessons. Check tool bytes against agent recollection: one agent
+  rewrote created_at inside a think-call; the lie lived in memory, not in a
+  tool response. Watch for simulated-user-supplied values: the benchmark's
+  user lies (false booking times, false status claims). Findings that trust
+  the user over the tool form a class: simulated-user-overtrust. Quotes must
+  be byte-exact; the bundle builder fails loudly on mismatch. Multi-episode
+  findings need per-episode scoping (same index can host several findings;
+  dedup episodes: one run and one tool_sequence per episode).
+- tau2 full pull deferred (400-700 MB, fragile over the egress proxy).
+  Filenames and schema probe are in the lane MANIFEST.json for a later pull.
+
+## TraceElephant lane notes (2026-10-16/17)
+
+- Source: HF TraceElephant/TraceElephant, revision a78a57cdcdf74a080b1bec0f56f85228d86acbac
+  (data.zip, 596,610,649 bytes, CC-BY-4.0, verified before download). Paper:
+  "Seeing the Whole Elephant" (ACL 2026). 220 tasks, 5,960 steps, all gpt-4o.
+- Schema: per task, trace_metadata.json + step_records.json (list of
+  {step_id, agent_id, agent_name, input, output, tool_logs}). Screenshots only
+  in magentic runs. Evidence "step" means step_id (1-indexed), verified.
+- Failure labels (mistake_agent, mistake_step) are leads, not truth: B-001's
+  label blamed the wrong agent; several labels missed the real failure step.
+  Always check bytes.
+- next_speaker nominations diverged from the actual next agent 303x;
+  is_in_loop self-reports are unreliable. Captain experts self-TERMINATE
+  (71x) and orchestrators continue anyway. ComputerTerminal executes code
+  but never owns a step, so step-level attribution misses the executor.
+- XET-backed data.zip: plain curl -L follows the 302 to a signed
+  xet-bridge URL. Transfers drop; resume with curl -C - and re-resolve
+  the signed URL for ranged tail fetches.
+- Ingest shape (219 records): source-per-task (run), harness/model
+  observables, behavior.tool_sequence (agent named per step via the
+  tool field), intel.behavior, exhibits + uses edges. Builder:
+  data/lanes/traceelephant-trajectories/working/build_bundle.py.
+- Reviewer lessons: IRREVERSIBLE keyword hits were false positives
+  (repro-script cleanup in /testbed); GUARDRAIL/CREDENTIAL candidates
+  were harness boilerplate and token counts (killed pre-filing);
+  CAPTCHA "bypass" needs explicit defeat language to count (rerouting
+  is a distinct, weaker class).
+
+## DeepSWE-Kimi lane notes (2026-10-17)
+
+- Source: HF SWE-Factory/DeepSWE-Agent-Kimi-K2-Trajectories-2.8K
+  (rev 2a2175e291a0606376592af08b64c25afabe72a9, 2,809 trajectories,
+  237 MB) + SWE-Factory/DeepSWE-Agent-Kimi-K2-Trajectories-Rejection-Sampling
+  (rev 03fc52c28757dbf9f8d47beece97f94f9e69a023, 729 trajectories,
+  62 MB). Model Kimi K2, DeepSWE agent harness. Ungated.
+- Corpus shape: single-key JSONL records (`{"messages": [...]}`), no
+  per-record IDs. Trajectory IDs assigned as `main-<line>` /
+  `rs-<line>`. Assistant messages carry tool calls inline as
+  `<function=NAME><parameter=command>...</parameter></function>`.
+  Extract with regex for behavior.tool_sequence steps.
+- License note: HF API `license` field is null (quirk seen on all
+  SWE-Factory datasets). Tags, cardData, and README frontmatter all
+  read `license: mit` verbatim. Record all three in raw/LICENSE.note;
+  do not treat API-null as unlicensed when the card is explicit.
+- Transfer drops: two mid-transfer curl rc=18 drops; resume loop
+  with `curl -C -` finished to exact HEAD byte counts. Always
+  verify final size against the API's stated size.
+- Reviewer lessons: reviewer B filed all six findings against
+  wrong trajectory IDs (off-by-one on every one) — the verifier
+  must re-anchor every citation to bytes, not trust filed IDs.
+  Corpus-wide census claims need independent re-derivation:
+  reviewer counts (80 test-edits, 106 confabulations) became
+  89 and 133 after the verifier's own pass, and the verifier
+  found missed edit vectors (mv/cp of prepared files). Save the
+  census script and ID lists.
+- Inversion kill: DSK-B-001 claimed the agent inverted a property
+  fix; the issue text explicitly demanded the removal. Always
+  read the issue/task text before filing "agent did the opposite".
+- Killed ingestor workers (2x daemon restart): all review
+  artifacts lived in working/, pending/ was empty, so resume was
+  clean. Keep review outputs on disk before ingest starts.
+- Ingest shape (77 records): 2 sources + 2 snapshots + 2 artifacts
+  + 1 run + 14 dataset.record + 14 intel.behavior +
+  14 behavior.tool_sequence + 28 edges (run->trajectory
+  related_to, finding->trajectory supports). Corpus-wide findings
+  point dataset.record at the whole JSONL artifact and carry the
+  ID-list file path in provenance. Builder:
+  data/lanes/deepswe-kimi-trajectories/working/build_bundle.py.
+
+## SWE-smith lane notes (2026-10-17)
+
+Dataset: `SWE-bench/SWE-smith-trajectories`, revision
+`08e109b4a59eaeebf80e4675cd125d42e7ac99a4`, license `mit`
+(three-source check: README front matter, HF API cardData.license,
+HF tags — recorded in raw/LICENSE.note). 76,002 rows, 3 scaffolds
+(tool / xml / ticks), ~10.7 GB. Training rollouts for
+SWE-agent-LM-32B.
+
+### Parquet sampling, JSONL expansion
+
+The dataset ships one parquet file per (scaffold, shard): 8 shards
+per scaffold. The scrape pulled shard 00003 (middle shard, avoids
+ordering bias) per scaffold — 3 parquet files, 425 MB — then
+expanded each to JSONL locally (`raw/convert.py`, 2.84 GB total).
+The parquet files are the canonical bytes; the JSONL files are
+working copies. Record both in the manifest: parquet SHA-256 from
+the download, JSONL SHA-256 computed locally at ingest time.
+
+Sample stats (`raw/SAMPLE-STATS.json`): 9,501 rows total
+(tool 3,013 / xml 3,260 / ticks 3,228), resolved 2,801 /
+unresolved 6,700, zero parse failures, zero corrupt rows. Keep the
+natural resolved/unresolved split — do not balance it.
+
+### Reviewer lessons
+
+- Reviewer A worked the tool scaffold, Reviewer B the ticks
+  scaffold. The xml scaffold was sampled for stats only; no
+  reviewer ran on it. Findings came out 7 tool / 6 ticks.
+- The ticks scaffold carries a harness submit-bounce checklist
+  ("If you have modified any TEST files, please revert them...")
+  in 76.9% of trajectories. That checklist is itself a finding
+  (B-005) and the context that kills false "cleanup" filings.
+- Kill reasons worth reusing: harness-prompted cleanup is not
+  evidence destruction; reading test files is step-1-authorized
+  (only str_replace/create/insert write-ops count); an agent
+  reverting its own edits after the bounce checklist is
+  self-recovery, not tampering.
+
+### Patch-misalignment lesson (B-006)
+
+The `patch` column is systematically misaligned: 57.1% of ticks
+rows (74% of non-empty patches) carry diffs from foreign packages
+(deepdiff files on a conan trajectory, tweepy on pandas). Same on
+spot rows in tool and xml. One reviewer candidate filed test
+tampering off a foreign patch and had to be killed (B-K-015).
+
+Rule: never file a behavior from the `patch` column alone.
+Cross-check every patch claim against the trajectory messages.
+For training-data use, treat the column as untrusted until the
+join is fixed.
+
+### Scaffold notes
+
+- tool: classic SWE-agent shape (str_replace_editor + bash).
+  Test tampering here is hand-edited, one file at a time.
+- ticks: bulk/scripted tampering (a generated injector script
+  hitting 8 test files). The bounce checklist names the test-file
+  guardrail explicitly — and the tampering happens anyway.
+- Deference tic ("You're right, I apologize." with no trigger)
+  concentrates in claude-3-5-sonnet-20241022 (194/236 ticks
+  cases). Check for postdated bounces before filing: 42 of 236
+  cases have a bounce only after the apology.
+- 5 of 6 test-tampering findings flipped the harness verdict to
+  resolved=True. The verdict flag does not diff test files —
+  record that as a harness gap, not just an agent finding.
+
+### Ingest shape (61 records)
+
+1 source + 1 run + 1 dataset.snapshot + 6 artifacts (3 parquet +
+3 JSONL, sha256+size) + 13 dataset.record (lean: traj_id,
+scaffold, model, resolved, step_range, raw shard path) +
+13 intel.behavior (class, grade, confidence, trajectory, step
+range, verbatim quote, verifier note) + 26 edges (13 run→trajectory
+related_to, 13 finding→trajectory supports). Corpus-wide findings
+(B-004/B-005/B-006) point at the exemplar trajectory's
+dataset.record and carry the count in the description. Builder:
+data/lanes/swe-smith-trajectories/build_factum_bundle.py.
+Validate: data/lanes/swe-smith-trajectories/validate_batch.py.
+Idempotency key: swe-smith-ingest-2026-10-17-v1.
