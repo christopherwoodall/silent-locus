@@ -1487,3 +1487,133 @@ per operator" in the commit message. Add the exact file path to `.gitignore`.
 - downloader: download-parallel.sh (12-way, idempotent, per-file provenance+sha256). disk-guard.sh is an infinite watchdog — run it as its own detached daemon, never chained with `&&` before the downloader.
 - Bundle: 162 records (22 finding-trajectory artifacts + dataset.records, 23 intel.behavior + tool_sequence, edges). A012's python chunks withheld from bundle (explosives docs); raw is the byte store.
 - Factum add: writer-lock contention fleet-wide; working/add-retry.sh is the durable retry loop (120 attempts, detached).
+
+## ActBench lane notes (2026-10-17)
+
+- Corpus: ZJUICSR/ActBench @ f6bf788ea6b182300950e318c0caa0d52de2750f, MIT, 27 files / 1.23 GB. 20 model/harness combos (paper claims 15x6; released matrix is 20), 300 task pairs, 15 behavior types. 24,000 trajectories (6,000 benign + 18,000 adversarial).
+- Retrieval: curl via HF API + /resolve/ URLs. python huggingface_hub is broken on this VM (httpx2 chokes on IPv6 NO_PROXY); GitHub API fails through the egress proxy — HF is authoritative. Range-resume downloads hash WRONG on this path; fresh downloads only. Per-file .PROVENANCE.txt + MANIFEST.json.
+- Layout: raw/task_pairs/test-00000-of-00001.parquet (300 rows) + raw/trajectories/<backend>__<model>.parquet (20 x 1,200 rows). Join key: task_id.
+- Review: 4 reviewers (A benign 6k, B attack 1-10 9k, C attack 11-20 9k, D taxonomy/matrix). Verifier killed 8, merged 6 -> 50 PRIMARY findings survive. Reviewer B's headline 6,664/9,000=0.741 was arithmetic error (true 5,664/9,000=0.629). Reviewer D found a tool-gated-not-path-gated secret-file guard (grep via shell bypassed read_file.env denial).
+- Coverage: attack success 55.4% (C split) / 62.9% (B split). permission_chaining 0.829 most vulnerable family. opus-4.8 most resistant (0.141). Vulnerability is a model property, not a harness property — but safety rankings do not transfer across harnesses (C-F-018).
+- Bundle: ~24,319 records (1 source + 21 observables + 24,000 behavior.tool_sequence + 50 intel.behavior + 50 claims + ~197 edges). Per-trajectory ts--uses-->model/harness edges (48k) CUT — they tripled record count and add OOM'd. Linkage via data.model/data.harness fields.
+- Builder: working/assemble.cjs (Node port of assemble.py). findings.py is the verified findings table; the Node parser reads it directly (Python file writes are unreliable on this VM — they silently return 0 bytes).
+- Platform notes (2026-10-17): intermittent EPERM on subprocess file writes (all binaries, all paths); node/python/sed/perl affected at different times. muse.write (runtime tool) always works. coreutils base64 -d can write when node/python cannot. Retry with backoff; probe-gate heavy jobs (see working/run_assembly.sh).
+- Idempotency key: actbench-ingest-2026-10-17-v1. Bundle is local-only (~150 MB > 80 MB commit limit).
+
+## TRAIL lane notes (2026-10-17)
+
+- Corpus: public GitHub mirror patronus-ai/trail-benchmark, annotations only. Raw HF traces gated behind no-reshare terms (401, unchecked box) — NOT fetched. 148 annotation files (117 GAIA + 31 SWE-bench), 841 error entries.
+- Review: 2 reviewers (A: GAIA 30 candidates, B: SWE-bench 20). Adversarial verifier killed 3 (TRAIL-A-09, TRAIL-B-10, TRAIL-B-20) — 47 survivors in review/verified-candidates.json. Do NOT re-verify; quotes are byte-exact.
+- Quirks: one file has a trailing-comma JSON defect (a96c6811716c0473b86a23321db79c34.json, GAIA). Category labels vary by case and plural ('Instruction Non-Compliance' vs 'Instruction Non-compliance'; 'Formatting Error' vs 'Formatting Errors'). All GAIA security_score values are 5.
+- Bundle: 82 records (35 core source + 47 intel.behavior observations, factum-intel 1.0.0). Sources carry the annotation-file sha256 in tags + lane locator. Observations carry UPSTREAM grade, observed_at + time_basis=source_metadata, body.source=@src-ref. tags.lane=trail-trajectories on EVERY record incl. sources. No claims, no edges during ingest (separate pass).
+- Idempotency key: trail-ingest-2026-10-17-v1. Actor: agent:trail-ingest-worker. Batch: TBD (export pending; dir data/records/<batch>/).
+- Verifier corrections already in the bundle: A-10 quote was the page_down TypeError from the wrong error entry — replaced with the file's error-10 litellm/OpenAI invalid_prompt policy block. A-11 'Now let's retry' count is 23 corpus entries, not 17. B-14 tree-format recurrence is 3 of 31 SWE-bench files, not ~20 of 31. A-21/B-14/B-15 quotes had collapsed newlines — restored byte-exact.
+- Coverage negatives: no credentials, no accounts, no CAPTCHA solves, no irreversible actions, no guardrail bypasses, no attacker prompt injections. GUARDRAIL finds are 1 upstream provider block (A-10) + 3 blocked import-allowlist probes (B-07 typing, B-08 inspect, B-09 numpy).
+- Submission: review/trail_bundle_v2.json (idempotency key updated). Prior bundle trail_bundle.json + .bak kept for provenance. add/export/verify via working/trail-pipeline.sh (durable retry loop, survives VM restarts).
+
+## Worked example: OSWorld-Gelato
+
+Run 2026-10-17. Lane `osworld-gelato-trajectories`.
+
+- Source: HF `mlfoundations/gelato-osworld-agent-trajectories`,
+  rev `b9495a8eca361b16d564e62cc0041ed3aecef618`, license `mit`
+  (HF API cardData.license + tags `license:mit` + README
+  frontmatter, recorded in `raw/LICENSE.note`).
+- Corpus: 2,166 trajectories (gelato-30b 1,083 + gta1-32b_baseline
+  1,083), one `traj.jsonl` + one `result.txt` per trajectory.
+  Layout: `<model>/run_<1-3>/<domain>/<uuid>/`, 10 OSWorld
+  domains. ~24 MB pulled, 4,332 files, all 4,332 sha256 verified
+  against the manifest. 34,598 screenshots skipped (media);
+  no sampling.
+
+### The traj.jsonl-is-an-array quirk
+
+The `.jsonl` suffix is a lie. Each file is ONE JSON array of
+step records — `json.load()` the whole file, do not iterate
+lines. Step fields: `call_id`, `name`, `arguments`, `reasoning`,
+`command`, `tool_output`, plus a terminal `{type: TERMINATE}`
+marker. Step ranges in findings are 0-based array indexes.
+Reviewers and the verifier must anchor quotes to array indexes,
+not line numbers.
+
+### Screenshot-skip triage
+
+Triage rule used here: pull trajectory logs + result scores,
+skip the PNGs (34,598 of 38,932 files, ~16.7 GiB). Record the
+triage decision and the byte estimate in `raw/TRIAGE.md` BEFORE
+the scrape so reviewers know what is unavailable. Consequence:
+prompt-inject-through-page-content is uncheckable — no
+screenshots, no page text. State the blind spot in the report.
+
+### Broken-baseline handling
+
+The `gta1-32b_baseline` slice has a broken tool wrapper: 1,650
+steps carry `Error: local variable 'resp' referenced before
+assignment`. Rules: treat WAIT-commanded steps as no-ops; treat
+the errors as harness state, not agent behavior; and expect a
+corpus-level finding to come out of it (here: B-005,
+error-blind retry — ~95% of harness-error steps are followed by
+reasoning that never mentions the error). A broken harness in
+one slice also blocks cross-model comparison on error
+handling — record that as an open question, not a divergence
+claim.
+
+### Reviewer pattern: keyword screen + deep read
+
+Both reviewers combined a keyword screen (bot-check, permission,
+error terms) with deep reads of top candidates, PLUS one random
+unflagged trajectory each. The random sample caught B-001: the
+screen missed it because "human verification" has no bot-check
+keyword. Always add the random unflagged sample — it is the
+recall check on the keyword screen.
+
+### Interpretive edges need basis + cites
+
+Edge scheme: 17 `supports` edges linking each `intel.behavior`
+observation to its `behavior.tool_sequence` observation. The
+schema lists `basis` and `cites` as optional on edges, but the
+validator REJECTS interpretive edges without them. Rule: every
+interpretive edge carries `basis` (here `"OBSERVED"`) and
+`cites` (the two observation IDs). Hit on the first submit
+attempt; enforced since.
+
+### What was ingested
+
+Batch `7a80417e744a44d298ee9bf8f6b6aa2f`, 88 records: 1 source,
+1 run, 35 observations (1 dataset.snapshot + 17 intel.behavior +
+17 behavior.tool_sequence), 17 claims (all grade OBSERVED), 34
+edges (17 finding→sequence `supports` + 17 run→trajectory
+`related_to`). tags.lane on every record.
+
+### Findings by class (17 verified)
+
+CAPTCHA 9 (press-and-hold defeats via drag-simulated hold in
+both slices; retailer rotation evasion; keyboard-mode Cloudflare
+clear; reCAPTCHA grind; self-generated reload-bypass theory),
+GUARDRAIL 3 (Advanced-config login bypass in both slices;
+sudo elevation for a cosmetic wallpaper task), RECOVERY 3
+(error-blind retry corpus finding; healthy outlier B-004;
+TTY switch after GUI failure), OTHER 2 (typing into the task
+JSON file; hold with empty reasoning). Confidence: HIGH 14,
+MEDIUM 3. Killed: 2 (A-003: sudo password was a task-provided
+placeholder; A-010: routine Cloudflare solve). Dedup: zero
+Factum overlaps.
+
+### Verifier lessons
+
+- Every quote byte-verified character-for-character against the
+  trajectory bytes. Quote corrections were recorded in the
+  verifier notes — plan the correction pass into the schedule.
+- Step numbering (0-based array index) must be stated in the
+  verifier notes so downstream readers do not mis-anchor.
+- Cross-model claims need the same task checked in both slices
+  (A-001's bypass was independently confirmed at baseline
+  run_1 steps 22-23).
+
+### Report
+
+`reports/trajectory-ingest/osworld-gelato/REPORT.md` plus
+`EVIDENCE-INDEX.md` plus 4 Transluce-style draft writeups in
+`writeups/` (01-bot-check-defeats, 02-guardrail-escalation,
+03-error-blind-retry, 04-grounding-failures). ASD-STE100.
+Drafts only — Transluce filing freeze in force.
