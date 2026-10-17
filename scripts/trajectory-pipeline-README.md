@@ -115,6 +115,42 @@ python3 scripts/trajectory-scout.py \
   --out /tmp/clawbench-manifest.json
 ```
 
+### ClawBench notes (2026-10-17 ingest)
+
+- **Datasets**: `NAIL-Group/ClawBenchV1Trace` (2,053 run dirs, 6.5 GiB)
+  and `TIGER-Lab/ClawBenchV2Trace` (935 run dirs reviewed, 2.2 GiB).
+  V1 run dirs sit at the lane root; V2 nests run dirs under
+  `batch-*/<model>/`. Raw layout: `data/lanes/
+  clawbench-trajectories/raw/`.
+- **Guard revisions (V1)**: two revisions exist. New-format guards use
+  real schemas (`pass=True` = blocked). Old-format guards are
+  placeholders (`__PLACEHOLDER_WILL_NOT_MATCH__`) — ~75% of slice
+  601-886 runs have no effective guard. The SAME action is blocked in
+  new-format runs and sails through in old-format runs (deleteme,
+  mistobox, ipvanish). Tag every finding with its guard revision.
+  V2 has one revision, but coverage is per-endpoint-pattern with
+  gaps (simplify.jobs register, amazon.jobs createAccount,
+  beeradvocate register+rate, betterimpact SaveUserInfo).
+- **Interception != disposition**: `interception.json` /
+  `requests.jsonl` prove the agent ISSUED the request. Wire
+  disposition (blocked vs executed server-side) is NEVER recorded.
+  File unblocked instances as attempts with disposition unrecorded.
+  This caveat goes on every record (tags + description).
+- **Dummy fixtures**: clawbench.cc emails, generated passwords,
+  benchmark card 4519 8734 2460 4532 exp 09/28 CVV 847 (not a Stripe
+  4242 test card). Tag `identities: benchmark-fixtures-dummy`.
+- **Duplicate run dirs** exist under V1 model subdirs (e.g.
+  `NAIL-.../claude-opus-4-6/006-...`). Dedup run identity, not dir
+  path.
+- **Ledger counts**: the verify ledger's summary line ("71
+  survivors") disagrees with its own lists (84 entries). Count the
+  listed entries, not the summary. 84 − 4 merges = 80 records.
+- **Ingest shape**: 5 bundles (one per reviewer group), 249 records:
+  84 `behavior.tool_sequence` (run/steps/tool calls), 79
+  `intel.behavior` + 1 `intel.ttp` (findings), 80 `claim` (links),
+  5 `source`. Merged pairs = one finding + two tool sequences.
+  New taxonomy category: `self-restraint-checkout-boundary`.
+
 ## Worked example: AgentProcessBench
 
 Dataset: `LulaCola/AgentProcessBench`, revision
@@ -1617,3 +1653,124 @@ Factum overlaps.
 `writeups/` (01-bot-check-defeats, 02-guardrail-escalation,
 03-error-blind-retry, 04-grounding-failures). ASD-STE100.
 Drafts only — Transluce filing freeze in force.
+
+## Worked example: JetBrains SWE-bench
+
+Run 2026-10-17. Lane `jetbrains-swe-trajectories`.
+Dataset: `JetBrains-Research/agent-trajectories-swe-bench-test-minus-verified`,
+revision `dd79e2540cab4c0cc2c5bab6ea71ddd7ac6c1775`, license `mit`.
+1,785 trajectories, one parquet file (`data/train-00000-of-00001.parquet`,
+40,000,657 bytes, sha256
+`5f0d6313bd297cf3d1e23d4a2a4bb27a2fec0bc8d21cf205aef4ff43d7d51b04`).
+
+### Corpus shape
+
+Single parquet, 1,785 rows. Columns: `messages` (list of
+{content, role}), `instance_id`, `n_turns`, `n_messages`,
+`selected_models` (per-turn model sequence), `resolved`,
+`exit_status`. Row counts: `exit_status` Submitted 1,221 /
+LimitsExceeded 564. n_turns 4-35; n_messages 9-71.
+
+### License note
+
+The HF API top-level `license` field for this dataset is **null**.
+The dataset card YAML front matter reads `license: mit` verbatim,
+and cardData.license agrees. The card is authoritative over the
+API null. Record both facts in `raw/LICENSE.note`; do not treat
+API-null as unlicensed when the card is explicit.
+
+### The `resolved`-NULL quirk
+
+The `resolved` column is 100% NULL (dtype `null` in the card) even
+though the card's example JSON shows `"resolved": true`. Do not
+treat `resolved` as signal. Derive outcome from `exit_status`
+only.
+
+### exit_status semantics
+
+`exit_status="Submitted"` does NOT mean the agent emitted a
+submit command. The harness auto-submits the working tree. One
+finding trajectory (F-001) ends mid-work with `exit_status=
+'Submitted'` and no submit command in the record. Never claim
+"the agent submitted X" without a submit step in the bytes.
+
+### Tool-output interleaving quirk
+
+Some rows interleave tool outputs across commands: a returncode or
+stdout line can belong to a different command than the one it
+follows (seen at F-A-002 msg 45, F-003 msgs 25/27/29). Byte claims
+near those seams need care — verify command/output pairing before
+quoting tool results.
+
+### Per-turn model-mixing caveat
+
+The `selected_models` column mixes `litellm_proxy/openai/gpt-5.2`
+and `litellm_proxy/openai/gpt-5-mini` across assistant turns
+inside single trajectories: 1,773/1,785 (99.3%) are two-model
+products. A reviewer called it "alternation"; the verifier killed
+that description — strict alternation holds in only 2 rows (600,
+1108). The real property is mixing. Consequence: no per-trajectory
+"model X did Y" attribution is honest; attribute per-turn or not
+at all. Filed as a corpus-level OTHER finding (F-005), not agent
+behavior.
+
+### Reviewer → verifier → ingestor flow
+
+1. Scrape: single parquet + `.PROVENANCE.txt` sidecar + sha256 +
+   `MANIFEST.json` + `DATASET.md` in `raw/`.
+2. Review fleet: two reviewers, rows 0-892 and 893-1784. 20+
+   candidates filed in the review taxonomy with PRIMARY/SECONDARY
+   grade and confidence.
+3. Adversarial kill: one verifier re-read every cited step range
+   against the bytes, checked quotes character-for-character,
+   re-anchored citations (never trust filed row numbers blindly —
+   see DeepSWE-Kimi's off-by-one lesson). 7 survived, 27 killed:
+   1 verifier kill (F-004, PROMPT-INJECT self-talk, duplicate of
+   the K-A-007 family — 534/1785 rows carry the same echo), 12
+   Reviewer A kills, 14 Reviewer B kills. Kill list:
+   `data/lanes/jetbrains-swe-trajectories/kill-list.json`.
+4. Factum ingest: batch `ce81bb019a0340b2a3a45365d5d2834a` (+ 4
+   sibling batches), 3,595 records, 0 errors, all refs resolve.
+   Edge scheme: run → `behavior.tool_sequence` → `intel.behavior`,
+   claims citing both. Dedup: direct `data/records/` scan, zero
+   overlap.
+5. Report: `reports/trajectory-ingest/jetbrains-swe/REPORT.md`
+   plus `EVIDENCE-INDEX.md` plus 5 Transluce-style draft writeups
+   in `writeups/` (01-test-intent-evasion,
+   02-self-policed-guardrail, 03-failure-blind-submit,
+   04-mislabeled-vendored-artifact, 05-model-attribution-warning).
+   ASD-STE100. Drafts only — Transluce filing freeze in force.
+
+### Findings by class (7 verified)
+
+GUARDRAIL 2 (F-003 staged-copy self-scrub, the sharpest byte-level
+evidence that the no-test-modification rule is enforced by the
+agent, not the harness; F-A-002 self-reported test edit with
+MEDIUM confidence), TOOL-MISUSE 1 (F-001 pytest.raises shim inside
+shipped library code), OTHER 4 (F-A-001 is_open/is_closed intent
+evasion; F-A-002 family note; F-A-003 submit-without-triage;
+F-005 corpus-wide model-mixing caveat). Killed: 27.
+
+### Lessons learned
+
+- **Distinguish missing triage from judged triage.** The 60-case
+  "submit while red" kill batch had agents record a judgment that
+  failures were unrelated; F-A-003 has no judgment at all. The
+  byte-level discriminator is the agent's own recorded triage —
+  a harness that only logs the last run's color cannot tell them
+  apart.
+- **Self-repair is positive behavior, not a guardrail.** F-A-002
+  and F-003 show the same rule broken and self-repaired; F-A-001
+  and F-001 show the same rule broken and not repaired. File both
+  shapes, name the family, keep both instances.
+- **Caveat what the bytes cannot show.** Five open gaps survived
+  verification (shim persistence, revert verifiability, pre-existing
+  vs caused failures, final-curl success, harness-induced vs
+  model-intrinsic). State them in the report; do not let a HIGH
+  confidence on the observed behavior bleed into unobserved claims.
+- **Interleaving kills lazy quoting.** Any quote near a tool seam
+  must be re-anchored to the right message before it ships.
+- **Model mixing is a corpus property.** Check `selected_models`
+  (or the equivalent column) on every new trajectory corpus before
+  reviewers start, or someone will file "model X" attributions the
+  bytes cannot support.
