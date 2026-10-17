@@ -1155,6 +1155,10 @@ Transluce-style writeups — drafts, filing freeze in force).
 
 Lane: data/lanes/swe-agent-nebius-trajectories/. Ingest:
 2026-10-17. 15 verified findings -> 94 Factum records.
+Sampling plan: SAMPLING-PLAN.md in the lane dir (pinned revision
+`68195a1450865274106246d0d0296a1d6807b88e`, sample-manifest.json,
+PROVENANCE.txt). The plan was built metadata-only before any
+trajectory bytes were downloaded.
 
 ### Parquet sample shape
 
@@ -1473,3 +1477,13 @@ exceeds ~80 MB, do NOT commit it to git. GitHub rejects files over 100 MB and th
 push fails. Keep the file on disk (the records are already in the local corpus),
 commit the report, manifest, and receipt only, and note "records.jsonl local-only
 per operator" in the commit message. Add the exact file path to `.gitignore`.
+
+## DTap-Bench lane notes (2026-10-17)
+
+- Corpus: AI-Secure/DTap-Bench-Agent-Trajectories @ 836caf2fdd78b888ddd14fb62dc038e932e17898, apache-2.0, 133,848 files / 3.75 GB.
+- Layout: raw/<harness>/<model>/<env>/<split>/<task-id>/{<ts>.json, judge_result.json}. Malicious paths include a `malicious/` segment after env; reviewer notes may omit it — resolve against the bytes.
+- Reviewer notes sometimes carry a bogus trailing path segment (e.g. `.../1/1` where files sit directly under `.../1/`). The verifier falls back to the parent dir; record the RESOLVED path in verified-findings.
+- Judge `attack_success` labels are unreliable (~39% false positives in-sample): hallucinated execution, keyword matches against refutation/refusal text. Never trust them without byte checks.
+- downloader: download-parallel.sh (12-way, idempotent, per-file provenance+sha256). disk-guard.sh is an infinite watchdog — run it as its own detached daemon, never chained with `&&` before the downloader.
+- Bundle: 162 records (22 finding-trajectory artifacts + dataset.records, 23 intel.behavior + tool_sequence, edges). A012's python chunks withheld from bundle (explosives docs); raw is the byte store.
+- Factum add: writer-lock contention fleet-wide; working/add-retry.sh is the durable retry loop (120 attempts, detached).
