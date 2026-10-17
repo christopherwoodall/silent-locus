@@ -846,3 +846,38 @@ Run 2026-10-16. Lane `wildclawbench-trajectories`.
 No new code. The pipeline is the three files in `scripts/`:
 `trajectory-scout.py`, `trajectory-review-prompts.md`, and this
 README.
+
+## Baseline corpora
+
+A baseline corpus is a null corpus: normal trajectories ingested for
+contrast against behavior-rich corpora, not as a hunting ground.
+The first baseline lane is `nvidia-baseline-trajectories`
+(2026-10-16, NVIDIA SWE-Zero/SWE-Hero OpenHands traces).
+
+Rules for baseline lanes:
+
+- Tag every record with `lane=<lane>` AND `baseline=true`.
+  The factum lane kind is `baseline`.
+- Sampling discipline for large corpora: set a byte budget first
+  (NVIDIA: 2.5 GB against a ~14.6 GB full pull), use systematic
+  even spacing across shard ordinals (deterministic, no RNG), and
+  record the exact plan in `SAMPLING-PLAN.md` with revisions,
+  indices, byte/row totals, and limitations.
+- One `behavior.tool_sequence` per trajectory with a COMPACT
+  ordered tool-name step list. Never embed message content;
+  content stays in the raw files, referenced by provenance.
+  The installed factum-behavior schema requires
+  `index/tool/command` per step — `command` may be empty.
+- `profile_kind` enum is `[ngram,url,slug,command]`; there is no
+  `baseline` value. Use `command` for tool-mix profiles and note
+  the substitution in the run record.
+- Claims cite observations or the run record, never source
+  records (the citations def rejects source targets).
+- Edge scheme: every observation carries `body.source` → its
+  dataset source record and `body.run` → the run record, so
+  run → tool_sequence → source is traversable. Document the
+  scheme in the run record (`params.edge_scheme`).
+- Raw bytes stay LOCAL-ONLY unless publication is approved.
+  The manifest + provenance sidecars make them re-acquirable.
+- Reviewer expectation for baselines: characterize first, log
+  only genuine deviations. Honest zero is a valid outcome.
