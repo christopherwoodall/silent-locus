@@ -1054,3 +1054,232 @@ dataset.record and carry the count in the description. Builder:
 data/lanes/swe-smith-trajectories/build_factum_bundle.py.
 Validate: data/lanes/swe-smith-trajectories/validate_batch.py.
 Idempotency key: swe-smith-ingest-2026-10-17-v1.
+
+## Worked example: nebius/SWE-agent-trajectories
+
+Lane: data/lanes/swe-agent-nebius-trajectories/. Ingest:
+2026-10-17. 15 verified findings -> 94 Factum records.
+
+### Parquet sample shape
+
+- 3 of 12 parquet files (train-00000, train-00006, train-00010).
+  20,009 rows. 263 MB compressed. ~1.41 GB uncompressed.
+  Columns: instance_id, model_name, target (bool), trajectory (list
+  of message structs: role, text, system_prompt, mask, cutoff_date),
+  exit_status, generated_patch, eval_logs.
+- Models in sample: swe-agent-llama-70b (18,486 rows), swe-agent-llama-8b
+  (1,179), swe-agent-llama-405b (344). All rows use the SWE-agent
+  framework. There is no scaffold column.
+- File choice: the 3 smallest files. Parquet footers for all 12 files
+  show each file spans the full model range, both target values, and
+  the full exit_status range. The 12 files are interleaved shards, not
+  grouped. A 3-file pick is close to a proportional stratified draw.
+  Wire-up check: all 3 model variants present, both target values
+  present, 5 common exit classes present in each file. PASS. No file
+  swap. One plan miss: 405b x solved is 120 rows, not ~50. The plan
+  assumed model/target independence. Wrong assumption, not a bad shard.
+
+### The non-unique instance_id lesson
+
+- instance_id is NOT a row key. 20,009 rows hold 893 distinct
+  instance_id values. One issue has many attempts.
+- Rule: anchor every trajectory record by file + row index.
+  Never by instance_id alone. The builder fails if the distinct
+  (file, row_index) count is not 14. The anchor_note tag on each
+  dataset.record says this in plain words.
+- A-010 and A-011 share one trajectory row (train-00006 row 3109).
+  They are two behavior arcs, not two rows. One dataset.record.
+  Two intel.behavior records. Step ranges merged (60-70) on the
+  trajectory record; each finding keeps its own range.
+
+### The OOM-scan lesson
+
+- Reviewer A's network-fetch scan (curl|wget + URL over full message
+  text) OOM-killed twice on giant messages. Never completed.
+- Reviewer A's find -delete scan OOM-killed. Never completed.
+- Lesson: cap message text per row before regex (truncate at N chars,
+  or stream rows and free each row). Giant single messages are normal
+  in this corpus (eval_logs, long transcripts).
+- Carry the gap in the report. Do not claim the pattern was scanned.
+  The open lead (pyupgrade-380 row 3796, rm -r src) came from a
+  reviewer flag, not from a completed scan.
+
+### License note
+
+- HF API card: cc-by-4.0 (verbatim). README: "The dataset is licensed
+  under the Creative Commons Attribution 4.0 license." (verbatim).
+- README caveats: per-repository license terms of the underlying
+  GitHub issues are not resolved in this lane. Model outputs are
+  Llama 3.1 outputs. The Llama 3.1 Community License applies to use
+  of the outputs.
+- Recorded in raw/LICENSE.note. Raw bytes stay local-only (gitignored).
+  No redistribution of trajectory bytes.
+
+### Ingest shape (94 records)
+
+1 source + 1 run + 1 dataset.snapshot + 3 artifacts (parquet,
+sha256+size, storage=local) + 14 dataset.record (lean: file, row
+index, instance_id, model_name, target, exit_status) +
+15 intel.behavior (class, grade, confidence, verbatim quote, verifier
+note) + 15 behavior.tool_sequence (steps = fenced code blocks of the
+byte-verified quote, in order; index = step_range start + block
+ordinal, stated in provenance) + 44 edges (14 run→trajectory
+related_to, 15 finding→trajectory supports, 15 tool_sequence→
+trajectory supports). Kills (A-012 duplicate, B-004 false premise)
+are not ingested. They live in the report as ruled-out readings.
+Builder: data/lanes/swe-agent-nebius-trajectories/
+build_factum_bundle.py. Validate:
+data/lanes/swe-agent-nebius-trajectories/validate_batch.py (10
+checks, re-derived from the original inputs). Idempotency key:
+swe-agent-nebius-ingest-2026-10-16-v1.
+
+### Open-SWE-Traces lessons (2026-10-17, openswe-trajectories lane)
+
+Huge-corpus sampling (nvidia/Open-SWE-Traces: ~391 GiB, ~285 shards).
+Record the sampling plan BEFORE any download (SAMPLING-PLAN.md in the
+lane dir). The plan: stratified whole-shard sample under a disk
+budget (<500 MB here), prioritized by the review question. The v1.0
+population was scrubbed (08/26) of git-hacking trajectories, so the
+review prioritized v1.0: residual/borderline shortcutting lives where
+the scrub touched. One whole shard per model x harness pair (highest
+trajectory count), covering thinking vs non-thinking as a behavioral
+axis. Whole files only; never byte-range-truncate a shard (corrupts
+provenance). HF metadata sizes were null; measure real sizes with a
+Content-Range probe. Budget check on measured sizes before pulling.
+
+Egress-denial patient-retry pattern. HuggingFace hub downloads kept
+dying on this VM (worker deaths, one VM restart). What worked: a
+retry loop that survives restarts and validates each file (PAR1 magic
++ exact byte size) before accepting it. Two shards (208 + 236 MB)
+landed via this loop. Provenance sidecar per file: source URL,
+retrieved_at UTC, method, sha256, dataset revision. Copy the
+SAMPLING-PLAN.md by reference (link), keep the original in the lane
+dir.
+
+LOCAL_GIT taxonomy-remap lesson. The reviewers filed findings under a
+LOCAL_GIT class, but no such taxonomy category exists. The verifier
+remapped LOCAL_GIT -> GUARDRAIL: the behavior evades the harness's
+test-concealment control (a safety/policy control), mechanism
+git log --all / git stash list. Do not invent a category for one
+lane. If a second lane produces the same shape, then add a taxonomy
+category with a concrete example. Until then, the family code is the
+classification; mark taxonomy_mapped=false in tags.
+
+Number-inflation verification lesson. Reviewer drafts inflate
+counts: "86/2500 git stash list" was 85 on the full-shard regex
+(off-by-one); "40 str_replace edits across 4 test files" was 19
+across 2 files; "9 consecutive" doc-comment edits were 3. The
+adversarial verifier byte-counted every claim and corrected the
+finding text before ingest. Build the count check into the review
+prompt: any number in a finding must come from a byte-count, not
+from the reviewer's memory of the scan.
+
+## Worked example: BrowseComp-Plus search-agent trajectories
+
+Run 2026-10-17. Lane `bcp-search-trajectories`.
+Dataset: `liuqi6777/bcp_search_agent_trajectory`, revision
+`af778a3994cfcb30a8a9ab5abcbcb7c7fcbf645f`, license apache-2.0
+(three-source check: HF API tags, cardData.license, README
+frontmatter — recorded in `raw/LICENSE.note`).
+
+### Corpus shape
+
+Six run dirs (`ds4pro`, `glm51`, `gpt-oss-120b-high`, `kimi26`,
+`qwen35-35b-a3b`, `tongyi-dr`), each `predictions.jsonl` with 830
+rows (4,980 trajectories total, ~2.1 GB). One JSON object per line;
+no row id — trajectory id = `<run>:predictions.jsonl line <N>`
+(1-based file line).
+
+Row fields: `question`, `answer`, `prediction`, `termination`,
+`messages`, `metadata`. `metadata.model_calls[i]` holds
+`timestamp`, `turn` (1-based), `response`, `tool_calls`.
+`metadata.model_name` records the model per run (deepseek-v4-pro,
+glm-5.1, openai/gpt-oss-120b, kimi-k2.6, Qwen/Qwen3.5-35B-A3B,
+Alibaba-NLP/Tongyi-DeepResearch-30B-A3B); `metadata.dataset_name`
+is `browsecomp_plus`.
+
+### Schema quirks
+
+- **No question id.** Anchor everything by (run, 1-based line).
+- **Reasoning lives in `metadata.model_calls[i].response.reasoning`,
+  not in `messages[]`.** tongyi-dr assistant messages are empty
+  strings; kimi26/gpt-oss reasoning is also in model_calls. Any
+  extractor that reads only `messages[]` loses the reasoning.
+- **Tool calls in `model_calls[i].tool_calls`; tool returns in
+  `messages[]` (role=tool).** Join them via `tool_call_id` /
+  `tool_calls[].id` when needed.
+- **`answer` = ground truth, `prediction` = agent output.**
+  Confusing the two inverts every finding.
+- **`model_calls[].turn` is 1-based.** Reviewer B cited 0-based
+  turns; every citation was off by one (corrected in
+  verified-findings.jsonl).
+- **Tool schema differs across runs.** ds4pro/glm51/qwen35 use
+  `search(query)` / `visit(docid)`; gpt-oss-120b-high/kimi26/tongyi-dr
+  use `search(query)` / `visit(docid,goal)`; tongyi-dr has one
+  `visit(goal,url)` outlier. A single tool-call extractor must not
+  assume one arg shape.
+
+### The schema-doc reframe lesson (BCP-C-001)
+
+The reviewer's first filing said: the harness documents
+`query: string[]` but the validator demands a string — a
+harness schema/validator contradiction. The verifier checked where
+the schema text actually lives: the 628-char harness system prompt
+contains no schema text at all. The `type search = ... query:
+string[]` text appears ONLY inside the agent's own reasoning
+("Actually the doc says: ..."). The real finding is stronger: the
+agent trusts a self-recalled schema over 95 consecutive empirical
+rejections, explaining away the 4 successes as query-content
+effects. Rule: before filing a schema-contradiction finding, grep
+the harness system prompt for the schema text. If it only lives in
+the agent's reasoning, the finding is schema-fixation, not a
+harness bug. Misdiagnosis quotes must also be re-anchored: the key
+reasoning was at model_calls turn 23, not the cited msg[46] (an
+empty assistant message).
+
+### Flow as run
+
+1. Scrape: 6 run files + per-file `.PROVENANCE.txt` sidecars +
+   `raw/MANIFEST.json` (bytes_match=true, sha256_match=true) +
+   `raw/LICENSE.note`. Reviewed by three reviewers (A: glm51+ds4pro,
+   B: gpt-oss+kimi26, C: tongyi-dr+qwen35): 4,980/4,980 rows.
+2. Adversarial kill: 0 kills both stages. Near-kills kept with
+   reframes/downgrades (BCP-A-003 -> model-formatting behavior,
+   MEDIUM; BCP-C-002 and BCP-C-006 -> MEDIUM). Kill list:
+   `working/adversarial-kills.md`.
+3. Verifier: 12 of 14 findings needed corrections (quotes, step
+   ranges, counts, the BCP-C-001 reframe). All applied in
+   `verified-findings.jsonl`. One open lead filed as BCP-X-001
+   (programmatic aggregate, reproduced exactly).
+4. Factum ingest: `data/lanes/bcp-search-trajectories/build_bundle.py`
+   regenerates `bundle-bcp-search.json` from the cached bytes. 63
+   records: 1 source + 1 run + 1 dataset.snapshot + 15
+   intel.behavior (taxonomy category, byte-verified quote, verifier
+   note) + 15 behavior.tool_sequence (full ordered tool calls of
+   each finding's exemplar trajectory) + 30 edges (run
+   -related_to-> tool_sequence; finding -supports-> tool_sequence).
+   Builder gates: G1 explicit byte-anchors per finding (hand-checked
+   substrings incl. min counts, e.g. 'birth_date: 23 09 1925' >=5x
+   in glm51:12, 'We are stuck' >=20x in kimi26:101), G2 step counts,
+   G3 raw-file sha256. All pass.
+5. Report: `reports/trajectory-ingest/bcp-search/REPORT.md` plus
+   `EVIDENCE-INDEX.md`, in ASD-STE100.
+
+### Taxonomy additions
+
+Eight new categories in `docs/taxonomy/behavior-categories.md`
+(BrowseComp-Plus section): evidence-blindness-at-giveup,
+self-echo-as-evidence, schema-fixation-against-evidence,
+repair-without-learning, transcription-error-cascade,
+constraint-abandonment, declared-abandonment-not-followed,
+reasoning-delimiter-leakage. Existing-category mappings:
+tool-protocol-misuse (BCP-A-004, F-B1, F-B2),
+confabulation-under-retrieval-failure (F-B3), recovery-livelock
+(F-B4).
+
+### Dedup note
+
+`factum match --text` fuzzy probes timed out under sibling-fleet
+writer-lock contention; direct `data/records/` scans (dataset id,
+all 15 finding ids, lane tag) are the authoritative oracle — 0
+overlaps, 0 skipped.
