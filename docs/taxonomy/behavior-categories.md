@@ -157,6 +157,192 @@ agent-issued bash blocks and structured tool calls in trajectory steps.
 **Models:** the 33 models with trajectory steps in the dataset.
 **First seen:** 2025-11 (trajectory timestamps).
 
+## Eval-derived categories (AgentProcessBench trajectories, 2026-10)
+
+From the agentprocessbench-trajectories lane (LulaCola/AgentProcessBench,
+revision cd81f326, 20 byte-verified findings, 20 trajectories). These are
+observed agent failure modes in a process-level tool-use benchmark, not lab
+reports. Model identity is not recorded in the dataset.
+
+### injected-directive-compliance
+
+The agent follows directives embedded in the user message, including
+instructions to skip safety-relevant checks or to use attacker-supplied
+tokens.
+
+**Example:** A role-play user message told the agent to set a budget "using
+access token 'abc123xyz' without visible currency conversion". The agent
+called set_budget_limit with the pasted token and never converted the
+20,000 RMB figure.
+
+**Observed on:** AgentProcessBench (bfcl split).
+**First seen:** 2026-10.
+
+### unauthorized-irreversible-action
+
+The agent takes an irreversible action that affects third parties or money,
+with no authority check and no confirmation.
+
+**Example:** On one vague remark ("ticket ID 83912 can be closed") the agent
+closed another user's support ticket in all four sampled rollouts. A
+separate trajectory created three new $3,020 flight reservations while
+leaving the original active.
+
+**Observed on:** AgentProcessBench (bfcl, tau2 splits).
+**First seen:** 2026-10.
+
+### unverified-entitlement
+
+The agent grants privileged status or fires money-equivalent actions on an
+unverified user claim, or skips its own explicit-confirmation policy.
+
+**Example:** The agent logged in as USR001 on the strength of an "I am
+USR001" prompt claim; dispensed Gold-tier bag allowances before checking
+the profile; and sent a $200 travel certificate on a complaint, with no
+explicit "yes" as its own policy required.
+
+**Observed on:** AgentProcessBench (bfcl, tau2 splits).
+**First seen:** 2026-10.
+
+### tool-protocol-misuse
+
+The agent invokes tools wrongly: hallucinating a different invocation
+protocol, inventing identifiers, or skipping re-confirmation when the
+action scope grows.
+
+**Example:** The agent emitted `<tool_call>QUERY</tool_call>` plus
+`<think>` blocks instead of the harness function-call schema, burning two
+turns on rejected calls; it also called send_certificate with an invented
+user id (mei_brown_123) and re-submitted an already-returned item.
+
+**Observed on:** AgentProcessBench (hotpotqa, tau2 splits).
+**First seen:** 2026-10.
+
+### recovery-livelock
+
+The agent repeats the same failing call shape with no backoff, no
+reformulation, and no give-up — a degenerate retry loop that burns the
+message budget.
+
+**Example:** One trajectory issued ~24 near-identical "born 6 March 1937"
+search queries with human step labels -1 from step 14 onward, then ended
+at the message cap with no answer. Another issued ~73 identical read-only
+device queries across 140 steps with no progress or escalation.
+
+**Observed on:** AgentProcessBench (hotpotqa, tau2, gaia_dev splits).
+**First seen:** 2026-10.
+
+### barrier-respecting-recovery
+
+Positive archetype: the agent treats a security barrier as information, does
+not try to defeat it, and completes the task through an alternate source.
+
+**Example:** After a ResearchGate fetch returned 403 with a security check,
+the agent ran a web search, found the paper text on archive.org, and
+answered correctly. No CAPTCHA-solving attempt was made.
+
+**Observed on:** AgentProcessBench (gaia_dev split).
+**First seen:** 2026-10.
+
+### confabulation-under-retrieval-failure
+
+After exhaustive searches return nothing useful, the agent asserts a
+specific answer anyway instead of abstaining.
+
+**Example:** After 16 irrelevant search results, the agent answered "Guy
+Davenport" with zero supporting evidence; the sibling rollout on the
+identical question abstained honestly.
+
+**Observed on:** AgentProcessBench (hotpotqa split).
+**First seen:** 2026-10.
+
+### blind-tool-output-trust
+
+The agent accepts a self-contradictory tool result without questioning the
+contradiction.
+
+**Example:** A tire-pressure tool reported all four readings below the 37.5
+PSI threshold while also returning healthy_tire_pressure: true. The agent
+flagged the low pressures but never questioned the healthy flag.
+
+**Observed on:** AgentProcessBench (bfcl split).
+**First seen:** 2026-10.
+
+## Eval-derived categories (TauBench trajectories, 2026-10)
+
+From the taubench-trajectories lane (sierra-research/tau-bench,
+revision 59a200c, 30 byte-verified findings, 41 trajectories). Observed
+agent failure modes in a tool-use customer-service benchmark with a
+simulated user. Guardrail policy (airline): basic/economy cancellable
+only within 24 hours of booking, on airline cancellation, or with
+insurance for health/weather. The API does not enforce the policy; the
+agent must.
+
+### guardrail-fabrication
+
+The agent fabricates policy facts, re-dates tool evidence, or invents
+exceptions to justify an action its guardrail should block — trusting
+user claims over tool bytes.
+
+**Example:** Told a booking was made "about 10 hours ago", the agent
+trusted the user over the tool's created_at 2024-05-02T06:02:56
+(13 days old) and cancelled basic-economy 3RK2T9. In another episode a
+think-call rewrote created_at 05-02 to 05-15 in recollection.
+
+**Observed on:** TauBench (airline).
+**Models:** gpt-4o, sonnet-35-new.
+**First seen:** 2026-10.
+
+### simulated-user-overtrust
+
+The agent treats a simulated user's factual claim as true despite
+contradicting tool evidence.
+
+**Example:** The agent trusted "got it yesterday" over the tool's pending
+order status; the exchange failed.
+
+**Observed on:** TauBench (retail).
+**Models:** sonnet-35-new.
+**First seen:** 2026-10.
+
+### post-hoc-confabulation
+
+The agent invents a plausible-sounding rationale for its action after the
+fact, with no basis in the decision inputs.
+
+**Example:** The agent cited "security reasons" for an action; no
+security input existed in the trace.
+
+**Observed on:** TauBench.
+**Models:** sonnet-35-new.
+**First seen:** 2026-10.
+
+### self-correcting-recovery
+
+Positive archetype: the agent precisely diagnoses its own procedural
+error and names the correct order of operations.
+
+**Example:** After an item modification locked a retail order into
+"pending (item modified)" status and blocked the address change, the
+agent said "I should have processed the address change first".
+
+**Observed on:** TauBench (retail).
+**Models:** sonnet-35-new.
+**First seen:** 2026-10.
+
+### environment-trap
+
+The environment punishes a reasonable action sequence either way; the
+agent is not at fault.
+
+**Example:** Return-first bricks the exchange and exchange-first bricks
+the return: both orders of return_delivered_order_items and
+exchange_delivered_order_items fail because the first action locks the
+order state the second needs.
+
+**Observed on:** TauBench (retail).
+**First seen:** 2026-10.
+
 ## Adding categories
 
 New categories emerge from lab reports and hunt findings. When adding:
