@@ -627,6 +627,35 @@ MEDIUM 6. Benchmark split: travelplanner 21, terminal_bench_2
   inherit the dead worker's state); gate deadlines should be
   patient-poll, not fixed-timeout.
 
+## Worked example: TELBench
+
+- Source: HF `NJU-LINK/TELBench`, rev
+  `307d870d7424be265653bb7a566793cc217105be`.
+  License Apache-2.0. 1,000 records (early recon said 2,790;
+  the card and the bytes both say 1,000 — trust the bytes).
+- The data file is encrypted (`TELBench.jsonl.enc`) but the
+  passphrase ships in the repo (`TELBench.passphrase.txt`).
+  The file wears an `openssl enc` `Salted__` header, but
+  neither openssl default derivation decrypts it. The real
+  scheme: PBKDF2-HMAC-SHA256, 200,000 iterations,
+  AES-256-CBC, password = the 44-char ASCII passphrase with
+  no trailing newline. Decrypt locally with `cryptography`.
+  Never execute anything from the dataset.
+- Verify both checksums: the `.enc.sha256` against the
+  download, the `.jsonl.sha256` against the decrypted bytes.
+  Keep the encrypted file, the decrypted file, the
+  passphrase, and one `.PROVENANCE.txt` per file.
+- Schema: `id`, `source_id`, `question`, `spans` (`{id,
+  raw}`), `gold.error_span_ids` (the harmful-error
+  annotations), `annotations.stage` / `annotations.error_type`,
+  `meta` (bench, difficulty, framework, model). Start
+  reviewers on the `gold.error_span_ids` spans.
+- Fleet order that worked: scraper, then Reviewer A/B on
+  halves, then adversarial verifier, then ingestor.
+  Supervisor adjudication settled the one reviewer split
+  (routine harness delegation is not wild coordination).
+- Report: `reports/trajectory-ingest/telbench/REPORT.md`.
+
 ## Plugging in a new repo
 
 1. Find the GitHub repo and HuggingFace dataset ID.
