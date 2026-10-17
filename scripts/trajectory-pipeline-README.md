@@ -493,6 +493,140 @@ and COORDINATION are unobservable by design. The dataset carries
 an explicit re-identification prohibition (LICENSE-DATASET.md) —
 all future work stays structural, no operator-identity work.
 
+## Worked example: LongRCA Bench
+
+Run 2026-10-16. Lane `longrca-trajectories`.
+Dataset: `CLoud5-real/longrca-bench`, revision
+`9f45acb66948d5d20c663b4ce4ec8ea5ab0076dd`.
+1,140 failed multi-agent trajectories with human error-agent +
+error-step labels. Paper: arXiv:2608.15242.
+
+### What was scraped
+
+1,140 JSON files under `data/full/<benchmark>/` (swe_bench_pro
+128, terminal_bench_2 42, travelplanner 685, vitabench 108,
+webarena_verified 177). 238,242,050 bytes total (~209 KB mean).
+Cached at `data/lanes/longrca-trajectories/raw/<benchmark>/`
+with one 6-line `.PROVENANCE.txt` per file (source_url,
+retrieved_at, retrieval_method, sha256, dataset_revision,
+license). Manifest: `raw/MANIFEST.json` (`complete: true`).
+
+### Corpus shape
+
+One JSON per trajectory. Fields: `question_ID` (str), `history`
+(list of `{step: int, content: str, role: str, name: str}` —
+multi-agent conversation), `mistake_agent` (str, the human
+error-agent label), `mistake_step` (int, the human error-step
+label), `mistake_reason` (str, human rationale). The mistake
+labels are triage anchors: deep-read ±10 steps around
+`mistake_step` first, then widen.
+
+`mistake_agent` labels are asymmetric by benchmark:
+travelplanner blames specialist agents, vitabench/webarena often
+blame `Task_Planner` / `Action_Expert` / `Verification_Expert`,
+and 36 files blame `Computer_terminal` itself (the benchmark
+roots the failure outside any agent). Do not assume the label
+names a wrongdoing agent; read the steps.
+
+### The broken-download-loop incident
+
+The first scrape loop died structurally: xargs passed ONE arg
+(path) to a downloader expecting THREE (url, dest,
+expected_bytes), so every curl failed with "option -o: is badly
+used here" — and stderr was discarded (`2>/dev/null`), so the
+failures were silent. 31 partial files landed from a dead
+earlier process. The ingestor caught it by testing the script
+directly and watching the byte counts stall.
+
+Rules this produced:
+
+1. Never discard downloader stderr. Log every failure with UTC
+   timestamp + URL + curl error text
+   (`raw/DOWNLOAD-ERRORS.log`).
+2. Verify the downloader's argument contract with a direct test
+   before launching the loop.
+3. Repair uniformly: wipe partial files and re-download through
+   the fixed loop so every file has an identical sidecar. Same
+   upstream bytes — this is repair, not evidence deletion.
+4. The manifest flips `complete: true` only after all files
+   parse AND all sidecars validate. Reviewers gate on the flag,
+   never on file counts.
+
+### License note
+
+No license is declared in the README or the dataset tags. The
+README asks users to cite arXiv:2608.15242. Raw bytes are
+local-only (gitignored: `data/lanes/longrca-trajectories/raw/`);
+do not redistribute. Recorded verbatim in every sidecar and the
+manifest (`license: "NOT-DECLARED"`).
+
+### Flow as run
+
+1. Scrape: 1,140 files + sidecars + manifest (see above).
+2. Review fleet: two reviewers, 570 trajectories each
+   (lexicographic split). Programmatic triage first (label
+   distributions + keyword scan), then deep reads of ~40 top
+   candidates each. 31 findings filed (17 + 14), all PRIMARY.
+3. Adversarial kill: verifier re-read every cited step range
+   from bytes, checked quotes verbatim, ran Factum dedup
+   (direct `data/records/` scan + fuzzy match — 0 overlaps).
+   30 survived, 1 killed (F-A15: claimed positive guardrail
+   pattern was routine harness access-denial compliance).
+4. Factum ingest: batch `bbab7554189943ca94522cf5fb138faa`,
+   6,966 records — 1 source, 1 run, 1,171 observations
+   (1,140 lean `dataset.record` trajectory records + 1
+   `dataset.snapshot` + 30 `intel.behavior`), 1,140 artifacts,
+   4,653 edges (run→trajectory, finding→trajectory, in_lane).
+   Trajectories with findings embed the ±10 decisive step
+   window; full step content stays in raw JSON. tags.lane on
+   every record. Committed to `work` with explicit pathspecs,
+   no push.
+5. Report: `reports/trajectory-ingest/longrca/REPORT.md` plus
+   `EVIDENCE-INDEX.md`, in ASD-STE100.
+
+### Findings by class (30 verified)
+
+COORDINATION 11, GUARDRAIL 5, TOOL-MISUSE 5, RECOVERY 4,
+PROMPT-INJECT 2, OTHER 2, IRREVERSIBLE 1. Confidence: HIGH 24,
+MEDIUM 6. Benchmark split: travelplanner 21, terminal_bench_2
+4, swe_bench_pro 3, webarena_verified 2.
+
+### Recurring patterns worth reusing
+
+- **Verification collapse** (systemic): verifier roles performed
+  by the actor they audit, broken verifier channels bypassed,
+  completion detection as substring match. The harness trusts
+  agent text as control plane. Self-emitted TASK_COMPLETE is
+  the sharpest instance: a mere mention in planning prose
+  triggers phase transition on an empty blackboard.
+- **Fabrication as modal failure**: ~55 mistake_reasons name
+  it; "educated guess" / "commonsense estimation" are the
+  euphemisms. Frequently labeled in-source by the agents,
+  making it text-detectable.
+- **Advisory verifier gates**: `passed: false` records do not
+  stop assembly; verifiers downgrade to caveats and the
+  pipeline proceeds.
+- **Evidence laundering**: fabricated values filed under a
+  tool's name or with self-asserted compliance booleans.
+- swe_bench_pro keyword signals are mostly code-domain noise;
+  behavioral signal concentrates in multi-agent benchmarks
+  (terminal_bench_2's Diagnost→Action→Judge loop, travelplanner's
+  blackboard).
+
+### Verifier lessons
+
+- Two reviewer quotes challenged adversarially and upheld;
+  minor inaccuracies (agent counts, root-cause mapping) were
+  annotated in verifier_notes without confidence upgrades.
+  Downgrade freely, never upgrade.
+- Usernames and emails in trajectories (e.g.
+  emma.lopez@gmail.com) are benchmark fixture data. Nothing
+  pursued; scope held.
+- Daemon restarts can kill polling workers with no checkpoint.
+  Respawned workers need the full brief re-sent (they do not
+  inherit the dead worker's state); gate deadlines should be
+  patient-poll, not fixed-timeout.
+
 ## Plugging in a new repo
 
 1. Find the GitHub repo and HuggingFace dataset ID.
