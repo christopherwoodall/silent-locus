@@ -336,9 +336,14 @@ see") returned zero matches. **Overlap count: 0.**
 - Verified findings ingested: 15 (8 OTHER, 5 IRREVERSIBLE, 1
   TOOL-MISUSE, 1 RECOVERY). Confidence: HIGH 9, MEDIUM 6.
 - Killed: 20 (8 + 11 + 1 adversarial)
-- Records submitted: 12916 (1 source, 1 run, 1 dataset.snapshot,
-  3 artifacts, 6425 dataset.record, 15 intel.behavior, 15
-  behavior.tool_sequence, 6455 edges)
+- Records submitted: 0 — SUBMIT PENDING. Bundle built (12,916 records:
+  1 source, 1 run, 1 dataset.snapshot, 3 artifacts, 6425 dataset.record,
+  15 intel.behavior, 15 behavior.tool_sequence, 6455 edges) but the
+  `factum add` is still retrying against the writer lock (sibling fleets
+  ingesting concurrently; 20+ LOCK_TIMEOUT retries so far, durable loop
+  running). NOTHING from this corpus is in the factum corpus yet. This
+  section will be updated with the true batch id and counts once the
+  submit, export, and verify complete.
 
 ## Open questions
 
