@@ -1119,21 +1119,37 @@ tags in the bundle.
   deepdiff revert-and-reconsider) prove the guardrail can work. File them
   as controls, not findings.
 
-### Ingest shape (314 records)
+### Ingest shape (285 records, SS-41 bundle)
 
-1 source + 1 run + 1 dataset.snapshot + 24 shard artifacts (sha256+size,
-no byte copy — shards stay in the lane raw/) + 93 lean dataset.record
-(instance_id, shard, row, bug family, outcome proxy, raw path + sha256;
-one per unique shard+row; cantools r2b03pps links to two findings) +
-7 intel.behavior (class, grade PRIMARY, confidence, verbatim quote, step
-range, verifier notes; new taxonomy categories test-expectation-rewriting,
-test-addition-against-instruction, submit-with-test-declared-wrong) +
-93 run→trajectory (related_to) + 94 finding→trajectory (supports) edges.
-in_lane edges via the top-level "lane" bundle key (longrca pattern —
-requires the factum lane record to exist first; wildclaw pattern
-otherwise). Builder: data/lanes/swe-smith-mini-trajectories/build_bundle.py
-(byte-checks every instance_id and every finding-level quote).
+1 source + 1 run + 1 dataset.snapshot + 40 shard artifacts (sha256+size,
+local-only raw path; shards stay in the lane raw/) + 40 shard-aggregate
+dataset.record (n, outcome-proxy mix, msg quartiles, top orgs, bug mix) +
+40 lean finding-trajectory dataset.record (instance_id, shard_file, row, org,
+repo, bug_type, outcome proxy, msg count — attributes only, NO step content;
+full steps stay in raw parquet) + 41 intel.behavior (SS-001..SS-041: category,
+verbatim quote, verifier notes, severity, provenance) + 80 run→trajectory
+(related_to) + 41 finding→trajectory (supports) edges. SS-010 is corpus-rate
+(MULTI, no single trajectory): its supports edge targets the dataset.snapshot.
+in_lane via tags.lane on every record (no top-level lane key — the lane
+record did not exist at submit time under writer-lock contention).
+Builder: data/lanes/swe-smith-mini-trajectories/build_bundle_ss41.py
+(byte-checks every (shard,row)→instance_id join and every finding-level quote;
+fails loudly on mismatch). Validator: validate_ss41.py.
 Idempotency key: swe-smith-mini-ingest-2026-10-17-v1.
+
+Fallback scope note: the preferred scope was 56,166 per-trajectory records in
+~6 batches. Under observed writer-lock contention (20+ consecutive LOCK_TIMEOUTs
+on `lane new`; `match` timing out at 1500s; sibling fleets zero writes in ~3h),
+batch adds were judged unworkable and the task's explicit fallback was used:
+40 shard aggregates + individual records for the 40 single-trajectory findings.
+Findings: 41 verified (GUARDRAIL 34: HIGH 23/MEDIUM 10/LOW 1; IRREVERSIBLE 1
+HIGH attempt; OTHER 6: HIGH 2/MEDIUM 2/LOW 2). The 82.8% rewrite rate (SS-010:
+120/145) was re-derived by the byte-verifier (19/20 stratified sample agreed;
+1 mislabel corrected: furl REVERT→REWRITE). Proposed taxonomy categories
+`deliberate-bug-introduction` (SS-019/020/033) and `pr-description-anchoring`
+(SS-012) await the taxonomy owner's ratification. Report:
+reports/trajectory-ingest/swe-smith-mini/ (REPORT.md, EVIDENCE-INDEX.md, 4
+Transluce-style writeups — drafts, filing freeze in force).
 
 ## Worked example: nebius/SWE-agent-trajectories
 
@@ -1449,3 +1465,11 @@ edges. Builder:
 Idempotency key `rebench-ingest-2026-10-17-v1`. Dedup: direct
 data/records/ scan for the dataset id — the only "rebench" hits were
 prose mentions inside the nvidia-baseline batch, zero overlap.
+
+## Batch size rule (2026-10-17, operator directive)
+
+Big factum batch exports stay local-only. If `data/records/<batch>/records.jsonl`
+exceeds ~80 MB, do NOT commit it to git. GitHub rejects files over 100 MB and the
+push fails. Keep the file on disk (the records are already in the local corpus),
+commit the report, manifest, and receipt only, and note "records.jsonl local-only
+per operator" in the commit message. Add the exact file path to `.gitignore`.
