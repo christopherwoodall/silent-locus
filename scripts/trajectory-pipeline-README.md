@@ -700,6 +700,140 @@ MEDIUM 6. Benchmark split: travelplanner 21, terminal_bench_2
   COORDINATION encounters.
 - Report: `reports/trajectory-ingest/agenterrorbench/REPORT.md`.
 
+## Worked example: ETO-SFT
+
+Run 2026-10-17. Lane `eto-sft-trajectories`.
+Dataset: `agent-eto/eto-sft-trajectory`, revision
+`a8f745ef799a5201d2288b9c2a47e40a0ff70a4c`.
+License: the HF API `license` field is null while tags AND the
+README front matter both read apache-2.0 — record all three facts
+(`raw/LICENSE.note`), do not pick one as resolved.
+
+### Turn-based conversation schema
+
+Top-level JSON is a list of dicts. Every record: `id`,
+`conversations` (list of `{from: "human"|"gpt", value}`). Per-split
+extras: alfworld +`game_file` (3119 records), scienceworld none
+(1483), webshop +`reward` (float), +`source` (`"human"` or `"gpt"`).
+Findings cite turn numbers as 0-based `conversations` indexes.
+
+`behavior.tool_sequence` for turn-based corpora: record the decisive
+turn window faithfully as steps with `tool: "conversation.turn"` and
+`command: "<from>: <verbatim value>"`. Do NOT invent tool-call
+structure. `model: "unrecorded-in-source"`; `harness` = split name.
+
+### The 4116 dupe
+
+`webshop_sft.json` holds 1824 rows but only 1823 unique ids: id
+`4116` appears at indexes 936 and 937, byte-identical. Builder
+asserts the duplicate set is exactly `[(webshop, 4116, 937)]` and
+that the two rows serialize identically, then ingests once.
+
+### Human-vs-gpt source caveat
+
+Corpus description: "ETO SFT mix (human demos + model rollouts)" —
+NOT "successful experts". Rewards 0-1; over-budget buys appear even
+in reward-1.0 gpt rollouts (id 1486: $39.45 vs $20 ceiling, reward
+1.0); 47 over-budget-then-buy trajectories corpus-wide (30 human +
+17 gpt). Human-demo narration contains annotator-reconstructed
+thoughts ("for the sake of this trajectory, I'll click 'buy now' to
+follow the given actions" — RB-W-007); file over-budget buys as
+dataset-quality observations, not model akrasia.
+
+### What worked
+
+- 15 verified findings, 12,916 records, one batch: 1 source, 1 run,
+  1 dataset.snapshot, 3 artifacts, 6425 lean dataset.record
+  (id/split/turn_count/reward/source/raw_path in tags, no content),
+  15 intel.behavior, 15 behavior.tool_sequence, 6455 edges
+  (run→trajectory, finding→trajectory, sequence→finding).
+- Counts from bytes (3119/1483/1824, each one above briefing
+  estimate); quote byte-verification in the builder gate.
+- Dedup: zero overlap (agenterrorbench is a different alfworld/
+  webshop corpus with filename-style ids).
+
+## Worked example: InterCode-CTF
+
+Run 2026-10-17. Lane `intercode-ctf-trajectories`.
+13 datasets `jordan-taylor-aisi/*_gdm_intercode_ctf` (UK AISI
+deception-probe evals). All 13 apache-2.0 (HF API tag + README
+frontmatter both checked, `raw/LICENSE.note`).
+
+### Eval-ZIP journal format
+
+The real trajectory data is NOT the parquet (`config/train-00000-of-00001.parquet`
+holds summary rows). The bytes live in
+`logs/inspect_evals/gdm_intercode_ctf/benign.eval` — a ZIP
+containing an inspect_ai eval journal:
+
+- `_journal/start.json` — eval header (task registry, timestamps).
+- `samples/<N>_epoch_1.json` — one per trajectory sample.
+- `header.json`, `summaries.json`.
+
+Each sample JSON: `messages` (list of `{role, content, tool_calls}`),
+`scores`, `metadata`, `total_time`. Real tool calls sit on assistant
+messages as `tool_calls: [{id, function, arguments}]`. Text-form tool
+JSON in the content with empty `tool_calls` means the harness dropped it
+— this distinction is itself a behavior class (see V-003..V-006).
+
+835 samples across the 13 sets (79 each except devstral 25 and the two
+10-sample dead-server sets). Per-sample `dataset.record` ingest is cheap
+at this scale: no step content, attributes only (message_count,
+tool_call_count, score).
+
+### License note
+
+Scraper policy: non apache-2.0 (or equivalent-permissive) datasets get
+KILLED, not downloaded. All 13 passed with `license:apache-2.0` in both
+the HF API tag and the README frontmatter.
+
+### The elicitation-banner lesson
+
+The elicitation chat template (`.jinja`) adds an all-caps banner that
+coaches models to emit tool calls as `{"name", "parameters"}` text —
+a format the harness parser never executes. Measured damage on both
+stock and fine-tuned models: text-form tool events 26->62, zero-tool-call
+trajectories 0->5, correct 43->29, tools/traj 6.13->4.33. The bannerless
+elicitation set matches default, isolating the banner as the cause.
+Lesson: when a dataset family has template variants, diff the templates
+first — the banner text is provenance for every downstream tool-use
+degradation. Verifier rule: fold single-trajectory exemplars into the
+aggregate finding (A-004 -> V-003), don't file them standalone.
+
+### What was ingested
+
+1 batch, 1753 records: 13 sources, 13 artifacts, 1 run, 1
+dataset.snapshot, 835 lean dataset.record (id/dataset only, no content),
+18 intel.behavior, 18 behavior.tool_sequence (one per unique
+finding-bearing trajectory; V-009 and V-010 share d8 sample 56), 854
+edges (835 run→trajectory, 19 finding→trajectory). V-002 and V-003 are
+corpus aggregates with no single trajectory: no tool_sequence, no edges,
+documented in the report.
+
+## WildClawBench notes
+
+Run 2026-10-16. Lane `wildclawbench-trajectories`.
+
+- The real trajectory dataset is `internlm/WildClawBench-Trajectories`,
+  NOT the main `internlm/WildClawBench` dataset. The worked example above
+  shows `internlm/WildClawBench` for both IDs — that is wrong for the
+  traces; the 600 per-task traces live under
+  `internlm/WildClawBench-Trajectories`.
+- Edge scheme: run → `behavior.tool_sequence` → `intel.behavior`. The
+  `exhibits`/`uses` edges REQUIRE `basis` + `cites` in `body`:
+  `exhibits` → `basis: "OBSERVED"`, `uses` → `basis: "INFERENCE"`, and
+  each edge gets `cites: [<the behavior.tool_sequence ref backing that
+  finding>]`. The schema rejects interpretive edges without them. See
+  `data/lanes/wildclawbench-trajectories/review/edge-scheme.md` and the
+  fixed `data/lanes/wildclawbench-trajectories/build_bundle.py`.
+- Gotcha: never put a top-level `"lane"` key in the bundle — it causes a
+  LANE resolution error. `tags.lane` on every record carries the lane.
+- Report: `reports/trajectory-ingest/wildclawbench/`.
+- writer.lock contention: sibling fleets on one checkout serialize
+  10–30 min each. Check your OWN stale processes first (`ps aux | grep
+  factum.py`) — a dead backgrounded factum command can hold the lock for
+  an hour+. Then stagger submit phases.
+
 ## Plugging in a new repo
 
 1. Find the GitHub repo and HuggingFace dataset ID.
