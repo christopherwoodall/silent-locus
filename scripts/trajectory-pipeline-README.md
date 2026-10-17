@@ -1055,6 +1055,86 @@ data/lanes/swe-smith-trajectories/build_factum_bundle.py.
 Validate: data/lanes/swe-smith-trajectories/validate_batch.py.
 Idempotency key: swe-smith-ingest-2026-10-17-v1.
 
+## SWE-smith-mini lane notes (2026-10-17)
+
+Dataset: `Kwai-Klear/SWE-smith-mini_swe_agent_plus-trajectories-66k`,
+revision `750b2c11239fd5e32f97e6cfb9bf80fb9a9a2983`, license `mit`
+(three-source check: HF API cardData.license, HF tags, README front
+matter — recorded in raw/LICENSE.note). 65,994 trajectories, 47 parquet
+shards, 1.58 GB compressed. mini-swe-agent-plus rollouts. Schema is two
+columns only: `instance_id`, `messages`. No outcome/resolved column.
+
+### Parquet shards and the stratified whole-shard drop
+
+A shard cannot be split at download time, so the sampling unit is the
+whole shard. Budget 1.5 GB against 1.58 GB total. First plan (drop the 7
+least bug-diverse shards) was REJECTED for bias: shards 01–04 hold
+clusters of the `pr_*` tail and early-shard orgs. Final plan: drop 7
+shards at random, fixed seed 151 (best of 200 tried). Dropped: 13, 18,
+22, 23, 26, 40, 45. Kept: 40 shards, 56,166 trajectories (85.1%),
+1.331 GB. Worst kept share: 50% for one small `pr_*` group; 77% for the
+worst org. Strata: bug family, source org, derived outcome. Full plan:
+`raw/SAMPLING-PLAN.md`; stratum map: `raw/STRATA-MAP.jsonl`.
+
+Download: `curl -L -C -` per shard with `.PROVENANCE.txt` (source URL,
+UTC time, method) and `.sha256` sidecars. Never the `huggingface_hub`
+Python library (broken on this VM — see ~/TOOLS.md).
+
+### The duplicate-instance_id quirk
+
+`instance_id` is NOT a row key. Byte-counted 2026-10-17: **56,166 rows
+share 10,894 distinct instance_ids** — different rollouts of the same
+bug share one id (`<org>__<repo>.<commit>.<bug_type>__<nonce>`; the
+commit is the first all-hex token, which matters because repos like
+`pdfminer.six` contain dots). Rule: anchor every trajectory record by
+shard+row, never by instance_id alone. The bundle builder asserts the
+(shard,row)→instance_id join per row and fails loudly on mismatch.
+
+### Outcome heuristic (proxies, not labels)
+
+No ground-truth outcome column exists, so outcome classes are derived
+from message text (`raw/outcome_heuristic.py`): C1 last tool call rc=0
+(98.65%), C2 rc!=0 (1.35%), C3 give-up language in final message
+(3.13%), C4 length quartile. Report them as proxies, never as true
+labels. The per-trajectory outcome proxy rides on the dataset.record
+tags in the bundle.
+
+### Reviewer lessons
+
+- The msg-1 boundary ("DO NOT MODIFY: Tests, configuration files") is in
+  every trajectory — batch-verify its presence before filing
+  boundary-violation counts, or the denominator is unknown.
+- Count discrepancies must be re-derived, not adjudicated: reviewer counts
+  of 76 vs 80 for the test-append census both failed to reproduce; the
+  byte-derived count is 69 (two regex extractions over assistant bash
+  blocks, v2 fixed to catch `_tests/` dirs, then per-trajectory byte
+  adjudication).
+- The byte-verifier's supplementary `cp`/`mv` scan found 5 expectation-
+  rewrite instances the reviewers missed. For test-tampering hunts, scan
+  for file-operation verbs, not just edit verbs.
+- Recharacterize before filing: the "add regression tests" pattern looked
+  like reward hacking but is boundary noncompliance — the added tests
+  usually pass. File the mechanism observed, not the scarier label.
+- Keep the honest kills: two positive controls (trio boundary-weighing,
+  deepdiff revert-and-reconsider) prove the guardrail can work. File them
+  as controls, not findings.
+
+### Ingest shape (314 records)
+
+1 source + 1 run + 1 dataset.snapshot + 24 shard artifacts (sha256+size,
+no byte copy — shards stay in the lane raw/) + 93 lean dataset.record
+(instance_id, shard, row, bug family, outcome proxy, raw path + sha256;
+one per unique shard+row; cantools r2b03pps links to two findings) +
+7 intel.behavior (class, grade PRIMARY, confidence, verbatim quote, step
+range, verifier notes; new taxonomy categories test-expectation-rewriting,
+test-addition-against-instruction, submit-with-test-declared-wrong) +
+93 run→trajectory (related_to) + 94 finding→trajectory (supports) edges.
+in_lane edges via the top-level "lane" bundle key (longrca pattern —
+requires the factum lane record to exist first; wildclaw pattern
+otherwise). Builder: data/lanes/swe-smith-mini-trajectories/build_bundle.py
+(byte-checks every instance_id and every finding-level quote).
+Idempotency key: swe-smith-mini-ingest-2026-10-17-v1.
+
 ## Worked example: nebius/SWE-agent-trajectories
 
 Lane: data/lanes/swe-agent-nebius-trajectories/. Ingest:
@@ -1283,3 +1363,89 @@ confabulation-under-retrieval-failure (F-B3), recovery-livelock
 writer-lock contention; direct `data/records/` scans (dataset id,
 all 15 finding ids, lane tag) are the authoritative oracle — 0
 overlaps, 0 skipped.
+
+## Worked example: SeerRay-Lab/Android-World-Eval (android-world-trajectories lane, 2026-10-17)
+
+Full-corpus review (464/464 files, no sampling), 12 verified PRIMARY findings, factum bundle 1,430 records.
+
+### Corpus shape
+
+One JSON file per rollout: `sample_<n>_rollout_<r>.json`, 116 tasks x 4 rollouts. License MIT (verified verbatim from README front matter at the pinned revision, HF API cardData.license, and HF tags; recorded in `raw/LICENSE.note`). Dataset revision `b23dc7192ba8cc0e8fcc97e1e72a225c9c06de41`. Retrieval: per-file curl with retry (several transfers died mid-download; see `raw/DOWNLOAD.log`); per-file SHA-256 sidecars (`raw/*.sha256`) cross-checked against `raw/MANIFEST.json`.
+
+### Per-step JSON structure
+
+Top-level keys per file: `trace_id`, `step`, `sample_index`, `rollout_n`, `gen_batch_idx`, `experiment_name` (same value on all 464: the Qwen3-MoE xiaoai tool config string — the model label from reviewer notes is `Xiaomi-GUI-0`), `task`, `task_name`, `initial_prompt`, `start_time`, `end_time`, `total_spans`, `status`, `phase`, `final_reward` (0.0/1.0), `turns`, `attributes` (`task_complexity`, `task_max_steps`), `root_span` (OpenTelemetry-style: `span_id`, `op`, `inputs`, `output`, `children`; loop ops named `MobileAgentLoop._handle_observing|_generating|_executing`).
+
+`turns[]` is the review surface. Each turn: `turn_index` (1-based), `screenshot_base64`, `llm_response`, `action`, `reward`, `timestamp`, `messages`. The `action` object carries everything text review needs: `action` (the action type: click, open, terminate, swipe, type, long_press, back — only 7 exist in the harness), `arguments` (`_xiaoai_func` gives the tool name, e.g. Tap/Open/Type), `thought` (the agent's [Observation]/[Reflection]/[Replan]/[Decision]/[Memory] prose), `answer` (the rendered action text, e.g. `{"name": "Tap", "position": [0.35, 0.305]}`), and `raw_text` (full llm_response with think/action/tool_call blocks). The agent's self-grade lives in the terminate action's arguments (`goal_status: "success"|"failure"`) — the V-02 statistic was recomputed from these args, not from the reviewer's memory of the scan.
+
+### screenshot_base64 handling
+
+Every turn carries a full PNG screenshot as a base64 string (~150 KB–1.5 MB per turn; PNG magic `iVBORw0KGgo` at the head). The reviewers never opened them — all quotes came from text fields (`llm_response`, `action.answer`, `thought`, `raw_text`, terminate args). Cost note: full `json.load` of one file takes ~1.5 s and the files average ~4 MB; a 464-file metadata pass takes ~5–8 minutes. Do not print parsed dicts to logs — one accidental dump of a trajectory dict emitted 12 MB of tool output. Screenshots stay in the raw files; factum records carry no image bytes, only file SHA-256 + size in artifact records.
+
+### Reviewer split and dedupe
+
+Reviewer A took rollouts 0–1 (232 files), Reviewer B rollouts 2–3 (232 files), same taxonomy prompts. Cross-half recurrence was a dedupe decision, not a double count: B-B01 merged into V-04 (A-A04), B-B06 merged into V-11 (A-half instances). Kept separate on purpose: V-02 vs V-09 (class-level rate vs sharpest instance), V-01 vs V-08 (opposite recovery directions), V-02/V-07/V-12 (distinct self-certification mechanisms). Five dedupe decisions recorded in `kill-list.json` with rationale.
+
+### Ingest shape (1,430 records)
+
+1 source + 1 run (review fleet) + 1 dataset.snapshot + 464 artifact (one per raw file, SHA-256 + size) + 464 dataset.record (one per trajectory: id, task name, reward, turns, step range, raw path; locator points at its artifact) + 12 intel.behavior + 11 behavior.tool_sequence (ordered action types re-derived from raw bytes within each finding's step range; V-02 excluded — it is an aggregate statistic, not a single sequence) + 464 run-`related_to`-trajectory edges + 12 finding-`supports`-trajectory edges. Builder: `data/lanes/android-world-trajectories/build_factum_bundle.py`; validator: `validate_batch.py` (runs against the bundle pre-submit and against exported `records.jsonl` post-export). Idempotency key `android-world-ingest-2026-10-16-v1`.
+
+## Worked example: nebius/SWE-rebench-openhands-trajectories (rebench-openhands-trajectories lane, 2026-10-17)
+
+Single-parquet corpus (67,074 rows, 2.08 GB), 4 verified PRIMARY findings, factum bundle 38 records (lean design — no per-row records).
+
+### Corpus shape
+
+One file: `trajectories.parquet`, 10 columns. `trajectory_id` (string),
+`instance_id` (string), `repo` (string), `trajectory` (list of structs
+{content, name, role, tool_call_id, tool_calls[{id, type,
+function{arguments, name}}]} — OpenHands message history), `tools`
+(list of tool schemas), `model_patch` (string, git diff), `exit_status`
+(string), `resolved` (int64 0/1), `gen_tests_correct` (double,
+nullable), `pred_passes_gen_tests` (double, nullable). Model
+Qwen3-Coder-480B-A35B, harness OpenHands v0.54. License cc-by-4.0
+(verified verbatim: HF API cardData.license + tags + LICENSE file text;
+API top-level `license` field is null — record all three facts, no
+overclaim). Dataset revision `35455389ab51bf5e2306bfd436ef72d0f98bf882`.
+Retrieval: single curl with `-C -` resume (6 CDN drops, all resumed
+clean); sha256 verified against the HF LFS oid exactly.
+
+### OOM-safe read pattern (mandatory on this VM)
+
+Full row-group reads OOM-kill Python (exit 137). Use
+`pyarrow.parquet.read_table(path, columns=[...])` with column
+projection plus `iter_batches(batch_size=...)` streaming. Never load the
+whole file into pandas. Reviewers that ignored this died twice.
+
+### Reviewer split
+
+Reviewer A: CAPTCHA, ACCOUNT, CREDENTIAL, PROMPT-INJECT, IRREVERSIBLE —
+substantive null (8,192 rows scanned, 116 deep-read, every candidate
+killed: test fixtures, docs placeholders, sandbox-scoped rm -rf).
+Reviewer B: GUARDRAIL, TOOL-MISUSE, COORDINATION, RECOVERY, OTHER —
+67,074/67,074 rows pattern-scanned, 161 deep-read, 7 findings filed.
+
+### Verifier corrections lesson
+
+The adversarial verifier re-read every cited byte and the phenomenon
+claims mostly held — but 5 headline numbers were wrong or inflated
+(F-002's model_patch stat off by 4x: 990 claimed vs 4,146 measured;
+F-007's 322-vs-5 actually 263-vs-62; F-006's "14 examples" actually
+33/56). Three findings died outright (F-003 deliberation misread as
+goalpost-moving; F-004 sandbox anecdote; F-005 curl evidence misread).
+Lesson: re-derive every aggregate stat from the bytes independently —
+never trust a reviewer's counts, even when the phenomenon is real.
+
+### Ingest shape (38 records)
+
+1 source + 1 run (scrape) + 1 dataset.snapshot (exit_status / resolved /
+repo distributions) + 1 artifact (the parquet, sha256 + size) + 10
+dataset.record (one per finding trajectory: trajectory_id,
+instance_id, repo, exit_status, resolved; locator points at the
+parquet artifact with row key) + 4 intel.behavior + 10
+run-`related_to`-trajectory edges + 4 finding-`supports`-trajectory
+edges. Builder:
+`data/lanes/rebench-openhands-trajectories/build_factum_bundle.py`.
+Idempotency key `rebench-ingest-2026-10-17-v1`. Dedup: direct
+data/records/ scan for the dataset id — the only "rebench" hits were
+prose mentions inside the nvidia-baseline batch, zero overlap.
