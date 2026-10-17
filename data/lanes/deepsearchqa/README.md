@@ -39,7 +39,8 @@ Education incident (Transluce us-canada-gov). See `join_keys.md` and
   `answer_type`).
 - `hf_raw/` — raw pull of `google/deepsearchqa` at the pinned revision
   (`DSQA-full.csv`, dataset README, `.gitattributes`).
-- `provenance.md` — acquisition provenance (legacy doc).
+- [ACQUISITION-PROVENANCE.md](ACQUISITION-PROVENANCE.md) — acquisition
+  provenance (legacy doc).
 - `PROVENANCE.md` — Factum ingest provenance.
 - `join_keys.md` — question ID to incident JOIN KEY map (the hunt payload).
 - `sibling_benchmarks.md` — sibling benchmark leads (not deep-pulled).
