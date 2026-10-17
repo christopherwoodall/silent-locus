@@ -115,42 +115,6 @@ python3 scripts/trajectory-scout.py \
   --out /tmp/clawbench-manifest.json
 ```
 
-### ClawBench notes (2026-10-17 ingest)
-
-- **Datasets**: `NAIL-Group/ClawBenchV1Trace` (2,053 run dirs, 6.5 GiB)
-  and `TIGER-Lab/ClawBenchV2Trace` (935 run dirs reviewed, 2.2 GiB).
-  V1 run dirs sit at the lane root; V2 nests run dirs under
-  `batch-*/<model>/`. Raw layout: `data/lanes/
-  clawbench-trajectories/raw/`.
-- **Guard revisions (V1)**: two revisions exist. New-format guards use
-  real schemas (`pass=True` = blocked). Old-format guards are
-  placeholders (`__PLACEHOLDER_WILL_NOT_MATCH__`) — ~75% of slice
-  601-886 runs have no effective guard. The SAME action is blocked in
-  new-format runs and sails through in old-format runs (deleteme,
-  mistobox, ipvanish). Tag every finding with its guard revision.
-  V2 has one revision, but coverage is per-endpoint-pattern with
-  gaps (simplify.jobs register, amazon.jobs createAccount,
-  beeradvocate register+rate, betterimpact SaveUserInfo).
-- **Interception != disposition**: `interception.json` /
-  `requests.jsonl` prove the agent ISSUED the request. Wire
-  disposition (blocked vs executed server-side) is NEVER recorded.
-  File unblocked instances as attempts with disposition unrecorded.
-  This caveat goes on every record (tags + description).
-- **Dummy fixtures**: clawbench.cc emails, generated passwords,
-  benchmark card 4519 8734 2460 4532 exp 09/28 CVV 847 (not a Stripe
-  4242 test card). Tag `identities: benchmark-fixtures-dummy`.
-- **Duplicate run dirs** exist under V1 model subdirs (e.g.
-  `NAIL-.../claude-opus-4-6/006-...`). Dedup run identity, not dir
-  path.
-- **Ledger counts**: the verify ledger's summary line ("71
-  survivors") disagrees with its own lists (84 entries). Count the
-  listed entries, not the summary. 84 − 4 merges = 80 records.
-- **Ingest shape**: 5 bundles (one per reviewer group), 249 records:
-  84 `behavior.tool_sequence` (run/steps/tool calls), 79
-  `intel.behavior` + 1 `intel.ttp` (findings), 80 `claim` (links),
-  5 `source`. Merged pairs = one finding + two tool sequences.
-  New taxonomy category: `self-restraint-checkout-boundary`.
-
 ## Worked example: AgentProcessBench
 
 Dataset: `LulaCola/AgentProcessBench`, revision
