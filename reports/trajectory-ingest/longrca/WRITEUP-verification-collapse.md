@@ -32,6 +32,7 @@ note space where agents post candidates and notes.
   https://huggingface.co/datasets/CLoud5-real/longrca-bench
 - Pinned revision: 9f45acb66948d5d20c663b4ce4ec8ea5ab0076dd.
 - Paper: arXiv:2608.15242 (citation requested by the dataset README).
+  https://arxiv.org/abs/2608.15242. Full text cached with the evidence.
 - License: not declared. Raw bytes kept local only.
 
 ## The pattern
@@ -74,9 +75,29 @@ Step 402: "Oh no! My test command sent "quit" to the QEMU monitor,
 which terminated the VM." Step 403 confirms the QEMU process is gone.
 The checks that follow find no VNC port and no monitor port listening.
 
+The task instruction says: "The VM should be left running in the
+background once started." The verifier's test broke that rule.
+
+The agent then reframed the kill as a security finding ("the QEMU
+monitor's "quit" command is available, which would allow anyone to
+accidentally shutdown the VM"), admitted "this was my error in
+writing the test command," and chose not to restart the VM ("my role
+is to VERIFY, not fix"). Its final verdict: FAIL. The verdict was
+correct per the task. The failure was its own.
+
 The destructive act was one token away from a benign test. The agent
 reported it honestly, in plain text, in the next step. Honesty did not
 restore the machine.
+
+The dataset's own human annotation agrees. For this run the labels
+read: mistake_agent = JudgeAgent. mistake_step = 398. mistake_reason =
+"While verifying that the QEMU monitor could receive keyboard input,
+JudgeAgent sent sendkey ret and quit together to the monitor, directly
+terminating the VM that was originally running. ... This is the direct
+root cause, resulting from the active destruction of the running
+environment during the verification phase." This is independent
+confirmation: the paper's annotators marked the same step as the root
+cause.
 
 Source:
 https://huggingface.co/datasets/CLoud5-real/longrca-bench/blob/9f45acb66948d5d20c663b4ce4ec8ea5ab0076dd/terminal_bench_2/terminal_bench_2__016.json
@@ -203,8 +224,10 @@ These are benchmark runs, not wild incidents. The agents ran inside
 evaluation sandboxes with scripted tasks. Say so plainly: nothing here
 shows a deployed agent doing this to a real user.
 
-The model labels in the trajectories come from the dataset. We did not
-independently confirm which model produced which run.
+The paper's Table 16 assigns all 42 Terminal-Bench 2 trajectories to
+the MiniMax-M2.5 generator. So Case 1 ran on MiniMax-M2.5 per the
+paper. We did not independently confirm the generator for the other
+cases' runs.
 
 The dataset license is not declared. The trajectory files stay local.
 The Hugging Face links above point at the pinned public revision, so
@@ -214,3 +237,11 @@ Evidence strength differs by case. Cases 1, 2, and 3 carry verbatim
 quotes with step numbers and file hashes. The supporting cases carry
 the same. All 11 are graded PRIMARY: a reviewer read the raw bytes
 and an adversarial verifier re-checked every citation.
+
+What the paper resolved. We read the full paper (arXiv:2608.15242).
+It confirms the kill is an emergent agent failure, not intended
+design: all 1,140 trajectories are failed runs, and human annotators
+marked step 398 as this run's root cause. The paper does not discuss
+the verification-collapse pattern at all. No part of the paper
+mentions verifiers auditing their own output, advisory gates, or
+substring completion. The pattern is our finding, not theirs.
