@@ -65,8 +65,10 @@ Commit on branch `work`. No push.
    files (no DB locks). 6,966 records. 0 errors. 0 warnings. All
    declared ref targets resolve. external_record_id unique.
 7. Lane dir reconciled: data/lanes/2026-10-16-longrca-trajectories-956a3eca/
-   merged into data/lanes/longrca-trajectories/; docs_path tag kept
-   correct; legacy_path tag recorded.
+   merged into data/lanes/longrca-trajectories/; docs_path tag was
+   already correct at lane creation. A lane edit to add the
+   legacy_path tag ran but its success could not be confirmed (lock
+   contention); see open question 6.
 8. Commit with explicit pathspecs on branch work. No push (not
    authorized). raw/ not committed (gitignored, local-only by design).
 
@@ -382,3 +384,7 @@ trajectory ids. Nothing annotated, nothing re-filed.
 5. The batch contains no claim records (claims cite observations
    only; none were filed here). Behavior-edge building and claim
    formulation are separate passes.
+6. The legacy_path lane tag edit (pointing at the merged dated lane
+   dir) ran under heavy lock contention and its result is unverified;
+   docs_path is correct. Re-run `lane edit` when the lock is free if
+   the tag matters downstream.
