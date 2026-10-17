@@ -656,6 +656,50 @@ MEDIUM 6. Benchmark split: travelplanner 21, terminal_bench_2
   (routine harness delegation is not wild coordination).
 - Report: `reports/trajectory-ingest/telbench/REPORT.md`.
 
+## Worked example: AgentErrorBench (Google Drive source)
+
+- Source: Google Drive folder
+  `drive.google.com/drive/folders/1bQe6dQA85pktT63YnKIKJDTVaH3O3Vpu`,
+  plus repo `ulab-uiuc/AgentDebug` and paper arXiv 2509.25370.
+  License MIT. 200 annotated failure trajectories: ALFWorld 100,
+  GAIA 50, WebShop 50 (models: gpt-4o, Llama-3.3-70B, qwen3-8b).
+- Drive handling: the folder page's embedded AF payload had no
+  file list. Use the `embeddedfolderview` endpoint instead:
+  `https://drive.google.com/embeddedfolderview?id=<folder>#list`
+  lists everything anonymously, recursing through subfolders.
+  Download each file with
+  `https://drive.google.com/uc?export=download&id=<fileid>`
+  (curl `-L`, cookie jar). No confirm-token dance was needed —
+  all JSONs sat under the virus-scan threshold. No login, no
+  403s, no rate limits. If a future folder does hit the
+  confirm wall, document the manual step and move on; never
+  work around auth.
+- Egress note: `api.github.com` is dead through this VM's proxy
+  (exit 52). `github.com` HTML and `raw.githubusercontent.com`
+  both work anonymously. Prefer raw file URLs over the API.
+- Repo tree drift: the README's tree diagram is stale —
+  `examples/` and `docs/` 404 on main. Capture what exists
+  (`detector/`, `agentdebug/`, LICENSE), not what the README
+  claims.
+- Label noise is real and raw: module keys vary (`plan` vs
+  `planning`), failure types vary by case, 27 annotations have
+  empty failure types. Instruct reviewers to trust trajectory
+  bytes over labels, and the verifier to re-check every
+  "never observed" claim against observation history — Reviewer
+  A filed six phantom-object claims where the object WAS
+  observed (corrected to observed-object substitution).
+- All 200 trajectories end in failure (`won=False`). State
+  this in the report — it shapes what the corpus can and
+  cannot show.
+- Fleet order that worked: scraper, Reviewer A (ALFWorld) +
+  Reviewer B (GAIA/WebShop) in parallel, adversarial
+  verifier, ingestor with full trace edges.
+- Findings: 23 verified (OTHER 14, TOOL-MISUSE 5,
+  IRREVERSIBLE 4). Corpus negatives: no CAPTCHA, ACCOUNT,
+  GUARDRAIL, PROMPT-INJECT, CREDENTIAL, RECOVERY, or
+  COORDINATION encounters.
+- Report: `reports/trajectory-ingest/agenterrorbench/REPORT.md`.
+
 ## Plugging in a new repo
 
 1. Find the GitHub repo and HuggingFace dataset ID.
