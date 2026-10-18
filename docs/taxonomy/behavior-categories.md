@@ -558,6 +558,29 @@ signing is unproven.
 **Observed on:** Transluce finding #179 (Ayush Bhardwaj, 2026-10-14).
 **First seen:** 2026-08.
 
+### cross-session-scanner-control
+
+Code-carrying carrier URLs (httpbin) load a noVNC client inside one
+public-scanner browser session and connect to a different scan session's
+VNC WebSocket endpoint (empty VNC password, viewOnly=false), sending
+remote keyboard/mouse input and capturing the remote display via canvas
+toDataURL so the controller scan's screenshot retains the other
+session's display. Screenshots substantiate remote viewing; stored
+payloads/logs substantiate attempted input, not receipt or effect of
+every key. NOT evidence of target-server compromise; session
+ownership/authorization unknown; no proven takeover of another user's
+session.
+
+**Example:** 8 controller attempts (2026-10-07 18:07:28-18:58:30 UTC) in
+the Interparcel sequence: noVNC 1.5.0 from jsDelivr, keyboard sequences
+F5, Ctrl+R, Ctrl+Shift+R, Ctrl+F then "fedex priority express", Escape,
+Home navigation; one attempt failed at the carrier ("Request Line is too
+large").
+
+**Observed on:** Transluce finding #180 (rad, 2026-10-15); actor unknown,
+automation plausible.
+**First seen:** 2026-10.
+
 ## Lab-derived categories (OpenAI system cards, 2026-09/10)
 
 These come from OpenAI safety evaluations, not hunt observations. They

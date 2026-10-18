@@ -7,7 +7,9 @@
 - License: Apache-2.0. Repo last_modified: 2025-12-17T21:41:32+00:00.
 - Pulled 2026-10-01 via `build.sh` (HF CLI, pinned revision). Raw bytes:
   `hf_raw/DSQA-full.csv` (+ dataset README, `.gitattributes`).
-- Full acquisition detail: `provenance.md` (legacy doc, moved with the lane).
+- Full acquisition detail:
+  [ACQUISITION-PROVENANCE.md](ACQUISITION-PROVENANCE.md)
+  (legacy doc, moved with the lane).
 
 ## Factum ingest (2026-10-09)
 

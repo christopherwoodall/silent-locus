@@ -2,7 +2,7 @@
 """Build events.jsonl for 2026-10-01-deepsearchqa.
 
 One `benchmark_question` record per question in questions.jsonl
-(dsqa_<0-based row index> IDs; ID convention verified in provenance.md).
+(dsqa_<0-based row index> IDs; ID convention verified in ACQUISITION-PROVENANCE.md).
 The dataset carries no per-question dates: @timestamp falls back to the
 collection date (2026-10-01), marked in labels.timestamp_source.
 """
