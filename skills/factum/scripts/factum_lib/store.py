@@ -525,6 +525,15 @@ class State:
         return parse_json(self.read(path))
 
     def paths(self, prefix, suffix):
+        # Suffix semantics: extension suffixes (".jsonl", ".json") match by
+        # extension; bare filenames ("lane.json", "manifest.json") must match
+        # the full filename. A loose endswith("lane.json") false-matches
+        # e.g. "bundle-android-world-nolane.json" (2026-10-17).
+        def matches(name):
+            if suffix.startswith("."):
+                return name.endswith(suffix)
+            return name == suffix or name.endswith("/" + suffix)
+
         prefix = "data/" + prefix
 
         if self.git_files is not None:
@@ -532,7 +541,7 @@ class State:
                 path
                 for path in self.git_files
                 if path.startswith(prefix + "/")
-                and path.endswith(suffix)
+                and matches(path)
             )
 
         root = checked_path(self.repo, prefix)
@@ -546,7 +555,7 @@ class State:
             if path.is_symlink():
                 fail("SYMLINK", str(path))
 
-            if path.is_file() and path.name.endswith(suffix):
+            if path.is_file() and matches(path.name):
                 result.append(path.relative_to(self.repo).as_posix())
 
         return sorted(result)
@@ -708,6 +717,24 @@ class State:
 
                 time.sleep(0.01)
 
+    def compute_state_digest(self):
+        self.state_digest = digest(
+            {
+                "corpus": self.corpus,
+                "lock": self.lock,
+                "records": sorted(
+                    (key, value["fingerprint"])
+                    for key, value in self.records.items()
+                ),
+                "lanes": sorted(
+                    (key, value["record"])
+                    for key, value in self.lanes.items()
+                ),
+                "receipts": sorted(self.receipts.items()),
+            }
+        )
+        return self.state_digest
+
     def load(self, validate=True):
         check_layout(self.repo)
         self.corpus = self.json("data/corpus.json")
@@ -787,21 +814,7 @@ class State:
         if validate:
             self.validate_references()
 
-        self.state_digest = digest(
-            {
-                "corpus": self.corpus,
-                "lock": self.lock,
-                "records": sorted(
-                    (key, value["fingerprint"])
-                    for key, value in self.records.items()
-                ),
-                "lanes": sorted(
-                    (key, value["record"])
-                    for key, value in self.lanes.items()
-                ),
-                "receipts": sorted(self.receipts.items()),
-            }
-        )
+        self.compute_state_digest()
 
         return self
 
@@ -814,7 +827,7 @@ class State:
 
         self.catalog.body_references(
             record["record_kind"],
-            copy.deepcopy(record["body"]),
+            record["body"],
             collect,
         )
 
@@ -838,7 +851,7 @@ class State:
         for lane in self.lanes.values():
             self.catalog.walk_references(
                 CORE["lane"],
-                copy.deepcopy(lane["record"]),
+                lane["record"],
                 check,
             )
 
@@ -848,7 +861,7 @@ class State:
 
             self.catalog.body_references(
                 kind,
-                copy.deepcopy(body),
+                body,
                 check,
             )
 
@@ -1380,6 +1393,11 @@ class ReadState:
 
     def _paths(self, prefix, suffix):
         """Replicate State.paths() for ReadState (repo-relative, sorted)."""
+        def matches(name):
+            if suffix.startswith("."):
+                return name.endswith(suffix)
+            return name == suffix or name.endswith("/" + suffix)
+
         prefix = "data/" + prefix
         root = checked_path(self.repo, prefix)
         if not root.exists():
@@ -1388,7 +1406,7 @@ class ReadState:
         for path in root.rglob("*"):
             if path.is_symlink():
                 fail("SYMLINK", str(path))
-            if path.is_file() and path.name.endswith(suffix):
+            if path.is_file() and matches(path.name):
                 result.append(path.relative_to(self.repo).as_posix())
         return sorted(result)
 
@@ -1864,30 +1882,36 @@ def add_bundle(state, submitted):
         ),
     }
 
+    receipt = {
+        "key": key,
+        "request_hash": request_hash,
+        "result": result,
+    }
+
     pending = {
         "batch_id": batch_id,
         "records": records,
-        "receipt": {
-            "key": key,
-            "request_hash": request_hash,
-            "result": result,
-        },
+        "receipt": receipt,
         "tags": bundle.get("tags", {}),
     }
 
-    pending_path = f"data/.local/pending/{batch_id}.json"
+    state.insert_receipt(receipt)
+
+    pending_rel_path = f"data/.local/pending/{batch_id}.json"
     write_json_atomic(
         state.local / "pending" / f"{batch_id}.json",
         pending,
     )
 
     for record in records:
-        state.record_sources[record["id"]] = ("pending", pending_path)
+        state.record_sources[record["id"]] = ("pending", pending_rel_path)
 
-    # Pending data is already durable. If projection fails, rebuild
-    # can recover the accepted submission from this file.
-    refreshed = State(state.repo).load()
-    refreshed.project()
+    # Pending data is already durable. Update in-memory state and project
+    # directly instead of reloading the entire corpus a second time
+    # (2026-10-17).
+    state.pending.append((pending_rel_path, pending))
+    state.compute_state_digest()
+    state.project()
 
     return result
 
@@ -1955,17 +1979,24 @@ def export_pending(state):
         pending_file.unlink()
         sync_directory(pending_file.parent)
 
+        for record in pending["records"]:
+            state.record_sources[record["id"]] = ("batch", batch_id)
+
         exported.append(
             destination.relative_to(state.repo).as_posix()
         )
 
-    refreshed = State(state.repo).load()
-    refreshed.project()
+    # All pending batches are now exported. Update in-memory state and
+    # project directly instead of reloading the entire corpus a second
+    # time (2026-10-17).
+    state.pending.clear()
+    state.compute_state_digest()
+    state.project()
 
     return {
         "exported": exported,
         "pending": 0,
-        "state_digest": refreshed.state_digest,
+        "state_digest": state.state_digest,
     }
 
 # System-assigned update audit tags. Set by update_record itself on every

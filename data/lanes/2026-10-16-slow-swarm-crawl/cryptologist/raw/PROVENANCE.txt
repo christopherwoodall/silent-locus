@@ -1,0 +1,57 @@
+# PROVENANCE — cryptologist lane, slow passive swarm crawl, 2026-10-16
+
+## ntfy.sh block check (retrieval_time_utc: 2026-10-16 ~18:30 UTC)
+- source: https://ntfy.sh/amapdata-b0g3lmf2g1-0429/json?poll=1
+- method: passive HTTPS GET via curl, UA swarm-hunt-passive-crawl/1.0
+- result: curl exit 56, CONNECT tunnel failed, response 403 (egress-proxy block). Documented, not fought.
+- CDX exact: http://web.archive.org/cdx/search/cdx?url=ntfy.sh/amapdata-b0g3lmf2g1-0429&output=json -> []
+- CDX prefix: ?url=ntfy.sh/amapdata&matchType=prefix&collapse=urlkey -> [] (no archived amapdata* topics)
+
+## bytebin liveness (script: check_bytebin_liveness.py, 2026-10-16 ~18:32 UTC, 6s spacing)
+- sources: https://bytebin.rkslot.nl/{1UFK9Jock2ARPqwn,UQltY2beSM1Oaczz,sjqT4l3Op4Qrk9r1},
+           https://bytebin.lucko.me/{3a5hVHJkt9,mviJXk5gnj}
+- method: passive HTTPS GET per paste, byte-compare against
+  evidence/transluce-api/deaddrop-grammar/raw/ (Oct 7-8 capture)
+- results: bytebin-liveness.txt. rkslot x3 = HTTP 200, sha256 identical to cache (unchanged).
+           lucko.me x2 = HTTP 404 (deleted since Oct 7-8 capture).
+
+## webhook.site inbox status (2026-10-16 ~18:55 UTC, 6s spacing)
+- sources: https://webhook.site/token/<uuid>/requests?sorting=newest
+- method: passive HTTPS GET (Accept: text/html default), no POST
+- tokens (from cached primary JSON, evidence/transluce-api/deaddrop-grammar/raw/,
+  plus new tokens decoded from urlquery payload bytes today):
+  - 2ccf61c9-01a6-4a6a-9e2a-c903d393261a (inbox A) -> HTTP 404
+  - ab53d845-0e43-4c18-9f5b-513e7da7a33e (inbox B) -> HTTP 404
+  - c3110b8a-0364-4277-8070-8010116c28f9 (fleet gc-probe sink; interrogator's Oct 7 target) -> HTTP 404
+  - 009f76a8-76ec-4357-b01c-6e74ecf17a59 (ct0 probe sink) -> HTTP 404
+- response bodies saved: webhook-<uuid>.json (HTML error pages)
+
+## urlquery API (authenticated, via ~/workspace/skills/urlquery/bin/uq.py, 3-9s spacing)
+- queries (2026-10-16 18:35-18:50 UTC): 'httpbin.org/base64/' (limit 20),
+  'Ergebnis' (limit 20), 'date:[2026-10-14 TO 2026-10-16] uqscan=' (limit 20),
+  'date:[2026-10-09 TO 2026-10-16] zz=' (limit 20)
+- raw responses saved: urlquery-uq_base64.json, urlquery-uq_ergebnis.json,
+  urlquery-uq_uqscan.json, urlquery-uq_zz.json
+- decode method for /base64/ payloads: take URL segment after /base64/ (strip
+  query string), urllib.parse.unquote, normalize base64url (-_ -> +/),
+  base64.b64decode with padding repair; decoded files: decoded-<rid8>.html,
+  manifest: decoded-manifest.txt (19 payloads decoded, 0 failed)
+- full report record for f2a45ccb-fca8-43f6-a6e5-38f088582e79 (Oct 4 gc-cache-probe)
+  re-fetched via API and decoded independently (re-derivation of the
+  2026-10-05 OSINT Codebreaker decode from primary bytes)
+
+## Novelty checks performed (2026-10-16)
+- reports/: zero hits for httpbin.org/base64, B035300ESE, B0138027SQ, uqchain,
+  009f76a8, B024F04YSV, uqframe=1791135519
+- lists/: zero hits for 009f76a8; url inventory holds only a wayback query URL
+  containing 'httpbin.org/base64'
+- data/lanes/2026-09-28-chinese-amap-fleet/events.jsonl: B035300ESE appears in
+  20 venue_finding records (Oct 4) but never analyzed/reported as a fleet target;
+  no httpbin/base64 payload analysis present
+- scripts/scanners/state/tag-family-pivot-20261015/: raw retrieval only
+  (2026-10-15); httpbin/base64 reports appeared incidentally in uq_q5.json and
+  uq_sib_c.json but were never decoded or characterized
+- memory/: 2026-10-05 OSINT Codebreaker decoded report f2a45ccb (Oct 4
+  gc-cache-probe) — SECONDARY; re-derived here from primary bytes
+- c3110b8a: present in chinese-amap-fleet-comprehensive-2026-10-14.md ONLY as
+  the interrogator's post target, NOT as a fleet beacon sink

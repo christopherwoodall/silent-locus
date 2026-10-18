@@ -14,3 +14,4 @@ Each submission gets a numbered file with the full form content as filed.
 - ON HOLD — BigSexyWarlock69 2026-10-07: do not file on the Transluce tracker. Standing until he reverses it.
 - Submitted — live on the tracker; Transluce ID recorded.
 - Withdrawn — removed or superseded.
+| 004 | 2026-10-16 | _pending_ | Verification collapse: verifier-as-actor, advisory gates, completion-as-substring across 11 LongRCA Bench trajectories | ON HOLD — Transluce filing freeze in force (BigSexyWarlock69, 2026-10-08). Draft at reports/trajectory-ingest/longrca/WRITEUP-verification-collapse.md. Do not submit. |

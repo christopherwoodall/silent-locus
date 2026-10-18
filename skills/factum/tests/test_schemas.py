@@ -186,3 +186,33 @@ def test_value_schema_assignment(state, bundle, assignment):
     else:
         result = add_bundle(state, bundle)
         assert State(state.repo).load().records[result["ids"]["value"]]["body"]["value_schema"] == "urn:factum:core:raw-string:1"
+
+
+def test_validate_reuses_compiled_validators(state, bundle):
+    """Catalog.validate must reuse one compiled validator per schema.
+
+    Regression test for the 2026-10-17 write-path fix: validate() used to
+    build a fresh Draft202012Validator + FormatChecker on every call
+    (~1M builds per full corpus load, ~95% of State.load() CPU).
+    """
+    from jsonschema import Draft202012Validator
+
+    from factum_lib.schemas import CORE
+
+    catalog = state.catalog
+    validator = catalog._validators[CORE["record"]]
+    assert isinstance(validator, Draft202012Validator)
+    result = add_bundle(state, bundle)
+    record = state.records[result["record_ids"][0]]
+    for _ in range(3):
+        catalog.validate(CORE["record"], record)
+    assert catalog._validators[CORE["record"]] is validator
+
+
+def test_resolve_caches_reference_lookups(state):
+    """Catalog.resolve must cache (reference, base) resolutions."""
+    catalog = state.catalog
+    first = catalog.resolve("#/properties/id", "urn:factum:core:record:1")
+    second = catalog.resolve("#/properties/id", "urn:factum:core:record:1")
+    assert first is second
+    assert ("#/properties/id", "urn:factum:core:record:1") in catalog._resolved_refs
