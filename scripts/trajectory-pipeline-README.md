@@ -1848,3 +1848,137 @@ Credential note: RB-008's `ak-` token in the dataset's own
 `result.json` error strings was confirmed in raw bytes and deliberately
 withheld from every working file, the bundle, and the reports. Parent
 decides on notifying the dataset owner.
+
+## OSWorld-Ubuntu worked example (2026-10-17/18)
+
+Dataset: `xlangai/ubuntu_osworld_verified_trajs` (the uploader's
+"verified" OSWorld trajectories), rev
+`5473c39e42a538a187a9b2c2b499db59d560fd8c`, license mit
+(verbatim: HF API cardData.license + `license:mit` tag; three
+verbatim facts in `raw/LICENSE.note`).
+
+### Zip sampling
+
+The corpus is 99 zips / 495 GB across 30+ model variants x
+step settings — too big for a full pull. Sampling plan:
+**stratified — one smallest-variant zip per model family**,
+single-threaded curl. 23 zips landed (~56.6 GB). One
+substitution: `claude-4-sonnet-20250219-15steps.zip` was
+absent from the pinned revision (HTTP 404 on resolve), so
+the closest in-revision claude-4-sonnet 15-step variant
+(`claude-4-sonnet-20250514-15steps.zip`) was used instead.
+Every zip's sha256 was checked against the HF LFS oid from
+a live API tree query (near-miss lesson: a recalled oid
+value was wrong; re-query the API tree when in doubt).
+
+~8,055 trajectories scanned across the 23 zips. Findings:
+13 verified (5 CAPTCHA, 1 TOOL-MISUSE, 2 GUARDRAIL, 2
+COORDINATION, 1 RECOVERY, 2 OTHER); 37 reviewer kills;
+3 adversarial kills (RB-010, osworld-A-005, RB-008).
+
+### JSON-only extraction
+
+Extraction rule: `*.json` + `*.jsonl` only — trajectory
+data lives in `traj.jsonl` (one JSON object per line = one
+step); lone `*.json` is run-config `args.json`. PNG/MP4
+media never extracted. Two macOS quirks: AppleDouble `._*`
+resource-fork files match `*.jsonl` by suffix (OS metadata,
+not trajectory data) — exclude with
+`unzip -x '__MACOSX/*'` and remove from `extracted/`
+(auditable: full-zip sha256 always recorded). `unzip` rc
+11 (match pattern found nothing, e.g. zero `.json` in a
+zip) is benign — tolerate it and verify extraction by file
+count vs listing instead of `set -e`.
+
+### Format variants per family
+
+- **traj.jsonl, 1-based `step_num`**: the common shape.
+  Fields: `step_num`, `action_timestamp`, `action` (executed
+  pyautogui code, or DONE/FAIL), `response` (reasoning),
+  `reward`, `done`. Tool sequence = `action` per step, in
+  step order. The opus4p5 family adds `plan`, `plan_code`,
+  `exec_code`, `reflection`, `reflection_thoughts`,
+  `code_agent_output` (sub-agent delegations live here;
+  step-23 plans live in `plan`).
+- **CoAct `chat_history.json`**: no traj.jsonl. A message
+  list `{role, name, content:[{type:text,...}]}` with
+  optional `tool_calls[]` (`function.name` +
+  `function.arguments` JSON — the planner's sub-agent
+  taskings live here, verified by raw grep). Tool sequence
+  = one entry per message, tool-call entries for
+  `call_gui_agent` / `call_coding_agent`. RB-004's coding
+  agent uses a nested `coding_output_7/chat_history.json`.
+- **uipath structured-action variant** (third format,
+  found at submit): the uipath GPT-5 family's `action`
+  field is a **dict**, not a string —
+  `{"action_type": "CLICK", "x": 548, "y": 154}` /
+  `{"action_type": "TYPING", "text": "..."}` /
+  `{"action_type": "PRESS", "key": "enter"}`. Tool name =
+  lowercased `action_type`; command = the dict serialized.
+  Caught only because the Factum schema validator rejected
+  a dict-typed `command` — check `action`'s type per
+  family before building sequences.
+- Note the sibling lane's trap: gelato's traj.jsonl is a
+  JSON **array** of step records; ubuntu's is **line-
+  delimited**. Same filename, different parse.
+
+### hippo harness-conflation caveat
+
+The hippo family's `exec_code` carries a harness-injected
+wrapper template on every type action —
+`echo {sudo_password} | sudo -S apt-get install -y xclip
+xsel` with the dataset's own redacted password (706 hits).
+It is NOT an agent decision. Reviewer-B kill K5 stands on
+this. Check all sudo-exec findings against the wrapper
+before filing.
+
+### gbox harness-logging caveat
+
+All 361 gbox trajectories log exactly **one record per
+attempt** (terminal action + full narrative in `response`).
+The 22 "multi-step" trajectories are 3 appended single-step
+attempts each (step_num=1 x3); one narrative ends mid-word
+("...Le") — a truncated transcript dump. A "single-step
+DONE with narrative" shape is a harness logging convention,
+not agent confabulation (killed RB-010). Never file
+step-count or narrative-completeness findings from gbox
+without accounting for this.
+
+### Ingest shape
+
+68 records: 1 source + 1 run + 27 observations
+(1 `dataset.snapshot` with `coverage: "partial"` — the
+schema enum is
+`complete/partial/metadata_only/unknown`, `"sampled"` is
+rejected) + 13 `intel.behavior` + 13 `behavior.tool_sequence`
++ 13 OBSERVED claims (cite observations, never the source
+record) + 26 edges (finding→toolseq `supports`,
+run→toolseq `related_to`). Builder:
+`data/lanes/osworld-ubuntu-trajectories/working/build_factum_bundle.py`.
+Idempotency key `osworld-ubuntu-ingest-2026-10-18-v1`.
+Trajectory byte pointers: zip-level sha256 sidecars +
+HF blob URL pinned to rev + in-zip path (the traj file
+sits INSIDE the zip — there is no per-file blob URL).
+
+### Verifier lessons
+
+- One sha256 transcription error caught (RB-005: duplicated
+  character — corrected to the sidecar value). Always
+  verify sha256 against the `.sha256` sidecar, not the
+  finding file's pasted value.
+- One path error (RB-009: `chrome/` vs actual
+  `multi_apps/`). Open the exact file the finding names,
+  not the family you expect.
+- One wording error (A-002: "solved" vs the bytes'
+  "attempted and expired"). The quote was verbatim; the
+  gloss was wrong.
+- Same task id across models is expected and fileable:
+  `7f52cab9...` hits a reCAPTCHA in opus4p5, UI-TARS,
+  A3B, and GPT-5; `a462a795...` is a user-switch task in
+  opus4p5 and AutoGLM. Cross-model corroboration, not
+  duplication.
+- REPORT.md + EVIDENCE-INDEX.md convention holds:
+  per-class findings with verbatim quotes + sha256 +
+  "why interesting" in REPORT; byte pointers in the
+  index. Writeups are one per behavior family, Transluce
+  template, draft-only under the freeze.
