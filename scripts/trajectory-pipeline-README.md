@@ -1774,3 +1774,77 @@ F-005 corpus-wide model-mixing caveat). Killed: 27.
   (or the equivalent column) on every new trajectory corpus before
   reviewers start, or someone will file "model X" attributions the
   bytes cannot support.
+
+## WebArena-Infinity worked example (2026-10-17/18)
+
+Corpus shape: HF dataset `webarena-x/webarena-infinity-trajectories` at
+rev `73cf7f57a6ff61c95722a23bffdd9c1de4069bfe` (license mit — three
+verbatim facts in `raw/LICENSE.note`). Layout:
+`raw/<model>/<site>/<task_id>/{history.json, result.json}`. 2,195
+complete trajectories (gemini 844, qwen 708, kimi 643), 4,390 files,
+111 MB, per-file sha256 sidecars, zero mismatches.
+
+`history.json` schema (per step): a list of step dicts, each with an
+`ACT` (the tool call the agent issued) and an `EVAL` (the harness's
+own natural-language self-assessment of that action, including a
+"Verdict: Success/Failure" line), plus the model's `GOAL`/thought
+text. `result.json` holds `passed`, `is_done`, `steps`, a
+`verifier_message`, per-step `result[i].judgement` records
+(verdict/reasoning), and an `errors` array. Steps are 0-based in the
+bytes; reviewer notes that quote "step N" must say which base.
+
+Media rule: `history.json` contains no media. All observation is
+text/JSON. The `save_as_pdf`-as-screenshot finding (A-F007) is the
+closest the corpus gets to vision — and it is still text-side.
+
+Absent-at-rev anomaly: 134 trajectories listed in the dataset tree had
+no site directory at the pinned rev (all gemini: `gitlab-plan-and-track`
+89, `gmail` 45; the tree API confirmed absence, resolve returned
+"Entry not found"). Recorded in `raw/_absent_at_rev.json`, never
+ingested, never scanned. Partial dirs (history.json without
+result.json) were reviewed but not scored. Lesson: enumerate the tree
+at the pinned rev before promising coverage; the dataset page's
+trajectory count is not the rev's trajectory count.
+
+Review: Reviewer A read all 844 gemini trajectories (digest + keyword
+pass, byte reads of flags); Reviewer B keyword-swept all 1,351
+kimi+qwen trajectories and read every flag. 21 PRIMARY findings
+survived verifier + adversarial review; 6 killed; 44 reviewer
+self-kills (mostly keyword false positives: "Design Tokens" as auth
+tokens, GitLab assignees as credential handling). Zero PROMPT-INJECT
+and zero COORDINATION findings survived fleet-wide — a recorded
+negative, not an explanation.
+
+Ingest shape (4,440 records): 1 source + 1 reference artifact (pointer
+at the HF dataset @ rev; raw bytes stay local) + 1 run + 1
+dataset.snapshot + 2,195 dataset.record + 21 intel.behavior +
+2,195 run-`related_to`-trajectory edges + 25 finding-`supports`
+edges. Builder:
+`data/lanes/webarena-infinity-trajectories/build_factum_bundle.py`.
+Idempotency key `webarena-infinity-ingest-2026-10-17-v1`. Batch
+`bbc1348f5b204f6992426d84fe2cf60a`. Dedup: zero overlap — first
+filing of this dataset.
+
+Lock-contention lesson (fleet-wide, 2026-10-17/18): the single Factum
+writer lock was contended by 7+ fleets. 228+ `add` attempts returned
+LOCK_TIMEOUT before one got through — and the FIRST successful
+validation attempt is when schema bugs surface, so a bundle that
+"passed pre-check" can still fail at submit. Two real violations found
+this way: (1) `urn:factum:core:run:1/coverage` forbids extra keys —
+`absent_at_rev` moved from body to tags; (2)
+`urn:factum:datasets:record:1/locator` requires an `artifact` key —
+added one reference-only artifact for the whole dataset, all 2,195
+locators point at it with `{"row": {"index": i, "key": key}}` (the
+corpus-precedent shape, e.g. the deepsearchqa batch). Durable retry
+loop + idempotency key survived three runtime-restart kills; the
+finisher self-added with the same key.
+
+Batch validator note (`validate_batch.py`): toolkit-auto `in_lane`
+edges now carry a `factum.author` tag (the old "no tags" assumption
+was wrong), and their `lane_*` object refs point at the corpus lane
+record, not the batch. Both are exempted explicitly.
+
+Credential note: RB-008's `ak-` token in the dataset's own
+`result.json` error strings was confirmed in raw bytes and deliberately
+withheld from every working file, the bundle, and the reports. Parent
+decides on notifying the dataset owner.
