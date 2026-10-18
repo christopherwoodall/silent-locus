@@ -178,5 +178,20 @@ clawbench-trajectories/working/clawbench-verify-ledger.md`.
 ## Factum batches
 
 Five bundles submitted under actor `agent:clawbench-ingestor`
-(idempotency keys `clawbench-ingest-{A,D1,D2,D3,B}-20261017`).
-Batch IDs and record counts: see the ingest log in the parent report.
+(idempotency keys `clawbench-ingest-{A,D1,D2,D3,B}-20261017`),
+exported and committed as `97fc9c39` (push pending authorization):
+
+| Batch | Group | Records | Findings |
+|---|---|---|---|
+| `9759d71d35ce4e929f3679c77e2f4e53` | A (V1) | 37 | 12 |
+| `0faeea644ca34b889fcf5ff2a3676d1f` | D1 (V1) | 51 | 16 |
+| `fc24e7abb39b41dd9df2ab1294590a43` | D2 (V1) | 54 | 17 |
+| `c73d26c527ab43028330171f14030896` | D3 (V1) | 61 | 20 |
+| `b748ee8c75694a249e7b5ee0fafdfa6b` | B (V2) | 46 | 15 |
+| **Total** | | **249** | **80** |
+
+All records carry `tags.lane = "clawbench-trajectories"`.
+Export completed; batch files validated (counts, manifests, claim
+reference resolution). Full-corpus `verify --blobs` timed out under
+sibling lock contention; the five batch dirs were validated directly
+instead (immutable exported artifacts).
