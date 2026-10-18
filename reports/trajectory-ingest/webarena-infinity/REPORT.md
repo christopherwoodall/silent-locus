@@ -9,7 +9,7 @@ Export/verify: export wrote `data/records/bbc1348f5b204f6992426d84fe2cf60a/`
 exported records.jsonl directly: 8,880 lines (4,440 submitted records +
 4,440 toolkit-auto `in_lane` edges), 0 errors, all references resolve,
 RB-008 record contains no token-like value. VALIDATE-OK.
-Commit: `e7e990871a242b4992a39d2087cd2526836aef93` (branch `work`; not pushed — parent pushes).
+Commit: `0fccaaa9a88fad4c6b9cfcf27a475c9d8` (branch `work`; not pushed — parent pushes).
 
 ## Purpose
 
