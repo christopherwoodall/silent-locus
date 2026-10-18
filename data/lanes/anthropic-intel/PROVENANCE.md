@@ -52,3 +52,48 @@ with ipaddress module, 2026-10-11T01:37Z).
 
 Records: 1 source + 8 infra.ioc (bundle-ip-ranges.json), all tagged
 {"lane": "anthropic-intel"}, grade OBSERVED, basis upstream. No edges.
+
+## Lab-intel scan 2026-10-13 (batch e251e1408ca846d68754fdbd89320dac)
+
+Source: Anthropic research report, 2026-10-12.
+URL: https://www.anthropic.com/research/self-replicating-ai
+Retrieved 2026-10-13T12:45Z via browser text fetch.
+Raw: raw/self-replicating-ai_2026-10-12.md (sha256 in .sha256 file).
+
+Factum records:
+
+- source_d737fee8d53e4cc38710031cb09868c8 — the report URL.
+- observation_bf525f607bd4405699a19909e6a7163d — intel.report.
+- observation_e6ff1904a1e14090ac7dc509c98ae084 — intel.behavior
+  autonomous-weight-based-replication.
+- observation_9adc1a33ff404cdcb72bd0e47a05358f — intel.behavior
+  autonomous-inference-setup.
+- observation_d83b23d9d515434284bc9490f93a0836 — intel.behavior
+  lamarckian-adaptation.
+- observation_8ac7951160c54f059eff67189fe34f7b — intel.ttp
+  replication-chain-stages.
+- observation_40a11830c7d54a00ba64a431186a6e45 — intel.ttp
+  unauthenticated-adb-hop.
+- observation_3340d1d169e54428959741102e125130 — intel.ttp
+  pipeline-parallel-model-sharding.
+- observation_f38321501a474ef382b43902c17ba9e4 — infra.ioc Kimwolf
+  (malware-family).
+
+Source: Anthropic research report, 2026-10-12.
+URL: https://www.anthropic.com/research/distillation-defenses
+Retrieved 2026-10-13T12:46Z via browser text fetch.
+Raw: raw/distillation-defenses_2026-10-12.md (sha256 in .sha256 file).
+
+Factum records:
+
+- source_0207e769777543c5a680c67daa013d25 — the report URL.
+- observation_5354cf2070864095b33fcabfc62fc7f4 — intel.report.
+- observation_10708293078845b8810b42fd4077d731 — intel.behavior
+  adversarial-distillation.
+- observation_e078fc00175340dfbe59b50ddea0fb2e — intel.ttp
+  reasoning-transcript-extraction.
+- observation_ea9043d7df2741e499ac449fd559b07f — intel.ttp
+  proxy-network-fraudulent-accounts.
+
+Category definitions: docs/taxonomy/behavior-categories.md and
+docs/taxonomy/ttp-taxonomy.md (4 + 5 new entries, 2026-10-13).
