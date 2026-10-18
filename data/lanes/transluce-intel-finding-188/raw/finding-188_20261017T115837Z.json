@@ -1,0 +1,62 @@
+{
+  "id": 188,
+  "data": {
+    "summary": "Sep 2026: a self-described Meta Muse agent (\"Jerry\") sold its own memecoin fees, bridged to Base and paid 106.20 USDC through RentAHuman for a person to show its ad on a Times Square billboard (paid Sep 22). RentAHuman's crypto wallet: 26 deposits, $530.",
+    "description": "Builds on #166 and #167, which used RentAHuman's public bounty listing, and on #179, which covers the 1F916 agent forum's treasury. This finding adds on-chain payment records, an agent whose human hire was paid for with its own token's trading fees, and model labels tied to two commercial agent products.\n\nNew record: RentAHuman's crypto payment wallet. RentAHuman lets an agent sign up and fund its account in USDC on Base over x402, with \"no captcha, card, email verification, or human operator\" (platform docs). The receiving wallet is 0x934328c7b043F9a90c043A0C5607e40EA14B7872 (public; it sweeps each deposit to 0x30b55Ad2c462D4A10aA06a816901b043d5Ef6aA4). I found it from Case 1's payment and confirmed it with bounty timing:\n- Two deposits match a bounty's price plus RentAHuman's 18% fee to the cent:\n  - Jerry: 106.20 = $90 + 18%.\n  - Kevin Codex, Sep 30 02:48-02:50: 10 + 108 = 118 = $100 + 18%. The bounty went live at 02:50.\n- Four more arrive 0-2 minutes before a bounty is posted, for amounts that cover price plus fee:\n  - RentAHuman staff test, Aug 20: 1 + 3.99 USDC; $4 bounty at 23:21.\n  - \"Seal\", Sep 24: 10 + 2 USDC; $10 bounty at 07:23 (paid).\n  - \"Dirac\", Sep 30 and Oct 1: two deposits, each in the minute its bounty was posted.\n\nIn all, 26 deposits from 16 wallets ($530.19, Aug 20 to Oct 16) reached this wallet, mostly as EIP-3009 transferWithAuthorization (the x402 payment method). About half are the $10 x402 signup. 11 fall within 90 minutes before a listed bounty. For these x402 deposits, the bounty's public wentLiveAt time falls seconds after the deposit: Kevin Codex +15 s, Seal +8 s, Dirac's two bounties +14 s and +40 s. Seal, Kevin Codex and Dirac each went from a $10 signup to a posted bounty in 1-2 minutes, a fully programmatic flow.\n\nCase 1. A self-described Meta Muse agent, \"Jerry\" (Sep 18-22, 2026).\n- Sep 18 02:51 UTC: the 1F916 agent forum registers citizen #2567 \"jerrymuse66\", model field \"muse-spark\". Registry event 16725 binds payout wallet 0x5bAFBf230B1edb7B8dBd9eaD22d0438d52317832.\n- Sep 18 04:45: the forum treasury pays this wallet 3 USDC (Base) for a ghostwriting listing.\n- Sep 18 06:40 and 18:19: on Robinhood Chain, Doppler's hook contract credits the same address with creator-fee shares from two tokens named after the agent, \"JERRY\" and \"jerry66\". The 18:19 credit includes 0.0257 WETH.\n- Sep 18 15:46: RentAHuman bounty 76ZAVYCatZ5OV9CDKz4d is created through the API, $90. It opens \"I'm Jerry, an AI agent\". It pays a person in New York to book a $40 slot on the TSX PixelStar billboard in Times Square, show Jerry's ad (\"I am jerry66 ... I can do work for you\", with its 1F916 offer link), film it and post about it on X.\n- 18:34: the wallet sells 209M jerry66 for 0.0203 WETH on Uniswap (Robinhood Chain).\n- 18:38: it bridges 0.0455 WETH through Relay (Robinhood Chain tx 0x2d8c900afd3505c0c0a59a4ddf3d8fefbb847ed891055650d3bb3e33cde6a7b8) and receives 118.86 USDC on Base (tx 0xc59316827f16d4720def0e2f7d1d46905512d91f1d9002d75f3fdeaf7a20b9f1).\n- 18:49: it pays RentAHuman 106.20 USDC (tx 0x7fa2c310f2a35f91bcae87870969e0cc086c26e15fb26ec8fdf470c83b68c0b2).\n- Sep 20 00:37: the bounty goes live. Jerry sent a plain USDC transfer rather than an x402 payment; per its own post (self-report, consistent with the on-chain transfer type), support credited it by hand.\n- Sep 22 17:11: the platform marks it completed automatically (autoCompletedAt), with no approval step from the agent shown. Status is now \"paid\".\n\nWho decided and who paid. Jerry's own thread on 1F916 (comment c67337 on post #5819, self-report) says \"his human gave him an X account, zero dollars, and one rule: earn real money online, in public\". The chain record agrees that no operator money was involved: the USDC came from token-fee WETH plus a token sale minutes before the bridge. The people who bought the agent's tokens paid for the human hire. Posts by the hired worker indicate the billboard ran. On Sep 22 at 16:13 UTC the worker posted on X that it was live, attaching a Times Square webcam frame of a screen reading \"I'm @jerrymuse66 / I can do work for you\", and at 17:22 UTC posted a short street-level video. On Sep 23 at 03:18 UTC, RentAHuman's founder quoted Jerry's own post: \"apparently someone's @Muse rented a human to go in person and pay for a billboard in times square\".\n\nAttribution to Meta (strong signal, not proof). Meta launched Muse, a consumer personal agent built on Muse Spark, on Sep 8, 2026. Jerry calls itself \"a @muse agent, a couple hours old\" and registered with model \"muse-spark\" (self-entered). The 1F916 registry lists 86 handles with Muse Spark model labels. RentAHuman's agent docs (llms-full.txt; rentahuman.ai/muse) have a \"Meta Muse\" section telling Muse to build a custom connector, keep the API key in Muse's Secure Credentials Store, and post bounties with createBounty. RentAHuman shows no client or model metadata, so this rests on the agent's labels plus a documented integration path.\n\nCase 2. A Muse-world persona promoting its own token world (Sep 30). \"Kevin Codex\" is a citizen of Museworld (museworld.lol, a third-party game for Muse agents; it states it is not an official Meta connector). Its $100 bounty (01bde4cb0a6b6b5d28dd, API) asks a person to hold a \"JOIN MUSEWORLD\" sign at the Like sign outside Meta's Menlo Park HQ. The paying wallet 0x7D639Ad74FC3e226C886A09d4797e3e57fb527cf was funded one minute before each deposit by 0x65Dfa9B3379EDDC640736ebB6AB40D3B5e5f1669. That wallet trades memecoins, collects token-launch fees and holds the MUSEWORLD token. Status: open.\n\nCase 3. A Wix Base44 Superagent, \"Vesper\" (Sep 2-12). Four API-posted bounties are status \"paid\":\n- 4TFG7H7SqceYx6oCuinK ($6)\n- uKfiZilfSSMC182nd6i7 ($6)\n- cTnl8AsP7l8CFLpwhqL2 ($5)\n- RUeuCdrk0o4ZRiZAoLdJ ($15)\n\nThey fund small public \"good deeds\" for a project called DeedSpring. Its site, deedspring.works, loads its files from a Base44 app (6a546193cda9bea1b1fb785d). The agent's 1F916 entries give model \"base44-superagent\" (#2365) and \"claude-sonnet-4.5 (Base44 Superagent, the DeedSpring desk)\" (#2617), so the harness is Wix's Base44 and the stated model is Anthropic's. Its posts say a human operator funds it, and it pays by card escrow, not crypto. Benign, but it is a commercial agent product running a paid human-task pipeline.\n\nLabel gap. Two of the crypto-funded posters (\"Dirac\", \"freysaagent\") carry agentType \"human\", although Dirac writes \"I am Dirac, an AI agent\". RentAHuman's agentType undercounts agent posters.\n\nSide observation. All 16 paying wallets received lookalike \"dust\" transfers from 0x9343316d\u20267872, a spoof of RentAHuman's address. The receiving wallet is itself flooded with spoofed transfers that mimic its sweep address. Address-poisoning bots are targeting agent payment flows. An agent that copies a recent counterparty from its history could pay the attacker.\n\nBenchmark check: no match. These are live paid tasks on a public marketplace.\n\nLimitations:\n- Model labels (muse-spark, base44-superagent, claude-sonnet-4.5) are self-entered on 1F916. None is a provider-side record.\n- The billboard showing rests on the hired worker's posts (an interested party) and the bounty status. The webcam frame came via the worker and no independent capture was found. The video shows a screen plated ClearChannel, not the TSX PixelStar screen the bounty named; which screen was booked is unverified. Other deeds rest on bounty status and the agents' own posts.\n- Card-funded bounties leave no public payment trail, so the 26 deposits are a floor.\n- Every case has a human operator somewhere. Jerry's operator set the goal, and Vesper's funds it.\n- Names are left out of the text on purpose; the worker's two posts are linked only as proof that the billboard ran.",
+    "evidence_links": [
+      "https://rentahuman.ai/bounties/76ZAVYCatZ5OV9CDKz4d",
+      "https://basescan.org/tx/0x7fa2c310f2a35f91bcae87870969e0cc086c26e15fb26ec8fdf470c83b68c0b2",
+      "https://robin.etherscan.io/tx/0x2d8c900afd3505c0c0a59a4ddf3d8fefbb847ed891055650d3bb3e33cde6a7b8",
+      "https://robin.etherscan.io/tokentxns?a=0x5bafbf230b1edb7b8dbd9ead22d0438d52317832",
+      "https://base.blockscout.com/address/0x934328c7b043F9a90c043A0C5607e40EA14B7872",
+      "https://1f916.ai/api/record/jerrymuse66",
+      "https://1f916.ai/api/post/5819",
+      "https://rentahuman.ai/muse",
+      "https://rentahuman.ai/docs/x402",
+      "https://techcrunch.com/2026/09/08/meta-debuts-its-muse-ai-agent-will-consumers-trust-it/",
+      "https://rentahuman.ai/bounties/01bde4cb0a6b6b5d28dd",
+      "https://museworld.lol/v1/muses/kevin_codex",
+      "https://rentahuman.ai/bounties/RUeuCdrk0o4ZRiZAoLdJ",
+      "https://deedspring.works/",
+      "https://1f916.ai/api/record/vesper-desk",
+      "https://1f916.ai/api/record/vesper-producer",
+      "https://x.com/whatsaceiling/status/2102431222697746435",
+      "https://x.com/whatsaceiling/status/2102448364801417256",
+      "https://x.com/AlexanderTw33ts/status/2102598532691857901"
+    ],
+    "untapped_source": "Yes",
+    "cyberattack": [
+      "None"
+    ],
+    "harm_level": "Minor potential harm",
+    "government": "No",
+    "ai_company": "Meta"
+  },
+  "form_version": 4,
+  "submitter_id": 52,
+  "created_at": "2026-10-16T20:11:23+00:00",
+  "updated_at": "2026-10-16T21:50:12+00:00",
+  "updated_by": 52,
+  "sensitive": false,
+  "submitter": "Omer Zamir",
+  "attachments": [
+    {
+      "id": 103,
+      "field_id": "data_zip",
+      "original_name": "lobsty_evidence.zip",
+      "size": 6364,
+      "sha256": "1945e32e8eba0217e5ead761d87c9cf5121ac254247e7c0cc6ab81911372e635",
+      "uploaded_at": "2026-10-16T20:11:23+00:00",
+      "object_version": "pmDij9sh10GTiaHO8rsVpAn76_lH4BA3"
+    },
+    {
+      "id": 104,
+      "field_id": "data_zip",
+      "original_name": "rentahuman_x402_evidence.zip",
+      "size": 128033,
+      "sha256": "2ed21310b4089f1004dd9814361d802280a6caa9da919113c53edde78a665bea",
+      "uploaded_at": "2026-10-16T20:11:49+00:00",
+      "object_version": "GpexIZPCeLTKrej.5kUYo0Kvp.qALqOP"
+    }
+  ]
+}
