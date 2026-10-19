@@ -24,6 +24,8 @@ touches the network.
 | 6 | `crtsh.py` | crtsh-certs | crt.sh: %.hysandbox.tencent-cloud.com | PRIMARY |
 | 7 | `packages.py` | package-registries | RubyGems/PyPI/npm rare-marker tripwire | SECONDARY |
 | 8 | `dbmining.py` | db-url-mining | Our factum/lane data: repurposable surfaces | PRIMARY |
+| 9 | `jina.py` | jina | Jina AI reader: IOC extraction from target URLs | PRIMARY |
+| 10 | `shodan.py` | shodan | Shodan /host/count: harness panel exposure tracking | PRIMARY |
 
 ## Hit dict
 
