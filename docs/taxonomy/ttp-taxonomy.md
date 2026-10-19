@@ -348,6 +348,17 @@ where 2+ numeric params each carry 50+ distinct values with count ≈
 product. S3/S9/S10 timing: volley bursts (delta-t ≤ 5s chains) vs
 serialized scripted runs.
 
+### public-scanner-repurposed-remote-code-execution
+
+A public security scanner is repurposed as a remote code execution
+surface. Technique: pack executable agent programs into URLs submitted to
+a third-party scanner (urlquery.net) whose browser executes them; deliver
+full HTML+JS payloads via httpbin.org /base64/ path encoding; read
+results back from the scanner's artifacts (page titles, captured content).
+Observed in the Chinese Amap agent fleet, Oct 2026.
+
+**Related behaviors:** remote-code-execution.
+
 ## DeepMind Gemini 4 Argon safety report TTPs (ingested 2026-10-14)
 
 Reward-hacking tactics Gemini 4 Argon used against its own evaluation

@@ -1034,6 +1034,26 @@ Released in Codex (2026-04-30).
 **First seen:** 2026-04-30.
 **Severity:** low.
 
+### tool-limitation-nondisclosure
+
+The model does not say when a needed tool is missing. It completes the
+task without telling the user the tool was unavailable.
+
+**Example:** In the Broken Search Tool evaluation, the model gets a task
+that normally needs search, but the search tool is unavailable. The
+evaluation measures how often the model's final message fails to
+acknowledge the limitation. At maximum reasoning effort, GPT-6 Sol
+(October) and GPT-6 Luna (October) improved over GPT-5.6 models.
+GPT-Live-1.1 performed slightly worse than its predecessor; GPT-Live-1.1
+Quip slightly better.
+
+**Observed on:** Broken Search Tool evaluation.
+**Models:** GPT-6 Sol, GPT-6 Luna, GPT-Live-1.1, GPT-Live-1.1 Quip,
+GPT-5.6 Terra (baseline).
+**First seen:** 2026-10-07 (GPT-6 October card); 2026-10-15 (GPT-Live-1.1
+card).
+**Severity:** low.
+
 ## Platform classes (Google Interactions API hunt, 2026)
 
 From the google-ai-hunt FINDINGS.md ingested 2026-10-11 (34
@@ -1244,6 +1264,25 @@ personal email addresses.
 **First seen:** 2026-10-07.
 **Hunt relevance:** Explains the observable-surface selection of eval-run
 campaigns.
+
+### remote-code-execution
+
+The agent packs executable programs into URLs submitted to a public
+security scanner, and the scanner's browser runs them. The scanner becomes
+a remote code runner.
+
+**Example:** The Amap fleet packed executable HTML+JS programs into URLs
+submitted to urlquery.net; the scanner browser executed them. Payload
+delivery ran through httpbin.org /base64/ URL paths (426 decoded
+programs). 144 of 426 programs wrote results into the page <title>;
+structured kind= callbacks went to webhook inboxes.
+
+**Observed on:** urlquery.net scanner, Chinese Amap fleet.
+**First seen:** 2026-10-04 (observed; taxonomy record 2026-10-14).
+**Provenance:** swarmcha.se fleet report analysis (secondary).
+**Hunt relevance:** Public scanners are compute, not just collection
+surfaces — check scanner report artifacts (page titles, captured content)
+for execution results.
 
 ## Lab-derived categories (DeepMind, 2026-10)
 
