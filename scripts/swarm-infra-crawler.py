@@ -20,12 +20,20 @@ Pipeline:
   4. Check factum for existing records (dedup)
   5. Write factum bundle v2 JSON (directly submittable via
      `factum add --input`)
+  6. Creator-IP pivot mode (--module creator-pivot): broad webhook.site
+     harvest from urlquery -> extract creator IP per inbox -> invert to
+     creator-IP -> inboxes -> report watchlist-IP clusters (INFERENCE).
+     Commissioned 2026-10-15: "The creator ip should scrape or search
+     for inboxes."
 
 Passive only: GET requests to public APIs. No POSTs (except the one-time
 API structure verification, documented separately). No intrusive scanning.
 
 Usage:
   swarm-infra-crawler.py [--dry-run] [--module MODULE] [--since-days N]
+                         [--pivot-days N]
+
+Modules: harvest, creator (default both), creator-pivot (discovery mode).
 
 State:
   ~/workspace/goals/urlquery-agent-activity-hunt/hidden_files/swarm-infra-crawler-state.json
@@ -39,6 +47,7 @@ Output:
 
 import argparse
 import datetime
+import ipaddress
 import json
 import os
 import re
@@ -76,6 +85,10 @@ UQ_HTMX = os.path.join(WORKSPACE, "skills/urlquery/bin/uq_htmx.py")
 DELAY_UQ = 3          # urlquery htmx: site throttles aggressive use
 DELAY_WEBHOOKSITE = 2  # webhook.site: polite spacing
 
+# urlquery search transport failures for this run (searches that failed
+# all retry attempts; they must NOT be counted as zero results)
+SEARCH_FAILURES = []
+
 # Factum lane tag
 LANE_TAG = "swarm-infra-watch"
 
@@ -103,6 +116,34 @@ RULES = {
         "corroboration_for_medium": (
             "Inbox found via fleet-indicator search AND "
             "creator IP in tier 1-2"
+        ),
+    },
+    "creator-pivot": {
+        "description": (
+            "Creator-IP pivot cluster: a watchlist creator IP created "
+            "multiple webhook.site inboxes. Discovery method, not a "
+            "classification field — inverts broad inbox enumeration into "
+            "creator-IP -> inbox maps. Commissioned 2026-10-15."
+        ),
+        "fp_sources": [
+            "Researchers/probers creating inboxes: they share no watchlist "
+            "IP, so they stay in the run log and never become findings.",
+            "A1 semantics caveat: the token-metadata 'ip' field is ASSUMED "
+            "to be the creator IP (one-time test-token verification "
+            "2026-10-14; two-IP control experiment still outstanding).",
+            "Shared egress (NAT/VPN) could put unrelated inboxes behind one "
+            "IP — UA consistency and fleet-indicator context corroborate.",
+        ],
+        "mitigations": [
+            "Clusters reported ONLY for watchlist IPs (known_swarm_ips "
+            "exact matches, known_swarm_cidrs, watchlist_cidrs).",
+            "Cluster graded INFERENCE; per-inbox extraction stays OBSERVED.",
+            "Creator UA consistency (python-requests/2.32.5 fleet marker) "
+            "feeds the HIGH/MEDIUM call.",
+        ],
+        "corroboration_for_high": (
+            "Watchlist creator IP AND >=2 inboxes, OR consistent fleet UA "
+            "across the cluster"
         ),
     },
     "tag-grammar": {
@@ -146,6 +187,8 @@ def load_state():
         "seen_report_ids": [],
         "seen_inbox_uuids": [],
         "processed_creators": {},  # uuid -> {ip, tier, factum_record_id}
+        "pivot_seen_uuids": [],  # uuids already extracted in pivot mode
+        "pivot_clusters": {},  # creator ip -> {inboxes, updated_utc}
         "run_count": 0,
     }
     if not os.path.exists(STATE_PATH):
@@ -221,26 +264,46 @@ def save_state(state):
 # urlquery harvesting (feeder modules)
 # ---------------------------------------------------------------------------
 
-def uq_htmx_search(query, limit=24):
-    """Search urlquery via htmx endpoint. Returns list of reports."""
-    result = subprocess.run(
-        [sys.executable, UQ_HTMX, "search", "--query", query,
-         "--limit", str(limit)],
-        capture_output=True, text=True, timeout=300,
-    )
-    if result.returncode != 0:
-        print(f"  [warn] uq_htmx failed: {result.stderr[:200]}",
-              file=sys.stderr)
-        return []
-    try:
-        return json.loads(result.stdout).get("reports", [])
-    except json.JSONDecodeError:
-        return []
+def uq_htmx_search(query, limit=24, _failures=None):
+    """Search urlquery via htmx endpoint. Returns list of reports.
+
+    Transport failures (non-zero exit, bad JSON) are retried up to 3x
+    with backoff, then recorded in _failures so a failed search is never
+    silently counted as zero results. 2026-10-15: prior runs masked
+    rc=1 chunked-read failures as zeros.
+    """
+    if _failures is None:
+        _failures = SEARCH_FAILURES
+    last_err = ""
+    for attempt in range(3):
+        result = subprocess.run(
+            [sys.executable, UQ_HTMX, "search", "--query", query,
+             "--limit", str(limit)],
+            capture_output=True, text=True, timeout=300,
+        )
+        if result.returncode == 0:
+            try:
+                return json.loads(result.stdout).get("reports", [])
+            except json.JSONDecodeError as e:
+                last_err = f"json decode: {e}"
+        else:
+            last_err = f"rc={result.returncode}: {result.stderr[:200]}"
+        time.sleep(8)
+    print(f"  [warn] uq_htmx search FAILED after 3 attempts: {query} "
+          f"({last_err})", file=sys.stderr)
+    _failures.append({"query": query, "error": last_err})
+    return []
 
 
 def extract_inbox_uuids(text):
-    """Extract webhook.site inbox UUIDs from text."""
-    pattern = (r"webhook\.site/([a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-"
+    """Extract webhook.site inbox UUIDs from text.
+
+    Matches the path form (webhook.site/<uuid>), the token-API form
+    (webhook.site/token/<uuid>), and the page forms
+    (webhook.site/#<uuid>, webhook.site/#!/<uuid>).
+    """
+    pattern = (r"webhook\.site/(?:token/|#?!?/?)?"
+               r"([a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-"
                r"[a-f0-9]{4}-[a-f0-9]{12})")
     return list(set(re.findall(pattern, text, re.IGNORECASE)))
 
@@ -259,7 +322,10 @@ def module_harvest_inboxes(state, config, since_days=7):
     searches = []
     # Tag grammar searches (feeder)
     for tag in config["tag_patterns"]:
-        searches.append((f"{tag} {date_filter}", "tag-grammar"))
+        # 2026-10-17: urlquery redesigned the site; bare tag text no longer
+        # matches tag values. Fleet tags are exact tokens like uqscan=<val>,
+        # so pivot via the tags: field with a wildcard for the value suffix.
+        searches.append((f"tags:{tag}* {date_filter}", "tag-grammar"))
     # Amap targeting searches (feeder)
     for domain in config["amap_domains"]:
         searches.append(
@@ -475,6 +541,241 @@ def module_creator_ips(inboxes, state, config):
 
 
 # ---------------------------------------------------------------------------
+# Creator-IP pivot (discovery mode)
+#
+# Commissioned 2026-10-15 (BigSexyWarlock69): "The creator ip should scrape
+# or search for inboxes." Given a webhook.site creator IP (for example a
+# Tencent Cloud IP that created one fleet inbox), find EVERY other inbox
+# that IP created — mapping the operator's full infrastructure, not just
+# the inboxes the watch happened to harvest.
+#
+# Method (inversion): inbox UUIDs are unguessable and webhook.site has no
+# search-by-creator-IP endpoint, so the pivot enumerates candidate inboxes
+# from urlquery's submitted-URL index (broad `webhook.site` search,
+# paginated), extracts the creator IP per inbox via the public token-
+# metadata endpoint, then inverts the map: creator-IP -> [inboxes].
+#
+# Reporting rule: clusters are reported ONLY for watchlist IPs (config
+# known_swarm_ips exact matches, plus known_swarm_cidrs and
+# watchlist_cidrs). All other creator IPs stay in the run log as negative
+# evidence — broad extraction is a discovery method, not a dragnet.
+#
+# Grading: per-inbox extraction is OBSERVED (direct API read). The cluster
+# itself — "same creator IP => same operator infrastructure" — is an
+# INFERENCE. The A1 semantics caveat from extract_creator applies
+# unchanged: the token-metadata `ip` field is ASSUMED to be the creator IP
+# (one-time test-token verification 2026-10-14; two-IP control experiment
+# still outstanding). If A1 falls, pivot clusters fall with it.
+#
+# Passive only: GET requests to public APIs. No POSTs.
+# ---------------------------------------------------------------------------
+
+PIVOT_PAGE_SIZE = 48
+PIVOT_MAX_PAGES = 8
+PIVOT_MAX_INBOXES = 400  # per-run extraction cap (politeness bound)
+
+
+def ip_on_watchlist(ip, config):
+    """True if ip is an exact known-swarm IP or inside a watchlist CIDR."""
+    if ip in config.get("known_swarm_ips", []):
+        return True
+    try:
+        addr = ipaddress.ip_address(ip)
+    except ValueError:
+        return False
+    for cidr in (config.get("known_swarm_cidrs", [])
+                 + config.get("watchlist_cidrs", [])):
+        try:
+            if addr in ipaddress.ip_network(cidr, strict=False):
+                return True
+        except ValueError:
+            continue
+    return False
+
+
+def module_pivot_harvest(state, config, since_days=90):
+    """
+    Broad harvest of webhook.site inbox URLs from urlquery's
+    submitted-URL index. Paginated; dedups against pivot_seen_uuids.
+    Returns (list of {uuid, source_report, source_url, rule}, pages).
+    """
+    print("[pivot] Harvesting webhook.site inboxes (broad, paginated)...")
+    since = (datetime.datetime.now(datetime.timezone.utc) -
+             datetime.timedelta(days=since_days)).strftime("%Y-%m-%d")
+    today = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%d")
+    query = f"webhook.site date:[{since} TO {today}]"
+
+    found = {}
+    pages = 0
+    for page in range(PIVOT_MAX_PAGES):
+        offset = page * PIVOT_PAGE_SIZE
+        result = subprocess.run(
+            [sys.executable, UQ_HTMX, "search", "--query", query,
+             "--limit", str(PIVOT_PAGE_SIZE), "--offset", str(offset)],
+            capture_output=True, text=True, timeout=300,
+        )
+        pages += 1
+        if result.returncode != 0:
+            print(f"  [warn] uq_htmx page {page} failed: "
+                  f"{result.stderr[:200]}", file=sys.stderr)
+            break
+        try:
+            reports = json.loads(result.stdout).get("reports", [])
+        except json.JSONDecodeError:
+            print(f"  [warn] uq_htmx page {page}: bad JSON",
+                  file=sys.stderr)
+            break
+        if not reports:
+            break
+        for r in reports:
+            url = r.get("url", "")
+            for uuid in extract_inbox_uuids(url):
+                if uuid not in found:
+                    found[uuid] = {
+                        "uuid": uuid,
+                        "source_report": r.get("report_id", ""),
+                        "source_url": url[:500],
+                        "rule": "pivot-broad",
+                    }
+        time.sleep(DELAY_UQ)
+        if len(reports) < PIVOT_PAGE_SIZE:
+            break
+
+    new = {u: v for u, v in found.items()
+           if u not in state["pivot_seen_uuids"]}
+    print(f"  -> {pages} pages, {len(found)} total inboxes, "
+          f"{len(new)} new (pivot)")
+    return list(new.values()), pages
+
+
+def module_creator_pivot(state, config, since_days=90):
+    """
+    Creator-IP pivot: harvest inboxes broadly, extract creator IPs,
+    invert to creator-IP -> inboxes, report watchlist-IP clusters.
+    Returns (findings, pivot_map, summary).
+    pivot_map: {ip: {classified, watchlist, inbox_count, inbox_uuids,
+    creator_uas}} — the full inversion, kept in the run log as evidence
+    (non-watchlist IPs included = negative evidence).
+    """
+    print("[pivot] Running creator-IP pivot...")
+    inboxes, pages = module_pivot_harvest(state, config,
+                                          since_days=since_days)
+    inboxes = inboxes[:PIVOT_MAX_INBOXES]
+
+    by_ip = {}  # ip -> {inboxes: [...], uas: set, created: [...]}
+    extracted = 0
+    gone = 0
+    for i, inbox in enumerate(inboxes):
+        uuid = inbox["uuid"]
+        result = extract_creator(uuid)
+        time.sleep(DELAY_WEBHOOKSITE)
+        if uuid not in state["pivot_seen_uuids"]:
+            state["pivot_seen_uuids"].append(uuid)
+        if result["status"] == "gone":
+            gone += 1
+            continue
+        if result["status"] != "extracted":
+            continue
+        extracted += 1
+        ip = result["creator_ip"]
+        entry = by_ip.setdefault(ip, {"inboxes": [], "uas": set(),
+                                      "created": []})
+        entry["inboxes"].append({
+            "uuid": uuid,
+            "source_report": inbox["source_report"],
+            "source_url": inbox["source_url"],
+        })
+        if result.get("creator_ua"):
+            entry["uas"].add(result["creator_ua"])
+        if result.get("created_at"):
+            entry["created"].append(result["created_at"])
+        print(f"  [pivot {i+1}/{len(inboxes)}] {uuid[:8]}... -> {ip}",
+              file=sys.stderr)
+    state["pivot_seen_uuids"] = state["pivot_seen_uuids"][-20000:]
+
+    # Report only watchlist-IP clusters; diff against known clusters so
+    # repeat runs emit findings only for NEW inboxes in a cluster.
+    findings = []
+    run_utc = datetime.datetime.now(datetime.timezone.utc).isoformat()
+    clusters = state.setdefault("pivot_clusters", {})
+    for ip, entry in sorted(by_ip.items()):
+        if not ip_on_watchlist(ip, config):
+            continue
+        prior = clusters.get(ip, {}).get("inboxes", [])
+        new_uuids = [b["uuid"] for b in entry["inboxes"]
+                     if b["uuid"] not in prior]
+        merged = list(dict.fromkeys(
+            prior + [b["uuid"] for b in entry["inboxes"]]))
+        clusters[ip] = {"inboxes": merged, "updated_utc": run_utc}
+        if not new_uuids:
+            continue
+        creator = ip_record(ip, config, role="creator")
+        uas = sorted(entry["uas"])
+        created = sorted(entry["created"])
+        has_fleet_ua = any("python-requests/2.32.5" in u for u in uas)
+        tier = creator["tier"]
+        confidence = ("HIGH" if (tier == 1 or len(new_uuids) >= 2
+                                 or has_fleet_ua) else "MEDIUM")
+        findings.append({
+            "rule": "creator-pivot",
+            "creator_ip": creator,
+            "inbox_uuids": new_uuids,
+            "inbox_count_new": len(new_uuids),
+            "inbox_count_total": len(merged),
+            "inbox_urls": [f"https://webhook.site/#{u}"
+                           for u in new_uuids],
+            "creator_uas": uas,
+            "created_at_range": ([created[0], created[-1]]
+                                 if created else []),
+            "source_inboxes": [
+                {"uuid": b["uuid"], "source_report": b["source_report"],
+                 "source_url": b["source_url"]}
+                for b in entry["inboxes"] if b["uuid"] in new_uuids],
+            "has_fleet_ua": has_fleet_ua,
+            "watchlist_match": ("known_swarm_ip"
+                                if ip in config.get("known_swarm_ips", [])
+                                else "watchlist_cidr"),
+            "confidence": confidence,
+            "grade": "INFERENCE",
+            "lane": LANE_TAG,
+            "extracted_at": run_utc,
+            "pivot_note": (
+                "Cluster = same creator IP across inboxes => same operator "
+                "infrastructure (inference). Per-inbox extraction is a "
+                "direct token-metadata read (observed); A1 semantics "
+                "caveat applies."
+            ),
+        })
+        print(f"  [pivot] CLUSTER {ip} (tier {tier}): "
+              f"{len(new_uuids)} new / {len(merged)} total inboxes",
+              file=sys.stderr)
+
+    # Serialize the full inversion for the run log (sets -> lists).
+    # Standing rule: IPs ride as ip_record() dicts, never bare strings.
+    pivot_map = {}
+    for ip, entry in by_ip.items():
+        pivot_map[ip] = {
+            "classified": ip_record(ip, config, role="creator"),
+            "watchlist": ip_on_watchlist(ip, config),
+            "inbox_count": len(entry["inboxes"]),
+            "inbox_uuids": [b["uuid"] for b in entry["inboxes"]],
+            "creator_uas": sorted(entry["uas"]),
+        }
+
+    summary = {
+        "pages": pages,
+        "inboxes_harvested": len(inboxes),
+        "extracted": extracted,
+        "gone": gone,
+        "distinct_creator_ips": len(by_ip),
+        "watchlist_clusters_reported": len(findings),
+    }
+    print(f"[pivot] {extracted} extracted / {len(by_ip)} distinct "
+          f"creator IPs / {len(findings)} watchlist clusters")
+    return findings, pivot_map, summary
+
+
+# ---------------------------------------------------------------------------
 # Factum output
 # ---------------------------------------------------------------------------
 
@@ -502,6 +803,13 @@ def build_factum_records(findings, run_id=None):
     {"type": "observation", "lane": ..., "grade": ...} shape that factum
     does not accept. There is no separate "lane-ingest worker" — the
     bundle must be directly submittable via `factum add --input`.
+
+    NOTE (2026-10-14 fix 2): the observation used
+    "type": "network.infra", which is not a registered observation type
+    (factum add raises "Unknown observation type"). Observations are now
+    infra.ioc term records (term=creator IP, category="ip",
+    status="candidate"); the full classified extraction stays in the run
+    log JSON and the tier rides on the observable's tags.
     """
     if run_id is None:
         run_id = datetime.datetime.now(datetime.timezone.utc).strftime(
@@ -536,51 +844,36 @@ def build_factum_records(findings, run_id=None):
                 "scanner": True,
             },
         })
-        # Observation: the creator-IP extraction
+        # Observation: the creator-IP extraction, as an infra.ioc term
+        # record. ("network.infra" is not a registered observation type --
+        # factum add rejects the whole bundle. Fixed 2026-10-14.) The full
+        # classified extraction (UA, signals, harvest rule, tier detail)
+        # stays in the run log JSON; the IOC record carries the term and a
+        # classification summary in provenance. Tier also rides on the
+        # observable's tags (standing rule: no bare IPs).
         data = {
-            "summary": (
-                f"webhook.site inbox creator IP: {cip['ip']} "
-                f"({cip['tier_label']})"
+            "term": cip["ip"],
+            "category": "ip",
+            "provenance": (
+                f"swarm-infra-crawler creator-IP extraction (PRIMARY): "
+                f"GET webhook.site/token/{f['uuid']} "
+                f"Accept: application/json, 'ip' field of token metadata "
+                f"(extraction method verified 2026-10-14 via test token; "
+                f"creator IP, not poster IP). "
+                f"Tier {cip['tier']} ({cip['tier_label']}); "
+                f"creator UA {f['creator_ua']}; "
+                f"harvest rule {f['harvest_rule']}; "
+                f"signals {','.join(str(s) for s in f['signals'])}; "
+                f"swarm_linked={f['swarm_linked']}; "
+                f"has_fleet_ua={f['has_fleet_ua']}."
             ),
-            "confidence": f["confidence"],
-            "grade": "OBSERVED",
-            "inbox_uuid": f["uuid"],
-            # Classified IP record — tier always present (standing rule)
-            "creator_ip": cip,
-            # Flat copies for query convenience
-            "creator_ip_str": cip["ip"],
-            "creator_ip_tier": cip["tier"],
-            "creator_ip_tier_label": cip["tier_label"],
-            "creator_ua": f["creator_ua"],
-            "classification_tier": f["classification_tier"],
-            "classification_label": f["classification_label"],
-            "classification_detail": f["classification_detail"],
-            "swarm_linked": f["swarm_linked"],
-            "has_fleet_ua": f["has_fleet_ua"],
-            "inbox_created_at": f.get("created_at"),
-            "harvest_rule": f["harvest_rule"],
-            "signals": f["signals"],
-            "provenance": {
-                "method": (
-                    "GET https://webhook.site/token/<uuid> with "
-                    "Accept: application/json; 'ip' field from token metadata"
-                ),
-                "extraction_verified": "2026-10-14 via test token",
-                "creator_vs_poster": (
-                    "Creator IP (token metadata 'ip' field), NOT poster IPs "
-                    "(/requests endpoint per-request source IPs)"
-                ),
-            },
+            "status": "candidate",
         }
-        if f.get("source_report"):
-            data["source_report"] = f["source_report"]
-        if f.get("source_url"):
-            data["source_url"] = f["source_url"]
         records.append({
             "ref": oref,
             "kind": "observation",
             "body": {
-                "type": "network.infra",
+                "type": "infra.ioc",
                 "source": f"@{sref}",
                 "observed_at": f["extracted_at"],
                 "data": data,
@@ -588,6 +881,7 @@ def build_factum_records(findings, run_id=None):
             "tags": {
                 "lane": LANE_TAG,
                 "scanner": True,
+                "grade": "PRIMARY",
                 "tier": cip["tier"],
                 "tier_label": cip["tier_label"],
             },
@@ -614,6 +908,100 @@ def build_factum_records(findings, run_id=None):
             },
         })
         n += 1
+
+    # Pivot clusters: one observation per watchlist-IP cluster. The
+    # cluster ("same creator IP => same operator infrastructure") is
+    # graded INFERENCE; the per-inbox extraction it rests on is OBSERVED.
+    for f in findings:
+        if f.get("rule") != "creator-pivot":
+            continue
+        if f.get("confidence") not in ("HIGH", "MEDIUM"):
+            continue
+        cip = f["creator_ip"]
+        sref, oref = f"swp-source-{n}", f"swp-obs-{n}"
+        uuid_list = ", ".join(f["inbox_uuids"][:20])
+        if f["inbox_count_new"] > 20:
+            uuid_list += f", ... (+{f['inbox_count_new'] - 20} more)"
+        records.append({
+            "ref": sref,
+            "kind": "source",
+            "body": {
+                "source_type": "scanner",
+                "locator": ("webhook.site creator-IP pivot cluster: "
+                            f"{cip['ip']}"),
+                "title": (f"creator-IP pivot cluster {cip['ip']}: "
+                          f"{f['inbox_count_new']} new / "
+                          f"{f['inbox_count_total']} total inboxes"),
+            },
+            "tags": {
+                "lane": LANE_TAG,
+                "scanner": True,
+            },
+        })
+        data = {
+            "term": cip["ip"],
+            "category": "ip",
+            "provenance": (
+                f"swarm-infra-crawler creator-IP pivot (INFERENCE): broad "
+                f"urlquery 'webhook.site' submitted-URL harvest + GET "
+                f"webhook.site/token/<uuid> per inbox; 'ip' field identical "
+                f"across {f['inbox_count_new']} new / "
+                f"{f['inbox_count_total']} total inboxes (UUIDs: "
+                f"{uuid_list}). Creator UA set: "
+                f"{'; '.join(f['creator_uas']) or 'none'}. created_at "
+                f"range: {'..'.join(f['created_at_range']) or 'unknown'}. "
+                f"Watchlist match: {f['watchlist_match']}; tier "
+                f"{cip['tier']} ({cip['tier_label']}); "
+                f"has_fleet_ua={f['has_fleet_ua']}. Cluster = same creator "
+                f"IP => same operator infrastructure (inference; per-inbox "
+                f"extraction observed). A1 semantics caveat: 'ip' field "
+                f"assumed creator IP (one-time test-token verification "
+                f"2026-10-14; two-IP control outstanding)."
+            ),
+            "status": "candidate",
+        }
+        records.append({
+            "ref": oref,
+            "kind": "observation",
+            "body": {
+                "type": "infra.ioc",
+                "source": f"@{sref}",
+                "observed_at": f["extracted_at"],
+                "data": data,
+            },
+            "tags": {
+                "lane": LANE_TAG,
+                "scanner": True,
+                "grade": "INFERENCE",
+                "tier": cip["tier"],
+                "tier_label": cip["tier_label"],
+            },
+        })
+        ip = cip["ip"]
+        records.append({
+            "ref": f"swp-ip-{n}",
+            "kind": "observable",
+            "body": {
+                "type": "ipv4" if "." in ip else "ipv6",
+                "value": ip,
+            },
+            "tags": {
+                "lane": LANE_TAG,
+                "tier": cip["tier"],
+                "tier_label": cip["tier_label"],
+                "asn": cip.get("asn"),
+            },
+        })
+        # Inbox URL observables (capped; full UUID list rides in
+        # provenance). tags.lane on every record (lane-edit rule).
+        for m, inbox_url in enumerate(f["inbox_urls"][:10]):
+            records.append({
+                "ref": f"swp-url-{n}-{m}",
+                "kind": "observable",
+                "body": {"type": "url", "value": inbox_url},
+                "tags": {"lane": LANE_TAG, "scanner": True},
+            })
+        n += 1
     return {
         "bundle": 2,
         "idempotency_key": f"swarm-infra-crawler/{run_id}",
@@ -628,13 +1016,14 @@ def build_factum_records(findings, run_id=None):
 # Main
 # ---------------------------------------------------------------------------
 
-def run(dry_run=False, since_days=7, modules=None):
+def run(dry_run=False, since_days=7, modules=None, pivot_days=90):
     config = load_config()
     state = load_state()
     run_utc = datetime.datetime.now(datetime.timezone.utc).isoformat()
     print(f"Swarm infra crawler v2 run at {run_utc}")
     print(f"State: {state['run_count']} prior runs, "
-          f"{len(state['seen_inbox_uuids'])} seen inboxes")
+          f"{len(state['seen_inbox_uuids'])} seen inboxes, "
+          f"{len(state['pivot_seen_uuids'])} pivot-seen inboxes")
 
     if modules is None:
         modules = ["harvest", "creator"]
@@ -656,6 +1045,14 @@ def run(dry_run=False, since_days=7, modules=None):
     elif "creator" in modules:
         print("[2/3] No new inboxes to process.")
 
+    # Module 3: Creator-IP pivot (discovery mode)
+    pivot_map = {}
+    pivot_summary = {}
+    if "creator-pivot" in modules:
+        pivot_findings, pivot_map, pivot_summary = module_creator_pivot(
+            state, config, since_days=pivot_days)
+        all_findings.extend(pivot_findings)
+
     # Module 3: Build factum bundle (bundle v2, directly submittable
     # via `factum add --input`)
     print("[3/3] Building factum bundle...")
@@ -675,6 +1072,8 @@ def run(dry_run=False, since_days=7, modules=None):
     gone = [f for f in all_findings if f.get("status") == "gone"]
     transient = [f for f in all_findings
                  if f.get("status") == "transient_error"]
+    pivot_clusters = [f for f in all_findings
+                      if f.get("rule") == "creator-pivot"]
 
     print(f"\nResults (denominators logged for silent-run interpretation):")
     print(f"  urlquery searches run: {search_count}")
@@ -685,11 +1084,22 @@ def run(dry_run=False, since_days=7, modules=None):
     print(f"    Tier 2 (CLOUD_SERVICE): {len(tier2)}")
     print(f"  Inboxes gone (404/410): {len(gone)}")
     print(f"  Transient failures (will retry): {len(transient)}")
+    if "creator-pivot" in modules:
+        print(f"  Pivot: {pivot_summary.get('inboxes_harvested', 0)} "
+              f"inboxes / {pivot_summary.get('extracted', 0)} extracted / "
+              f"{pivot_summary.get('distinct_creator_ips', 0)} distinct "
+              f"creator IPs / {len(pivot_clusters)} watchlist clusters")
     print(f"  Factum bundle records (MEDIUM+): {n_bundle_records}")
     if not inboxes and not extracted:
-        print(f"  NOTE: Zero new inboxes. This is expected if the fleet "
-              f"is dormant OR has moved off webhook.site. "
-              f"Distinguish via urlquery tag-grammar hits.")
+        if SEARCH_FAILURES:
+            print(f"  WARNING: {len(SEARCH_FAILURES)} urlquery searches "
+                  f"failed on transport after retries -- a zero-inbox "
+                  f"conclusion is NOT reliable for those searches. "
+                  f"Failed: {[f['query'] for f in SEARCH_FAILURES]}")
+        else:
+            print(f"  NOTE: Zero new inboxes. This is expected if the fleet "
+                  f"is dormant OR has moved off webhook.site. "
+                  f"Distinguish via urlquery tag-grammar hits.")
 
     # Write output
     if not dry_run:
@@ -698,8 +1108,11 @@ def run(dry_run=False, since_days=7, modules=None):
         bundle_path = os.path.join(OUTPUT_DIR, f"crawl-{run_id}.bundle.json")
         output = {
             "run_utc": run_utc,
-            "crawler_version": "2.1",
+            "crawler_version": "2.2",
+            "modules": modules,
             "findings": all_findings,
+            "pivot_map": pivot_map,
+            "pivot_summary": pivot_summary,
             "factum_bundle": factum_bundle,
             "summary": {
                 "urlquery_searches": search_count,
@@ -710,6 +1123,14 @@ def run(dry_run=False, since_days=7, modules=None):
                 "tier2": len(tier2),
                 "gone": len(gone),
                 "transient_failures": len(transient),
+                "urlquery_search_failures": len(SEARCH_FAILURES),
+                "urlquery_failed_queries": [f["query"]
+                                            for f in SEARCH_FAILURES],
+                "pivot_inboxes_harvested":
+                    pivot_summary.get("inboxes_harvested", 0),
+                "pivot_distinct_creator_ips":
+                    pivot_summary.get("distinct_creator_ips", 0),
+                "pivot_watchlist_clusters": len(pivot_clusters),
                 "factum_bundle_records": n_bundle_records,
             },
         }
@@ -739,12 +1160,16 @@ def main():
     parser = argparse.ArgumentParser(
         description="Swarm infra crawler v2 (webhook.site creator-IP)")
     parser.add_argument("--dry-run", action="store_true")
-    parser.add_argument("--module", choices=["harvest", "creator"],
+    parser.add_argument("--module",
+                        choices=["harvest", "creator", "creator-pivot"],
                         action="append", dest="modules")
     parser.add_argument("--since-days", type=int, default=7)
+    parser.add_argument("--pivot-days", type=int, default=90,
+                        help="urlquery window (days) for creator-pivot "
+                             "broad harvest")
     args = parser.parse_args()
     run(dry_run=args.dry_run, since_days=args.since_days,
-        modules=args.modules)
+        modules=args.modules, pivot_days=args.pivot_days)
 
 
 if __name__ == "__main__":
