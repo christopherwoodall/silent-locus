@@ -46,3 +46,16 @@ False-positive lists: `../scanners/FALSE-POSITIVES-*.md`
 | `swarm-infra-crawler.py` | ../swarm-infra-crawler.py | Webhook.site creator-IP pivot crawler |
 | `trajectory-scout.py` | ../trajectory-scout.py | Trajectory corpus scouting |
 | `ip-classifier.py` | ../ip_classifier.py | IP classification helpers |
+
+## Cairn panel crawler agents
+
+Copies from `data/lanes/cairn-panels/working/` (2026-10-19). These are the
+fleet worker scripts from the Cairn/Strix/Hermes panel hunt. See PROVENANCE.md.
+
+| Script | Purpose |
+|--------|---------|
+| `cairn-fetch-panels.py` | Lantern: passive GET profiling of open panels (no POST/login) |
+| `cairn-profile-panels.py` | Panel profile extraction and structuring |
+| `cairn-harbor-pull.py` | Harbor: Shodan host detail pull |
+| `cairn-build-inventory.py` | Host inventory builder from Shodan results |
+| `cairn-lantern-fetch.py` | Lantern shard fetch worker |

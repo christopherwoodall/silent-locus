@@ -23,3 +23,16 @@ stored in these files.
 All other `.py` files in this directory are symlinks to maintained scripts
 elsewhere in this repo (scanners/, top-level scripts/). They resolve on
 clone because their targets are in the same repository.
+
+## Cairn crawler agent copies (2026-10-19)
+
+| File | Source |
+|------|--------|
+| `cairn-fetch-panels.py` | `data/lanes/cairn-panels/working/fetch_panels.py` |
+| `cairn-profile-panels.py` | `data/lanes/cairn-panels/working/profile_panels.py` |
+| `cairn-harbor-pull.py` | `data/lanes/cairn-panels/working/harbor_pull.py` |
+| `cairn-build-inventory.py` | `data/lanes/cairn-panels/working/build_inventory.py` |
+| `cairn-lantern-fetch.py` | `data/lanes/cairn-panels/working/lantern1_fetch.py` |
+
+Method: `cp` from the lane working directory. These are fleet worker scripts,
+snapshotted here for reuse. The lane working copies remain the live versions.
