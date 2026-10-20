@@ -263,11 +263,26 @@ def _manifest_path(entry_id: str) -> str:
 
 
 def _load_quota() -> dict:
+    """Load quota.json. Corrupt JSON or a well-formed-but-wrong-SHAPE
+    dict both fail open to {} (no record), never raise downstream."""
     try:
         with open(QUOTA_PATH, "r", encoding="utf-8") as fh:
-            return json.load(fh)
+            data = json.load(fh)
     except (OSError, ValueError):
         return {}
+    if not isinstance(data, dict):
+        return {}
+    gh = data.get("github")
+    if gh is None:
+        return data  # no record yet; deliberate fail-open
+    if not isinstance(gh, dict):
+        return {}
+    rem, reset = gh.get("remaining"), gh.get("reset")
+    if rem is not None and not isinstance(rem, int):
+        return {}
+    if reset is not None and not isinstance(reset, int):
+        return {}
+    return data
 
 
 def _budget_ok(quota: dict, planned: int) -> tuple[bool, str]:
@@ -378,6 +393,10 @@ def hf_default_branch(ds_id: str) -> tuple[str, str]:
 def _validate_entry(entry: dict) -> list[str]:
     """Fail-closed id checks. Problems listed; no URL is built on bad ids."""
     problems = []
+    entry_id = entry.get("id")
+    if entry_id and not ID_RE.match(str(entry_id)):
+        problems.append(f"bad id {entry_id!r}: must match "
+                        r"^[A-Za-z0-9_.\-]+/[A-Za-z0-9_.\-]+$")
     repo = entry.get("repo")
     hf = entry.get("hf_dataset")
     if not repo and not hf:
@@ -617,6 +636,9 @@ def scan_entry(entry: dict, seen_ids, collected_at: str,
                         "branch_scanned")
                     if f["source"] == "github" else
                     (manifest["hf_dataset"] or {}).get("branch_resolved"),
+                    "branch_source": (manifest["hf_dataset"] or {}).get(
+                        "branch_source")
+                    if f["source"] == "huggingface" else None,
                     "file_sha": f.get("sha"),
                     "retrieved_at": collected_at,
                     "retrieval_method": "not-yet-retrieved",
