@@ -8,10 +8,10 @@ API LIMITATION (verified 2026-10-19): on the current Shodan plan,
 `/shodan/host/search` returns empty; only `/shodan/host/count` and
 `/shodan/host/{ip}` work. This module therefore tracks per-query
 banner COUNTS, not individual banners. A count change means hosts
-appeared or disappeared since the last run. The specific new IPs
-cannot be enumerated without the search endpoint -- the hit records
-the delta and the query, and a follow-up host-detail pass can
-resolve individual IPs if needed.
+appeared or disappeared since the last run. Attribution of a delta
+uses count FACETS (org/asn/domain snapshots in
+state/shodan_facets.json, refreshed every run) -- new facet values
+and movers >= +/-5 are reported on the hit (A4, 2026-10-20).
 
 Queries come from the 2026-10-19 Cairn/Strix/Hermes hunt
 (refined-queries.json). Baselines from that hunt:
@@ -63,29 +63,46 @@ SHODAN_CLI = os.path.expanduser(
 CONNECTOR_BIN = os.path.expanduser(
     "/opt/muse/skills/custom-connector-setup/bin")
 REQUEST_SPACING = 5  # seconds between count queries
+# Count-facet families requested alongside each query (A4, 2026-10-20:
+# attribution for count deltas; the search endpoint returns empty on
+# this plan, verified, so facets are the attribution path).
+FACET_FAMILIES = ("org", "asn", "domain")
+FACET_TOPN = 8  # stored per family
+FACET_STATE_PATH = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)), "state", "shodan_facets.json")
 
 
-def _count_query(query: str) -> int | None:
-    """Run `shodan.py count <query>`, return total or None on failure."""
+def _count_query(query: str, facets: str | None = None):
+    """Run `shodan.py count <query> [facets]`, return (total, facet_map).
+
+    facet_map: {family: {value: count}} trimmed to FACET_TOPN each.
+    Returns (None, {}) on failure."""
     try:
         env = dict(os.environ)
         env["PYTHONPATH"] = CONNECTOR_BIN + os.pathsep + env.get(
             "PYTHONPATH", "")
+        cmd = [sys.executable, SHODAN_CLI, "count", query]
+        if facets:
+            cmd.append(facets)
         r = subprocess.run(
-            [sys.executable, SHODAN_CLI, "count", query],
-            capture_output=True, text=True, timeout=120, env=env,
+            cmd, capture_output=True, text=True, timeout=120, env=env,
         )
         if r.returncode != 0:
             print(f"[shodan] count failed for {query!r}: "
                   f"{r.stderr.strip()[:200]}", file=sys.stderr)
-            return None
+            return None, {}
         data = json.loads(r.stdout)
         total = data.get("total")
-        return int(total) if total is not None else None
+        total = int(total) if total is not None else None
+        facet_map = {}
+        for family, rows in (data.get("facets") or {}).items():
+            facet_map[family] = {str(x["value"]): int(x["count"])
+                                 for x in rows[:FACET_TOPN]}
+        return total, facet_map
     except Exception as e:
         print(f"[shodan] count exception for {query!r}: "
               f"{type(e).__name__}: {e}", file=sys.stderr)
-        return None
+        return None, {}
 
 
 def _last_count_for(seen_ids, label: str) -> int | None:
@@ -103,6 +120,46 @@ def _last_count_for(seen_ids, label: str) -> int | None:
     return best
 
 
+def _load_facet_state() -> dict:
+    try:
+        with open(FACET_STATE_PATH) as f:
+            return json.load(f)
+    except (OSError, json.JSONDecodeError):
+        return {}
+
+
+def _save_facet_state(state: dict) -> None:
+    tmp = f"{FACET_STATE_PATH}.general-hunt.tmp"
+    with open(tmp, "w") as f:
+        json.dump(state, f, indent=1)
+    os.replace(tmp, FACET_STATE_PATH)
+
+
+def _diff_facets(prev: dict, cur: dict, total_delta: int) -> list:
+    """Human-readable facet moves between two snapshots.
+
+    prev/cur: {family: {value: count}}. Flags new values and big movers.
+    """
+    lines = []
+    for family in FACET_FAMILIES:
+        p, c = prev.get(family, {}), cur.get(family, {})
+        for val, cnt in c.items():
+            if val not in p:
+                lines.append(f"[{family}] NEW {val!r} (n={cnt})")
+            else:
+                d = cnt - p[val]
+                if abs(d) >= 5:
+                    lines.append(f"[{family}] {val!r}: "
+                                 f"{p[val]} -> {cnt} ({d:+d})")
+        for val, cnt in p.items():
+            if val not in c:
+                lines.append(f"[{family}] GONE {val!r} (was n={cnt})")
+    if not lines:
+        lines.append("no facet value crossed the +/-5 or new/gone "
+                     "threshold (attribution unclear)")
+    return lines
+
+
 def _store_count(seen_ids, label: str, total: int) -> None:
     # Remove old count keys for this label (keep set small)
     prefix = f"shodan:count:{label}:"
@@ -112,7 +169,7 @@ def _store_count(seen_ids, label: str, total: int) -> None:
 
 
 def scan_query(query_cfg: dict, seen_ids, collected_at: str,
-               dry_run: bool) -> list:
+               dry_run: bool, facet_state: dict) -> list:
     query = query_cfg["q"]
     label = query_cfg.get("label", query)
     indicators = query_cfg.get("indicators", [query])
@@ -124,7 +181,7 @@ def scan_query(query_cfg: dict, seen_ids, collected_at: str,
               f"baseline={baseline})", file=sys.stderr)
         return hits
 
-    total = _count_query(query)
+    total, facet_map = _count_query(query, ",".join(FACET_FAMILIES))
     if total is None:
         report_error("shodan", "count_failed",
                      f"query {label!r} returned no count",
@@ -134,6 +191,11 @@ def scan_query(query_cfg: dict, seen_ids, collected_at: str,
     prev = _last_count_for(seen_ids, label)
     print(f"[shodan] {label}: count={total} "
           f"(prev={prev}, baseline={baseline})", file=sys.stderr)
+
+    # store the facet snapshot every run (not just on delta) so the
+    # attribution window always has a fresh reference point
+    facet_state[label] = {"total": total, "at": collected_at,
+                          "facets": facet_map}
 
     # First run: store baseline, no hit (nothing is "new" yet)
     if prev is None:
@@ -149,6 +211,12 @@ def scan_query(query_cfg: dict, seen_ids, collected_at: str,
     direction = "grew" if delta > 0 else "shrank"
     _store_count(seen_ids, label, total)
 
+    # attribute the delta through facet moves (A4)
+    prev_facets = (facet_state.get(f"prev:{label}") or {}).get("facets",
+                                                               {})
+    facet_state[f"prev:{label}"] = facet_state[label]
+    facet_moves = _diff_facets(prev_facets, facet_map, delta)
+
     # Confidence: growth in harness exposure is HIGH (new panels
     # appeared); shrinkage is MEDIUM (panels went dark, less urgent
     # but worth noting for coverage tracking)
@@ -160,17 +228,21 @@ def scan_query(query_cfg: dict, seen_ids, collected_at: str,
         indicators_matched=list(indicators),
         confidence=confidence,
         summary=f"[shodan] {label}: banner count {direction} "
-                f"{prev} -> {total} (delta {delta:+d})",
+                f"{prev} -> {total} (delta {delta:+d}); "
+                f"top facet moves: {'; '.join(facet_moves[:4])}",
         provenance={
-            "method": "Shodan /shodan/host/count API via shodan.py CLI",
+            "method": "Shodan /shodan/host/count API with facets via "
+                      "shodan.py CLI",
             "query": query,
             "previous_count": prev,
             "current_count": total,
             "delta": delta,
             "hunt_baseline": baseline,
             "retrieved_at": collected_at,
+            "facet_moves": facet_moves,
             "limitation": "/shodan/host/search returns empty on "
-                           "current plan; counts only, no banner "
+                           "current plan; attribution via count "
+                           "facets (org/asn/domain), not banner "
                            "enumeration",
         },
         extra={
@@ -178,6 +250,7 @@ def scan_query(query_cfg: dict, seen_ids, collected_at: str,
             "previous_count": prev,
             "current_count": total,
             "delta": delta,
+            "facet_moves": facet_moves,
         },
         grade="PRIMARY",
     ))
@@ -196,6 +269,7 @@ def scan(since_hours: float = 24, seen_ids=None, dry_run: bool = False):
         seen_ids = set()
     queries = cfg.get("shodan", {}).get("queries", [])
     collected_at = utcnow_iso()
+    facet_state = _load_facet_state()
 
     if not queries:
         print("[shodan] no queries in config 'shodan' block",
@@ -216,7 +290,8 @@ def scan(since_hours: float = 24, seen_ids=None, dry_run: bool = False):
                   file=sys.stderr)
             continue
         try:
-            hits.extend(scan_query(q, seen_ids, collected_at, dry_run))
+            hits.extend(scan_query(q, seen_ids, collected_at, dry_run,
+                                   facet_state))
         except Exception as e:
             report_error("shodan", "query_failed",
                          f"{q.get('label', q.get('q'))}: {e}",
@@ -227,6 +302,8 @@ def scan(since_hours: float = 24, seen_ids=None, dry_run: bool = False):
             time.sleep(REQUEST_SPACING)
     rank = {"HIGH": 0, "MEDIUM": 1, "LOW": 2}
     hits.sort(key=lambda h: (rank.get(h["confidence"], 3), h["summary"]))
+    if not dry_run:
+        _save_facet_state(facet_state)
     return hits
 
 
