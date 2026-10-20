@@ -57,15 +57,23 @@ from _common import (  # noqa: E402
 LANE = "shodan"
 SHODAN_CLI = os.path.expanduser(
     "~/workspace/custom-connectors/custom.legacy-shodan/bin/shodan.py")
+# shodan.py imports dynamic_credentials; the orchestrator's env may not
+# have the connector bin dir on PYTHONPATH, so set it explicitly for the
+# subprocess (connector doc: CONNECTOR.md Tooling).
+CONNECTOR_BIN = os.path.expanduser(
+    "/opt/muse/skills/custom-connector-setup/bin")
 REQUEST_SPACING = 5  # seconds between count queries
 
 
 def _count_query(query: str) -> int | None:
     """Run `shodan.py count <query>`, return total or None on failure."""
     try:
+        env = dict(os.environ)
+        env["PYTHONPATH"] = CONNECTOR_BIN + os.pathsep + env.get(
+            "PYTHONPATH", "")
         r = subprocess.run(
             [sys.executable, SHODAN_CLI, "count", query],
-            capture_output=True, text=True, timeout=120,
+            capture_output=True, text=True, timeout=120, env=env,
         )
         if r.returncode != 0:
             print(f"[shodan] count failed for {query!r}: "
