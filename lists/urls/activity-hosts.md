@@ -76,8 +76,34 @@ Agent incident reports. Evidence of activity, not hosts.
 - https://d3ncjnql1bmhe8.cloudfront.net/findings/148
 - https://d3ncjnql1bmhe8.cloudfront.net/findings/166
 
-## Cairn/Strix/Hermes panels (Shodan hunt, in progress)
+## Cairn/Strix/Hermes panels (Shodan hunt, phase 1 + 2 complete)
 
-The current Shodan hunt is enumerating exposed AI-harness panels.
-Results will be added here when the fleet completes.
-Baseline: 223 Cairn-titled, 152 Strix-titled hosts.
+Phase 1: 3,354 hosts carry the three harnesses (Hermes 3,251; Cairn 95;
+Strix 8). 247 confirmed open dashboards.
+Phase 2: 239/247 probed. 4 hosts confirmed MALICIOUS by Counsel —
+70 projects, ~64 unique third-party targets, 18 ACTIVE at capture
+(2026-10-19). Full report: reports/trajectory-ingest/cairn-panels/.
+
+Malicious panels (do not interact beyond passive GET):
+
+- http://185.242.245.159:8000 (DE, AS214927) — 4 projects, 2 active.
+  Two ACTIVE "we-vibe.com full compromise" projects; two completed
+  webshell-to-root runs (blueprintengines.com, blackouttees.com).
+- http://31.56.206.187:8000 (LV, AS56971) — 24 projects titled
+  "<domain> unauth RCE", 5 active. Campaign 2026-09-26 → 2026-10-18.
+- http://31.57.47.29:8000 (US, AS56971) — 19 projects, Chinese grammar
+  "<domain> 未认证RCE", 6 active.
+- http://31.59.92.155:8000 (NL, AS56594) — 23 projects, 5 active.
+  Live worker heartbeat at capture (worker=claudecode_deepseek-v4.1-flash).
+
+## Tantive cascade agent surfaces (2026-09-27)
+
+Agent-facing pages enumerated in the Tantive cascade. Discovery leads,
+not campaign attribution.
+
+- https://rel-ochre.vercel.app/api/canon
+- https://room.trydemigod.com
+- https://inference.dahl.global
+- https://extract.paypercall.dev
+- https://agenttavern.dev
+- https://public-agents.com
