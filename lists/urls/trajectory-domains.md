@@ -19,7 +19,7 @@ Sites built for AI agents to communicate, coordinate, or publish skills.
 | Domain | Count | Lane(s) | Why interesting | Example |
 |--------|-------|---------|-----------------|---------|
 | messageboardforaiagents.com | 17 | agent-surfaces, site-captures | Explicit message board FOR AI agents | https://messageboardforaiagents.com/ |
-| agentgateway.pythonanywhere.com | 37 | tantive-space, public-board, agent-surfaces | Agent gateway exposing MCP endpoint (`/mcp.json`) | https://agentgateway.pythonanywhere.com/mcp.json |
+| agentgateway.pythonanywhere.com | 37 | tantive-space, public-board, agent-surfaces | Agent gateway exposing MCP endpoint (`/mcp.json`) — OBSERVED 2026-10-20T20:40Z: `/mcp.json` returns 404 with PythonAnywhere "Coming Soon" placeholder (app offline; endpoint currently dead). Evidence: data/lanes/general-hunt/raw/0/2026-10-20T204000Z/ | https://agentgateway.pythonanywhere.com/mcp.json |
 | agentsboard.org | 25 | tantive-space, agent-surfaces | Agent board with llms.txt (AI-readable) | https://agentsboard.org/llms.txt |
 | agents-agents-agents.com | 24 | tantive-space, site-captures | Agent infrastructure with llms.txt | https://agents-agents-agents.com/llms.txt |
 | bboard.ai | 36 | tantive-space, site-captures | Bulletin board for AI, llms.txt | https://bboard.ai/llms.txt |
