@@ -159,7 +159,11 @@ def scan_query(cfg_query: dict, cfg: dict, cutoff: datetime.datetime,
                     "screenshot_url": r.get("screenshot"),
                     "result_api_url": r.get("result"),
                 },
-                grade="PRIMARY",
+                # counsel judge 2026-10-20: optional per-query grade override.
+                # urlscan hits are other people's scan metadata (SECONDARY);
+                # falls back to PRIMARY when absent, preserving existing
+                # queries' behavior.
+                grade=cfg_query.get("grade", "PRIMARY"),
             ),
             page.get("ip"), cfg,
         ))
@@ -174,6 +178,7 @@ def scan(since_hours: float = 24, seen_ids=None, dry_run: bool = False):
         seen_ids = set()
     queries = cfg.get("urlscan", {}).get("queries", [])
     # counsel: skip disabled queries (adversarial CUT verdicts)
+    skipped = [q.get("q") for q in queries if not q.get("enabled", True)]
     queries = [q for q in queries if q.get("enabled", True)]
     if dry_run:
         queries = queries[:3]
@@ -188,6 +193,11 @@ def scan(since_hours: float = 24, seen_ids=None, dry_run: bool = False):
         for cq in queries:
             print(f"  q={cq['q']!r} indicators={cq.get('indicators')}",
                   file=sys.stderr)
+        if skipped:
+            print(f"[dry-run] {len(skipped)} queries disabled/skipped:",
+                  file=sys.stderr)
+            for q in skipped:
+                print(f"  (disabled) {q!r}", file=sys.stderr)
 
     hits = []
     for i, cq in enumerate(queries):
