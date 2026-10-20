@@ -13,6 +13,17 @@ Dead-drop inboxes. The crawler extracts creator IPs from token metadata.
 Note: the three dead-drop inboxes from the 2026-10-17 watch are operator-deleted (404).
 Their token UUIDs are workspace-local, never in the repo.
 
+## webhook.site creator IP (published 2026-10-20)
+
+Fleet dead-drop inbox creator IP, per BigSexyWarlock69's direction:
+
+- **43.163.128.176** — Tencent Cloud HK, AS132203. Created a fleet
+  dead-drop inbox (observed 2026-10-14). Adjacent to a known fleet IP,
+  carries the fleet's user agent. Extraction method verified by control
+  experiment 2026-10-14 (token `ip` field shows the inbox creator, not
+  the viewer). Basis: OBSERVED (single control token; two-IP control
+  never run — see swarm-infra-crawler notes).
+
 ## ntfy.sh topics (5, archived)
 
 Pub/sub topics. Wayback captures only; live access blocked by egress proxy.
