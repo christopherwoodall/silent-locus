@@ -240,6 +240,115 @@ def normalize(text: str) -> list[str]:
     return out
 
 
+# ---------------------------------------------------------------------------
+# Credential redaction for scanner-emitted paths.
+#
+# redact_secrets() applies to hits, error-log context, summaries/dedup
+# keys, and state files -- the four scanner-emitted paths. It NEVER
+# applies to raw evidence captures: those keep full observed values with
+# sensitivity annotated (2026-10-19 carve-out; see AGENTS.md evidence
+# rules).
+#
+# Conservative pattern list (documented; false negatives acceptable,
+# false positives on redaction are the safe direction):
+#   - AWS access key IDs (AKIA...) and session keys (ASIA...)
+#   - Anthropic keys (sk-ant-...)
+#   - OpenAI-style keys (sk- + 20 alnum)
+#   - GitHub tokens (ghp_/gho_/ghu_/ghs_/ghr_..., github_pat_...)
+#   - Slack tokens (xoxb-/xoxp-/xoxa-/xoxo-/xoxr-/xoxs-...)
+#   - Google API keys (AIza...)
+#   - Bearer tokens ("Bearer <token>")
+#   - NAMED-SECRET: a long hex/base64-ish value (16+ chars) adjacent to
+#     a key-ish name (secret, password, api_key, aws_secret, token,
+#     private_key, client_secret, ...), e.g.  password = "hunter2..."
+#     or  "aws_secret_access_key": "wJalr...".
+# Replacement markers are [REDACTED-<CLASS>]; they are designed not to
+# re-match any pattern, so redaction is idempotent.
+# ---------------------------------------------------------------------------
+_SECRET_PATTERNS = [
+    # (class name, compiled regex, mode)
+    # mode "whole": the whole match is the secret -> replace it.
+    # mode "group": named group "v" is the secret -> replace only it,
+    #               keeping the surrounding label (e.g. "Bearer ").
+    ("AWS-ACCESS-KEY", re.compile(r"\bAKIA[0-9A-Z]{16}\b"), "whole"),
+    ("AWS-SESSION-KEY", re.compile(r"\bASIA[0-9A-Z]{16}\b"), "whole"),
+    ("ANTHROPIC-KEY",
+     re.compile(r"\bsk-ant-[A-Za-z0-9_\-]{8,}\b"), "whole"),
+    ("OPENAI-KEY",
+     re.compile(r"\bsk-(?!ant-)[A-Za-z0-9][A-Za-z0-9\-]{19,}\b"), "whole"),
+    ("GITHUB-TOKEN",
+     re.compile(r"\b(?:ghp|gho|ghu|ghs|ghr)_[A-Za-z0-9_]{20,}\b"
+                r"|\bgithub_pat_[A-Za-z0-9_]{20,}\b"),
+     "whole"),
+    ("SLACK-TOKEN",
+     re.compile(r"\bxox[aboprs]-[A-Za-z0-9\-]{10,}\b"), "whole"),
+    ("GOOGLE-API-KEY",
+     re.compile(r"\bAIza[0-9A-Za-z\-_]{35}\b"), "whole"),
+    ("BEARER-TOKEN",
+     re.compile(r"(?i)\bBearer\s+(?P<v>[A-Za-z0-9._~+/=\-]{10,})"),
+     "group"),
+    ("NAMED-SECRET",
+     re.compile(
+         r"(?i)\b(secret|secrets|password|passwd|pwd|pass"
+         r"|api[_-]?key|access[_-]?key|auth[_-]?token"
+         r"|bearer[_-]?token|private[_-]?key|client[_-]?secret"
+         r"|aws[_-]?secret[_-]?access[_-]?key|aws[_-]?secret"
+         r"|session[_-]?token|refresh[_-]?token"
+         r"|token)\b\s*[\"']?\s*[:=]\s*[\"']?"
+         r"(?P<v>[A-Za-z0-9/+=._~\-]{16,})"),
+     "group"),
+]
+
+_REDACT_MARKER = "[REDACTED-{}]"
+
+
+def secret_pattern_counts(text: str) -> dict:
+    """Count credential-looking spans per pattern class (detection only).
+
+    Layer-agnostic verdict: returns {class_name: match_count}. The
+    matched strings are never returned or stored -- callers record
+    counts only (counsel: never emit matched secret values or decoded
+    variants). Pure function.
+    """
+    counts = {}
+    for name, rx, _mode in _SECRET_PATTERNS:
+        try:
+            n = len(rx.findall(text))
+        except Exception:
+            n = 0
+        if n:
+            counts[name] = n
+    return counts
+
+
+def redact_secrets(text) -> tuple:
+    """Redact credential-looking spans in scanner-emitted text.
+
+    Returns (found: bool, redacted: str). found is True when at least
+    one pattern matched. When nothing matches, redacted is the original
+    string unchanged. Pure function; uses only `re` (already imported).
+    Redaction is idempotent: markers never re-match a pattern.
+    """
+    if not isinstance(text, str):
+        text = str(text)
+    found = False
+    out = text
+    for name, rx, mode in _SECRET_PATTERNS:
+        marker = _REDACT_MARKER.format(name)
+        if mode == "whole":
+            out, n = rx.subn(marker, out)
+        else:
+            def _rep(m, _mk=marker):
+                whole = m.group(0)
+                v = m.group("v")
+                i = whole.find(v)
+                return whole[:i] + _mk + whole[i + len(v):]
+            out, n = rx.subn(_rep, out)
+        if n:
+            found = True
+    return found, out
+
+
 def parse_args(description: str):
     import argparse
 

@@ -673,5 +673,16 @@
         "note": "Example entry (disabled). A 404 on a watched repo is logged and skipped; it never aborts the sweep."
       }
     ]
+  },
+  "surfacewatch": {
+    "note": "Lane 13. Content-hash change detection on 13 hardcoded public agent-infrastructure surfaces (targets are frozen in scripts/scanners/surfacewatch.py TARGETS per counsel S1; they are NOT config-soft). GET only, no CookieJar/auth headers, content-type validated before hashing, redirects NOT chased (3xx/final-URL mismatch = degraded). Streaming 2MB cap per target; ~10MB per-run byte budget with abort. 10s spacing; 30s timeout; max 1 retry; HTTP 429 = hard stop for that target for the run. Normalized-extraction SHA-256 (volatile boilerplate stripped per documented per-target policy); raw byte-length + raw SHA-256 kept in provenance. Hash-only change = PRIMARY-observed, MEDIUM confidence max. Failed fetch = GAP (never a hit, never a clean negative, never silent re-baseline); gap alert after 3 consecutive gaps. DISABLED BY DEFAULT: a live scan needs surfacewatch.enabled=true. --dry-run performs zero network calls.",
+    "enabled": false
+  },
+  "cairnwatch": {
+    "note": "Lane 12. Passive watch over 4 counsel-cleared MALICIOUS Cairn panels (2026-10-19 verdict). Targets are HARDCODED as a frozenset in scripts/scanners/cairnwatch.py ALLOWLIST per counsel constraint 1; they are NOT config-soft. Per run: exactly 4 GETs to /projects (+ /projects/{id} for unseen ids only). 2s spacing; 30s timeout; max 1 retry then host is dark; 429 = hard stop for that host; streaming 2MB cap per response; ~10MB per-run byte budget with abort; redirects NOT chased (3xx/final-URL mismatch = degraded). Diff by project id: new id (HIGH), status from->to (MEDIUM), worker heartbeat transitions only (MEDIUM), dark host after 3 consecutive dark runs (LOW). State holds projections + hashes only (never titles/detail bytes). redact_secrets() on all scanner-emitted paths. DISABLED BY DEFAULT: a live scan needs cairnwatch.enabled=true AND the orchestrator LANES entry enabled. --dry-run performs zero network calls.",
+    "enabled": false,
+    "poll_interval_hours": 24,
+    "dark_alert_after_consecutive_dark": 3,
+    "heartbeat_stale_threshold_hours": 50
   }
 }

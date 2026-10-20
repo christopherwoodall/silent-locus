@@ -61,6 +61,8 @@ LANES = [
     ("crtsh", "crtsh-certs", True),
     ("packages", "package-registries", True),  # tripwire mode per counsel
     ("dbmining", "db-url-mining", True),  # hypothesis feeder per counsel
+    ("cairnwatch", "cairn-panel-watch", False),  # lane 12, disabled by default per counsel
+    ("surfacewatch", "surface-watch", False),  # lane 13, disabled by default
 ]
 
 # Counsel verdicts that shape orchestration (2026-10-14):

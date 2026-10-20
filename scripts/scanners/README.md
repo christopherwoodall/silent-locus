@@ -27,6 +27,15 @@ touches the network.
 | 9 | `jina.py` | jina | Jina AI reader: IOC extraction from target URLs | PRIMARY |
 | 10 | `shodan.py` | shodan | Shodan /host/count: harness panel exposure tracking | PRIMARY |
 | 11 | `reposcout.py` | reposcout | GitHub repo trees + HF dataset manifests: newly-appeared trajectory-candidate files | SECONDARY |
+| 12 | `cairnwatch.py` | cairn-panel-watch | 4 counsel-cleared Cairn panels (hardcoded allowlist), diffed by project id | PRIMARY |
+| 13 | `surfacewatch.py` | surface-watch | 13 hardcoded agent-infrastructure surfaces: content-hash change detection | PRIMARY |
+
+Lane 12 notes: disabled by default; 4-host allowlist hardcoded in the module source (counsel constraint 1 — no config override, no discovery); per run = 4 GETs to /projects only, detail fetch on unseen IDs only, streaming 2MB cap, ~10MB run budget; heartbeat alerts are transition-only (never advancing timestamps); state holds projections + hashes only.
+
+Lane 13 notes: disabled by default; targets are hardcoded in the
+module source (counsel S1 — no config override, no discovery); hits
+use normalized-extraction SHA-256 hashing with raw byte-length +
+raw SHA-256 kept in provenance (dual layer).
 
 ## Hit dict
 
@@ -108,6 +117,8 @@ zero-hit days** (his preference).
 - packages: 0.5-1s between calls; unauthenticated public APIs.
 - ipinfo.io ASN lookups: cached; 1s delay on cache miss.
 - reposcout: disabled by default; max 5 repos per run (config-overridable); GitHub quota (shared 60/hr unauthenticated bucket) tracked in `state/reposcout/quota.json`; the run is skipped when the recorded budget is exhausted. HF download URLs resolve the dataset's actual default branch from the refs API.
+- cairnwatch: disabled by default; exactly 4 GETs/run to `/projects` on a hardcoded 4-host allowlist (no discovery, no `--hosts` override; `/projects/{id}` only for unseen ids); 2s spacing, 30s timeout, max 1 retry then host is "dark", 429 = hard stop for that host; streaming 2MB cap per response, ~10MB per-run byte budget with abort; redirects not chased. Dark alert only after 3 consecutive dark runs. See `FALSE-POSITIVES-cairnwatch.md`.
+- surfacewatch: disabled by default (`surfacewatch.enabled` must be true); 13 hardcoded targets (no config override, no discovery); 10s spacing; GET-only, redirects not chased; content-type validated before hashing; 2MB/target streaming cap, ~10MB/run budget with abort; 30s timeout, max 1 retry; 429 = hard stop for that target; hash-only change = PRIMARY/MEDIUM max; failed fetch = gap (never a hit).
 
 ## Config
 
