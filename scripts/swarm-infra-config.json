@@ -160,7 +160,8 @@
     "ntfy_topics": "Added 2026-10-14 (PRIMARY): v3 'amap probe' dead-drop grammar posts to amapdata-<POI>-<suffix> topics (deaddrop-grammar FINDINGS.md)",
     "ntfy_topic_patterns": "Added 2026-10-14: candidate patterns for lane-3 topic discovery; bcc-mort* from fleet HTTP transaction analysis (PRIMARY), amapdata-/fleet-/uqscan-* from observed naming grammar",
     "uq_scan_query_families": "Added 2026-10-14: query families for lane-1 urlquery watch (space = implicit AND per swarm-infra-crawler.py)",
-    "AS136907": "Sandbox research 2026-10-14: Huawei Cloud AgentArts platform (WAIC 2026). No fleet evidence; CLOUD_SERVICE tier only."
+    "AS136907": "Sandbox research 2026-10-14: Huawei Cloud AgentArts platform (WAIC 2026). No fleet evidence; CLOUD_SERVICE tier only.",
+    "reposcout": "Lane 11 scanner config added 2026-10-20; watchlist holds one disabled example entry (SECONDARY: manifest metadata, not observed content). Live scans need reposcout.enabled=true plus enabled:true per entry."
   },
   "proxy_markers": [
     "hysandbox-ats"
@@ -645,6 +646,31 @@
         ],
         "baseline": 5499,
         "note": "2026-10-19 hunt: ~5,499 banners (partial: 4,200 seen, API pagination stopped ~page 41)"
+      }
+    ]
+  },
+  "reposcout": {
+    "note": "Lane 11. Repo-manifest inventory scanner (scripts/scanners/reposcout.py): diffs GitHub repo trees and HuggingFace dataset manifests against stored manifests to surface NEWLY-APPEARED trajectory-candidate files. Extension proves format, not content. DISABLED BY DEFAULT: a live scan needs reposcout.enabled=true AND enabled=true on each watchlist entry. Grade SECONDARY.",
+    "enabled": false,
+    "max_repos_per_run": 5,
+    "_comment_quota": "GitHub quota: the VM egress IP shares one 60/hr unauthenticated bucket. reposcout records X-RateLimit-Remaining/Reset in state/reposcout/quota.json, caps each run at max_repos_per_run repos, and skips the run when the recorded budget is exhausted.",
+    "_comment_patterns": "trajectory_name_patterns: case-insensitive regexes matched against the file path. A candidate-trajectory file that also matches a pattern grades MEDIUM; otherwise LOW (format match only, content unverified).",
+    "trajectory_name_patterns": [
+      "trajectory",
+      "trajectories",
+      "rollout",
+      "episode",
+      "agent_trace"
+    ],
+    "_comment_watchlist": "Each entry needs repo and/or hf_dataset, both validated against ^[A-Za-z0-9_.\\-]+/[A-Za-z0-9_.\\-]+$ before any URL is built. enabled:true required per entry. No watchlist entries, no run.",
+    "watchlist": [
+      {
+        "id": "example-org-example-repo",
+        "repo": "example-org/example-repo",
+        "hf_dataset": "example-org/example-dataset",
+        "branch": null,
+        "enabled": false,
+        "note": "Example entry (disabled). A 404 on a watched repo is logged and skipped; it never aborts the sweep."
       }
     ]
   }

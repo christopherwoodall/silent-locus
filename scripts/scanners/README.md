@@ -26,6 +26,7 @@ touches the network.
 | 8 | `dbmining.py` | db-url-mining | Our factum/lane data: repurposable surfaces | PRIMARY |
 | 9 | `jina.py` | jina | Jina AI reader: IOC extraction from target URLs | PRIMARY |
 | 10 | `shodan.py` | shodan | Shodan /host/count: harness panel exposure tracking | PRIMARY |
+| 11 | `reposcout.py` | reposcout | GitHub repo trees + HF dataset manifests: newly-appeared trajectory-candidate files | SECONDARY |
 
 ## Hit dict
 
@@ -106,6 +107,7 @@ zero-hit days** (his preference).
 - crtsh: 10s between patterns; **429 is a hard stop** (module aborts).
 - packages: 0.5-1s between calls; unauthenticated public APIs.
 - ipinfo.io ASN lookups: cached; 1s delay on cache miss.
+- reposcout: disabled by default; max 5 repos per run (config-overridable); GitHub quota (shared 60/hr unauthenticated bucket) tracked in `state/reposcout/quota.json`; the run is skipped when the recorded budget is exhausted. HF download URLs resolve the dataset's actual default branch from the refs API.
 
 ## Config
 
