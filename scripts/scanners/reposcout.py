@@ -410,6 +410,7 @@ def build_manifest(entry: dict) -> dict:
         print(f"  GitHub: {owner}/{name}", file=sys.stderr)
         repo_info = gh_repo_info(owner, name)
         branch = entry.get("branch") or repo_info["default_branch"]
+        repo_info["branch_scanned"] = branch
         blobs, truncated = gh_tree(owner, name, branch)
         print(f"    {len(blobs)} blobs on {branch}"
               f"{' (TRUNCATED)' if truncated else ''}",
@@ -613,7 +614,7 @@ def scan_entry(entry: dict, seen_ids, collected_at: str,
                     "repo": entry.get("repo"),
                     "hf_dataset": entry.get("hf_dataset"),
                     "branch_scanned": (manifest["repo"] or {}).get(
-                        "default_branch")
+                        "branch_scanned")
                     if f["source"] == "github" else
                     (manifest["hf_dataset"] or {}).get("branch_resolved"),
                     "file_sha": f.get("sha"),
