@@ -75,6 +75,9 @@ INDICATORS = [
     ("webhook_site", 1,
      re.compile(r"webhook\.site/[a-f0-9]{8}-[a-f0-9-]{27}")),
     ("ntfy_amapdata", 2, re.compile(r"ntfy\.sh/amapdata[-\w]*")),
+    # A6 2026-10-20: zz= is the OAI-launcher marker; weight 3 drives emission
+    # on its own so the query family is not screened-but-silent.
+    ("zz_launcher", 3, re.compile(r"(?<![a-z0-9_])zz=")),
     # weight 0: logged for context but NEVER drives emission alone
     ("label_grammar", 0,
      re.compile(r"(claude20\d{6,}|\bresearch[-_][a-z0-9]{4,}\b)", re.IGNORECASE)),
@@ -92,6 +95,7 @@ QUERY_FAMILIES = [
     ("tag-grammar", "uqscan= gaode", "tag x gaode"),
     ("tag-grammar", "uqframe= amap", "tagframe x amap"),
     ("tag-grammar", "cachebust=1 amap", "cachebust x amap"),
+    ("tag-grammar", "zz=", "zz launcher marker x 24h"),
     ("amap-targeting", "url.domain:amap.com", "amap domain"),
     ("amap-targeting", "url.domain:gaode.com", "gaode domain"),
     ("preprod", "pre-amap-pc-ssr", "pre-prod host"),
