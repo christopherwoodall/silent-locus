@@ -27,6 +27,13 @@ for that target URL (content-hash dedup via seen_ids).
 Passive only. GET requests through the reader proxy. No POST, no
 interaction, no logins.
 
+This module watches OUR targets through jina. The reverse direction —
+how OTHER agents use jina, reconstructed from third-party records of
+r.jina.ai/<url> fetches — is documented in
+docs/jina-activity-methodology.md and wired as phase-1 queries in
+swarm-infra-config.json (urlscan `relay-jina-reader`, wayback
+`r.jina.ai` domain target, urlquery `r.jina.ai/` family).
+
 IP-classification note (standing rule): Jina reader output carries no
 IP addresses (it is extracted page text), so jina hits record no IPs
 and attach no ip_classification. If an IP field is ever added to
