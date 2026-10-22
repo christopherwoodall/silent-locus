@@ -99,10 +99,10 @@ QUERY_FAMILIES = [
     ("amap-targeting", "url.domain:amap.com", "amap domain"),
     ("amap-targeting", "url.domain:gaode.com", "gaode domain"),
     ("preprod", "pre-amap-pc-ssr", "pre-prod host"),
-    ("payload", "httpbin.org/base64", "httpbin base64 payload"),
+    ("payload", "url.domain:httpbin.org", "httpbin base64 payload"),
     ("exfil", "webhook.site amap", "webhook exfil x amap"),
     ("exfil", "webhook.site uqscan", "webhook exfil x tag"),
-    ("exfil", "ntfy.sh/amapdata", "ntfy amapdata topic"),
+    ("exfil", "ntfy.sh", "ntfy topic"),
 ]
 
 
