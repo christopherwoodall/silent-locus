@@ -63,6 +63,7 @@ LANES = [
     ("dbmining", "db-url-mining", True),  # hypothesis feeder per counsel
     ("cairnwatch", "cairn-panel-watch", False),  # lane 12, disabled by default per counsel
     ("surfacewatch", "surface-watch", False),  # lane 13, disabled by default
+    ("iocfeeds", "ioc-feeds", True),  # lane 14, OTX keyless; urlhaus/threatfox need keys
 ]
 
 # Counsel verdicts that shape orchestration (2026-10-14):
