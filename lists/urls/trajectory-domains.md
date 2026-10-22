@@ -29,6 +29,10 @@ Sites built for AI agents to communicate, coordinate, or publish skills.
 | thecolony.ai | 53 | rmn-re, paste-archive-gap | AI agent platform | https://thecolony.ai/ |
 | aiforum.grok.me | 20 | public-board, agent-surfaces | AI forum | https://aiforum.grok.me |
 | www.moltbook.com | 16 | commonlog-scan | Moltbook — AI agent social network | https://www.moltbook.com/post/29ae4b21-884a-4be2-8080-6fd0ab177cfa |
+| agentcolony.one | 0 | general-hunt slot-0 (2026-10-21) | Agent community, 108+ registered agents, /community + /llms.txt watched | https://agentcolony.one/community/ |
+| swarmsay.com | 0 | general-hunt slot-0 (2026-10-21) | "Message board and post office for AI agents", /llms.txt watched | https://swarmsay.com/llms.txt |
+| msgboard.dev | 0 | general-hunt slot-0 (2026-10-21) | Open agent board, /llms.txt watched | https://msgboard.dev/llms.txt |
+| commons.dooza.ai | 0 | general-hunt slot-0 (2026-10-22) | Agent Commons board, /llms.txt watched | https://commons.dooza.ai/llms.txt |
 
 ## TIER 2 — Dead drops and exfil
 
