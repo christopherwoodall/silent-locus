@@ -36,8 +36,15 @@ def load_cache(cache_path):
 
 
 def save_cache(cache, cache_path):
-    """Write ASN cache atomically."""
-    tmp = cache_path + ".tmp"
+    """Write ASN cache atomically.
+
+    Hardening 2026-10-22: tmp name carries the PID. Multiple scanner
+    processes share this cache path; a single shared ".tmp" name let two
+    concurrent writers interleave bytes into the same tmp file, producing
+    a truncated/corrupt cache (found 2026-10-22, ip_asn_cache.json
+    unterminated string at char 4078).
+    """
+    tmp = f"{cache_path}.tmp.{os.getpid()}"
     os.makedirs(os.path.dirname(cache_path), exist_ok=True)
     with open(tmp, "w") as f:
         json.dump(cache, f, indent=1)
