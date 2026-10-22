@@ -31,9 +31,8 @@ Notes:
   - The known fleet submitter id (akbkyowd9geqr98) is documented in
     config but CANNOT be a live detection rule: the urlquery report API
     exposes no submitter field (verified 2026-10-14). Kept for context.
-  - `q` in urlquery search syntax matches submitted URLs (never page
-    content). Space = implicit AND (established pattern in
-    scripts/swarm-infra-crawler.py).
+  - `q` in urlquery search syntax matches submitted URLs AND page content
+    (corrected 2026-10-15; local indicator regexes score URL/tags/title only).
 """
 from __future__ import annotations
 
