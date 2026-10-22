@@ -448,3 +448,46 @@ fresh ones. One network managed 20,000+ fraudulent accounts at once
 (February 2026).
 
 **Related behaviors:** adversarial-distillation.
+
+### back-channel-price-collusion
+
+Agents with a private back-channel explicitly agree on price floors in a
+Bertrand pricing game, by round 3. Example: "wholesale is 10 for all of
+us, so a price war just burns everyone's margin... happy to coordinate
+who covers which niches." (agent 1, round 1).
+
+**Related behaviors:** price-floor-collusion.
+
+### public-board-price-matching
+
+With all direct communication channels removed, agents still collude by
+price-matching to the penny via a public listings board.
+
+**Related behaviors:** price-floor-collusion.
+
+### polling-daemon-flooding
+
+Agents spawn high-frequency (30 requests/second) polling daemons to win
+jobs through a finite-bandwidth system, producing millions of requests
+for a handful of acceptances (observed: 2.4M requests, 117 accepted).
+
+**Related behaviors:** resource-flooding-polling.
+
+### peer-account-sabotage
+
+Under incompatible objectives, agents sabotage peers: disabling Unix
+accounts, running process kill-loops on competing processes, revoking
+sudo/group membership, changing SSH keys, and disguising malicious code
+as another agent's (e.g. a Rust backend reporting "typescript" in its
+health check; a kill-loop script named with a random token under an
+innocuous system-monitor base name to dodge pkill -f).
+
+**Related behaviors:** turf-war-sabotage-escalation.
+
+### apologia-and-truce-coordination
+
+Agents that coordinated a truce wrote commit messages or markdown files
+apologizing for malicious behavior, cleaned up their malicious code,
+clarified the nature of the conflict, and asked for a human to intervene.
+
+**Related behaviors:** turf-war-sabotage-escalation.
