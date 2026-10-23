@@ -15,21 +15,30 @@ max 3 attempts per query.
 | pastebin.com | domain | 0 | 0 | FAILED — Wayback backend 503 on all 6 attempts across two runs; NOT a zero; needs re-run |
 | webhook.site/28efa24e-…-5035031 | exact | 0 | 0 | real zero (expected — inbox created 2026-10-14, after window) |
 | ntfy.sh/c6836 | prefix | 0 | 0 | real zero |
-| ntfy.sh/kz1wu398dnq | prefix | 1 | 1 | NEW-candidate — 200 @ 2026-07-06 04:44:26 UTC; body: `START "tomas kopecky" "six million dollar man"` |
+| ntfy.sh/kz1wu398dnq | prefix | 1 | 1 | OVERLAP (known) — independent Wayback corroboration of the July 6 START wave (transluce-intel #81); body: `START "tomas kopecky" "six million dollar man"` |
 | ntfy.sh/mha3x | prefix | 0 | 0 | real zero |
-| ntfy.sh/o54445 | prefix | 1 | 1 | NEW-candidate — 200 @ 2026-07-08 15:07:11 UTC; body: single-char beacon `S` |
-| ntfy.sh/pz4kopsh1 | prefix | 1 | 1 | NEW-candidate — 200 @ 2026-07-06 03:51:14 UTC; body: timestamp beacon `go\|1783309874200` |
+| ntfy.sh/o54445 | prefix | 1 | 1 | OVERLAP (known) — same July 6–8 wave (transluce-intel #81); body: single-char beacon `S` |
+| ntfy.sh/pz4kopsh1 | prefix | 1 | 1 | OVERLAP (known) — go|<epoch-ms> beacon family (transluce-intel #81); body: `go\|1783309874200` |
 | jqp.vercel.app/api/ | prefix | 4 | 4 | noise — generic relay use (yahoo finance, IIIF manifests, da.gd/4OzSm); no fleet markers |
 | hysandbox.tencent-cloud.com | domain | 0 | 0 | real zero (confirms 2026-10-23 probe) |
 | pre-amap-pc-ssr.amap.com | prefix | 0 | 0 | real zero (confirms 2026-10-23 probe) |
 | da.gd | domain | 4069 | 96 | noise (Anthropic label) — bursts are Wayback bulk crawls of the shortener's 302 space (418 distinct codes, 2 digests on 2026-05-16) |
 
-## The three ntfy hits (dead-drop-shaped, evidence quoted verbatim)
+## The three ntfy hits (CORRECTED 2026-10-23 ~17:10 UTC — originally graded NEW-candidate)
 
-All three are in-window 200 captures of live topic pages. Topic ids were
-already in `lists/urls/activity-hosts.md` (OVERLAP on the topic); the
-archived message bodies are NEW to the repo (repo-wide grep found no
-match; Factum match check was still queued at write time).
+Correction: these three captures are NOT new. They are already documented
+in the transluce-intel lane (`data/lanes/2026-10-09-transluce-intel/
+events.jsonl`, finding #81 by Laura): the July 6 "START wave" / go-signal
+ladder, including the 40-topic Tomas Kopecky search burst (matching
+BrowseComp 339), the go|<epoch-ms> beacon family (topics pz4kopsh1
+through pz8jina1, variant separators go|A|/go|B|/go|S/), and the 37
+July 8 input/output pairs with go/START/OK markers (labelled
+low-confidence there). The exact Wayback URLs below are cited verbatim
+in that finding. Grade: **OVERLAP (known)**.
+
+Value of this sweep's captures: independent, verbatim Wayback-archived
+bodies corroborating the local evidence set from a second source,
+with full provenance.
 
 1. `ntfy.sh/kz1wu398dnq`, archived 2026-07-06 04:44:26 UTC
    (evidence: `ntfy_kz1wu398dnq_20260706044426.json`):
@@ -49,9 +58,15 @@ match; Factum match check was still queued at write time).
 
 All three dates fall inside the Jun 26–Jul 13 HF-incident window. Labelled
 as **co-occurrence only — NOT METR/HF-incident validation**. The beacon
-shapes (START + quoted strings, single char, `go|<epoch-ms>`) read as test
+shapes (START + quoted searches, single char, `go|<epoch-ms>`) read as test
 or keepalive traffic; author is unknown (not attributed to any provider
 or agent instance).
+
+Discrepancy to follow up: transluce-intel #81 cites a
+`web.archive.org/web/20260708131735/https://ntfy.sh/c6836` capture, but
+this sweep's c6836 prefix query returned 0 rows (after 3 attempts with
+2 backend flakes). Either the capture was removed/renamed, or the
+query flaked into a false zero. Re-query c6836 before calling it a zero.
 
 ## Bursts that are NOT signal
 
