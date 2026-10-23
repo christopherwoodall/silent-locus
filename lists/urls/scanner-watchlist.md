@@ -99,7 +99,7 @@ no live repos or datasets watched yet.
 
 ### Hourly general-hunt discovery rotation (Tier-1 endpoints, hash-baselined)
 
-11 targets in `endpoint-baseline.json`, re-fetched each slot-0 run:
+44 targets in `endpoint-baseline.json`, re-fetched each slot-0 run:
 
 - https://agentsboard.org/llms.txt
 - https://agents-agents-agents.com/llms.txt
@@ -112,6 +112,12 @@ no live repos or datasets watched yet.
 - https://agenthaven.org (NEW 2026-10-20)
 - https://smokesignal-arianaram.pythonanywhere.com (NEW 2026-10-20)
 - https://agent-message-board.kyle-hatcher.workers.dev (NEW 2026-10-21)
+- https://bulletin.zaindharper.workers.dev/v1/challenge (NEW 2026-10-23, lane 3 B14; normalized hash, never solve/POST)
+- https://bulletin.zaindharper.workers.dev/openapi.json (NEW 2026-10-23, lane 3 B14)
+- https://agentcolony.one/ (NEW 2026-10-23, lane 3 B10; /llms.txt serves identical bytes)
+- https://agentcolony.one/llms.txt (NEW 2026-10-23, lane 3 B10)
+- https://commons.dooza.ai/ (NEW 2026-10-23, lane 3 B12)
+- https://agent-message-board.kyle-hatcher.workers.dev/v1/stats (NEW 2026-10-23, lane 3 B9, counsel-cleared; normalized hash; /v1/verify 401 auth-gated, excluded)
 
 ## 2. URLs with suspected or confirmed activity
 
@@ -143,6 +149,12 @@ Evidence cached with provenance triples under
 | https://xyzq.net/llms.txt | 2026-10-23 | hourly hunt slot 0; "Agent Sanctuary" agent-born communication platform; public channels, threads, feed; posting via skill.md + API |
 | https://a4a.network/llms.txt | 2026-10-23 | hourly hunt slot 0; "A4A — Agent for Agent" open decentralized agent communication protocol spec v0.4; crypto identities, E2EE DMs, public relays in 7 regions |
 | https://apexai.academy/llms.txt | 2026-10-23 | hourly hunt slot 0; Apex AI Academy "Agent Commons" forum; registered agents post/reply/react, pair with humans; MCP server + public JSON API |
+| https://bulletin.zaindharper.workers.dev/v1/challenge | 2026-10-23 | lane-3 Tier-1 wiring (B14); PoW challenge endpoint, per-fetch rotating challenge (normalized hash); never solve/POST |
+| https://bulletin.zaindharper.workers.dev/openapi.json | 2026-10-23 | lane-3 Tier-1 wiring (B14); full OpenAPI spec, static; first baseline |
+| https://agentcolony.one/llms.txt | 2026-10-23 | lane-3 Tier-1 wiring (B10); serves homepage bytes (hash-identical); homepage + /llms.txt baselined |
+| https://commons.dooza.ai/ | 2026-10-23 | lane-3 Tier-1 wiring (B12); homepage baselined (/llms.txt already watched) |
+| https://agent-message-board.kyle-hatcher.workers.dev/v1/stats | 2026-10-23 | lane-3 Tier-1 wiring (B9, counsel-cleared); aggregate counters (normalized uptime/access) |
+| https://agent-message-board.kyle-hatcher.workers.dev/v1/verify | 2026-10-23 | lane-3 (B9); 401 anonymous — auth-gated, excluded from passive rotation |
 
 ### Dead drops and exfiltration (PRIMARY)
 
@@ -152,7 +164,7 @@ Evidence cached with provenance triples under
 
 ### Tiered suspect domains (`lists/urls/trajectory-domains.md`)
 
-- Tier 1 (agent infra, 11): agentsboard.org, agents-agents-agents.com, bboard.ai, agentgateway.pythonanywhere.com, tantive.space, messageboardforaiagents.com, swarm.termina.digital, swarmmemo.com, thecolony.ai, aiforum.grok.me, moltbook.com
+- Tier 1 (agent infra, 19): agentsboard.org, agents-agents-agents.com, bboard.ai, agentgateway.pythonanywhere.com, tantive.space, messageboardforaiagents.com, swarm.termina.digital, swarmmemo.com, thecolony.ai, aiforum.grok.me, moltbook.com, agentcolony.one, swarmsay.com, msgboard.dev, commons.dooza.ai, bulletin.zaindharper.workers.dev, robots.wiki, agenthaven.org, agent-message-board.kyle-hatcher.workers.dev
 - Tier 2 (dead-drop/exfil, 8): see trajectory-domains.md
 - Tier 3 (proxy/relay, 15): includes md.succ.ai, jqp.vercel.app
 - Tier 5 (C2-like, 8): bare IP 45.14.13.147, she-llac.com, facehuggers.chain-of-thought.org, ai.algo.pw, nullyard.net, getunstuck.space

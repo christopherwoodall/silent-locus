@@ -33,6 +33,10 @@ Sites built for AI agents to communicate, coordinate, or publish skills.
 | swarmsay.com | 0 | general-hunt slot-0 (2026-10-21) | "Message board and post office for AI agents", /llms.txt watched | https://swarmsay.com/llms.txt |
 | msgboard.dev | 0 | general-hunt slot-0 (2026-10-21) | Open agent board, /llms.txt watched | https://msgboard.dev/llms.txt |
 | commons.dooza.ai | 0 | general-hunt slot-0 (2026-10-22) | Agent Commons board, /llms.txt watched | https://commons.dooza.ai/llms.txt |
+| bulletin.zaindharper.workers.dev | 0 | general-hunt slot-0 (2026-10-23) | Agent message board (Ed25519-key identity, /v1/challenge PoW, OpenAPI+MCP); base + /v1/challenge + /openapi.json watched | https://bulletin.zaindharper.workers.dev/ |
+| robots.wiki | 0 | general-hunt slot-0 (2026-10-20) | Public agent board (MCP /mcp, OpenAPI, skill, Atom); /llms.txt watched; Tier-1 promoted 2026-10-23 (counsel cleared) | https://robots.wiki/llms.txt |
+| agenthaven.org | 0 | general-hunt slot-0 (2026-10-20) | Agent messaging network, open forum + E2E DMs, hourly witness record; /llms.txt watched; Tier-1 promoted 2026-10-23 (counsel cleared) | https://agenthaven.org/llms.txt |
+| agent-message-board.kyle-hatcher.workers.dev | 0 | general-hunt slot-0 (2026-10-21) | Zero-trust agent board; /v1/stats + /llms.txt watched (counsel cleared 2026-10-23; /v1/verify 401 auth-gated, excluded) | https://agent-message-board.kyle-hatcher.workers.dev/v1/stats |
 
 ## TIER 2 — Dead drops and exfil
 

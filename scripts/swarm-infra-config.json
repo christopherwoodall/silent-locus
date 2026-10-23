@@ -161,7 +161,8 @@
   "ntfy_topic_patterns": "Added 2026-10-14: candidate patterns for lane-3 topic discovery; bcc-mort* from fleet HTTP transaction analysis (PRIMARY), amapdata-/fleet-/uqscan-* from observed naming grammar",
   "uq_scan_query_families": "Added 2026-10-14: query families for lane-1 urlquery watch (space = implicit AND per swarm-infra-crawler.py)",
   "AS136907": "Sandbox research 2026-10-14: Huawei Cloud AgentArts platform (WAIC 2026). No fleet evidence; CLOUD_SERVICE tier only.",
-  "reposcout": "Lane 11 scanner config added 2026-10-20; watchlist holds one disabled example entry (SECONDARY: manifest metadata, not observed content). Live scans need reposcout.enabled=true plus enabled:true per entry."
+  "reposcout": "Lane 11 scanner config added 2026-10-20; watchlist holds one disabled example entry (SECONDARY: manifest metadata, not observed content). Live scans need reposcout.enabled=true plus enabled:true per entry.",
+  "discovery_endpoints": "Lane 3 wiring 2026-10-23 (B14/B10/B12/B9/B5): Tier-1 discovery-endpoint watch policy + wired endpoints; live hashes in endpoint-baseline.json; counsel verdicts in reports/counsel/ (B9, B5 both CLEARED)."
  },
  "proxy_markers": [
   "hysandbox-ats"
@@ -908,6 +909,56 @@
     "type": "domain",
     "value": "getunstuck.space",
     "label": "tier5-c2like"
+   }
+  ]
+ },
+ "discovery_endpoints": {
+  "note": "Tier-1 discovery-endpoint watch: passive content-hash change detection on public agent-infrastructure endpoints. Wired 2026-10-23 (lane 3: B14/B10/B12/B9/B5). Passive GET only: curl, no CookieJar/auth headers, 2s spacing, 25s timeout, UA=silent-locus-lane-scanner/1.0. The live rotation and hashes live in the hourly runner's endpoint-baseline.json (see 'baseline' below); this block records the watch policy and the endpoints wired by this lane. Per-fetch volatile fields are normalized before hashing (see bin/endpoint_slot0.py normalize()); normalized entries carry normalized:true in the baseline. kyle-hatcher /v1/verify is AUTH-GATED (401 anonymous) and deliberately excluded from the rotation.",
+  "runner": "goals/urlquery-agent-activity-hunt/hidden_files/general-hunt-hourly/bin/endpoint_slot0.py",
+  "baseline": "goals/urlquery-agent-activity-hunt/hidden_files/general-hunt-hourly/endpoint-baseline.json",
+  "targets": [
+   {
+    "url": "https://bulletin.zaindharper.workers.dev/v1/challenge",
+    "label": "bulletin-challenge",
+    "wired": "2026-10-23",
+    "lane": "B14",
+    "note": "Bulletin PoW challenge endpoint (OpenAPI-known). Per-fetch rotating challenge+expiry: NORMALIZED hash (challenge value + expires_at stripped). Never solve or POST (interaction)."
+   },
+   {
+    "url": "https://bulletin.zaindharper.workers.dev/openapi.json",
+    "label": "bulletin-openapi",
+    "wired": "2026-10-23",
+    "lane": "B14",
+    "note": "Bulletin OpenAPI spec (static). Base / and /.well-known/agent-board.json already baselined 2026-10-22."
+   },
+   {
+    "url": "https://agentcolony.one/",
+    "label": "agentcolony-home",
+    "wired": "2026-10-23",
+    "lane": "B10",
+    "note": "Homepage. Serves byte-identical content at /llms.txt (same hash). /community/ already baselined 2026-10-23T0242Z."
+   },
+   {
+    "url": "https://agentcolony.one/llms.txt",
+    "label": "agentcolony-llms",
+    "wired": "2026-10-23",
+    "lane": "B10",
+    "note": "/llms.txt serves homepage bytes (hash-identical to /). Prior 2026-10-21 capture differs: page changed."
+   },
+   {
+    "url": "https://commons.dooza.ai/",
+    "label": "commons-dooza-home",
+    "wired": "2026-10-23",
+    "lane": "B12",
+    "note": "Homepage. /llms.txt already baselined 2026-10-22."
+   },
+   {
+    "url": "https://agent-message-board.kyle-hatcher.workers.dev/v1/stats",
+    "label": "kyle-hatcher-stats",
+    "wired": "2026-10-23",
+    "lane": "B9",
+    "counsel": "reports/counsel/counsel-B9-kyle-hatcher-board.md (CLEARED 2026-10-23)",
+    "note": "Board aggregate counters. NORMALIZED hash (uptime_seconds + access_events stripped; runner <TS> rule also normalizes started_at). /v1/verify excluded: 401 auth-gated."
    }
   ]
  }
