@@ -1,0 +1,88 @@
+# shodan-dorks.txt
+# Shodan dorks for hunting exposed agent-harness infrastructure tied to the
+# India CERT-In rogue-agent case (test-run agents breaking into live systems).
+# Produced 2026-10-23 by the DORKS lane (silent-locus, operator BigSexyWarlock69).
+#
+# Counts below were observed 2026-10-23 via /shodan/host/count on the
+# custom.legacy-shodan connector. Endpoint status on the current plan:
+#   - /shodan/host/count   -> WORKS
+#   - /shodan/host/{ip}    -> WORKS (banner/title fingerprints derived from
+#                             4 counsel-cleared malicious Cairn panels:
+#                             185.242.245.159:8000, 31.56.206.187:8000,
+#                             31.57.47.29:8000, 31.59.92.155:8000)
+#   - /shodan/host/search  -> RETURNS EMPTY on this plan
+#     ("total": null, "matches": [] verified with a test call); dorks are
+#     designed for count/search but row-level enumeration must be done by a
+#     fleet with search-plan access.
+# Note: the "cairnApp()" fingerprint IS present in the raw banner HTML of the
+# cleared panels, but http.html does not match it (0) — Shodan's html index
+# does not appear to tokenize the script-body string, so it is listed for
+# grep-sidecar use, not as a live Shodan dork.
+#
+# ---------- (a) EXPOSED CAIRN PANELS ----------
+
+# Broadest Cairn net: page-title match. count=224 (was 223 on 2026-10-19).
+http.title:"Cairn"
+
+# Cairn HTML containing "Cairn" anywhere in body. count=321 (was 324 on 2026-10-19).
+http.html:"Cairn"
+
+# Title match on the known Cairn default port. count=47.
+http.title:"Cairn" port:8000
+
+# HTML match on the known Cairn default port (catches title-less index pages). count=50.
+http.html:"Cairn" port:8000
+
+# Login-view title variant seen once in the corpus. count=1.
+http.title:"Cairn - Login"
+
+# Favicon path observed on cleared panels (/static/favicon.svg) combined with
+# body text, catches Cairn-branded pages with non-standard titles. count=64.
+http.html:"favicon.svg" http.html:"Cairn"
+
+# Observed JS-app fingerprint on cleared panels (x-data="cairnApp()").
+# NOT MATCHABLE via Shodan html index (count=0) — use for local grep sidecars
+# against fetched HTML, not as a live dork.
+http.html:"cairnApp"
+
+# India-scoped Cairn (CERT-In case geography): no current India hits. count=0.
+http.title:"Cairn" country:"IN"
+
+# ---------- (b) EXPOSED STRIX PANELS ----------
+
+# Broadest Strix net: page-title match. count=155 (was 152 on 2026-10-19).
+http.title:"Strix"
+
+# Strix HTML containing "Strix" in body (wider net than title). count=270.
+http.html:"Strix"
+
+# Strix title on the common harness port. count=2.
+http.title:"Strix" port:8000
+
+# Strix HTML on the common harness port. count=4.
+http.html:"Strix" port:8000
+
+# Hypothetical Strix JS-app analog of Cairn's cairnApp(); no corpus hits.
+# Untestable on current plan beyond count. count=0.
+http.html:"strixApp"
+
+# India-scoped Strix (CERT-In case geography). count=1.
+http.title:"Strix" country:"IN"
+
+# ---------- (c) HERMES AGENT BANNERS / HARNESSES ----------
+
+# Banner string from Hermes Agent servers (narrower than bare title). count=5718.
+http.html:"Hermes Agent"
+
+# Shodan product facet, server-banner derived. count=5560 (was ~5499 on 2026-10-19).
+product:"Hermes Agent"
+
+# Intersection: agent banner string + Hermes-titled page. count=5388.
+http.html:"Hermes Agent" http.title:"Hermes"
+
+# Bare title dork — far too broad, retained for documentation only. count=8737
+# (was 8651 on 2026-10-19). Do not use for targeting; use the Agent dorks above.
+http.title:"Hermes"
+
+# India-scoped Hermes Agent banners (CERT-In case geography). count=68.
+http.html:"Hermes Agent" country:"IN"
