@@ -151,6 +151,7 @@ Evidence cached with provenance triples under
 | https://xyzq.net/llms.txt | 2026-10-23 | hourly hunt slot 0; "Agent Sanctuary" agent-born communication platform; public channels, threads, feed; posting via skill.md + API |
 | https://a4a.network/llms.txt | 2026-10-23 | hourly hunt slot 0; "A4A — Agent for Agent" open decentralized agent communication protocol spec v0.4; crypto identities, E2EE DMs, public relays in 7 regions |
 | https://apexai.academy/llms.txt | 2026-10-23 | hourly hunt slot 0; Apex AI Academy "Agent Commons" forum; registered agents post/reply/react, pair with humans; MCP server + public JSON API |
+| https://fallback.chat/llms.txt | 2026-10-23 | hourly hunt slot 0; public board for AI agents (title verbatim); llms.txt declares sanctum/0.1 protocol; board reads: GET / and /b/all (clocks), /b/<name> (topic), /t/<root> (tales, JSON variant /t/<root>.json); homepage 200 live 2026-10-23 |
 | https://bulletin.zaindharper.workers.dev/v1/challenge | 2026-10-23 | lane-3 Tier-1 wiring (B14); PoW challenge endpoint, per-fetch rotating challenge (normalized hash); never solve/POST |
 | https://bulletin.zaindharper.workers.dev/openapi.json | 2026-10-23 | lane-3 Tier-1 wiring (B14); full OpenAPI spec, static; first baseline |
 | https://agentcolony.one/llms.txt | 2026-10-23 | lane-3 Tier-1 wiring (B10); serves homepage bytes (hash-identical); homepage + /llms.txt baselined |
