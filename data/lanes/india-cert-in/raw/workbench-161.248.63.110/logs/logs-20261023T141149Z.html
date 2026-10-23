@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>自动化渗透测试工作台</title>
+    <meta
+      name="description"
+      content="面向已获授权目标的自动化渗透测试与安全评估工作台"
+    />
+    <meta name="color-scheme" content="dark light" />
+    <meta name="theme-color" content="#101114" />
+    <link rel="icon" href="/favicon-32.png" sizes="32x32" type="image/png" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <script>
+      // Apply saved theme before first paint to avoid a flash.
+      (function () {
+        try {
+          var pref = localStorage.getItem("cairn.theme.preference");
+          if (pref !== "light" && pref !== "dark" && pref !== "system") {
+            pref = "dark";
+          }
+          var t = pref === "system"
+            ? (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light")
+            : pref;
+          document.documentElement.setAttribute("data-theme", t);
+          document.documentElement.style.colorScheme = t;
+          var themeMeta = document.querySelector('meta[name="theme-color"]');
+          if (themeMeta) themeMeta.setAttribute("content", t === "dark" ? "#101114" : "#f2f5fa");
+        } catch (e) {
+          document.documentElement.setAttribute("data-theme", "dark");
+          document.documentElement.style.colorScheme = "dark";
+        }
+      })();
+    </script>
+    <style>
+      /* Boot splash. The entry document paints this immediately, covering the
+         cold-start gap while the app bundle is still downloading, parsing, and
+         mounting — the window that otherwise shows a blank #root. React's
+         createRoot() replaces #root's children on its first render, so the
+         splash clears itself with no teardown script. Colors key off
+         [data-theme], stamped by the script above before first paint, so light
+         and dark are correct without waiting on the app stylesheet; the two
+         --c-bg values match src/index.css exactly, so there is no flash when it
+         loads. */
+      #boot-splash {
+        position: fixed;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #101114; /* dark --c-bg (default) */
+      }
+      :root[data-theme="light"] #boot-splash {
+        background: #f2f5fa; /* light --c-bg */
+      }
+      /* A dedicated class avoids Tailwind's `ring` box-shadow utility. Keep
+         the outer size stable before its reset loads and match App's Splash. */
+      #boot-splash .boot-spinner {
+        box-sizing: border-box;
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        border: 2px solid rgba(95, 157, 247, 0.22);
+        border-top-color: #5f9df7; /* brand accent, dark */
+        /* Shown from the first frame. The app bundle is gzipped now, so React
+           usually mounts within a few hundred ms; the old 0.25s reveal delay
+           was longer than that window and swallowed the spinner on nearly
+           every load. A short fade (no delay) keeps the entrance gentle
+           without hiding it. */
+        opacity: 0;
+        animation: boot-spin 1s linear infinite,
+          boot-in 0.12s ease-out forwards;
+      }
+      :root[data-theme="light"] #boot-splash .boot-spinner {
+        border-color: rgba(29, 95, 214, 0.18);
+        border-top-color: #1d5fd6; /* brand accent, light */
+      }
+      @keyframes boot-spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+      @keyframes boot-in {
+        to {
+          opacity: 1;
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        /* No spin: a full ring that gently breathes instead. */
+        #boot-splash .boot-spinner {
+          border-color: #5f9df7;
+          animation: boot-pulse 1.6s ease-in-out infinite;
+        }
+        :root[data-theme="light"] #boot-splash .boot-spinner {
+          border-color: #1d5fd6;
+        }
+        @keyframes boot-pulse {
+          0%,
+          100% {
+            opacity: 0.35;
+          }
+          50% {
+            opacity: 1;
+          }
+        }
+      }
+    </style>
+    <script type="module" crossorigin src="/assets/index-30P0W08I.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-1r_Fpo0j.css">
+  </head>
+  <body>
+    <div id="root">
+      <div id="boot-splash" aria-hidden="true"><div class="boot-spinner"></div></div>
+    </div>
+  </body>
+</html>

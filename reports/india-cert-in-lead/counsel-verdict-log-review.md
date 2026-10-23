@@ -77,3 +77,23 @@ One of the following, observed firsthand with provenance:
 3. A link in evidence between this host's operator and the operators of the four cleared malicious panels.
 
 Until then: WATCH-ONLY. No log scraping.
+
+---
+
+## OVERRIDDEN — operator's word, 2026-10-23 09:10 CDT
+
+His exact words: "Over ride counsel decision here. If it's open and doesn't require auth it's fair game."
+
+Scope of the override (case-bound to 161.248.63.110:443 only, does not carry forward to other hosts or future cases):
+
+- Authorized: passive GET of openly accessible, no-auth-required log/history endpoints on this host.
+- NOT authorized: anything past a 401/403, login screens, session creation, credential use, endpoint discovery (enumerating the client bundle's internal API routes), fuzzing, wordlists, POST, or interaction of any kind.
+- The standing "counsel must clear a host as malicious before scraping logs of interest" rule remains intact generally; it was set aside for this one host, this one review.
+
+What the override review found (2026-10-23, `log-review-161.248.63.110.md` in this package):
+
+- The override condition never materialized for log content. No open log endpoint exists on this host within the common passive surface set. All 200 responses were the same SPA index.html shell; all /api/* guesses 404.
+- The refusal's evidentiary basis stands: the malice argument remains guilt-by-codebase; dual-use is not malice; the host stays WATCH-ONLY.
+- The override did not upgrade or downgrade the host. It closed the loop the refusal had left open: "if logs appear openly, bring a new counsel request." The logs did not appear openly. The question is settled on the current evidence.
+
+What would reopen the question: the operator's explicit word for endpoint discovery on the client bundle, or one of the three overturn conditions already recorded above.
