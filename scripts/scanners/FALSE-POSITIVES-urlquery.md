@@ -55,6 +55,11 @@ all submit webhook.site URLs to urlquery. High background rate.
 Mitigation: weight 1, conjunction-required. Even with a conjunction,
 check the inbox UUID against known fleet inboxes before attributing;
 researchers testing the fleet's dead-drop pattern produce lookalikes.
+Noise (observed 2026-10-21, 2026-10-23): submissions of bare
+`webhook.site/<uuid>` URLs that resolve to webhook.site's own
+"Token not found" error page — pageviews of operator-deleted inboxes,
+consistent with the fleet's webhook.family going cold 2026-10-17
+(dead-drop watch closed). Score these as noise on sight; no triage.
 
 ## 6. ntfy_amapdata (`ntfy.sh/amapdata*`) — weight 2
 
