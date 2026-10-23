@@ -29,6 +29,9 @@ touches the network.
 | 11 | `reposcout.py` | reposcout | GitHub repo trees + HF dataset manifests: newly-appeared trajectory-candidate files | SECONDARY |
 | 12 | `cairnwatch.py` | cairn-panel-watch | 4 counsel-cleared Cairn panels (hardcoded allowlist), diffed by project id | PRIMARY |
 | 13 | `surfacewatch.py` | surface-watch | 13 hardcoded agent-infrastructure surfaces: content-hash change detection | PRIMARY |
+| 14 | `iocfeeds.py` | ioc-feeds | OTX/urlhaus/ThreatFox indicator feeds | SECONDARY |
+| 15 | `intel_slot5.py` | intel-slot5 | r.jina.ai reader: new posts on swarmcha.se / norforge.com (disabled by default) | SECONDARY |
+| 16 | `telegraph.py` | telegraph-watch | api.telegra.ph getPage: content/view deltas on corpus-sourced pages (disabled by default) | SECONDARY |
 
 Lane 12 notes: disabled by default; 4-host allowlist hardcoded in the module source (counsel constraint 1 — no config override, no discovery); per run = 4 GETs to /projects only, detail fetch on unseen IDs only, streaming 2MB cap, ~10MB run budget; heartbeat alerts are transition-only (never advancing timestamps); state holds projections + hashes only.
 

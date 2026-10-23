@@ -13,6 +13,15 @@ uses count FACETS (org/asn/domain snapshots in
 state/shodan_facets.json, refreshed every run) -- new facet values
 and movers >= +/-5 are reported on the hit (A4, 2026-10-20).
 
+BEHAVIOR CHANGE (2026-10-23, B15, operator-authorized): the previous
+count for each query label is now read from the module state file
+(state/shodan_facets.json, `prev:<label>`/`<label>` snapshots),
+not from the ephemeral seen_ids set. Before this fix, scan()
+rebuilt seen_ids fresh on every direct run, so _last_count_for() had
+nothing to compare against and delta alerts never fired. Failed
+count queries never touch the stored baseline, so a flaky run
+cannot manufacture or suppress a delta on the next run.
+
 Queries come from the 2026-10-19 Cairn/Strix/Hermes hunt
 (refined-queries.json). Baselines from that hunt:
 
@@ -39,6 +48,23 @@ Usage:
 
 Queries come from ~/workspace/silent-locus/scripts/swarm-infra-config.json
 ("shodan" block).
+
+Adversarial review (2026-10-23, B15 fix):
+  - Corrupt state JSON -> _load_facet_state returns {} (no crash,
+    no alerts; next run re-seeds baseline).
+  - Non-dict state payload -> treated as absent (hardened 2026-10-23).
+  - count API fails/429s -> total None -> report_error, baseline NOT
+    touched; no false delta on the next run.
+  - API returns garbage total (string/float/negative) -> int()
+    coercion; diff math still well-defined.
+  - Concurrent writers -> atomic tmp+rename per write, but
+    read-modify-write races are possible; single writer (slot-1 cron)
+    is the operating assumption.
+  - Churn caveat: ANY nonzero delta alerts (no +/-1 deadband). Shodan
+    rescan churn can produce +/-1 noise; the facet-attribution line
+    is the disambiguator, not a threshold. Deliberate: operator asked
+    for delta alerts to fire; adding a deadband would be a behavior
+    cut that was not requested.
 """
 from __future__ import annotations
 
@@ -106,7 +132,11 @@ def _count_query(query: str, facets: str | None = None):
 
 
 def _last_count_for(seen_ids, label: str) -> int | None:
-    """Find the most recent stored count for a query label."""
+    """Legacy fallback: most recent stored count from the seen_ids set.
+
+    Used only when the module state file has no snapshot for the
+    label yet (migration path for orchestrator-era seen entries).
+    The state file is the authoritative previous-run source now."""
     prefix = f"shodan:count:{label}:"
     best = None
     for key in seen_ids:
@@ -120,16 +150,39 @@ def _last_count_for(seen_ids, label: str) -> int | None:
     return best
 
 
+def _prev_count_for(facet_state: dict, seen_ids, label: str) -> int | None:
+    """Authoritative previous count for a label (B15).
+
+    Reads the module state file snapshot first; falls back to the
+    legacy seen_ids encoding only when no snapshot exists. This is
+    what makes delta alerts fire on direct runs, where seen_ids is
+    rebuilt fresh every time."""
+    prev_entry = facet_state.get(label)
+    if isinstance(prev_entry, dict):
+        total = prev_entry.get("total")
+        try:
+            return int(total) if total is not None else None
+        except (TypeError, ValueError):
+            pass
+    return _last_count_for(seen_ids, label)
+
+
 def _load_facet_state() -> dict:
     try:
         with open(FACET_STATE_PATH) as f:
-            return json.load(f)
+            state = json.load(f)
     except (OSError, json.JSONDecodeError):
         return {}
+    # Adversarial 2026-10-23 (B15 review): a non-dict payload (list,
+    # string, number) would crash .get() downstream and brick every
+    # query in scan(). Treat it as absent.
+    if not isinstance(state, dict):
+        return {}
+    return state
 
 
 def _save_facet_state(state: dict) -> None:
-    tmp = f"{FACET_STATE_PATH}.general-hunt.tmp"
+    tmp = f"{FACET_STATE_PATH}.tmp"
     with open(tmp, "w") as f:
         json.dump(state, f, indent=1)
     os.replace(tmp, FACET_STATE_PATH)
@@ -188,7 +241,7 @@ def scan_query(query_cfg: dict, seen_ids, collected_at: str,
                      {"query": query[:200]})
         return hits
 
-    prev = _last_count_for(seen_ids, label)
+    prev = _prev_count_for(facet_state, seen_ids, label)
     print(f"[shodan] {label}: count={total} "
           f"(prev={prev}, baseline={baseline})", file=sys.stderr)
 

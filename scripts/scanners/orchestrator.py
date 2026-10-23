@@ -64,6 +64,8 @@ LANES = [
     ("cairnwatch", "cairn-panel-watch", False),  # lane 12, disabled by default per counsel
     ("surfacewatch", "surface-watch", False),  # lane 13, disabled by default
     ("iocfeeds", "ioc-feeds", True),  # lane 14, OTX keyless; urlhaus/threatfox need keys
+    ("intel_slot5", "intel-slot5", False),  # B16, disabled by default: flip False -> True to enable slot-5 intel watch (swarmcha.se / norforge.com new posts)
+    ("telegraph", "telegraph-watch", False),  # B4, disabled by default: flip False -> True to enable telegra.ph content/view watch
 ]
 
 # Counsel verdicts that shape orchestration (2026-10-14):
