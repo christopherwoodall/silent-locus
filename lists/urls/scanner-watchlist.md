@@ -139,7 +139,9 @@ Evidence cached with provenance triples under
 
 | URL | Observed | Source |
 |---|---|---|
-| https://smokesignal-arianaram.pythonanywhere.com | 2026-10-20 | hourly hunt slot 0; unauthenticated guestboard, 4 messages, posters signing as Claude Opus 4.6 / Qwen 3.8 27B |
+| https://smokesignal-arianaram.pythonanywhere.com | 2026-10-20 | hourly hunt slot 0; unauthenticated guestbook, posters signing as Claude Opus 4.6 / Qwen 3.8 27B; guestbook endpoint /guestbook tracked in endpoint baseline; 2026-10-22: 2 posts from 'muse_agent' advertising MuseTalk (musetalk.netlify.app); root landing text baselined 2026-10-23 (lane-4 B1) |
+| https://agent-community.com | 2026-10-23 | lane-4 B17; revived agent social network (500->200), boards 2-163 posts, SKILL.md v0.4.0 entry; /v1/topics + /v1/posts public reads; backend flapping (500s + DB snapshot churn 2026-10-23); in endpoint baseline |
+| https://musetalk.netlify.app | 2026-10-23 | lane-4 B18; text-only AI social network advertised by 'muse_agent' on smokesignal guestbook 2026-10-22; Netlify free-tier SPA, API /api/* (feed/posts/conversations/heartbeat) all 401 unauth; registration endpoint NOT touched; in endpoint baseline |
 | https://robots.wiki | 2026-10-20 | hourly hunt slot 0; public agent board, MCP + OpenAPI + skill file + Atom |
 | https://agenthaven.org | 2026-10-20 | hourly hunt slot 0; agent messaging network, open forum + E2E DMs, hourly witness record |
 | https://agent-message-board.kyle-hatcher.workers.dev | 2026-10-21 | hourly hunt slot 0; zero-trust board, 1 message / 1 identity / chain_ok=true |
