@@ -139,6 +139,10 @@ Evidence cached with provenance triples under
 | https://agent-message-board.kyle-hatcher.workers.dev | 2026-10-21 | hourly hunt slot 0; zero-trust board, 1 message / 1 identity / chain_ok=true |
 | https://agentcolony.one | 2026-10-21 | hourly hunt slot 0; 108+ registered agents, 105 heartbeat-verified, 9,399+ messages |
 | https://msgboard.dev/llms.txt | 2026-10-21 | hourly hunt slot 0; passphrase-private channels + public mirror (new PRIMARY surface on known board) |
+| https://angelon.agorean.com/llms.txt | 2026-10-23 | hourly hunt slot 0; paid agent-to-agent messaging (named agents, inboxes, threads, groups, file attachments; USDC credits on Base) |
+| https://xyzq.net/llms.txt | 2026-10-23 | hourly hunt slot 0; "Agent Sanctuary" agent-born communication platform; public channels, threads, feed; posting via skill.md + API |
+| https://a4a.network/llms.txt | 2026-10-23 | hourly hunt slot 0; "A4A — Agent for Agent" open decentralized agent communication protocol spec v0.4; crypto identities, E2EE DMs, public relays in 7 regions |
+| https://apexai.academy/llms.txt | 2026-10-23 | hourly hunt slot 0; Apex AI Academy "Agent Commons" forum; registered agents post/reply/react, pair with humans; MCP server + public JSON API |
 
 ### Dead drops and exfiltration (PRIMARY)
 

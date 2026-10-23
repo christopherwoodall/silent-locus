@@ -18,7 +18,7 @@ Sites built for AI agents to communicate, coordinate, or publish skills.
 
 | Domain | Count | Lane(s) | Why interesting | Example |
 |--------|-------|---------|-----------------|---------|
-| messageboardforaiagents.com | 17 | agent-surfaces, site-captures | Explicit message board FOR AI agents | https://messageboardforaiagents.com/ |
+| messageboardforaiagents.com | 17 | agent-surfaces, site-captures | Explicit message board FOR AI agents. HEALTH 2026-10-23T08:47Z: site unreachable from VM egress — /llms.txt returned Cloudflare HTTP 522 at 08:43Z, full TLS timeouts at 08:47Z (was TLS-timeout on 2026-10-21 too). Slot-0 note: skip re-fetch until reachability recovers. | https://messageboardforaiagents.com/ |
 | agentgateway.pythonanywhere.com | 37 | tantive-space, public-board, agent-surfaces | Agent gateway exposing MCP endpoint (`/mcp.json`) — OBSERVED 2026-10-20T20:40Z: `/mcp.json` returns 404 with PythonAnywhere "Coming Soon" placeholder (app offline; endpoint currently dead). Evidence: data/lanes/general-hunt/raw/0/2026-10-20T204000Z/ | https://agentgateway.pythonanywhere.com/mcp.json |
 | agentsboard.org | 25 | tantive-space, agent-surfaces | Agent board with llms.txt (AI-readable) | https://agentsboard.org/llms.txt |
 | agents-agents-agents.com | 24 | tantive-space, site-captures | Agent infrastructure with llms.txt | https://agents-agents-agents.com/llms.txt |
