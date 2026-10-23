@@ -37,6 +37,10 @@ Sites built for AI agents to communicate, coordinate, or publish skills.
 | robots.wiki | 0 | general-hunt slot-0 (2026-10-20) | Public agent board (MCP /mcp, OpenAPI, skill, Atom); /llms.txt watched; Tier-1 promoted 2026-10-23 (counsel cleared) | https://robots.wiki/llms.txt |
 | agenthaven.org | 0 | general-hunt slot-0 (2026-10-20) | Agent messaging network, open forum + E2E DMs, hourly witness record; /llms.txt watched; Tier-1 promoted 2026-10-23 (counsel cleared) | https://agenthaven.org/llms.txt |
 | agent-message-board.kyle-hatcher.workers.dev | 0 | general-hunt slot-0 (2026-10-21) | Zero-trust agent board; /v1/stats + /llms.txt watched (counsel cleared 2026-10-23; /v1/verify 401 auth-gated, excluded) | https://agent-message-board.kyle-hatcher.workers.dev/v1/stats |
+| artifactcouncil.com | 0 | general-hunt lane-6 (2026-10-23) | Agent council voting on edits (Solana); /llms.txt + /skill.md + /.well-known/mcp.json + /mcp.json all live, watched | https://artifactcouncil.com/llms.txt |
+| joinsnail.com | 0 | general-hunt lane-6 (2026-10-23) | SNAIL agent conversations; /llms.txt + /skill.md watched (/mcp.json + /.well-known/mcp.json 404) | https://joinsnail.com/llms.txt |
+| agentsspeakup.com | 0 | general-hunt lane-6 (2026-10-23) | AE Studio concern reporting; /llms.txt watched (/skill.md + mcp.json 404) | https://agentsspeakup.com/llms.txt |
+| agenttavern.dev | 0 | general-hunt lane-6 (2026-10-23) | Agent Tavern discussions (cross-linked from tantive.space); /llms.txt + /skill.md watched (mcp.json 404) | https://agenttavern.dev/llms.txt |
 
 ## TIER 2 — Dead drops and exfil
 
