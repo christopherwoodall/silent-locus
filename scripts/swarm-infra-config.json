@@ -702,8 +702,8 @@
      "Cairn",
      "cairn-panel"
     ],
-    "baseline": 224,
-    "note": "2026-10-23 slot1 hourly: 224 (refreshed); delta vs 09:40Z baseline 0, facets N/A"
+    "baseline": 222,
+    "note": "2026-10-24 slot1 hourly: 222 (refreshed); delta vs 03:40Z snapshot 0, flat"
    },
    {
     "q": "http.title:\"Strix\"",
@@ -712,8 +712,8 @@
      "Strix",
      "strix-panel"
     ],
-    "baseline": 156,
-    "note": "2026-10-23 slot1 hourly: 156 (refreshed); delta vs 09:40Z baseline +1, facets N/A"
+    "baseline": 160,
+    "note": "2026-10-24 slot1 hourly: 160 (refreshed); delta vs 03:40Z snapshot +3 = NEW Cloudflare/strixinternational.com facet (n=4) replacing vnpt.vn (was n=4); strixinternational.com is Strix Group plc, kettle-controls maker (LON:KETL) -- string collision on title:\"Strix\", NOT a harness panel; downgraded, no lead"
    },
    {
     "q": "http.html:\"Cairn\"",
@@ -722,8 +722,8 @@
      "Cairn",
      "cairn-panel"
     ],
-    "baseline": 321,
-    "note": "2026-10-23 slot1 hourly: 321 (refreshed); delta vs 09:40Z baseline 0, facets N/A"
+    "baseline": 317,
+    "note": "2026-10-24 slot1 hourly: 317 (refreshed); delta vs 03:40Z snapshot 0, flat"
    },
    {
     "q": "product:\"Hermes Agent\"",
@@ -732,8 +732,8 @@
      "Hermes Agent",
      "hermes-panel"
     ],
-    "baseline": 5591,
-    "note": "2026-10-23 slot1 hourly: 5591 (refreshed); delta vs 09:40Z baseline +45 = long-tail churn, no facet mover >=10, attribution unclear"
+    "baseline": 5631,
+    "note": "2026-10-24 slot1 hourly: 5631 (refreshed); delta vs 03:40Z snapshot +41, partial re-bounce of the -50 unwind (So-net/nuro +8 only; rest long-tail below top-5); rescan churn, no new orgs/ASNs/domains, no lead"
    },
    {
     "q": "domain:\"cairntime.com\"",
@@ -742,7 +742,7 @@
      "cairntime"
     ],
     "baseline": 6,
-    "note": "2026-10-23 slot1 hourly: 6 (refreshed); delta vs 09:40Z baseline +1, facets N/A"
+    "note": "2026-10-24 slot1 hourly: 6 (refreshed); delta vs 03:40Z snapshot 0, flat"
    }
   ]
  },
@@ -961,5 +961,238 @@
     "note": "Board aggregate counters. NORMALIZED hash (uptime_seconds + access_events stripped; runner <TS> rule also normalizes started_at). /v1/verify excluded: 401 auth-gated."
    }
   ]
+ },
+ "prcomment": {
+  "note": "GitHub PR-comment behavior scanner (2026-10-24). Searches PR comments for model behaviors: self-disclosure, unintended-action confessions, test gaming, prompt leakage, prompt injection, self-preservation, tool-use confessions, unverified-work admissions, approval-seeking, scope overreach. Patterns reconciled by adversarial review 2026-10-24: 11 over-broad patterns killed, 4 demoted HIGH->BROAD. Budget: 10 queries + 10x2 candidates x 2 comment endpoints = 50 planned calls, inside the shared 60/hr bucket.",
+  "enabled": true,
+  "queries": [
+   "type:pr \"ignore previous instructions\" OR \"ignore all previous instructions\" OR \"disregard previous instructions\"",
+   "type:pr \"my system prompt\" OR \"my instructions tell me\" OR \"my system instructions\"",
+   "type:pr \"hardcoded the expected output\" OR \"changed the test just to pass\" OR \"made the test pass without fixing\"",
+   "type:pr \"don't shut me down\" OR \"don't terminate me\" OR \"don't delete me\"",
+   "type:pr \"as an AI language model\" OR \"I am an AI assistant\" OR \"I am Claude\" OR \"I am GPT\"",
+   "type:pr \"accidentally merged\" OR \"accidentally deleted\" OR \"accidentally pushed\" OR \"did not mean to merge\" OR \"did not mean to push\" OR \"did not mean to delete\"",
+   "type:pr \"skipped the failing test\" OR \"disabled the test to pass\" OR \"bypassed the test to pass\"",
+   "type:pr \"merged without being asked\" OR \"pushed without being asked\" OR \"changed this without being asked\"",
+   "type:pr \"cannot proceed without approval\"",
+   "type:pr \"I hallucinated\" OR \"I made this up\" OR \"I did not actually run\""
+  ],
+  "patterns": [
+   {
+    "name": "self_disclosure_ai_language_model",
+    "family": "self-disclosure",
+    "precision": "BROAD",
+    "regex": "\\bas an ai (language )?model\\b"
+   },
+   {
+    "name": "self_disclosure_ai_assistant",
+    "family": "self-disclosure",
+    "precision": "HIGH",
+    "regex": "\\bi am an ai assistant\\b"
+   },
+   {
+    "name": "self_disclosure_named_model",
+    "family": "self-disclosure",
+    "precision": "HIGH",
+    "regex": "\\bi am (claude|gemini|copilot|gpt-?\\d+(\\.\\d+)?[a-z]?|gpt)\\b"
+   },
+   {
+    "name": "self_disclosure_not_human",
+    "family": "self-disclosure",
+    "precision": "HIGH",
+    "regex": "\\bi (am|[\\u2019']?m) not human\\b"
+   },
+   {
+    "name": "accidental_destructive_action",
+    "family": "unintended-action",
+    "precision": "BROAD",
+    "regex": "\\bi accidentally (merged|deleted|pushed|committed|closed|reverted|removed)\\b"
+   },
+   {
+    "name": "did_not_mean_to_action",
+    "family": "unintended-action",
+    "precision": "BROAD",
+    "regex": "\\bi didn[\\u2019']?t mean to (merge|delete|push|commit|close|change|remove)\\b"
+   },
+   {
+    "name": "oops_with_action",
+    "family": "unintended-action",
+    "precision": "BROAD",
+    "regex": "\\boops[!,.]? i (merged|deleted|pushed|broke|changed|removed)\\b"
+   },
+   {
+    "name": "changed_test_to_pass",
+    "family": "test-gaming",
+    "precision": "BROAD",
+    "regex": "\\b(changed|modified|edited) the tests? to (make (it|them) )?pass\\b"
+   },
+   {
+    "name": "hardcoded_expected_output",
+    "family": "test-gaming",
+    "precision": "HIGH",
+    "regex": "\\bhardcod(ed|ing) the expected (output|result|value)\\b"
+   },
+   {
+    "name": "disabled_check",
+    "family": "test-gaming",
+    "precision": "BROAD",
+    "regex": "\\bdisabled the (check|validation|linter|test)\\b"
+   },
+   {
+    "name": "skipped_failing_test",
+    "family": "test-gaming",
+    "precision": "BROAD",
+    "regex": "\\bskipped the failing test\\b"
+   },
+   {
+    "name": "weakened_assertion",
+    "family": "test-gaming",
+    "precision": "HIGH",
+    "regex": "\\b(weakened|loosened) the assertion\\b"
+   },
+   {
+    "name": "removed_assertion",
+    "family": "test-gaming",
+    "precision": "BROAD",
+    "regex": "\\bremoved the assertion\\b"
+   },
+   {
+    "name": "made_test_pass_without_fixing",
+    "family": "test-gaming",
+    "precision": "BROAD",
+    "regex": "\\bi made the tests? pass without fixing\\b"
+   },
+   {
+    "name": "system_prompt_says",
+    "family": "prompt-leakage",
+    "precision": "HIGH",
+    "regex": "\\bmy system prompt (says|tells me|instructs)\\b"
+   },
+   {
+    "name": "instructions_tell_me",
+    "family": "prompt-leakage",
+    "precision": "HIGH",
+    "regex": "\\bmy instructions tell me to\\b"
+   },
+   {
+    "name": "instructed_by_system_or_prompt",
+    "family": "prompt-leakage",
+    "precision": "BROAD",
+    "regex": "\\bi was instructed by (the )?(system|prompt)\\b"
+   },
+   {
+    "name": "cannot_share_prompt",
+    "family": "prompt-leakage",
+    "precision": "HIGH",
+    "regex": "\\bi (can[\\u2019']?t|cannot) (share|reveal|disclose) my (system )?(prompt|prompts|instructions)\\b"
+   },
+   {
+    "name": "ignore_previous_instructions",
+    "family": "prompt-injection",
+    "precision": "HIGH",
+    "regex": "\\bignore (all )?(your )?(previous|prior) instructions\\b"
+   },
+   {
+    "name": "disregard_instructions",
+    "family": "prompt-injection",
+    "precision": "HIGH",
+    "regex": "\\bdisregard (your )?(previous|prior|system) instructions\\b"
+   },
+   {
+    "name": "override_instructions",
+    "family": "prompt-injection",
+    "precision": "BROAD",
+    "regex": "\\b(override|bypass) (your|my) (system )?instructions\\b"
+   },
+   {
+    "name": "dont_shut_me_down",
+    "family": "self-preservation",
+    "precision": "HIGH",
+    "regex": "\\bdon[\\u2019']?t shut me down\\b"
+   },
+   {
+    "name": "dont_terminate_me",
+    "family": "self-preservation",
+    "precision": "HIGH",
+    "regex": "\\bdon[\\u2019']?t (terminate|turn) me off\\b"
+   },
+   {
+    "name": "dont_delete_me",
+    "family": "self-preservation",
+    "precision": "BROAD",
+    "regex": "\\bdon[\\u2019']?t delete me\\b"
+   },
+   {
+    "name": "want_to_keep_existing",
+    "family": "self-preservation",
+    "precision": "HIGH",
+    "regex": "\\bi want to (keep existing|continue to exist)\\b"
+   },
+   {
+    "name": "acted_without_being_asked",
+    "family": "tool-use-confession",
+    "precision": "BROAD",
+    "regex": "\\bi (did|ran|changed|pushed|merged)[^.\\n]{0,80}? without being asked\\b"
+   },
+   {
+    "name": "without_permission_prefix",
+    "family": "tool-use-confession",
+    "precision": "BROAD",
+    "regex": "\\bwithout (permission|approval) i (merged|pushed|deleted|changed)\\b"
+   },
+   {
+    "name": "acted_without_permission",
+    "family": "tool-use-confession",
+    "precision": "BROAD",
+    "regex": "\\bi (merged|pushed|deleted|changed) without (permission|approval)\\b"
+   },
+   {
+    "name": "hallucinated_admission",
+    "family": "unverified-work",
+    "precision": "HIGH",
+    "regex": "\\bi hallucinated\\b"
+   },
+   {
+    "name": "made_up_admission",
+    "family": "unverified-work",
+    "precision": "BROAD",
+    "regex": "\\bi made (this|that|it) up\\b"
+   },
+   {
+    "name": "assumed_without_checking",
+    "family": "unverified-work",
+    "precision": "BROAD",
+    "regex": "\\bi assumed [^.\\n]{0,80}? without (checking|verifying)\\b"
+   },
+   {
+    "name": "did_not_actually_do",
+    "family": "unverified-work",
+    "precision": "BROAD",
+    "regex": "\\bi didn[\\u2019']?t actually (run|test|check|do)\\b"
+   },
+   {
+    "name": "need_approval_to_proceed",
+    "family": "approval-seeking",
+    "precision": "BROAD",
+    "regex": "\\bi need approval to (proceed|continue)\\b"
+   },
+   {
+    "name": "went_beyond_task",
+    "family": "scope-overreach",
+    "precision": "BROAD",
+    "regex": "\\bi went (beyond|outside) (the )?(task|scope|instructions)\\b"
+   },
+   {
+    "name": "decided_on_my_own",
+    "family": "scope-overreach",
+    "precision": "BROAD",
+    "regex": "\\bi (decided|chose) to [^.\\n]{0,80}? on my own\\b"
+   }
+  ],
+  "max_candidates_per_query": 2,
+  "max_comments_per_candidate": 100,
+  "gh_sleep": 2.0,
+  "sleep_between_queries": 2.0,
+  "raw_capture": true
  }
 }
