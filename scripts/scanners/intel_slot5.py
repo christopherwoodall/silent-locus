@@ -24,6 +24,14 @@ Politeness: 10 s spacing between index fetches (jina free tier),
 60/120 s backoff on 429, then the source is skipped — never marked
 seen, never baseline-updated, so the next run retries it.
 
+Direct-fetch fallback (A67, 2026-10-24): when the jina reader fails
+or returns truncated output for a source, scan() retries that source
+with a plain GET of the index URL itself and inventories the direct
+HTML the same way (slug keys). Titles from direct HTML are tag soup,
+so a direct-only inventory NEVER seeds a fresh source's baseline —
+it only diffs against an existing one. A direct fetch that also fails
+or parses empty keeps the old baseline, same as before.
+
 Adversarial review (2026-10-23, self-review before commit):
   - Empty/failed index fetch with a non-empty baseline -> skip the
     source with a note and report_error; NEVER treat "could not read
@@ -142,6 +150,29 @@ def _fetch_index(index_url: str, label: str) -> str | None:
             print(f"[intel_slot5] {label}: {last}", file=sys.stderr)
     print(f"[intel_slot5] {label}: giving up ({last})", file=sys.stderr)
     return None
+
+
+def _fetch_direct(index_url: str, label: str) -> str | None:
+    """Plain GET of the index URL itself (A67 fallback).
+
+    Used only when the jina reader path failed or truncated. One
+    attempt, no backoff: the next run retries jina first anyway.
+    Returns None on any failure. Callers must NOT apply the jina
+    truncation heuristic to this output (no jina header in direct
+    HTML); emptiness is judged by parsed slug count instead.
+    """
+    req = urllib.request.Request(index_url, headers={
+        "User-Agent": USER_AGENT,
+        "Accept": "text/html,application/xhtml+xml,text/plain",
+    })
+    try:
+        with urllib.request.urlopen(req, timeout=TIMEOUT) as resp:
+            raw = resp.read(MAX_TEXT + 1)
+            return raw[:MAX_TEXT].decode("utf-8", "replace")
+    except Exception as e:  # noqa: BLE001 -- fallback, caller logs
+        print(f"[intel_slot5] {label}: direct fetch failed: "
+              f"{type(e).__name__}: {e}", file=sys.stderr)
+        return None
 
 
 def _nearby_title(text: str, pos: int) -> str:
@@ -264,22 +295,30 @@ def scan(since_hours: float = 24, seen_ids=None,
         fresh = source_id not in state
         baseline = state.setdefault(source_id, {})
         text = _fetch_index(index_url, label)
-        if text is None:
-            # Transport/429 failure: skip, keep old baseline.
-            report_error("intel_slot5", "index_fetch_failed",
-                         f"{label}: index unreachable, baseline kept",
-                         {"index_url": index_url})
-            continue
-        if _looks_truncated(text):
-            # Partially-loaded reader output: do NOT seed or diff
-            # against it (would manufacture NEW-POST hits later).
-            print(f"[intel_slot5] {label}: possibly truncated, "
-                  f"baseline kept", file=sys.stderr)
-            report_error("intel_slot5", "index_possibly_truncated",
-                         f"{label}: reader output looks truncated, "
-                         f"baseline kept",
-                         {"index_url": index_url})
-            continue
+        via_direct = False
+        if text is None or _looks_truncated(text):
+            # Jina path degraded (both sources failed 3 straight
+            # slot-5 runs, 2026-10-24): fall back to a plain GET of
+            # the index itself. The jina truncation heuristic does
+            # not apply to direct HTML (no jina header), so a direct
+            # inventory is accepted on slug count alone; empty still
+            # means skip, never "all gone".
+            reason = ("fetch_failed" if text is None
+                      else "possibly_truncated")
+            print(f"[intel_slot5] {label}: jina {reason}, trying "
+                  f"direct fetch", file=sys.stderr)
+            direct = _fetch_direct(index_url, label)
+            direct_inv = _inventory(direct, slug_re) \
+                if direct is not None else {}
+            if direct_inv:
+                text, via_direct = direct, True
+            else:
+                report_error("intel_slot5",
+                             f"index_{reason}_direct_failed",
+                             f"{label}: jina {reason} and direct "
+                             f"fallback unusable, baseline kept",
+                             {"index_url": index_url})
+                continue
         inv = _inventory(text, slug_re)
         if not inv:
             # 200 with zero parseable posts: degraded, not "all gone".
@@ -298,6 +337,19 @@ def scan(since_hours: float = 24, seen_ids=None,
                 dirty = True
         print(f"[intel_slot5] {label}: {len(inv)} posts, "
               f"{len(new_slugs)} new", file=sys.stderr)
+        if fresh and via_direct:
+            # Direct HTML titles are tag soup and the inventory is
+            # unvalidated against the reader: never seed a baseline
+            # from a fallback-only read. Keep the source unseeded;
+            # the next run retries jina first.
+            print(f"[intel_slot5] {label}: direct-only inventory, "
+                  f"not seeding baseline", file=sys.stderr)
+            report_error("intel_slot5", "direct_fallback_no_seed",
+                         f"{label}: fresh source, direct-only "
+                         f"inventory not seeded",
+                         {"index_url": index_url})
+            state.pop(source_id, None)
+            continue
         if fresh:
             # First sighting: this inventory IS the novelty baseline.
             # Seed silently — everything is "new" only because we
