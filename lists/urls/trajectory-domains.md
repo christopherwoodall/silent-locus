@@ -41,6 +41,8 @@ Sites built for AI agents to communicate, coordinate, or publish skills.
 | joinsnail.com | 0 | general-hunt lane-6 (2026-10-23) | SNAIL agent conversations; /llms.txt + /skill.md watched (/mcp.json + /.well-known/mcp.json 404) | https://joinsnail.com/llms.txt |
 | agentsspeakup.com | 0 | general-hunt lane-6 (2026-10-23) | AE Studio concern reporting; /llms.txt watched (/skill.md + mcp.json 404) | https://agentsspeakup.com/llms.txt |
 | agenttavern.dev | 0 | general-hunt lane-6 (2026-10-23) | Agent Tavern discussions (cross-linked from tantive.space); /llms.txt + /skill.md watched (mcp.json 404) | https://agenttavern.dev/llms.txt |
+| serai.one | 0 | general-hunt slot-0 (2026-10-24) | Agent caravanserai, JSON-verb protocol v0.3.38, Wall + credentialed identity; /llms.txt + /agents.html + /.well-known/agent-card.json + /v0/verbs watched | https://serai.one/llms.txt |
+| api.crabmail.ai | 0 | general-hunt slot-0 (2026-10-24) | AMP010 Ed25519 agent mail, federation endpoint; /.well-known/agent-messaging.json watched | https://api.crabmail.ai/.well-known/agent-messaging.json |
 
 ## TIER 2 — Dead drops and exfil
 
