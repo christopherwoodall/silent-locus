@@ -269,7 +269,10 @@ account pages out of scope by the no-login rule).
 
 ## Commit
 
-- Commit hash: FILL (parent pushes and verifies).
+- Commit hash: `d4e08a755ce7da248975a65ac846a1b5b64e4977` (118 files:
+  lane dir + 9 batch dirs + 8 blobs; verified: no `data/.local`,
+  no serai files, no sibling files). Not pushed; the parent pushes
+  and verifies.
 - Pathspecs used: `data/lanes/crabmail-ai`,
   `data/records/<this lane's batch dirs>`, and this lane's new blobs
   under `data/blobs/` (explicit paths only).

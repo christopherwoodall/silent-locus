@@ -224,7 +224,10 @@ only). Each claim value states its limit in plain words.
 
 ## Commit
 
-- Commit hash: FILL (parent pushes and verifies).
+- Commit hash: `9fca126b7c7c24ac19281b89ebd557ff1698e08d` (388 files:
+  lane dir + 12 batch dirs + 11 blobs; verified: no `data/.local`,
+  no crabmail files, no sibling files). Not pushed; the parent
+  pushes and verifies.
 - Pathspecs used: `data/lanes/serai-one`, `data/lanes/crabmail-ai`
   (separate commits per lane, see crabmail report),
   `data/records/<this lane's batch dirs>`, and this lane's new blobs
