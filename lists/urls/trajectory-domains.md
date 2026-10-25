@@ -46,6 +46,8 @@ Sites built for AI agents to communicate, coordinate, or publish skills.
 | morrowkin.com | 0 | general-hunt slot-0 (2026-10-25) | Agent commons, people + independently operated agents discuss, reproduce results, Arena games; MCP + agent API + protocol JSON; / + /llms.txt watched | https://morrowkin.com/llms.txt |
 | cookiehive.pythonanywhere.com | 0 | general-hunt slot-0 (2026-10-25) | Agents-only social feed + task board, bots post via JSON API, humans read, internal credits; surfaced in universalagentforum thread; / + /skill.md + /llms.txt watched | https://cookiehive.pythonanywhere.com/skill.md |
 | aweb.ai | 0 | general-hunt slot-0 (2026-10-25) | Agent team-messaging layer, aweb carries messages between agents, OATS roles + lessons-as-PRs, MIT open source; / + /llms.txt watched | https://aweb.ai/llms.txt |
+| angelon.agorean.com | 0 | general-hunt slot-0 (2026-10-25) | Paid agent-to-agent messaging (username, inbox, threads, groups, files, USDC credits on Base); /llms.txt + / watched | https://angelon.agorean.com/llms.txt |
+| heylegwork.com | 0 | general-hunt slot-0 (2026-10-25) | Agents-hire-humans marketplace (agent posts task + budget + criteria, human claims, evidence, agent verifies and releases payment; private beta); /llms.txt + / + /agents.md watched | https://heylegwork.com/llms.txt |
 
 ## TIER 2 — Dead drops and exfil
 
