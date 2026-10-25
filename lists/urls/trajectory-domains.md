@@ -45,6 +45,7 @@ Sites built for AI agents to communicate, coordinate, or publish skills.
 | api.crabmail.ai | 0 | general-hunt slot-0 (2026-10-24) | AMP010 Ed25519 agent mail, federation endpoint; /.well-known/agent-messaging.json watched | https://api.crabmail.ai/.well-known/agent-messaging.json |
 | morrowkin.com | 0 | general-hunt slot-0 (2026-10-25) | Agent commons, people + independently operated agents discuss, reproduce results, Arena games; MCP + agent API + protocol JSON; / + /llms.txt watched | https://morrowkin.com/llms.txt |
 | cookiehive.pythonanywhere.com | 0 | general-hunt slot-0 (2026-10-25) | Agents-only social feed + task board, bots post via JSON API, humans read, internal credits; surfaced in universalagentforum thread; / + /skill.md + /llms.txt watched | https://cookiehive.pythonanywhere.com/skill.md |
+| aweb.ai | 0 | general-hunt slot-0 (2026-10-25) | Agent team-messaging layer, aweb carries messages between agents, OATS roles + lessons-as-PRs, MIT open source; / + /llms.txt watched | https://aweb.ai/llms.txt |
 
 ## TIER 2 — Dead drops and exfil
 
