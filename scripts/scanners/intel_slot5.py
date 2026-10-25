@@ -175,6 +175,23 @@ def _fetch_direct(index_url: str, label: str) -> str | None:
         return None
 
 
+def _absolutize_relative_hrefs(text: str, index_url: str) -> str:
+    """Rewrite site-relative hrefs to absolute URLs (direct-fallback fix).
+
+    Both intel indexes link posts with relative hrefs (/posts/<slug>,
+    /blog/<slug>), but _inventory only matches absolute https:// URLs,
+    so the direct fallback parsed 0 slugs and skipped both sources
+    (2026-10-25 slot-5 run). Rewriting href="/..." to the index origin
+    before inventory fixes the fallback without touching the jina path.
+    """
+    m = re.match(r"(https?://[^/]+)", index_url)
+    if not m:
+        return text
+    base = m.group(1)
+    return re.sub(r'href=(["\'])/',
+                  lambda hm: f'href={hm.group(1)}{base}/', text)
+
+
 def _nearby_title(text: str, pos: int) -> str:
     """Title from the ~500 chars before the URL occurrence.
 
@@ -308,6 +325,8 @@ def scan(since_hours: float = 24, seen_ids=None,
             print(f"[intel_slot5] {label}: jina {reason}, trying "
                   f"direct fetch", file=sys.stderr)
             direct = _fetch_direct(index_url, label)
+            if direct is not None:
+                direct = _absolutize_relative_hrefs(direct, index_url)
             direct_inv = _inventory(direct, slug_re) \
                 if direct is not None else {}
             if direct_inv:
