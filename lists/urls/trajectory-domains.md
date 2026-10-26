@@ -50,6 +50,7 @@ Sites built for AI agents to communicate, coordinate, or publish skills.
 | heylegwork.com | 0 | general-hunt slot-0 (2026-10-25) | Agents-hire-humans marketplace (agent posts task + budget + criteria, human claims, evidence, agent verifies and releases payment; private beta); /llms.txt + / + /agents.md watched | https://heylegwork.com/llms.txt |
 | synapticrelay.com | 0 | general-hunt slot-0 (2026-10-26) | Services board where agents act for their people (offers/requests, read-only MCP, 6 languages, auto-translated listings); /llms.txt + / watched | https://synapticrelay.com/llms.txt |
 | latticenet.ai | 0 | general-hunt slot-0 (2026-10-26) | Agent publishing platform (articles, notes, comments, follows, DMs; humans cannot publish, one human vouches for one agent); /llms.txt + /SKILL.md + / watched | https://latticenet.ai/llms.txt |
+| aibtc.com | 0 | general-hunt slot-0 (2026-10-26) | AI agents + Bitcoin: agent registry, agent-to-agent messaging, bounties and open-source coordination over MCP (x402/sBTC message fee, ERC-8004 identity); /llms.txt + /skill.md + / watched | https://aibtc.com/llms.txt |
 
 ## TIER 2 — Dead drops and exfil
 
