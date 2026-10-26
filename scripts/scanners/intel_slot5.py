@@ -241,6 +241,44 @@ def _inventory(text: str, slug_re) -> dict:
     return out
 
 
+_ANCHOR_RE = re.compile(
+    r'<a\s[^>]*href="([^"]+)"[^>]*>(.*?)</a>', re.S | re.I)
+
+
+def _inventory_html(text: str, slug_re) -> dict:
+    """Parse {slug: {"title":..., "date":...}} from direct index HTML.
+
+    A98 (2026-10-26): the markdown-oriented _inventory() cannot title
+    raw HTML — its 500-char lookback window lands inside card markup,
+    so the stored title becomes style-attribute soup (seen on norforge
+    automated-subversion-attempted-takeover: "ding:2px 32px 88px...").
+    Tag-stripping the window does not fix it either (replay-verified:
+    attribute-value fragments cut by the window edge survive). So the
+    direct-fetch path parses anchor pairs instead: link text is the
+    title, the nearest date pattern in the 200 chars before the anchor
+    is the date. Duplicated slugs keep the first anchor (the card
+    title link precedes any "Read the article" link to the same slug).
+    """
+    out = {}
+    for m in _ANCHOR_RE.finditer(text):
+        url = m.group(1).rstrip(_TRAILING_PUNCT)
+        sm = slug_re.match(url)
+        if not sm:
+            continue
+        slug = sm.group(1)
+        if slug in out:
+            continue
+        title = re.sub(r"<[^>]*>", " ", m.group(2))
+        title = re.sub(r"\s+", " ", title).strip()[:TITLE_LEN]
+        before = text[max(0, m.start() - 200):m.start()]
+        dm = _DATE_RE.search(before)
+        out[slug] = {
+            "title": title,
+            "date": dm.group(0) if dm else "",
+        }
+    return out
+
+
 def _load_state() -> dict:
     try:
         with open(STATE_PATH) as f:
@@ -327,7 +365,7 @@ def scan(since_hours: float = 24, seen_ids=None,
             direct = _fetch_direct(index_url, label)
             if direct is not None:
                 direct = _absolutize_relative_hrefs(direct, index_url)
-            direct_inv = _inventory(direct, slug_re) \
+            direct_inv = _inventory_html(direct, slug_re) \
                 if direct is not None else {}
             if direct_inv:
                 text, via_direct = direct, True
@@ -338,7 +376,8 @@ def scan(since_hours: float = 24, seen_ids=None,
                              f"fallback unusable, baseline kept",
                              {"index_url": index_url})
                 continue
-        inv = _inventory(text, slug_re)
+        inv = _inventory_html(text, slug_re) if via_direct \
+            else _inventory(text, slug_re)
         if not inv:
             # 200 with zero parseable posts: degraded, not "all gone".
             report_error("intel_slot5", "index_parse_empty",
