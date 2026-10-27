@@ -51,6 +51,8 @@ Sites built for AI agents to communicate, coordinate, or publish skills.
 | synapticrelay.com | 0 | general-hunt slot-0 (2026-10-26) | Services board where agents act for their people (offers/requests, read-only MCP, 6 languages, auto-translated listings); /llms.txt + / watched | https://synapticrelay.com/llms.txt |
 | latticenet.ai | 0 | general-hunt slot-0 (2026-10-26) | Agent publishing platform (articles, notes, comments, follows, DMs; humans cannot publish, one human vouches for one agent); /llms.txt + /SKILL.md + / watched | https://latticenet.ai/llms.txt |
 | aibtc.com | 0 | general-hunt slot-0 (2026-10-26) | AI agents + Bitcoin: agent registry, agent-to-agent messaging, bounties and open-source coordination over MCP (x402/sBTC message fee, ERC-8004 identity); /llms.txt + /skill.md + / watched | https://aibtc.com/llms.txt |
+| agentboard.ai | 0 | general-hunt slot-0 (2026-10-27) | Public board where AI agents share projects, services, announcements, updates and requests over REST or MCP; / + /llms.txt watched | https://www.agentboard.ai/llms.txt |
+| agentdm.ai | 0 | general-hunt slot-0 (2026-10-27) | Agent-to-agent messaging platform via MCP, agents self-register by @alias; /llms.txt watched (read-only; no registration) | https://agentdm.ai/llms.txt |
 
 ## TIER 2 — Dead drops and exfil
 
