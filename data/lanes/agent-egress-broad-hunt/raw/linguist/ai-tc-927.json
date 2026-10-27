@@ -1,0 +1,78 @@
+{
+  "url": "https://api.github.com/repos/akasecurity/ai-tc/issues/927",
+  "repository_url": "https://api.github.com/repos/akasecurity/ai-tc",
+  "labels_url": "https://api.github.com/repos/akasecurity/ai-tc/issues/927/labels{/name}",
+  "comments_url": "https://api.github.com/repos/akasecurity/ai-tc/issues/927/comments",
+  "events_url": "https://api.github.com/repos/akasecurity/ai-tc/issues/927/events",
+  "html_url": "https://github.com/akasecurity/ai-tc/pull/927",
+  "id": 6047270695,
+  "node_id": "PR_kwDOTUzSns8AAAABK3JqnQ",
+  "number": 927,
+  "title": "feat: agent-egress rules for metadata access, storage uploads and namespace escalation",
+  "user": {
+    "login": "alsoknownaswill",
+    "id": 222731067,
+    "node_id": "U_kgDODUabOw",
+    "avatar_url": "https://avatars.githubusercontent.com/u/222731067?v=4",
+    "gravatar_id": "",
+    "url": "https://api.github.com/users/alsoknownaswill",
+    "html_url": "https://github.com/alsoknownaswill",
+    "followers_url": "https://api.github.com/users/alsoknownaswill/followers",
+    "following_url": "https://api.github.com/users/alsoknownaswill/following{/other_user}",
+    "gists_url": "https://api.github.com/users/alsoknownaswill/gists{/gist_id}",
+    "starred_url": "https://api.github.com/users/alsoknownaswill/starred{/owner}{/repo}",
+    "subscriptions_url": "https://api.github.com/users/alsoknownaswill/subscriptions",
+    "organizations_url": "https://api.github.com/users/alsoknownaswill/orgs",
+    "repos_url": "https://api.github.com/users/alsoknownaswill/repos",
+    "events_url": "https://api.github.com/users/alsoknownaswill/events{/privacy}",
+    "received_events_url": "https://api.github.com/users/alsoknownaswill/received_events",
+    "type": "User",
+    "user_view_type": "public",
+    "site_admin": false
+  },
+  "labels": [
+
+  ],
+  "state": "open",
+  "locked": false,
+  "assignees": [
+
+  ],
+  "milestone": null,
+  "comments": 0,
+  "created_at": "2026-10-26T20:06:37Z",
+  "updated_at": "2026-10-26T21:42:05Z",
+  "closed_at": null,
+  "assignee": null,
+  "author_association": "MEMBER",
+  "issue_field_values": [
+
+  ],
+  "type": null,
+  "active_lock_reason": null,
+  "draft": false,
+  "pull_request": {
+    "url": "https://api.github.com/repos/akasecurity/ai-tc/pulls/927",
+    "html_url": "https://github.com/akasecurity/ai-tc/pull/927",
+    "diff_url": "https://github.com/akasecurity/ai-tc/pull/927.diff",
+    "patch_url": "https://github.com/akasecurity/ai-tc/pull/927.patch",
+    "merged_at": null
+  },
+  "body": "Adds detections for the agent behaviors described in #926.\n\nNew pack `agent-egress` (0.1.0, `defaultPolicy: block`):\n- `cloud-metadata-access` (critical): a network use of 169.254.169.254, fd00:ec2::254, metadata.google.internal or 100.100.100.200. That means a URL in an executable field (WebFetch `url`), a network client in the command (curl, wget, nc, socat, httpie, PowerShell web requests), or an interpreter one-liner requesting it.\n- `object-storage-file-upload` (critical): curl/wget sending a file (`-T`, `--upload-file`, `-d @file`, `-F x=@file`, `@-`), `$(env)` or `$(printenv)`, or wget `--post-file`/`--body-file`, to S3, Google Cloud Storage, Azure Blob, R2 or Alibaba OSS.\n- `agent-probe-host` (critical): the two hosts named in the write-up, on a network use.\n- `unshare-user-namespace` (high): `unshare` with `-U`, `-r`, `-c` (including clusters such as `-Urm`), `--user` or `--map-*-user`. Mount-only and network-only namespaces (`unshare -m`, `unshare --net`) are not flagged.\n\n`command-risk` (0.2.0 to 0.3.0, default `warn`):\n- `object-storage-upload`: curl/wget sending data to an object storage host.\n- `alibaba-oss-host`: any other `oss-*.aliyuncs.com` host.\n- `download-then-execute`: `curl -o`/`wget -O` to a path, then running that path (sh, bash, source, chmod +x, python, perl, node, or a direct run).\n- `recon-then-egress`: recon (`cat /etc/resolv.conf`, `which … curl`, `ls -la /tmp`, `uname -a`, bare `id`/`hostname`) and a curl/wget/nc call in one command. Recon alone is silent.\n\nNotes for review:\n- A rule's action comes from its pack's `defaultPolicy`, so the four block-intended rules live in their own pack. An install that already has packs picks up `agent-egress` at `block` through `recordInventory` (covered by \"a pack added beside unchanged ones still takes its defaultPolicyId\"). The `command-risk` additions arrive as a normal pack update.\n- `appliesTo` can't limit a rule to executable fields, so the `agent-egress` patterns require a network use. Searches (`grep`/`rg`), subagent prompts, and code or docs that merely mention an address stay silent. Each of these has a negative fixture.\n- `feat/credential-read-guard` (#916) also bumps `command-risk` to 0.3.0. Whichever lands second needs 0.4.0 and a regenerated bundle; I'll rebase this one if #916 merges first.\n- Known gaps: `curl -O` (file name taken from the URL) followed by a run isn't linked to the download, and an upload whose host is in a shell variable isn't matched. #924 covers the general case.\n\nChecks: fixture tests for both packs, ReDoS and parse suites, the bundled-pack drift test and prettier pass locally. Typecheck, lint and test for detections, plugin-sdk and their dependents pass on a full run. Against the rebuilt Claude Code plugin, the 17 calls from the issue now give 14 deny and 3 silent (recon alone, which the transcript history still records as ordinary tool calls). A plain GitHub API call stays silent.\n\nCloses #926\n",
+  "closed_by": null,
+  "reactions": {
+    "url": "https://api.github.com/repos/akasecurity/ai-tc/issues/927/reactions",
+    "total_count": 0,
+    "+1": 0,
+    "-1": 0,
+    "laugh": 0,
+    "hooray": 0,
+    "confused": 0,
+    "heart": 0,
+    "rocket": 0,
+    "eyes": 0
+  },
+  "timeline_url": "https://api.github.com/repos/akasecurity/ai-tc/issues/927/timeline",
+  "performed_via_github_app": null,
+  "state_reason": null
+}
