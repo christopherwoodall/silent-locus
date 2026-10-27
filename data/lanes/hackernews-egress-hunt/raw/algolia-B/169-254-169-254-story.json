@@ -1,0 +1,238 @@
+[
+ {
+  "exhaustive": {
+   "nbHits": false,
+   "typo": false
+  },
+  "exhaustiveNbHits": false,
+  "exhaustiveTypo": false,
+  "hits": [
+   {
+    "_highlightResult": {
+     "author": {
+      "matchLevel": "none",
+      "matchedWords": [],
+      "value": "AnasSyed28"
+     },
+     "story_text": {
+      "fullyHighlighted": false,
+      "matchLevel": "full",
+      "matchedWords": [
+       "169",
+       ".",
+       "254",
+       ".",
+       "169",
+       ".",
+       "254"
+      ],
+      "value": "Earlier this year I found a server-side request forgery bug in Google's MCP Toolbox, the official server Google publishes for connecting language-model agents to databases and HTTP APIs. I reported it. Google fixed it in eight days, credited me by name, and the fix later became CVE-2026-14540 (CVSS 8.0, high).<p>What I found: the MCP Toolbox's HTTP source makes outbound requests to a URL a caller can influence. It validated that first URL, but not where a redirect sent it next, and it did no filtering on the destination address at all. If the server you're calling answers with a redirect to <em>169.254.169.254</em>, the toolbox follows it like any other response and hands back whatever's there. In a cloud environment, what's there is often the credential the environment itself is running on. The credential is never in the request you sent, the environment supplies it at the destination, and the toolbox just walked you to the door.<p>Why this is sharper in agent tooling specifically: in most software, &quot;an attacker controls this input&quot; is a condition you argue about. In a tool-calling agent, it's closer to the default. The URL argument here isn't typed by a person who trusts it, it's chosen by a model that's usually just finished reading a web page, a database row, or a file it doesn't control. The thing that makes this exploitable, a caller-influenced destination, isn't an edge case for a server like this, it's the normal operating condition.<p>What I sent Google, and what happened: I reported the finding with a reproduction and a suggested fix shape, validate on every hop not just the first request, reject private and link-local ranges including the IPv6 forms that encode an IPv4 address. Google's engineering team reviewed it, and the fix that shipped in pull request #3448 does the right version of all of that: an SSRFGuard that validates the destination on every redirect hop and resists DNS rebinding, configurable network boundaries, and early validation of the configured base URL at initialization so misconfiguration fails fast instead of at request time. Eight days from report to merged fix. CVE-2026-14540 was published a few weeks later, and I'm named in the official CVE record as the finder.<p>The part I'm not publishing yet: I've been auditing other official MCP servers for the same pattern, not just Google's. Some pin the destination correctly, some don't. Where I've found something, I'm reporting it privately first and I'll write about it once a fix is out, the same way I did here. This post is only the Google case, because it's the only one that's public.<p>If you're building something with this shape yourself, the question worth asking is small enough to hold in your head: can a value your caller influenced change which host receives a credentialed request, with nothing checking that destination first? If yes, you have this bug, whether or not anyone's found it yet.<p>CVE record: https://www.cve.org/CVERecord?id=CVE-2026-14540\nFix: https://github.com/googleapis/mcp-toolbox/pull/3448"
+     },
+     "title": {
+      "matchLevel": "none",
+      "matchedWords": [],
+      "value": "I found an SSRF in Google's official AI tooling, and how Google reacted"
+     }
+    },
+    "_tags": [
+     "story",
+     "author_AnasSyed28",
+     "story_49429926",
+     "ask_hn"
+    ],
+    "author": "AnasSyed28",
+    "children": [
+     49449976
+    ],
+    "created_at": "2026-08-25T06:46:17Z",
+    "created_at_i": 1787640377,
+    "num_comments": 0,
+    "objectID": "49429926",
+    "points": 3,
+    "story_id": 49429926,
+    "story_text": "Earlier this year I found a server-side request forgery bug in Google&#x27;s MCP Toolbox, the official server Google publishes for connecting language-model agents to databases and HTTP APIs. I reported it. Google fixed it in eight days, credited me by name, and the fix later became CVE-2026-14540 (CVSS 8.0, high).<p>What I found: the MCP Toolbox&#x27;s HTTP source makes outbound requests to a URL a caller can influence. It validated that first URL, but not where a redirect sent it next, and it did no filtering on the destination address at all. If the server you&#x27;re calling answers with a redirect to 169.254.169.254, the toolbox follows it like any other response and hands back whatever&#x27;s there. In a cloud environment, what&#x27;s there is often the credential the environment itself is running on. The credential is never in the request you sent, the environment supplies it at the destination, and the toolbox just walked you to the door.<p>Why this is sharper in agent tooling specifically: in most software, &quot;an attacker controls this input&quot; is a condition you argue about. In a tool-calling agent, it&#x27;s closer to the default. The URL argument here isn&#x27;t typed by a person who trusts it, it&#x27;s chosen by a model that&#x27;s usually just finished reading a web page, a database row, or a file it doesn&#x27;t control. The thing that makes this exploitable, a caller-influenced destination, isn&#x27;t an edge case for a server like this, it&#x27;s the normal operating condition.<p>What I sent Google, and what happened: I reported the finding with a reproduction and a suggested fix shape, validate on every hop not just the first request, reject private and link-local ranges including the IPv6 forms that encode an IPv4 address. Google&#x27;s engineering team reviewed it, and the fix that shipped in pull request #3448 does the right version of all of that: an SSRFGuard that validates the destination on every redirect hop and resists DNS rebinding, configurable network boundaries, and early validation of the configured base URL at initialization so misconfiguration fails fast instead of at request time. Eight days from report to merged fix. CVE-2026-14540 was published a few weeks later, and I&#x27;m named in the official CVE record as the finder.<p>The part I&#x27;m not publishing yet: I&#x27;ve been auditing other official MCP servers for the same pattern, not just Google&#x27;s. Some pin the destination correctly, some don&#x27;t. Where I&#x27;ve found something, I&#x27;m reporting it privately first and I&#x27;ll write about it once a fix is out, the same way I did here. This post is only the Google case, because it&#x27;s the only one that&#x27;s public.<p>If you&#x27;re building something with this shape yourself, the question worth asking is small enough to hold in your head: can a value your caller influenced change which host receives a credentialed request, with nothing checking that destination first? If yes, you have this bug, whether or not anyone&#x27;s found it yet.<p>CVE record: https:&#x2F;&#x2F;www.cve.org&#x2F;CVERecord?id=CVE-2026-14540\nFix: https:&#x2F;&#x2F;github.com&#x2F;googleapis&#x2F;mcp-toolbox&#x2F;pull&#x2F;3448",
+    "title": "I found an SSRF in Google's official AI tooling, and how Google reacted",
+    "updated_at": "2026-09-11T14:36:41Z"
+   },
+   {
+    "_highlightResult": {
+     "author": {
+      "matchLevel": "none",
+      "matchedWords": [],
+      "value": "sleuthco"
+     },
+     "story_text": {
+      "fullyHighlighted": false,
+      "matchLevel": "full",
+      "matchedWords": [
+       "169",
+       ".",
+       "254",
+       ".",
+       "169",
+       ".",
+       "254"
+      ],
+      "value": "Author here. ClawShield is a security proxy that sits in front of OpenClaw (open-source AI gateway) and scans all inbound/outbound messages.<p>The core is an HTTP/WebSocket reverse proxy in Go (~6k lines) with four scanners:<p>1. Prompt injection detection - three tiers: regex heuristics (role overrides, instruction injection, delimiter attacks, encoding attacks), structural analysis (base64-decoded instruction blocks, imperative verb density scoring), and canary token leak detection.<p>2. Secrets/PII scanning - regex argument filters applied to decoded JSON values (defeats unicode escape bypasses like \\u0070assword).<p>3. Vulnerability scanning - SQLi (UNION, tautologies, blind with SLEEP/BENCHMARK), SSRF (private IPs, cloud metadata at <em>169.254.169.254</em>, decimal/hex IP encoding, dangerous schemes like gopher://), path traversal (double URL-encoding,\nnull bytes), command injection (shell metacharacters, backtick execution), XSS.<p>4. Malware detection - magic bytes for PE/ELF/Mach-O, YARA-like signature rules for reverse shells and C2 frameworks,\narchive bomb detection via compression ratio, Shannon entropy analysis.<p>Policy engine is deny-by-default YAML. You define tool allowlists, denylists, per-tool argument filters, domain allowlists, and per-agent/per-channel restrictions. Every decision is logged to SQLite.<p>Optional extras: iptables egress firewall (Go, generates validated rules from YAML) and eBPF kernel monitor (Python/BCC - traces execve, tcp_v4_connect, openat2, setuid for fork bomb/privesc/port scan detection).<p>Docker quickstart is 3 commands. Ten cross-compiled binaries on the release (proxy + setup wizard for linux/mac/windows, amd64/arm64).<p>We run this in production at clawshield.sleuthco.ai.<p>I built this because I was contributing security patches to OpenClaw and the netfilter suite and kept seeing the same gap: the AI ecosystem has sophisticated multi-agent routing but no standardized way to inspect and control what flows through it.<p>Happy to answer questions about the scanner architecture, policy engine, or threat model."
+     },
+     "title": {
+      "matchLevel": "none",
+      "matchedWords": [],
+      "value": "Show HN: ClawShield \u2013 Open-source security proxy for AI agents (Go, eBPF)"
+     },
+     "url": {
+      "matchLevel": "none",
+      "matchedWords": [],
+      "value": "https://github.com/SleuthCo/clawshield-public"
+     }
+    },
+    "_tags": [
+     "story",
+     "author_sleuthco",
+     "story_47212666",
+     "show_hn"
+    ],
+    "author": "sleuthco",
+    "children": [
+     47212685,
+     47235747
+    ],
+    "created_at": "2026-03-02T01:11:57Z",
+    "created_at_i": 1772413917,
+    "num_comments": 2,
+    "objectID": "47212666",
+    "points": 2,
+    "story_id": 47212666,
+    "story_text": "Author here. ClawShield is a security proxy that sits in front of OpenClaw (open-source AI gateway) and scans all inbound&#x2F;outbound messages.<p>The core is an HTTP&#x2F;WebSocket reverse proxy in Go (~6k lines) with four scanners:<p>1. Prompt injection detection - three tiers: regex heuristics (role overrides, instruction injection, delimiter attacks, encoding attacks), structural analysis (base64-decoded instruction blocks, imperative verb density scoring), and canary token leak detection.<p>2. Secrets&#x2F;PII scanning - regex argument filters applied to decoded JSON values (defeats unicode escape bypasses like \\u0070assword).<p>3. Vulnerability scanning - SQLi (UNION, tautologies, blind with SLEEP&#x2F;BENCHMARK), SSRF (private IPs, cloud metadata at 169.254.169.254, decimal&#x2F;hex IP encoding, dangerous schemes like gopher:&#x2F;&#x2F;), path traversal (double URL-encoding,\nnull bytes), command injection (shell metacharacters, backtick execution), XSS.<p>4. Malware detection - magic bytes for PE&#x2F;ELF&#x2F;Mach-O, YARA-like signature rules for reverse shells and C2 frameworks,\narchive bomb detection via compression ratio, Shannon entropy analysis.<p>Policy engine is deny-by-default YAML. You define tool allowlists, denylists, per-tool argument filters, domain allowlists, and per-agent&#x2F;per-channel restrictions. Every decision is logged to SQLite.<p>Optional extras: iptables egress firewall (Go, generates validated rules from YAML) and eBPF kernel monitor (Python&#x2F;BCC - traces execve, tcp_v4_connect, openat2, setuid for fork bomb&#x2F;privesc&#x2F;port scan detection).<p>Docker quickstart is 3 commands. Ten cross-compiled binaries on the release (proxy + setup wizard for linux&#x2F;mac&#x2F;windows, amd64&#x2F;arm64).<p>We run this in production at clawshield.sleuthco.ai.<p>I built this because I was contributing security patches to OpenClaw and the netfilter suite and kept seeing the same gap: the AI ecosystem has sophisticated multi-agent routing but no standardized way to inspect and control what flows through it.<p>Happy to answer questions about the scanner architecture, policy engine, or threat model.",
+    "title": "Show HN: ClawShield \u2013 Open-source security proxy for AI agents (Go, eBPF)",
+    "updated_at": "2026-03-05T23:39:22Z",
+    "url": "https://github.com/SleuthCo/clawshield-public"
+   },
+   {
+    "_highlightResult": {
+     "author": {
+      "matchLevel": "none",
+      "matchedWords": [],
+      "value": "ravikmd"
+     },
+     "story_text": {
+      "fullyHighlighted": false,
+      "matchLevel": "full",
+      "matchedWords": [
+       "169",
+       ".",
+       "254",
+       ".",
+       "169",
+       ".",
+       "254"
+      ],
+      "value": "# Show HN: LinkPreview.io - Debug social cards across 6 platforms (no signup)<p>I built a tool that shows how your URL looks when shared on Twitter, Facebook, LinkedIn, Slack, Discord, and Google Search. All in one view, no login required.<p>Try it: <a href=\"https://linkpreview.io\" rel=\"nofollow\">https://linkpreview.io</a><p>## The Problem<p>Debugging broken social share cards currently requires jumping between 5+ platform tools (Facebook Debugger, Twitter Card Validator, LinkedIn Post Inspector), each requiring authentication. I wanted one place to paste a URL and see everything.<p>## What's Different<p>Most tools just show raw meta tag data. This renders actual preview cards and scores your tags 0-100 with actionable fixes.<p>- Both card variants (Twitter/Facebook each have large + compact layouts)\n- Truncation visualization (shows exactly where titles get cut on each platform)\n- Scored recommendations (20+ checks with copy-paste code snippets)\n- Zero friction (no signup, &lt;2 second results)<p>## Tech Stack<p>SvelteKit (Svelte 5), Cloudflare Pages, Cheerio for server-side parsing. Client bundle &lt;30KB gzipped.<p>The hard part was SSRF protection. The API fetches user-provided URLs, so I had to block private IPs, cloud metadata endpoints (<em>169.254.169.254</em>), and check every redirect hop to prevent attackers from using my server to port-scan internal networks.<p>## What I Learned<p>Open Graph is inconsistent across platforms. Twitter falls back to og:title sometimes. Facebook requires og:type, LinkedIn doesn't. Google ignores Open Graph entirely. Character limits vary wildly and are undocumented.<p>## Future<p>Phase 2: bulk CSV upload, scheduled monitoring, API access, Chrome extension.<p>Built over a weekend. Feedback welcome.<p>SvelteKit, Tailwind v4, Cloudflare Pages"
+     },
+     "title": {
+      "matchLevel": "none",
+      "matchedWords": [],
+      "value": "Show HN: Linkpreview.io \u2013 Debug and preview social share cards"
+     },
+     "url": {
+      "matchLevel": "none",
+      "matchedWords": [],
+      "value": "https://linkpreview.io"
+     }
+    },
+    "_tags": [
+     "story",
+     "author_ravikmd",
+     "story_46951212",
+     "show_hn"
+    ],
+    "author": "ravikmd",
+    "created_at": "2026-02-09T21:00:08Z",
+    "created_at_i": 1770670808,
+    "num_comments": 0,
+    "objectID": "46951212",
+    "points": 1,
+    "story_id": 46951212,
+    "story_text": "# Show HN: LinkPreview.io - Debug social cards across 6 platforms (no signup)<p>I built a tool that shows how your URL looks when shared on Twitter, Facebook, LinkedIn, Slack, Discord, and Google Search. All in one view, no login required.<p>Try it: <a href=\"https:&#x2F;&#x2F;linkpreview.io\" rel=\"nofollow\">https:&#x2F;&#x2F;linkpreview.io</a><p>## The Problem<p>Debugging broken social share cards currently requires jumping between 5+ platform tools (Facebook Debugger, Twitter Card Validator, LinkedIn Post Inspector), each requiring authentication. I wanted one place to paste a URL and see everything.<p>## What&#x27;s Different<p>Most tools just show raw meta tag data. This renders actual preview cards and scores your tags 0-100 with actionable fixes.<p>- Both card variants (Twitter&#x2F;Facebook each have large + compact layouts)\n- Truncation visualization (shows exactly where titles get cut on each platform)\n- Scored recommendations (20+ checks with copy-paste code snippets)\n- Zero friction (no signup, &lt;2 second results)<p>## Tech Stack<p>SvelteKit (Svelte 5), Cloudflare Pages, Cheerio for server-side parsing. Client bundle &lt;30KB gzipped.<p>The hard part was SSRF protection. The API fetches user-provided URLs, so I had to block private IPs, cloud metadata endpoints (169.254.169.254), and check every redirect hop to prevent attackers from using my server to port-scan internal networks.<p>## What I Learned<p>Open Graph is inconsistent across platforms. Twitter falls back to og:title sometimes. Facebook requires og:type, LinkedIn doesn&#x27;t. Google ignores Open Graph entirely. Character limits vary wildly and are undocumented.<p>## Future<p>Phase 2: bulk CSV upload, scheduled monitoring, API access, Chrome extension.<p>Built over a weekend. Feedback welcome.<p>SvelteKit, Tailwind v4, Cloudflare Pages",
+    "title": "Show HN: Linkpreview.io \u2013 Debug and preview social share cards",
+    "updated_at": "2026-03-05T23:33:28Z",
+    "url": "https://linkpreview.io"
+   },
+   {
+    "_highlightResult": {
+     "author": {
+      "matchLevel": "none",
+      "matchedWords": [],
+      "value": "ar27111994"
+     },
+     "story_text": {
+      "fullyHighlighted": false,
+      "matchLevel": "full",
+      "matchedWords": [
+       "169",
+       ".",
+       "254",
+       ".",
+       "169",
+       ".",
+       "254"
+      ],
+      "value": "Hi HN,<p>I built *Webhook Debugger* because existing tools were either ephemeral (RequestBin) or required persistent tunnels (ngrok) that I couldn't leave running on a staging server.<p>*Repo*: <a href=\"https://github.com/ar27111994/webhook-debugger-logger\" rel=\"nofollow\">https://github.com/ar27111994/webhook-debugger-logger</a><p>*The Stack*:\nNode.js, Express, Apify SDK (for storage/dataset abstraction), Docker.<p>*Key Technical Decisions*:<p>1.  *Global SSE Heartbeat*: Instead of `setInterval` per connection (O(N) timers), we use a single global timer to flush heartbeats to all `res` objects.\n2.  *SSRF Protection*: Custom validator (`src/utils/ssrf.js`) that resolves DNS and checks against a blocklist (including AWS Metadata IP `<em>169.254.169.254</em>`) before forwarding/replaying requests.\n3.  *Resilience*: The Replay engine implements exponential backoff for `ECONNABORTED` errors, allowing it to handle &quot;blips&quot; when targeting local dev servers.\n4.  *Hot-Reloading*: A background poller reads the input JSON every 5s and dynamically updates middleware, rate limits, auth keys, and webhook counts without restarting the process.\n5.  *Platform Integration*: We encountered (and fixed in v2.8.7) a specific schema validation bug that only occurred in the platform UI, teaching us to lean on native storage exports rather than wrapping them in custom views.<p>It's open source (ISC). I'd love feedback on the *SSRF implementation* \u2013 ensuring users can replay to `localhost` (safe in dev) but not internal subnets (unsafe in prod) was a tricky balance."
+     },
+     "title": {
+      "matchLevel": "none",
+      "matchedWords": [],
+      "value": "Show HN: Webhook Debugger \u2013 OS Alternative to RequestBin with Replay,SSRF Checks"
+     },
+     "url": {
+      "matchLevel": "none",
+      "matchedWords": [],
+      "value": "https://apify.com/ar27111994/webhook-debugger-logger"
+     }
+    },
+    "_tags": [
+     "story",
+     "author_ar27111994",
+     "story_46632472",
+     "show_hn"
+    ],
+    "author": "ar27111994",
+    "created_at": "2026-01-15T13:47:53Z",
+    "created_at_i": 1768484873,
+    "num_comments": 0,
+    "objectID": "46632472",
+    "points": 1,
+    "story_id": 46632472,
+    "story_text": "Hi HN,<p>I built *Webhook Debugger* because existing tools were either ephemeral (RequestBin) or required persistent tunnels (ngrok) that I couldn&#x27;t leave running on a staging server.<p>*Repo*: <a href=\"https:&#x2F;&#x2F;github.com&#x2F;ar27111994&#x2F;webhook-debugger-logger\" rel=\"nofollow\">https:&#x2F;&#x2F;github.com&#x2F;ar27111994&#x2F;webhook-debugger-logger</a><p>*The Stack*:\nNode.js, Express, Apify SDK (for storage&#x2F;dataset abstraction), Docker.<p>*Key Technical Decisions*:<p>1.  *Global SSE Heartbeat*: Instead of `setInterval` per connection (O(N) timers), we use a single global timer to flush heartbeats to all `res` objects.\n2.  *SSRF Protection*: Custom validator (`src&#x2F;utils&#x2F;ssrf.js`) that resolves DNS and checks against a blocklist (including AWS Metadata IP `169.254.169.254`) before forwarding&#x2F;replaying requests.\n3.  *Resilience*: The Replay engine implements exponential backoff for `ECONNABORTED` errors, allowing it to handle &quot;blips&quot; when targeting local dev servers.\n4.  *Hot-Reloading*: A background poller reads the input JSON every 5s and dynamically updates middleware, rate limits, auth keys, and webhook counts without restarting the process.\n5.  *Platform Integration*: We encountered (and fixed in v2.8.7) a specific schema validation bug that only occurred in the platform UI, teaching us to lean on native storage exports rather than wrapping them in custom views.<p>It&#x27;s open source (ISC). I&#x27;d love feedback on the *SSRF implementation* \u2013 ensuring users can replay to `localhost` (safe in dev) but not internal subnets (unsafe in prod) was a tricky balance.",
+    "title": "Show HN: Webhook Debugger \u2013 OS Alternative to RequestBin with Replay,SSRF Checks",
+    "updated_at": "2026-03-05T23:24:55Z",
+    "url": "https://apify.com/ar27111994/webhook-debugger-logger"
+   }
+  ],
+  "hitsPerPage": 100,
+  "nbHits": 4,
+  "nbPages": 1,
+  "page": 0,
+  "params": "query=169.254.169.254&tags=story&page=0&hitsPerPage=100&advancedSyntax=true&analyticsTags=backend",
+  "processingTimeMS": 28,
+  "processingTimingsMS": {
+   "_request": {
+    "roundTrip": 20
+   },
+   "afterFetch": {
+    "format": {
+     "highlighting": 1,
+     "total": 1
+    }
+   },
+   "fetch": {
+    "query": 7,
+    "scanning": 19,
+    "total": 27
+   },
+   "total": 28
+  },
+  "query": "169.254.169.254",
+  "serverTimeMS": 31
+ }
+]
