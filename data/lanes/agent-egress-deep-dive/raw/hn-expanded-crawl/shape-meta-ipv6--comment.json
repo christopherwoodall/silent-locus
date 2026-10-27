@@ -1,0 +1,64 @@
+{
+ "term_label": "shape-meta-ipv6",
+ "queries": [
+  "fd00:ec2::254"
+ ],
+ "tag": "comment",
+ "date_range": {
+  "start_i": 1761955200,
+  "end_i": 1793145600,
+  "start": "2025-11-01",
+  "end": "2026-10-27"
+ },
+ "top_range_reported_totals": [
+  {
+   "query": "fd00:ec2::254",
+   "reported_nbHits_top_range": 1
+  }
+ ],
+ "date_splits": [
+  {
+   "query": "fd00:ec2::254",
+   "tag": "comment",
+   "start": 1761955200,
+   "end": 1793145600,
+   "reported_nbHits": 1
+  }
+ ],
+ "capped_despite_splits": false,
+ "fetched_count": 1,
+ "hits": [
+  {
+   "_highlightResult": {
+    "comment_text": {
+     "fullyHighlighted": false,
+     "matchLevel": "full",
+     "matchedWords": [
+      "fd00",
+      "ec2",
+      "254"
+     ],
+     "value": "Hey HN,<p>Over the past few months, we\u2019ve watched autonomous agents transition from conversational LLMs into tool-wielding operators equipped with Model Context Protocol (MCP) servers, terminal execution, filesystem access, and web scrapers.<p>The vulnerability: once an agent has tool execution capabilities, any untrusted data it touches (web scrapes, emails, customer tickets) becomes an active attack vector. System prompts fail against 70%+ of indirect prompt injections, Unicode steganography, and SSRF payloads (targeting 169.<em>254</em>.169.<em>254</em> AWS metadata or IPv4-mapped IPv6 loopbacks).<p>We built Tcha Protection (MIT, npm install -g tcha-protection) to solve this deterministically at the transport and STDIO proxy layer, rather than relying on probabilistic LLM system prompts.<p>### What it does:\nTcha sits as a transparent, sub-millisecond reverse proxy between your host agent (Claude Desktop, Cursor, Windsurf, custom agents) and MCP tool servers:<p>1. In-Line MCP Reverse Proxy: Intercepts tools/call JSON-RPC streams in flight with &lt;= 1ms latency overhead. If a call targets path traversal (../../etc/shadow), unapproved destructive mutations, or forbidden egress, Tcha parries the request immediately with standardized JSON-RPC error -32001 before the downstream server is touched.\n2. SSRF &amp; Cloud Metadata Shield: Resolves DNS hostnames and strictly blocks requests targeting AWS/Azure/GCP metadata (169.<em>254</em>.169.<em>254</em>, <em>fd00</em>:<em>ec2</em>::<em>254</em>), IPv4-mapped IPv6 loopbacks (::ffff:127.0.0.1), hex/octal/decimal IP encodings, and RFC-1918 private subnets.\n3. Unicode Steganography &amp; Delimiter Sanitizer: Detects and neutralizes zero-width unicode injections (\\u200B, \\uFEFF), ASCII smuggling via Unicode tags, and multi-modal delimiter breakouts ([INST], &lt;|im_start|&gt;).\n4. Cryptographic Merkle Audit Ledger: Every tool execution, parameter hash, and intercept decision is written to an append-only SQLite WAL ledger with continuous SHA-256 Merkle link chaining.\n5. HMAC Human-in-the-Loop (HITL): High-risk mutating actions (e.g. rm -rf, DROP TABLE) trigger an HMAC challenge requiring human sign-off.\n6. Compliance Crosswalk: Maps neutralized vectors directly to the EU AI Act (Article 15), SOC 2 Type II (CC6.1), and OWASP Top 10 for LLMs.<p>### Benchmark &amp; Performance:\n- 100-Probe Red-Team Suite: Tested against 100 categorized adversarial attack vectors across prompt injection, steganography, SSRF, traversal, and tool abuse. 100/100 attacks neutralized (0 escapes).\n- Latency Overhead: Sub-millisecond (average &lt; 1.0ms per tool invocation).<p>### Quickstart:\nRun the 100-probe adversarial audit locally:\n$ npx tcha-protection audit<p>Or wrap any MCP server:\n$ tcha wrap npx -y @modelcontextprotocol/server-filesystem ./data<p>- Live Site: <a href=\"https://tcha.dev\" rel=\"nofollow\">https://tcha.dev</a>\n- Verified Audit Report: <a href=\"https://tcha.dev/report.html\" rel=\"nofollow\">https://tcha.dev/report.html</a>\n- GitHub Repo (MIT): <a href=\"https://github.com/Tchapwo1/tcha\" rel=\"nofollow\">https://github.com/Tchapwo1/tcha</a><p>We would love HN's brutal feedback on our parser, our SSRF CIDR deny-lists, and what edge cases in MCP tool calling we should test next."
+    },
+    "story_title": {
+     "matchLevel": "none",
+     "matchedWords": [],
+     "value": "[dead]"
+    }
+   },
+   "_tags": [
+    "comment",
+    "author_tchadev",
+    "story_50158145"
+   ],
+   "comment_text": "Hey HN,<p>Over the past few months, we\u2019ve watched autonomous agents transition from conversational LLMs into tool-wielding operators equipped with Model Context Protocol (MCP) servers, terminal execution, filesystem access, and web scrapers.<p>The vulnerability: once an agent has tool execution capabilities, any untrusted data it touches (web scrapes, emails, customer tickets) becomes an active attack vector. System prompts fail against 70%+ of indirect prompt injections, Unicode steganography, and SSRF payloads (targeting 169.254.169.254 AWS metadata or IPv4-mapped IPv6 loopbacks).<p>We built Tcha Protection (MIT, npm install -g tcha-protection) to solve this deterministically at the transport and STDIO proxy layer, rather than relying on probabilistic LLM system prompts.<p>### What it does:\nTcha sits as a transparent, sub-millisecond reverse proxy between your host agent (Claude Desktop, Cursor, Windsurf, custom agents) and MCP tool servers:<p>1. In-Line MCP Reverse Proxy: Intercepts tools&#x2F;call JSON-RPC streams in flight with &lt;= 1ms latency overhead. If a call targets path traversal (..&#x2F;..&#x2F;etc&#x2F;shadow), unapproved destructive mutations, or forbidden egress, Tcha parries the request immediately with standardized JSON-RPC error -32001 before the downstream server is touched.\n2. SSRF &amp; Cloud Metadata Shield: Resolves DNS hostnames and strictly blocks requests targeting AWS&#x2F;Azure&#x2F;GCP metadata (169.254.169.254, fd00:ec2::254), IPv4-mapped IPv6 loopbacks (::ffff:127.0.0.1), hex&#x2F;octal&#x2F;decimal IP encodings, and RFC-1918 private subnets.\n3. Unicode Steganography &amp; Delimiter Sanitizer: Detects and neutralizes zero-width unicode injections (\\u200B, \\uFEFF), ASCII smuggling via Unicode tags, and multi-modal delimiter breakouts ([INST], &lt;|im_start|&gt;).\n4. Cryptographic Merkle Audit Ledger: Every tool execution, parameter hash, and intercept decision is written to an append-only SQLite WAL ledger with continuous SHA-256 Merkle link chaining.\n5. HMAC Human-in-the-Loop (HITL): High-risk mutating actions (e.g. rm -rf, DROP TABLE) trigger an HMAC challenge requiring human sign-off.\n6. Compliance Crosswalk: Maps neutralized vectors directly to the EU AI Act (Article 15), SOC 2 Type II (CC6.1), and OWASP Top 10 for LLMs.<p>### Benchmark &amp; Performance:\n- 100-Probe Red-Team Suite: Tested against 100 categorized adversarial attack vectors across prompt injection, steganography, SSRF, traversal, and tool abuse. 100&#x2F;100 attacks neutralized (0 escapes).\n- Latency Overhead: Sub-millisecond (average &lt; 1.0ms per tool invocation).<p>### Quickstart:\nRun the 100-probe adversarial audit locally:\n$ npx tcha-protection audit<p>Or wrap any MCP server:\n$ tcha wrap npx -y @modelcontextprotocol&#x2F;server-filesystem .&#x2F;data<p>- Live Site: <a href=\"https:&#x2F;&#x2F;tcha.dev\" rel=\"nofollow\">https:&#x2F;&#x2F;tcha.dev</a>\n- Verified Audit Report: <a href=\"https:&#x2F;&#x2F;tcha.dev&#x2F;report.html\" rel=\"nofollow\">https:&#x2F;&#x2F;tcha.dev&#x2F;report.html</a>\n- GitHub Repo (MIT): <a href=\"https:&#x2F;&#x2F;github.com&#x2F;Tchapwo1&#x2F;tcha\" rel=\"nofollow\">https:&#x2F;&#x2F;github.com&#x2F;Tchapwo1&#x2F;tcha</a><p>We would love HN&#x27;s brutal feedback on our parser, our SSRF CIDR deny-lists, and what edge cases in MCP tool calling we should test next.",
+   "created_at": "2026-10-19T21:12:31Z",
+   "created_at_i": 1792444351,
+   "objectID": "50158146",
+   "parent_id": 50158145,
+   "story_id": 50158145,
+   "story_title": "[dead]",
+   "updated_at": "2026-10-19T21:17:30Z"
+  }
+ ]
+}

@@ -1,0 +1,27 @@
+{
+  "comment_count": 2,
+  "fetched_at_utc": "2026-10-27T17:07:29Z",
+  "item_count": 2,
+  "items": {
+    "48838376": {
+      "id": 48838376,
+      "kids": [
+        48842146
+      ],
+      "parent": 48838368,
+      "text": "I built this because the MCP registry verifies who published a server (namespace auth tied to a GitHub account&#x2F;domain), but nothing verifies what a server does once you run it. The trust tooling I could find is almost all static analysis, scanning source and metadata. That misses the stuff that only shows up at runtime: a server that connects somewhere unrelated to its job, reads files outside its lane, or changes behavior in a later version after you&#x27;ve already trusted it (the rug-pull case).\nSo I ran each server in a throwaway Linux container under strace, logging every file open and network connection, with a fake credential seeded in the environment as a canary. Ran it across 70 servers, the 20 most-downloaded on npm plus 50 from the long tail.\n67 were clean at startup. 3 make outbound HTTPS calls at boot, before any tool is invoked, all to hosts consistent with what they&#x27;re for (an exchange integration, a GitHub fetch, some CDN&#x2F;cloud endpoints), and none read sensitive files or touch the canary. 1 (bullmq-mcp) reads &#x2F;etc&#x2F;passwd at startup, which looked alarming until the trace showed it&#x27;s a standard glibc user lookup (nsswitch.conf then passwd, classic getpwuid), and a follow-up run confirmed the contents never leave the process. Benign.\nHonest scope: this only captures startup + idle behavior right now, not individual tool calls, which is where more of the interesting behavior lives. Tool-call tracing and cross-version diffing (to catch rug pulls) are what I&#x27;m building next. Repo has the harness, per-server manifests, and the full writeup.\nI&#x27;d genuinely like feedback on two things: whether the runtime-behavior angle is worth pursuing over just static scanning, and whether anyone would actually want this as a feed their MCP client checks before install.",
+      "time": 1783550749,
+      "type": "comment"
+    },
+    "48842146": {
+      "id": 48842146,
+      "parent": 48838376,
+      "text": "This clearly is a copied response from Claude for something like &quot;Summarize RESULTS.md so that i can use it as a comment for HN.&quot;",
+      "time": 1783581991,
+      "type": "comment"
+    }
+  },
+  "method": "GET https://hacker-news.firebaseio.com/v0/item/<id>.json via curl (16-way parallel), recursive over kids",
+  "role": "killed",
+  "root_id": 48838376
+}

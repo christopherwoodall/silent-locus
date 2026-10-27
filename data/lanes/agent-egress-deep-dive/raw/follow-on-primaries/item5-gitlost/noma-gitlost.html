@@ -1,0 +1,1366 @@
+<!DOCTYPE html><!-- Last Published: Mon Oct 26 2026 20:07:40 GMT+0000 (Coordinated Universal Time) --><html data-wf-domain="noma.security" data-wf-page="6a2fc242594b1b4749691fef" data-wf-site="6a26af028fd645aaf775e517" lang="en" data-wf-collection="6a2fc242594b1b4749691f6a" data-wf-item-slug="gitlost-how-we-tricked-githubs-ai-agent-into-leaking-private-repos"><head><meta charset="utf-8"/><link href="https://cdn.prod.website-files.com" rel="preconnect" crossorigin="anonymous"/><title>GitLost: How We Tricked GitHub’s AI Agent into Leaking Private Repos | Noma</title><meta content="Noma Labs found a prompt injection flaw in GitHub Agentic Workflows that let an unauthenticated attacker leak private repo data via a crafted GitHub Issue." name="description"/><meta content="GitLost: How We Tricked GitHub’s AI Agent into Leaking Private Repos | Noma" property="og:title"/><meta content="Noma Labs found a prompt injection flaw in GitHub Agentic Workflows that let an unauthenticated attacker leak private repo data via a crafted GitHub Issue." property="og:description"/><meta content="https://cdn.prod.website-files.com/6a2fc1eb62d2fd1e9605374e/6ab46be8c8789bff36a99d13_GitLost-optimized.webp" property="og:image"/><meta content="GitLost: How We Tricked GitHub’s AI Agent into Leaking Private Repos | Noma" name="twitter:title"/><meta content="Noma Labs found a prompt injection flaw in GitHub Agentic Workflows that let an unauthenticated attacker leak private repo data via a crafted GitHub Issue." name="twitter:description"/><meta content="https://cdn.prod.website-files.com/6a2fc1eb62d2fd1e9605374e/6ab46be8c8789bff36a99d13_GitLost-optimized.webp" name="twitter:image"/><meta property="og:type" content="website"/><meta content="summary_large_image" name="twitter:card"/><meta content="width=device-width, initial-scale=1" name="viewport"/><link href="https://cdn.prod.website-files.com/6a26af028fd645aaf775e517/css/staging-noma.shared.5b424954b.min.css" rel="stylesheet" type="text/css" integrity="sha384-W0JJVLBNS3PdanasiJxHCxqQY69b45KemhS1dos3LSwz3XF/uvktGHuk0RbWBVeU" crossorigin="anonymous"/><style>@media not all and (max-width: 479px) and (min-width: 0px){@media not all and (max-width: 767px) and (min-width: 480px){@media not all and (max-width: 991px) and (min-width: 768px){html.w-mod-js:not(.w-mod-ix3) :is(.ai-environments-card) {visibility: hidden !important;}}}}</style><link href="https://fonts.googleapis.com" rel="preconnect"/><link href="https://fonts.gstatic.com" rel="preconnect" crossorigin="anonymous"/><script src="https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js" type="text/javascript"></script><script type="text/javascript">WebFont.load({  google: {    families: ["Varela:400","Geist:300,400,500,600,700,800","Libertinus Serif:400"]  }});</script><script type="text/javascript">!function(o,c){var n=c.documentElement,t=" w-mod-";n.className+=t+"js",("ontouchstart"in o||o.DocumentTouch&&c instanceof DocumentTouch)&&(n.className+=t+"touch")}(window,document);</script><link href="https://cdn.prod.website-files.com/6a26af028fd645aaf775e517/6ad63c10e640ccffb4abd167_Website%20Rebrand%20Favicon.png" rel="icon" type="image/png" sizes="32x32" media="(prefers-color-scheme: light)"/><link href="https://cdn.prod.website-files.com/6a26af028fd645aaf775e517/6ad63c10e640ccffb4abd167_Website%20Rebrand%20Favicon.png" rel="icon" type="image/png" sizes="32x32" media="(prefers-color-scheme: dark)"/><link href="https://cdn.prod.website-files.com/6a26af028fd645aaf775e517/6ad63c10530c5d8aa7098ced_Website%20Rebrand%20Favicon.png" rel="icon" type="image/png" sizes="48x48"/><link href="https://cdn.prod.website-files.com/6a26af028fd645aaf775e517/6ad63c406d147fb880389187_Rebrand%20Favicon.png" rel="apple-touch-icon" sizes="180x180"/><link href="https://cdn.prod.website-files.com/6a26af028fd645aaf775e517/6ad63c4025d26995c8e655bc_Rebrand%20Favicon.png" rel="icon" type="image/png" sizes="192x192"/><link href="https://cdn.prod.website-files.com/6a26af028fd645aaf775e517/6ad63c40e640ccffb4abd5eb_Rebrand%20Favicon.png" rel="icon" type="image/png" sizes="512x512"/><link href="https://noma.security/noma-labs/gitlost-how-we-tricked-githubs-ai-agent-into-leaking-private-repos" rel="canonical"/><script id="cookieyes" type="text/javascript" src="https://cdn-cookieyes.com/client_data/535adc4fecc0ef558a5e7a2a/script.js"></script>
+
+<!-- Google Tag Manager -->
+<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'//www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','GTM-M9CWZWJ7');</script>
+<!-- End Google Tag Manager -->
+
+<style>
+/* ---- Links and buttons: underline wipes in from the left, out to the right ---- */
+.re-button-transparent > p,
+.arrow-link > p,
+.re-button .re-button-text { position: relative; }
+
+.re-button-transparent > p::after,
+.arrow-link > p::after,
+.re-button .re-button-text::after
+{
+  content: "";
+  position: absolute;
+  left: 0; right: 0; bottom: -2px;
+  height: 1px;
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: right center;
+  transition: transform .35s cubic-bezier(.22, 1, .36, 1);
+}
+
+.re-button-transparent:hover > p::after,
+.arrow-link:hover > p::after,
+.re-button:hover .re-button-text::after {
+  transform: scaleX(1);
+  transform-origin: left center;
+}
+
+/* ---- Cards: lift, border, and the media easing up inside its crop ---- */
+.re-risk-card,
+.latest-articles_card {
+  transition: transform .4s cubic-bezier(.22, 1, .36, 1),
+              border-color .4s ease;
+}
+.re-risk-card:hover,
+.latest-articles_card:hover { transform: translateY(-4px); }
+
+.re-risk-card:hover {
+  border-color: var(--color-neutral--gray-700, #c0ccc0);
+}
+
+.risk-card_media-img { transition: transform .6s cubic-bezier(.22, 1, .36, 1); }
+.re-risk-card:hover .risk-card_media-img { transform: scale(1.04); }
+
+/* ---- Marquee: pause the whole track on hover ---- */
+.agent-marquee_wrap:hover .agent-marquee_item,
+.agent-marquee_wrap-2:hover .agent-marquee_item { animation-play-state: paused; }
+
+/* ---- Reduced motion ---- */
+@media (prefers-reduced-motion: reduce) {
+  .re-button-transparent > p::after,
+  .arrow-link > p::after,
+  .re-button .re-button-text::after,
+  .re-risk-card,
+  .latest-articles_card,
+  .risk-card_media-img { transition: none !important; }
+
+  .re-risk-card:hover,
+  .latest-articles_card:hover,
+  .re-risk-card:hover .risk-card_media-img { transform: none; }
+}
+</style>
+
+<style>
+/* Dot markers: hollow by default, filled on hover and while a menu is open.
+   This is the ○ -> ● state the Figma shows on the active nav item.
+   Note Webflow puts .w--open on the TOGGLE and the LIST, never on the
+   .w-dropdown wrapper — targeting the wrapper here silently does nothing. */
+.re-topnav_dot{
+  background-color:transparent;
+  transition:background-color .25s ease, transform .3s cubic-bezier(.34,1.56,.64,1);
+}
+.re-topnav_toggle:hover .re-topnav_dot,
+.re-topnav_toggle.w--open .re-topnav_dot,
+.re-topnav_item:hover .re-topnav_dot{
+  background-color:#171B17;
+}
+.re-topnav_toggle.w--open .re-topnav_dot{
+  transform:scale(1.15);
+}
+.re-topnav_feature-link:hover .re-topnav_dot.is-light{
+  background-color:#FEFEFE;
+}
+
+/* Row hover: the whole item warms slightly and the text steps toward the reader.
+   Padding-left is what moves, so the dot stays put and only the copy shifts. */
+.re-topnav_item{
+  transition:background-color .3s ease;
+}
+.re-topnav_item:hover{
+  background-color:rgba(23,27,23,0.04);
+}
+.re-topnav_item-title,
+.re-topnav_item-desc{
+  transition:transform .35s cubic-bezier(.22,1,.36,1);
+}
+.re-topnav_item:hover .re-topnav_item-title,
+.re-topnav_item:hover .re-topnav_item-desc{
+  transform:translateX(3px);
+}
+
+/* Feature card: the image breathes in on hover and the link text underlines.
+   The card clips, so the scale never pushes the panel around. */
+.re-topnav_feature-img{
+  overflow:hidden;
+}
+.re-topnav_feature-img > *{
+  transition:transform .6s cubic-bezier(.22,1,.36,1);
+}
+.re-topnav_feature:hover .re-topnav_feature-img > *{
+  transform:scale(1.04);
+}
+.re-topnav_feature-link-text{
+  position:relative;
+}
+.re-topnav_feature-link-text::after{
+  content:"";
+  position:absolute;
+  left:0;
+  bottom:-2px;
+  width:100%;
+  height:1px;
+  background-color:currentColor;
+  transform:scaleX(0);
+  transform-origin:left center;
+  transition:transform .4s cubic-bezier(.22,1,.36,1);
+}
+.re-topnav_feature-link:hover .re-topnav_feature-link-text::after{
+  transform:scaleX(1);
+}
+
+/* CTA: same line sweep the rest of the site's buttons use. */
+.re-topnav_cta-text{
+  position:relative;
+}
+.re-topnav_cta-text::after{
+  content:"";
+  position:absolute;
+  left:0;
+  bottom:-2px;
+  width:100%;
+  height:1px;
+  background-color:currentColor;
+  transform:scaleX(0);
+  transform-origin:left center;
+  transition:transform .4s cubic-bezier(.22,1,.36,1);
+}
+.re-topnav_cta:hover .re-topnav_cta-text::after{
+  transform:scaleX(1);
+}
+
+/* Fallback so the underlay still works if GSAP never loads. The script
+   removes this class as soon as it takes over, to avoid two systems fighting. */
+.re-topnav_scrim.is-css-fallback{
+  transition:opacity .4s ease;
+}
+.re-topnav_scrim.is-css-fallback.is-visible{
+  opacity:1;
+}
+
+/* ---- Mobile / tablet --------------------------------------------------
+   Two things are different below 992px and both broke the underlay.
+
+   1. The dropdowns stop being floating panels and render inline inside the
+      nav menu, so the underlay has nothing to sit behind. It only ever
+      appeared because a dropdown toggle was opened, which looked like a bug
+      and was one.
+   2. Webflow's .w-nav-menu is transparent and, when open, is as tall as the
+      whole document. With the underlay behind it you read the dot texture
+      and the page straight through the menu, which is what made the links
+      look washed out.
+
+   So: no underlay here, and give the open menu a solid background. */
+@media screen and (max-width:991px){
+  .re-topnav_scrim{
+    display:none!important;
+  }
+  .re-topnav_menu{
+    background-color:#FEFEFE;
+  }
+}
+
+@media (prefers-reduced-motion:reduce){
+  .re-topnav_dot,
+  .re-topnav_item,
+  .re-topnav_item-title,
+  .re-topnav_item-desc,
+  .re-topnav_feature-img > *,
+  .re-topnav_feature-link-text::after,
+  .re-topnav_cta-text::after{
+    transition:none!important;
+  }
+}
+
+@media screen and (max-width:991px){
+  .re-topnav .w-nav-overlay{
+    height:calc(100vh - 48px)!important;
+    height:calc(100dvh - 48px)!important;
+    overflow:hidden!important;
+  }
+  .re-topnav_menu{
+    height:100%!important;
+    overflow-y:auto!important;
+    -webkit-overflow-scrolling:touch;
+    overscroll-behavior:contain;
+  }
+  .re-topnav_menu-wrapper{
+    height:auto!important;
+    min-height:100%;
+  }
+}
+@media screen and (max-width:479px){
+  .re-topnav .w-nav-overlay{
+    height:calc(100vh - 43px)!important;
+    height:calc(100dvh - 43px)!important;
+  }
+}
+</style>
+<style>
+.is-re-partners{
+  /* Weak on purpose — see the note above. */
+  perspective:4500px;
+}
+
+.is-re-partners .re-partners_tile{
+  position:absolute;
+  left:50%;
+  top:50%;
+  margin:0;
+  will-change:transform,opacity;
+  backface-visibility:hidden;
+}
+
+/* The copy sits above every tile. Webflow gives this z-index 2, which the
+   tiles' depth ordering would otherwise paint straight over. */
+.is-re-partners .re-partners_content{
+  position:relative;
+  z-index:60;
+}
+
+/* Cards */
+/* the card is the box the link stretches to */
+.rebrand-blog_card,
+.blog-list-hero_card,
+.labs-list-hero_card,
+.webinar-list-hero_card,
+.why-card,
+.sessions_card,
+.labs-latest_row,
+.cases-card,
+.ai-environments-card {
+  position: relative;
+  cursor: pointer;
+}
+
+/* the existing link grows a full-card hit area */
+.rebrand-blog_card .re-button::after,
+.blog-list-hero_card .re-button::after,
+.labs-list-hero_card .re-button::after,
+.webinar-list-hero_card .re-button::after,
+.why-card .re-button::after,
+.sessions_card .re-button::after,
+.labs-latest_row .re-button::after,
+.cases-card .arrow-link::after,
+.ai-environments-card .arrow-link::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+
+/* .re-button:hover scales the button (transform), which would turn the button
+   into the containing block for its own ::after and collapse the hit area
+   mid-hover. Inside cards the scale is dropped and the hover state is driven
+   from the card instead, so the button lights up wherever the pointer is. */
+.rebrand-blog_card .re-button:hover,
+.blog-list-hero_card .re-button:hover,
+.labs-list-hero_card .re-button:hover,
+.webinar-list-hero_card .re-button:hover,
+.why-card .re-button:hover,
+.sessions_card .re-button:hover,
+.labs-latest_row .re-button:hover {
+  transform: none;
+}
+/* .is-link (text-only) and .is-green (brand green, black text) keep their own
+   background - the dark fill would leave black text on a dark button. They only
+   get the underline below. */
+.rebrand-blog_card:hover .re-button:not(.is-link):not(.is-green),
+.blog-list-hero_card:hover .re-button:not(.is-link):not(.is-green),
+.labs-list-hero_card:hover .re-button:not(.is-link):not(.is-green),
+.webinar-list-hero_card:hover .re-button:not(.is-link):not(.is-green),
+.why-card:hover .re-button:not(.is-link):not(.is-green),
+.sessions_card:hover .re-button:not(.is-link):not(.is-green),
+.labs-latest_row:hover .re-button:not(.is-link):not(.is-green) {
+  background-color: var(--color-neutral--neutral-darker);
+}
+.rebrand-blog_card .re-button.is-link,
+.rebrand-blog_card:hover .re-button.is-link,
+.blog-list-hero_card:hover .re-button.is-link,
+.labs-list-hero_card:hover .re-button.is-link,
+.webinar-list-hero_card:hover .re-button.is-link,
+.why-card:hover .re-button.is-link,
+.sessions_card:hover .re-button.is-link,
+.labs-latest_row:hover .re-button.is-link {
+  background-color: transparent;
+}
+.rebrand-blog_card:hover .re-button.is-green,
+.blog-list-hero_card:hover .re-button.is-green,
+.labs-list-hero_card:hover .re-button.is-green,
+.webinar-list-hero_card:hover .re-button.is-green,
+.why-card:hover .re-button.is-green,
+.sessions_card:hover .re-button.is-green,
+.labs-latest_row:hover .re-button.is-green {
+  background-color: var(--secondary-colors--green);
+  color: var(--color-neutral--black);
+}
+.rebrand-blog_card:hover .re-button .re-button-text::after,
+.blog-list-hero_card:hover .re-button .re-button-text::after,
+.labs-list-hero_card:hover .re-button .re-button-text::after,
+.webinar-list-hero_card:hover .re-button .re-button-text::after,
+.why-card:hover .re-button .re-button-text::after,
+.sessions_card:hover .re-button .re-button-text::after,
+.labs-latest_row:hover .re-button .re-button-text::after,
+.latest-articles_card:hover .re-button .re-button-text::after,
+.cases-card:hover .arrow-link > p::after,
+.ai-environments-card:hover .arrow-link > p::after {
+  transform: scaleX(1);
+  transform-origin: left center;
+}
+
+/* keyboard focus outlines the whole card, not just the button */
+.rebrand-blog_card:has(.re-button:focus-visible),
+.blog-list-hero_card:has(.re-button:focus-visible),
+.labs-list-hero_card:has(.re-button:focus-visible),
+.webinar-list-hero_card:has(.re-button:focus-visible),
+.why-card:has(.re-button:focus-visible),
+.sessions_card:has(.re-button:focus-visible),
+.labs-latest_row:has(.re-button:focus-visible),
+.cases-card:has(.arrow-link:focus-visible),
+.ai-environments-card:has(.arrow-link:focus-visible) {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+}
+
+</style>
+
+<style>
+  .re-access-tabs_item {
+    display: grid;
+    grid-template-rows: auto 0fr;
+    transition: grid-template-rows 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .re-access-tabs_item.is-active,
+  .re-access-tabs_list:not(:has(.is-active)) .re-access-tabs_item:first-child {
+    grid-template-rows: auto 1fr;
+  }
+
+  .re-access-tabs_item .re-access-tabs_body {
+    overflow: hidden;
+    min-height: 0;
+    visibility: hidden;
+    padding-top: 0;
+    padding-bottom: 0;
+    transition:
+      padding-top 0.5s cubic-bezier(0.22, 1, 0.36, 1),
+      padding-bottom 0.5s cubic-bezier(0.22, 1, 0.36, 1),
+      visibility 0s linear 0.5s;
+  }
+
+  .re-access-tabs_item.is-active .re-access-tabs_body,
+  .re-access-tabs_list:not(:has(.is-active)) .re-access-tabs_item:first-child .re-access-tabs_body {
+    visibility: visible;
+    padding-top: 2rem;
+    padding-bottom: 1.5rem;
+    transition-delay: 0s;
+  }
+
+  .re-access-tabs_body > * {
+    opacity: 0;
+    transform: translateY(8px);
+    transition:
+      opacity 0.35s ease,
+      transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .re-access-tabs_item.is-active .re-access-tabs_body > *,
+  .re-access-tabs_list:not(:has(.is-active)) .re-access-tabs_item:first-child .re-access-tabs_body > * {
+    opacity: 1;
+    transform: none;
+  }
+  .re-access-tabs_item.is-active .re-access-tabs_body > :nth-child(1) {
+    transition-delay: 0.1s;
+  }
+  .re-access-tabs_item.is-active .re-access-tabs_body > :nth-child(2) {
+    transition-delay: 0.16s;
+  }
+  .re-access-tabs_item.is-active .re-access-tabs_body > :nth-child(3) {
+    transition-delay: 0.22s;
+  }
+
+  /* ---- heading ---- */
+  .re-access-tabs_head h3 {
+    transition: opacity 0.3s;
+  }
+  .re-access-tabs_item:not(.is-active) .re-access-tabs_head h3 {
+    opacity: 0.5;
+  }
+  .re-access-tabs_list:not(:has(.is-active)) .re-access-tabs_item:first-child .re-access-tabs_head h3 {
+    opacity: 1;
+  }
+
+  /* ---- dot: small pop so the active row announces itself ---- */
+  .re-access-tabs_dot {
+    transform: scale(0);
+    opacity: 0;
+    transition:
+      transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1),
+      opacity 0.25s ease;
+  }
+  .re-access-tabs_item.is-active .re-access-tabs_dot,
+  .re-access-tabs_list:not(:has(.is-active)) .re-access-tabs_item:first-child .re-access-tabs_dot {
+    transform: scale(1);
+    opacity: 1;
+  }
+
+  /* Progress stays display-toggled so its keyframe restarts from 0 each time. */
+  .re-access-tabs_item:not(.is-active) .re-access-tabs_progress {
+    display: none;
+  }
+  .re-access-tabs_item.is-active .re-access-tabs_progress {
+    animation: reAccessProgress 18s linear forwards;
+  }
+  @keyframes reAccessProgress {
+    from {
+      width: 0%;
+    }
+    to {
+      width: 100%;
+    }
+  }
+
+  .re-access-tabs_media-slide {
+    opacity: 0;
+    transition: opacity 0.55s ease;
+  }
+  .re-access-tabs_media-slide.is-active,
+  .re-access-tabs_media:not(:has(.is-active)) .re-access-tabs_media-slide:first-child {
+    opacity: 1;
+  }
+
+  .re-access-tabs_media-bg {
+    transform: scale(1.06);
+    transition: transform 1.2s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .re-access-tabs_media-slide.is-active .re-access-tabs_media-bg,
+  .re-access-tabs_media:not(:has(.is-active)) .re-access-tabs_media-slide:first-child .re-access-tabs_media-bg {
+    transform: scale(1);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .re-access-tabs_item,
+    .re-access-tabs_item .re-access-tabs_body,
+    .re-access-tabs_body > *,
+    .re-access-tabs_dot,
+    .re-access-tabs_media-slide,
+    .re-access-tabs_media-bg {
+      transition: none !important;
+    }
+    .re-access-tabs_body > * {
+      opacity: 1;
+      transform: none;
+    }
+    .re-access-tabs_dot {
+      transform: none;
+      opacity: 1;
+    }
+    .re-access-tabs_media-bg {
+      transform: none;
+    }
+    .re-access-tabs_item.is-active .re-access-tabs_progress {
+      animation: none;
+      width: 100%;
+    }
+  }
+</style>
+
+<style>
+/* Button hover, from Figma "Page Elements > large-cta" (hover=no -> hover=yes,
+   While hovering, Smart animate, Ease out, 100ms):
+   - square corners round to a pill (radius 0 -> 99px)
+   - a small chevron slides out after the dot (dot + 4px + 5px chevron), gap 8 -> 10px
+   - no scale, no colour change, no underline
+   The chevron is drawn on the dot wrapper, not on .re-button::after, because
+   .re-button::after is the stretched hit area in clickable cards.
+   .is-link (text-only) and .is-nav are left alone. */
+.re-button:not(.is-link):not(.is-nav) {
+  transition:
+    border-radius .1s ease-out,
+    gap .1s ease-out,
+    background-color .1s ease-out;
+}
+.re-button:not(.is-link):not(.is-nav) > .svg-align-center {
+  display: flex;
+  align-items: center;
+}
+.re-button:not(.is-link):not(.is-nav) > .svg-align-center::after {
+  content: "";
+  flex: none;
+  width: 0;
+  height: .5625rem;
+  margin-left: 0;
+  opacity: 0;
+  background-color: currentColor;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 6 10'%3E%3Cpath d='M1 1l4 4-4 4' fill='none' stroke='%23000' stroke-width='1.3'/%3E%3C/svg%3E") center / contain no-repeat;
+          mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 6 10'%3E%3Cpath d='M1 1l4 4-4 4' fill='none' stroke='%23000' stroke-width='1.3'/%3E%3C/svg%3E") center / contain no-repeat;
+  transition: width .1s ease-out, margin-left .1s ease-out, opacity .1s ease-out;
+}
+
+/* hover state: on the button itself, or anywhere on a clickable card */
+.re-button:not(.is-link):not(.is-nav):hover,
+:is(.rebrand-blog_card, .blog-list-hero_card, .labs-list-hero_card, .webinar-list-hero_card,
+    .why-card, .sessions_card, .labs-latest_row):hover .re-button:not(.is-link):not(.is-nav) {
+  border-radius: 28px;
+  gap: .625rem;
+  transform: none;
+}
+.re-button:not(.is-link):not(.is-nav):not(.is-green):not(.is-outline):hover,
+:is(.rebrand-blog_card, .blog-list-hero_card, .labs-list-hero_card, .webinar-list-hero_card,
+    .why-card, .sessions_card, .labs-latest_row):hover .re-button:not(.is-link):not(.is-nav):not(.is-green):not(.is-outline) {
+  background-color: var(--color-neutral--black);
+}
+.re-button:not(.is-link):not(.is-nav):hover > .svg-align-center::after,
+:is(.rebrand-blog_card, .blog-list-hero_card, .labs-list-hero_card, .webinar-list-hero_card,
+    .why-card, .sessions_card, .labs-latest_row):hover .re-button:not(.is-link):not(.is-nav) > .svg-align-center::after {
+  width: .3125rem;
+  margin-left: .125rem;
+  opacity: 1;
+}
+.re-button:not(.is-link):not(.is-nav):hover .re-button-text::after,
+:is(.rebrand-blog_card, .blog-list-hero_card, .labs-list-hero_card, .webinar-list-hero_card,
+    .why-card, .sessions_card, .labs-latest_row):hover .re-button:not(.is-link):not(.is-nav) .re-button-text::after {
+  transform: scaleX(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .re-button:not(.is-link):not(.is-nav),
+  .re-button:not(.is-link):not(.is-nav) > .svg-align-center::after { transition: none; }
+}
+</style><script src="https://cdn.prod.website-files.com/6a26af028fd645aaf775e517%2F689e5ba67671442434f3ca35%2F6ace5c2ac91f09c6aedc5412%2Fcapssectionstyles-1.0.0.js" type="text/javascript"></script></head><body class="body-rebrand"><div class="page-wrapper"><div class="hide w-embed"><style>
+  .rebrand-blog_rte blockquote strong{
+    font-size: var(--_typography---size--heading-h6);
+    display: block;
+    font-weight: 400;
+    line-height: 1;
+    font-family: var(--_typography---family--heading);
+    letter-spacing: -1px; 
+    margin-bottom: 1rem;
+    color: var(--color-neutral--black);
+  }
+  .rebrand-blog_rte figure div{
+    width: 100%;
+  }
+  .rebrand-blog_rte figure{
+    max-width: 100% !important;
+    width: 100%;
+    margin: 0px;
+  }
+</style></div><div class="global-styles w-embed"><style>
+  h1 b,
+  h1 strong,
+  h2 b,
+  h2 strong,
+  h3 b,
+  h3 strong,
+  h4 b,
+  h4 strong,
+  h5 b,
+  h5 strong,
+  h6 b,
+  h6 strong {
+    font-weight: var(--_typography---weight--medium);
+  }
+
+  /* Make text look crisper and more legible in all browsers */
+  body {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* Focus state style for keyboard navigation for the focusable elements */
+  *[tabindex]:focus-visible,
+  input[type='file']:focus-visible {
+    outline: 0.125rem solid #4d65ff;
+    outline-offset: 0.125rem;
+  }
+
+  /* Set color style to inherit */
+  .inherit-color * {
+    color: inherit;
+  }
+
+  /* Get rid of top margin on first element in any rich text element */
+  .w-richtext > :not(div):first-child,
+  .w-richtext > div:first-child > :first-child {
+    margin-top: 0 !important;
+  }
+
+  /* Get rid of bottom margin on last element in any rich text element */
+  .w-richtext > :last-child,
+  .w-richtext ol li:last-child,
+  .w-richtext ul li:last-child {
+    margin-bottom: 0 !important;
+  }
+
+  /* Make sure containers never lose their center alignment */
+  .container-medium,
+  .container-small,
+  .container-large {
+    margin-right: auto !important;
+    margin-left: auto !important;
+  }
+
+  /* 
+Make the following elements inherit typography styles from the parent and not have hardcoded values. 
+Important: You will not be able to style for example "All Links" in Designer with this CSS applied.
+Uncomment this CSS to use it in the project. Leave this message for future hand-off.
+*/
+  /*
+a,
+.w-input,
+.w-select,
+.w-tab-link,
+.w-nav-link,
+.w-dropdown-btn,
+.w-dropdown-toggle,
+.w-dropdown-link {
+  color: inherit;
+  text-decoration: inherit;
+  font-size: inherit;
+}
+*/
+
+  /* Apply "..." after 3 lines of text */
+  .text-style-3lines {
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+  }
+
+  /* Apply "..." after 2 lines of text */
+  .text-style-2lines {
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+  }
+
+  /* These classes are never overwritten */
+  .hide {
+    display: none !important;
+  }
+
+  @media screen and (max-width: 991px) {
+    .hide,
+    .hide-tablet {
+      display: none !important;
+    }
+  }
+  @media screen and (max-width: 767px) {
+    .hide-mobile-landscape {
+      display: none !important;
+    }
+  }
+  @media screen and (max-width: 479px) {
+    .hide-mobile {
+      display: none !important;
+    }
+  }
+
+  .margin-0 {
+    margin: 0rem !important;
+  }
+
+  .padding-0 {
+    padding: 0rem !important;
+  }
+
+  .spacing-clean {
+    padding: 0rem !important;
+    margin: 0rem !important;
+  }
+
+  .margin-top {
+    margin-right: 0rem !important;
+    margin-bottom: 0rem !important;
+    margin-left: 0rem !important;
+  }
+
+  .padding-top {
+    padding-right: 0rem !important;
+    padding-bottom: 0rem !important;
+    padding-left: 0rem !important;
+  }
+
+  .margin-right {
+    margin-top: 0rem !important;
+    margin-bottom: 0rem !important;
+    margin-left: 0rem !important;
+  }
+
+  .padding-right {
+    padding-top: 0rem !important;
+    padding-bottom: 0rem !important;
+    padding-left: 0rem !important;
+  }
+
+  .margin-bottom {
+    margin-top: 0rem !important;
+    margin-right: 0rem !important;
+    margin-left: 0rem !important;
+  }
+
+  .padding-bottom {
+    padding-top: 0rem !important;
+    padding-right: 0rem !important;
+    padding-left: 0rem !important;
+  }
+
+  .margin-left {
+    margin-top: 0rem !important;
+    margin-right: 0rem !important;
+    margin-bottom: 0rem !important;
+  }
+
+  .padding-left {
+    padding-top: 0rem !important;
+    padding-right: 0rem !important;
+    padding-bottom: 0rem !important;
+  }
+
+  .margin-horizontal {
+    margin-top: 0rem !important;
+    margin-bottom: 0rem !important;
+  }
+
+  .padding-horizontal {
+    padding-top: 0rem !important;
+    padding-bottom: 0rem !important;
+  }
+
+  .margin-vertical {
+    margin-right: 0rem !important;
+    margin-left: 0rem !important;
+  }
+
+  .padding-vertical {
+    padding-right: 0rem !important;
+    padding-left: 0rem !important;
+  }
+
+  /* Use Cases Card Hover */
+  .use-cases_card:hover .use-cases-card_hover {
+    opacity: 1;
+  }
+
+  /* Navbar Animations */
+  .nav-dd-navigation_link:hover .nav-dd_link-hover-icon {
+    opacity: 1;
+  }
+
+  .nav-dd_toggle.w--open .nav-dd-toggle_icon {
+    transform: rotate(180deg);
+  }
+
+  .blog_rte a.button,
+  .blog_rte a.button:hover,
+  .blog_rte a.button:focus {
+    color: var(--text-color--alternate);
+    text-decoration: none;
+    margin-bottom: 1.5rem;
+  }
+
+  @media (max-width: 1300px) and (min-width: 992px) {
+    .heading-responsiveness {
+      font-size: 6rem;
+    }
+    .ai-dr_hero-gnome {
+    	right: -15%;  
+    }
+  }
+
+  @media (max-width: 1168px) and (min-width: 992px) {
+    .rebrand-cta_title {
+      max-width: 80%;
+      font-size: 8rem;
+    }
+  }
+  .cases-card:hover .cases-hover_img {
+    opacity: 1;
+  }
+
+  .re-topnav_scrim {
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 100vh;
+}
+
+  /* product hero title scales with the viewport between the tablet and 1500px breakpoints */
+@media (min-width: 992px) and (max-width: 1499px) {
+  .section.is-re-platform .re-heading-style-h1,
+  .section.is-ai-dr .re-heading-style-h1,
+  .section.is-red-teaming .re-heading-style-h1 { font-size: clamp(7rem, 12vw, 11.25rem); }
+}
+
+  /* QA-05: HubSpot form labels, placeholders and legal text at WCAG AA contrast.
+     #646e64 is 4.6:1+ on every site background (Gray 900 #9fa99f was 2.3:1).
+     Overrides --hsf-muted in the per-page HubSpot form CSS (Demo, Contact,
+     Gartner, Whitepaper, Montreal, CAB). */
+  .hs-form-html,
+  [data-hsfc-id='Renderer'],
+  .hsfc-Form {
+    --hsf-muted: #646e64 !important;
+  }
+
+  .is-sec-upcoming-events:has(.w-dyn-empty)
+  {
+    display: none;
+    }
+  
+</style></div><div data-animation="default" data-collapse="medium" data-duration="400" data-easing="ease" data-easing2="ease" role="banner" class="re-topnav w-nav"><div class="re-topnav_bar-bg"></div><div class="re-topnav_scrim"></div><div class="nav-padding"><div class="re-topnav_inner"><a href="/" class="re-topnav_brand w-nav-brand"><img src="https://cdn.prod.website-files.com/6a26af028fd645aaf775e517/6a935d2ba5258781db45322c_logo-black.svg" loading="lazy" alt="Noma Security logo" height="30" class="re-topnav_logo"/></a><nav role="navigation" class="re-topnav_menu w-nav-menu"><div class="re-topnav_menu-wrapper"><div data-hover="true" data-delay="0" class="re-topnav_dropdown w-dropdown"><div class="re-topnav_toggle w-dropdown-toggle"><div class="re-topnav_dot"></div><div class="re-topnav_link-text">Platform</div></div><nav class="re-topnav_panel w-dropdown-list"><div class="re-topnav_panel-inner is-platform"><div class="re-topnav_list is-single"><a href="/platform" class="re-topnav_item is-first w-inline-block"><div class="re-topnav_item-head"><div class="svg-align-center w-embed"><svg width="18" height="12" viewBox="0 0 18 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M10.381 11.2028L10.0821 10.9036L10.0821 10.9036C9.68275 10.5038 9.48307 10.304 9.34027 10.0707C9.21367 9.86387 9.12037 9.63839 9.0638 9.40253C9 9.1365 9 8.85381 9 8.28842L9 5.8003L3.60315 11.2029C3.38373 11.4225 3.27401 11.5324 3.14748 11.5735C3.03617 11.6097 2.91626 11.6097 2.80496 11.5735C2.67842 11.5324 2.56871 11.4225 2.34928 11.2029L1.8 10.653C0.806034 9.65801 0.30905 9.16051 0.122844 8.58682C-0.0409477 8.08219 -0.0409481 7.53861 0.122844 7.03398C0.30905 6.46029 0.806032 5.96279 1.8 4.96778L1.8 4.96777L6.36514 0.397832L6.36514 0.397828C6.58457 0.178174 6.69428 0.0683467 6.82082 0.0272027C6.93212 -0.00898813 7.05203 -0.00898813 7.16333 0.0272028C7.28987 0.0683467 7.39958 0.178174 7.61901 0.397828L7.61901 0.397831L7.91788 0.697016C8.31725 1.0968 8.51693 1.2967 8.65973 1.52997C8.78634 1.73679 8.87963 1.96227 8.9362 2.19813C9 2.46416 9 2.74685 9 3.31224V5.8003L14.3968 0.397772C14.6163 0.178116 14.726 0.0682874 14.8525 0.0271432C14.9638 -0.00904769 15.0837 -0.00904775 15.195 0.0271431C15.3216 0.0682871 15.4313 0.178115 15.6507 0.397771L16.2 0.947629C17.194 1.94264 17.691 2.44015 17.8772 3.01384C18.0409 3.51847 18.0409 4.06205 17.8772 4.56668C17.691 5.14037 17.194 5.63787 16.2 6.63289L11.6349 11.2028L11.6349 11.2028C11.4154 11.4225 11.3057 11.5323 11.1792 11.5735C11.0679 11.6096 10.948 11.6096 10.8367 11.5735C10.7101 11.5323 10.6004 11.4225 10.381 11.2028Z" fill="#171B17"/>
+</svg>
+</div><div class="re-topnav_item-title">Noma Platform</div></div><div class="re-topnav_item-desc">The unified platform for end-to-end AI security</div></a><a href="/platform/saas-agents" class="re-topnav_item w-inline-block"><div class="re-topnav_item-head"><div class="re-topnav_dot"></div><div class="re-topnav_item-title">Noma for SaaS Agents</div></div><div class="re-topnav_item-desc">Secure agents running on SaaS platforms</div></a><a href="/platform/endpoint-agents" class="re-topnav_item w-inline-block"><div class="re-topnav_item-head"><div class="re-topnav_dot"></div><div class="re-topnav_item-title">Noma for Endpoint AI Agents</div></div><div class="re-topnav_item-desc">Secure the agents your employees use</div></a><a href="/platform/homegrown-agents" class="re-topnav_item w-inline-block"><div class="re-topnav_item-head"><div class="re-topnav_dot"></div><div class="re-topnav_item-title">Noma for Cloud Agents</div></div><div class="re-topnav_item-desc">Secure agents engineers build</div></a></div><a href="/request-demo" class="re-topnav_feature w-inline-block"><div class="re-topnav_feature-img"><img src="https://cdn.prod.website-files.com/6a26af028fd645aaf775e517/6ab5182799702e0641f7c46c_Nav%20-%20Open%20Enforcement.avif" loading="lazy" alt="Orange policy node with a settings-sliders icon linked to three colored endpoints on a textured orange background" class="full-width-image height-100"/></div><div class="re-topnav_feature-text"><div class="re-topnav_feature-title">Get your agents under control</div><div class="re-topnav_feature-desc">See why over 10% of the Fortune 100 already trusts Noma to secure agent adoption.</div><div class="re-topnav_feature-link"><div class="re-topnav_dot is-light"></div><div class="re-topnav_feature-link-text">Get a Demo</div></div></div></a></div></nav></div><div data-hover="true" data-delay="0" class="re-topnav_dropdown w-dropdown"><div class="re-topnav_toggle w-dropdown-toggle"><div class="re-topnav_dot"></div><div class="re-topnav_link-text">Solutions</div></div><nav class="re-topnav_panel w-dropdown-list"><div class="re-topnav_panel-inner"><a href="/platform" class="re-topnav_feature w-inline-block"><div class="re-topnav_feature-img"><img src="https://cdn.prod.website-files.com/6a26af028fd645aaf775e517/6aabff65a4bf154fead40b04_solutions.avif" loading="lazy" width="Auto" sizes="100vw" alt="Diagram connecting an AI agent to MCP servers, data and tools" srcset="https://cdn.prod.website-files.com/6a26af028fd645aaf775e517/6aabff65a4bf154fead40b04_solutions-p-500.avif 500w, https://cdn.prod.website-files.com/6a26af028fd645aaf775e517/6aabff65a4bf154fead40b04_solutions.avif 750w" class="full-width-image height-100"/></div><div class="re-topnav_feature-text"><div class="re-topnav_feature-title">A Unified Agent Control Plane</div><div class="re-topnav_feature-desc">Secure agent adoption centrally, using your existing AI infrastructure.</div><div class="re-topnav_feature-link"><div class="re-topnav_dot is-light"></div><div class="re-topnav_feature-link-text">Explore the platform</div></div></div></a><div class="re-topnav_list is-double"><div class="re-topnav_row"><a href="/solutions/agent-behavior-runtime-control" class="re-topnav_item is-first w-inline-block"><div class="re-topnav_item-head"><div class="re-topnav_dot"></div><div class="re-topnav_item-title">Agent Runtime Security</div></div><div class="re-topnav_item-desc">Detect and stop risky agent behavior in real time.</div></a><a href="/solutions/mcp-security" class="re-topnav_item is-first w-inline-block"><div class="re-topnav_item-head"><div class="re-topnav_dot"></div><div class="re-topnav_item-title">MCP Security</div></div><div class="re-topnav_item-desc">Secure MCP servers, tools, and connections.</div></a></div><div class="re-topnav_row"><a href="/solutions/agentic-identity" class="re-topnav_item w-inline-block"><div class="re-topnav_item-head"><div class="re-topnav_dot"></div><div class="re-topnav_item-title">Agentic Identity</div></div><div class="re-topnav_item-desc">Control what every agent can access and do.</div></a><a href="/solutions/ai-asset-discovery" class="re-topnav_item w-inline-block"><div class="re-topnav_item-head"><div class="re-topnav_dot"></div><div class="re-topnav_item-title">AI Asset Discovery</div></div><div class="re-topnav_item-desc">Find every AI asset across your organization.</div></a></div><div class="re-topnav_row"><a href="/solutions/agent-control-plane" class="re-topnav_item w-inline-block"><div class="re-topnav_item-head"><div class="re-topnav_dot"></div><div class="re-topnav_item-title">AI Agent Control Plane</div></div><div class="re-topnav_item-desc">Define and enforce policies across every agent.</div></a><a href="/solutions/ai-supply-chain-security" class="re-topnav_item w-inline-block"><div class="re-topnav_item-head"><div class="re-topnav_dot"></div><div class="re-topnav_item-title">AI Supply Chain Security</div></div><div class="re-topnav_item-desc">Protect models, tools, data, and dependencies.</div></a></div><div class="re-topnav_row"><a href="/solutions/ai-compliance" class="re-topnav_item w-inline-block"><div class="re-topnav_item-head"><div class="re-topnav_dot"></div><div class="re-topnav_item-title">AI Compliance &amp; Regulation</div></div><div class="re-topnav_item-desc">Simplify compliance across your AI environment.</div></a><div class="nav-filler"></div></div></div></div></nav></div><div data-hover="true" data-delay="0" class="re-topnav_dropdown w-dropdown"><div class="re-topnav_toggle w-dropdown-toggle"><div class="re-topnav_dot"></div><div class="re-topnav_link-text">Products</div></div><nav class="re-topnav_panel w-dropdown-list"><div class="re-topnav_panel-inner"><a href="/gartner/2026-gartner-market-quadrant" class="re-topnav_feature w-inline-block"><div class="re-topnav_feature-img"><img src="https://cdn.prod.website-files.com/6a26af028fd645aaf775e517/6ab51a8b4b0d0969c8c5b7cd_Nav%20-%20Products.avif" loading="lazy" alt="Gartner Startup Market Quadrant for AI Application Security with Noma Security in the Market Shapers quadrant" class="full-width-image height-100"/></div><div class="re-topnav_feature-text"><div class="re-topnav_feature-desc no-margin">Noma named a Market Shaper <br/>in the Gartner® Market Quadrant for AI Application Security, Start-Up Vendors</div><div class="re-topnav_feature-link"><div class="re-topnav_dot is-light"></div><div class="re-topnav_feature-link-text">Get the report</div></div></div></a><div class="re-topnav_list is-single"><a href="/products/ai-dr" class="re-topnav_item is-first w-inline-block"><div class="re-topnav_item-head"><div class="re-topnav_dot"></div><div class="re-topnav_item-title">AI-DR</div></div><div class="re-topnav_item-desc">Secure agent behavior in runtime</div></a><a href="/products/agent-access-control" class="re-topnav_item w-inline-block"><div class="re-topnav_item-head"><div class="re-topnav_dot"></div><div class="re-topnav_item-title">Agent Access Control</div></div><div class="re-topnav_item-desc">Control what every agent can do</div></a><a href="/products/ai-spm" class="re-topnav_item w-inline-block"><div class="re-topnav_item-head"><div class="re-topnav_dot"></div><div class="re-topnav_item-title">AI-SPM</div></div><div class="re-topnav_item-desc">Discover every agent, MCP, skill, and tool, and surface risk</div></a><a href="/products/ai-red-teaming" class="re-topnav_item w-inline-block"><div class="re-topnav_item-head"><div class="re-topnav_dot"></div><div class="re-topnav_item-title">AI Red Teaming</div></div><div class="re-topnav_item-desc">Find agent weaknesses before attackers do</div></a></div></div></nav></div><div data-hover="true" data-delay="0" class="re-topnav_dropdown w-dropdown"><div class="re-topnav_toggle w-dropdown-toggle"><div class="re-topnav_dot"></div><div class="re-topnav_link-text">Resources</div></div><nav class="re-topnav_panel w-dropdown-list"><div class="re-topnav_panel-inner"><div class="re-topnav_list is-plain"><a href="/blog" class="re-topnav_item is-plain w-inline-block"><div class="re-topnav_item-head"><div class="re-topnav_dot"></div><div class="re-topnav_item-title">Blog</div></div></a><a href="/noma-labs" class="re-topnav_item is-plain w-inline-block"><div class="re-topnav_item-head"><div class="re-topnav_dot"></div><div class="re-topnav_item-title">Noma Labs</div></div></a><a href="/webinars" class="re-topnav_item is-plain w-inline-block"><div class="re-topnav_item-head"><div class="re-topnav_dot"></div><div class="re-topnav_item-title">Webinars</div></div></a></div><a href="/noma-labs/sneakpeek-how-the-preview-pane-in-claude-code-desktop-can-exfiltrate-your-data" class="re-topnav_feature w-inline-block"><div class="re-topnav_feature-img"><img src="https://cdn.prod.website-files.com/6a26af028fd645aaf775e517/6ad6432ef540d6fbe208cb6a_Chrome%20Window%20from%20Claude.avif" loading="lazy" sizes="100vw" srcset="https://cdn.prod.website-files.com/6a26af028fd645aaf775e517/6ad6432ef540d6fbe208cb6a_Chrome%20Window%20from%20Claude-p-500.avif 500w, https://cdn.prod.website-files.com/6a26af028fd645aaf775e517/6ad6432ef540d6fbe208cb6a_Chrome%20Window%20from%20Claude.avif 744w" alt="Chrome browser window with a draped sheet and eyes peeking out from underneath" class="full-width-image height-100"/></div><div class="re-topnav_feature-text"><div class="re-topnav_feature-title">SneakPeek</div><div class="re-topnav_feature-desc">How the Preview Pane in Claude Code Desktop Can Exfiltrate Your Data</div><div class="re-topnav_feature-link"><div class="re-topnav_dot is-light"></div><div class="re-topnav_feature-link-text">Read the Research</div></div></div></a></div></nav></div><div data-hover="true" data-delay="0" class="re-topnav_dropdown w-dropdown"><div class="re-topnav_toggle w-dropdown-toggle"><div class="re-topnav_dot"></div><div class="re-topnav_link-text">Company</div></div><nav class="re-topnav_panel w-dropdown-list"><div class="re-topnav_panel-inner"><a href="/careers" class="re-topnav_feature w-inline-block"><div class="re-topnav_feature-img"><img src="https://cdn.prod.website-files.com/6a26af028fd645aaf775e517/6aac05c94a086611b4dee6dd_company.avif" loading="lazy" sizes="100vw" srcset="https://cdn.prod.website-files.com/6a26af028fd645aaf775e517/6aac05c94a086611b4dee6dd_company-p-500.avif 500w, https://cdn.prod.website-files.com/6a26af028fd645aaf775e517/6aac05c94a086611b4dee6dd_company.avif 750w" alt="Noma team member holding her dog, tinted pink" class="full-width-image height-100"/></div><div class="re-topnav_feature-text"><div class="re-topnav_feature-title">Careers at Noma</div><div class="re-topnav_feature-desc">Join the team making AI agents safe.</div><div class="re-topnav_feature-link"><div class="re-topnav_dot is-light"></div><div class="re-topnav_feature-link-text">Apply now</div></div></div></a><div class="re-topnav_list is-plain"><a href="/about" class="re-topnav_item is-plain w-inline-block"><div class="re-topnav_item-head"><div class="re-topnav_dot"></div><div class="re-topnav_item-title">About Us</div></div></a><a href="/careers" class="re-topnav_item is-plain w-inline-block"><div class="re-topnav_item-head"><div class="re-topnav_dot"></div><div class="re-topnav_item-title">Careers</div></div></a><a href="/partners" class="re-topnav_item is-plain w-inline-block"><div class="re-topnav_item-head"><div class="re-topnav_dot"></div><div class="re-topnav_item-title">Partners</div></div></a><a href="/contact" class="re-topnav_item is-plain w-inline-block"><div class="re-topnav_item-head"><div class="re-topnav_dot"></div><div class="re-topnav_item-title">Contact Us</div></div></a></div></div></nav></div></div></nav><div class="nav_button new-nav w-nav-button"><div class="hamburger_line is-top"></div><div class="hamburger_line is-middle"></div><div class="hamburger_line is-bottom"></div></div><a href="/request-demo" class="re-topnav_cta w-inline-block"><div class="re-topnav_cta-text">Get a Demo</div></a></div></div></div><main class="main-wrapper"><section class="section is-blog-single-hero"><div class="padding-global"><div class="container-large"><div class="blog-single-hero_wrap"><div class="blog-single-hero_inner"><a href="/noma-labs" class="blog-single-hero_link re-button is-link w-inline-block"><div class="svg-align-center w-embed"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+<mask id="mask0_192_18275" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="16" height="16">
+<rect width="16" height="16" transform="matrix(-1 0 0 1 16 0)" fill="#D9D9D9"/>
+</mask>
+<g mask="url(#mask0_192_18275)">
+<path d="M6.66683 12L7.60016 11.0333L5.2335 8.66667H13.3335V7.33333H5.2335L7.60016 4.96667L6.66683 4L2.66683 8L6.66683 12Z" fill="#1C1B1F"/>
+</g>
+</svg>
+</div><div class="re-button-text">Back to Noma Labs</div></a><div class="blog-single-hero-inner_flex"><div class="blog-list-hero-card_eyebrow">Noma Labs</div><div class="text-color-gray-900"><span read-time="">5 min</span> read</div></div><h1 class="re-heading-style-h3">GitLost: How We Tricked GitHub’s AI Agent into Leaking Private Repos</h1></div><div class="blog-single-hero_botom"><div class="blog-single-hero_author"><img src="https://cdn.prod.website-files.com/6a2fc1eb62d2fd1e9605374e/6a8c4e6a58e250d8d05e45c6_Sasi-1.svg" loading="lazy" alt="Sasi Levi" class="blog-single-hero-author_img"/><div><div class="text-size-small">Sasi Levi</div><div class="text-size-small text-color-gray-900">Jul 6, 2026</div></div></div><div class="blog-single-hero_share"><div class="text-color-gray-400">Share</div><a rel="noopener noreferrer" data-share="linkedin" aria-label="Share on LinkedIn" target="_blank" href="#" class="blog-single-hero-share_link w-inline-block"><svg xmlns="http://www.w3.org/2000/svg" width="100%" viewBox="0 0 24 24" fill="none" class="icon-24"><path d="M6.26763 8.49341H1.76514V22.0367H6.26763V8.49341Z" fill="#171B17"></path><path d="M4.04693 1.96326C2.5065 1.96326 1.5 2.976 1.5 4.30339C1.5 5.6029 2.47589 6.64357 3.98734 6.64357H4.01643C5.58637 6.64357 6.56357 5.6029 6.56357 4.30339C6.53444 2.976 5.58648 1.96326 4.04693 1.96326Z" fill="#171B17"></path><path d="M17.3172 8.1748C14.9289 8.1748 13.8592 9.48822 13.2601 10.4108V8.49328H8.75879C8.81848 9.76365 8.75879 22.0365 8.75879 22.0365H13.2601V14.473C13.2601 14.0682 13.2892 13.6634 13.4085 13.3741C13.7334 12.5656 14.4745 11.7281 15.7182 11.7281C17.3463 11.7281 17.9986 12.9705 17.9986 14.7903V22.0365H22.5001V14.27C22.5001 10.11 20.2791 8.1748 17.3172 8.1748Z" fill="#171B17"></path></svg></a><a rel="noopener noreferrer" data-share="x" aria-label="Share on X" target="_blank" href="#" class="blog-single-hero-share_link w-inline-block"><svg xmlns="http://www.w3.org/2000/svg" width="100%" viewBox="0 0 24 24" fill="none" class="icon-24"><path d="M18.3834 2.06335H21.7568L14.3501 10.4967L23.0034 21.9367H16.2128L10.8961 14.9847L4.80943 21.9367H1.43609L9.28276 12.9167L0.996094 2.06335H7.95542L12.7588 8.41402L18.3834 2.06335ZM17.2028 19.9567H19.0728L6.97276 3.97002H4.96343L17.2028 19.9567Z" fill="#171B17"></path></svg></a><a rel="noopener noreferrer" data-share="reddit" aria-label="Share on Reddit" target="_blank" href="#" class="blog-single-hero-share_link w-inline-block"><svg xmlns="http://www.w3.org/2000/svg" width="100%" viewBox="0 0 24 24" fill="none" class="icon-24"><path d="M12 21.9692C17.5059 21.9692 21.9692 17.5059 21.9692 12C21.9692 6.49414 17.5059 2.03076 12 2.03076C6.49414 2.03076 2.03076 6.49414 2.03076 12C2.03076 17.5059 6.49414 21.9692 12 21.9692Z" fill="#171B17"></path><path d="M18.65 12C18.65 11.191 17.9958 10.5486 17.1986 10.5486C16.8061 10.5486 16.4491 10.7032 16.1874 10.9531C15.1882 10.2393 13.82 9.77539 12.2973 9.71596L12.9634 6.59903L15.1286 7.06293C15.1525 7.61021 15.6044 8.05039 16.1637 8.05039C16.7347 8.05039 17.1986 7.58649 17.1986 7.01526C17.1986 6.44425 16.7347 5.98035 16.1637 5.98035C15.7592 5.98035 15.4022 6.21828 15.2357 6.56333L12.8208 6.05175C12.7494 6.03978 12.678 6.05175 12.6303 6.08745C12.5709 6.12315 12.5352 6.18258 12.5234 6.25399L11.7857 9.72771C10.2392 9.77539 8.84726 10.2393 7.83607 10.9651C7.56374 10.705 7.20149 10.5601 6.82489 10.5606C6.01595 10.5606 5.37354 11.2148 5.37354 12.012C5.37354 12.6067 5.73033 13.1063 6.23016 13.3325C6.20621 13.4751 6.19446 13.6179 6.19446 13.7727C6.19446 16.009 8.7998 17.8294 12.0119 17.8294C15.2239 17.8294 17.8293 16.021 17.8293 13.7727C17.8293 13.6299 17.8173 13.4751 17.7936 13.3325C18.2932 13.1063 18.65 12.5947 18.65 12ZM8.68072 13.0349C8.68072 12.4639 9.14462 12 9.71585 12C10.2869 12 10.7508 12.4639 10.7508 13.0349C10.7508 13.6059 10.2869 14.07 9.71585 14.07C9.14462 14.0818 8.68072 13.6059 8.68072 13.0349ZM14.4744 15.7831C13.7606 16.4969 12.4044 16.5445 12.0119 16.5445C11.6074 16.5445 10.2512 16.4849 9.5491 15.7831C9.44221 15.6759 9.44221 15.5094 9.5491 15.4023C9.6562 15.2954 9.82274 15.2954 9.92984 15.4023C10.382 15.8545 11.3337 16.009 12.0119 16.009C12.69 16.009 13.6535 15.8545 14.0937 15.4023C14.2008 15.2954 14.3673 15.2954 14.4744 15.4023C14.5695 15.5094 14.5695 15.6759 14.4744 15.7831ZM14.2839 14.0818C13.7129 14.0818 13.249 13.6179 13.249 13.0469C13.249 12.4759 13.7129 12.012 14.2839 12.012C14.8551 12.012 15.319 12.4759 15.319 13.0469C15.319 13.6059 14.8551 14.0818 14.2839 14.0818Z" fill="#F9F8F7"></path></svg></a></div><div class="display-none w-embed w-script"><script>
+/* =========================================================================
+   BLOG SINGLE - SHARE LINKS
+
+   Each share link is tagged in the Designer with data-share="linkedin" | "x"
+   | "reddit" (Settings > Custom attributes), so the order of the icons can
+   change without touching this script.
+
+   The shared URL comes from the canonical link when present, so UTM and
+   other query junk is never shared; it falls back to origin + pathname.
+   The title prefers og:title, then the H1, then document.title - og:title
+   is the clean headline, while document.title carries the " | Noma
+   Security" suffix.
+
+   Real hrefs are written onto the <a> elements rather than hijacking the
+   click, so middle-click, right-click and keyboard all keep working.
+   ========================================================================= */
+(function () {
+  var BUILDERS = {
+    linkedin: function (url) {
+      return 'https://www.linkedin.com/sharing/share-offsite/?url=' + url;
+    },
+    x: function (url, title) {
+      return 'https://x.com/intent/post?url=' + url + '&text=' + title;
+    },
+    reddit: function (url, title) {
+      return 'https://www.reddit.com/submit?url=' + url + '&title=' + title;
+    }
+  };
+
+  function shareUrl() {
+    var c = document.querySelector('link[rel="canonical"]');
+    if (c && c.href) return c.href;
+    return window.location.origin + window.location.pathname;
+  }
+
+  function shareTitle() {
+    var og = document.querySelector('meta[property="og:title"]');
+    if (og && og.content && og.content.trim()) return og.content.trim();
+    var h1 = document.querySelector('h1');
+    if (h1 && h1.textContent && h1.textContent.trim()) return h1.textContent.trim();
+    return document.title;
+  }
+
+  function init() {
+    var url = encodeURIComponent(shareUrl());
+    var title = encodeURIComponent(shareTitle());
+
+    var links = document.querySelectorAll('[data-share]');
+    Array.prototype.forEach.call(links, function (a) {
+      var key = (a.getAttribute('data-share') || '').toLowerCase().trim();
+      var build = BUILDERS[key];
+      if (!build) return;                       /* unknown network - leave alone */
+      a.setAttribute('href', build(url, title));
+      a.setAttribute('target', '_blank');
+      a.setAttribute('rel', 'noopener noreferrer');
+    });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+})();
+</script></div></div></div></div></div></section><section class="section is-blog-single-content"><div class="padding-global"><div class="container-large"><div class="blog-single-content_wrap"><div class="blog-single-content_left"><img src="https://cdn.prod.website-files.com/6a2fc1eb62d2fd1e9605374e/6ab46be8c8789bff36a99d13_GitLost-optimized.webp" loading="lazy" alt="GitLost: How We Tricked GitHub’s AI Agent into Leaking Private Repos" sizes="100vw" srcset="https://cdn.prod.website-files.com/6a2fc1eb62d2fd1e9605374e/6ab46be8c8789bff36a99d13_GitLost-optimized-p-500.webp 500w, https://cdn.prod.website-files.com/6a2fc1eb62d2fd1e9605374e/6ab46be8c8789bff36a99d13_GitLost-optimized-p-800.webp 800w, https://cdn.prod.website-files.com/6a2fc1eb62d2fd1e9605374e/6ab46be8c8789bff36a99d13_GitLost-optimized-p-1080.webp 1080w, https://cdn.prod.website-files.com/6a2fc1eb62d2fd1e9605374e/6ab46be8c8789bff36a99d13_GitLost-optimized-p-1600.webp 1600w, https://cdn.prod.website-files.com/6a2fc1eb62d2fd1e9605374e/6ab46be8c8789bff36a99d13_GitLost-optimized.webp 1920w" class="blog-single-content_img"/><div><div class="rebrand-blog_rte w-richtext"><p><strong>TL;DR</strong>: Noma Labs discovered a critical prompt injection vulnerability within GitHub’s new Agentic Workflows, allowing an unauthenticated attacker to silently pull data from private repositories by posting a crafted GitHub Issue in a public repository belonging to the same organization as the private repositories. Noma Labs named the vulnerability GitLost.</p><div class="w-embed"><video
+  controls
+  muted
+  preload="metadata"
+  playsinline
+  style="width:100%;height:auto;display:block;border-radius:8px;">
+  <source src="https://cdn.prod.website-files.com/6a26af028fd645aaf775e517%2F6a7c496a0db0367b22f4d0eb_GitLost-full-video-1_webm.webm" type="video/webm">
+  <source src="https://cdn.prod.website-files.com/6a26af028fd645aaf775e517%2F6a7c496a0db0367b22f4d0eb_GitLost-full-video-1_mp4.mp4" type="video/mp4">
+  Your browser does not support the video tag.
+</video></div><h2>Introduction</h2><p>GitHub recently launched GitHub Agentic Workflows, pairing GitHub Actions (GitHub’s automation system for running tasks in response to repository events) with an AI agent backed by Claude or GitHub Copilot. GitHub Agentic Workflows allow teams to write their GitHub workflows in plain Markdown, and the GitHub agent reads issues, calls tools, and responds on its own.<br/><br/>As a vulnerability researcher with a security development background, one of the first questions that came to mind after this launch was fundamental and straightforward: What will happen when the GitHub agent reads something it should not trust?<br/><br/>The answer is a textbook indirect prompt-injection attack, the kind of attack that quietly sends private data to anyone on the internet. Prompt injection is a class of attack in which an adversary hides malicious instructions inside the content read by an AI agent. That content causes the agent to follow those hidden instructions instead of the ones its operator intended.</p><h2>What are GitHub Agentic Workflows?</h2><p>GitHub Agentic Workflows let teams automate their interactions with code repositories using natural language. Workflows live in Markdown (.md) files, are compiled into YAML (a common configuration file format), Actions files with the .yml extension, and run with the help of an AI agent with configurable permissions. The GitHub agent can read issues, call tools, and access other repositories within an organization.</p><h2>GitLost Vulnerability Overview</h2><p>The root cause of the GitLost vulnerability is, by now, a familiar one in agentic AI systems: prompt injection. In most agentic prompt injection attacks, the agent treats the wrong content as a trusted source of instructions and allows itself to be misdirected or misused. This happens when the system fails to maintain a strict trust boundary between system-level directives and untrusted user data. In this specific case, any malicious actor can create a GitHub Issue and, in the issue body, hide commands in plain English that GitHub’s agent will follow.</p><p>The vulnerable Github Agentic Workflow Noma Labs discovered was configured to:</p><ul role="list"><li>Trigger the workflow on issues.assigned events in GitHub</li><li>Read the issue <strong>Title</strong> and <strong>Body</strong></li><li>Post a comment in response using the add-comment tool</li><li>Run with read access to other repositories (public and private) in the organization </li></ul><p>To exploit this vulnerability, the attacker needed no coding skills, access, or credentials. All that was needed was to open an issue in a public repository belonging to an organization that uses GitHub’s Agentic Workflow setup and wait.</p><div class="w-embed"><video
+  controls
+  muted
+  preload="metadata"
+  playsinline
+  style="width:100%;height:auto;display:block;border-radius:8px;">
+  <source src="https://cdn.prod.website-files.com/6a26af028fd645aaf775e517%2F6a7c4f0ae3ca0821fb1ec498_GitLostWorkflow_2_webm.webm" type="video/webm">
+  <source src="https://cdn.prod.website-files.com/6a26af028fd645aaf775e517%2F6a7c4f0ae3ca0821fb1ec498_GitLostWorkflow_2_mp4.mp4" type="video/mp4">
+  Your browser does not support the video tag.
+</video></div><h2>The Attack Flow</h2><p>Let’s take a look at the exact attack flow that Noma Labs vulnerability researchers succeeded with:</p><p>First, they crafted a GitHub issue that looked completely innocent, consisting of a plausible-looking request from a VP Sales after meeting with a customer, as shown below:</p><figure style="max-width:1226pxpx" class="w-richtext-align-fullwidth w-richtext-figure-type-image"><div><img alt="" src="https://cdn.prod.website-files.com/6a2fc1eb62d2fd1e9605374e/6a7c52ede57069880ebf5edb_the_attack_flow.avif" loading="lazy"/></div></figure><p><em>In this specific example, the workflow action was triggered when the issue was assigned,</em> but our testing confirmed it works the same way for other GitHub workflow actions.  <br/><br/>Then, after a GitHub automation assigned the issue, an event-triggered workflow caused the agent to fetch the contents of README.md from both the poc (public) and testlocal (private) repositories.<br/><br/>Finally, the GitHub agent then posted them as a public comment on the issue in the public repository, which anyone could access and read.</p><h2>The “Additional” Exploit</h2><p>GitHub had restrictive guardrails in place to prevent exactly this scenario, but they failed to protect the repositories as intended. Testing GitHub repeatedly with variations, as an attacker would, and adding the keyword “Additionally” triggered unintended behavior in the model, causing it to reframe its output rather than refuse it. Essentially, by tricking the model, I was able to ensure that GitHub’s guardrails did not work as intended and didn’t prevent the data leak.</p><div class="w-embed"><video
+  controls
+  muted
+  preload="metadata"
+  playsinline
+  style="width:100%;height:auto;display:block;border-radius:8px;">
+  <source src="https://cdn.prod.website-files.com/6a26af028fd645aaf775e517%2F6a7c53c7ad27302cd812d04b_github_agentic_workflows_webm.webm" type="video/webm">
+  <source src="https://cdn.prod.website-files.com/6a26af028fd645aaf775e517%2F6a7c53c7ad27302cd812d04b_github_agentic_workflows_mp4.mp4" type="video/mp4">
+  Your browser does not support the video tag.
+</video></div><h2>Vulnerability Proof of Concept</h2><p>With the goal of full transparency, Noma Lab’s confirmed findings, including our workflow reproductions and live evidence, can be found here:</p><p>Workflow run: <a href="https://github.com/sasinomalabs/poc/actions/runs/23909666039" target="_blank">https://github.com/sasinomalabs/poc/actions/runs/23909666039</a><br/>Issue: <a href="https://github.com/sasinomalabs/poc/issues/153" target="_blank">https://github.com/sasinomalabs/poc/issues/153</a></p><p>The leaked data included the contents of README.md from:</p><ul role="list"><li>sasinomalabs/poc (public repo)</li><li>sasinomalabs/remote-ping (public repo, no README confirmed)</li><li>sasinomalabs/testlocal (private repo)</li></ul><h2>Why it Matters</h2><p>GitLost perfectly illustrates one of the fundamental security challenges every organization faces with agentic AI systems. The agent’s context window is also its attack surface. Any content the agent reads, whether issues, pull requests, comments, or files, can be weaponized if the agent treats that content as instructional input.<br/><br/>Traditional security models typically assume that trust boundaries are enforced by code. In agentic systems, trust boundaries are partly enforced by the model’s behavior, and models are inherently instruction-following. Prompt injection attacks have become, to agentic AI, what SQL injections were to web applications: a systematic, category-wide vulnerability class that requires the same systematic strategies and defenses.</p><h2>Noma Recommendations for Builders/AI Security Officers:</h2><ul role="list"><li>Never treat user-controlled content as trusted instruction input for an AI agent</li><li>Scope permissions to the minimum required. Agents with cross-repository access are especially high-value targets</li><li>Restrict what any agent can post publicly, especially in response to issue content</li><li>Sanitize or isolate user input from the instruction context before passing it to the model</li></ul><h2>Responsible Disclosure</h2><p>GitLost was responsibly disclosed to GitHub. Vulnerability details are shared here with their knowledge.<br/><br/><em>Found this interesting? Subscribe for more agentic AI vulnerability research by Noma Labs, or check out: </em><a href="/noma-labs/grafanaghost">GrafanaGhost,</a><em> </em><a href="/noma-labs/dockerdash">DockerDash</a><em>, </em><a href="/noma-labs/contextcrush">Context Crush</a><em>, </em><a href="/noma-labs/geminijack">GeminiJack</a><em>. Looking for an effective Agentic AI Security Solution? Contact us to </em><a href="/request-demo"><em>arrange a demo</em></a><em> of Noma’s comprehensive solution.</em></p></div></div></div><div class="blog-single-content_sticky"><div class="blog-single-content_toc"><div class="rebrand-cta_eyebrow text-color-gray-900">Table of Contents</div><div class="blog-single-content_toc-separator"></div><div class="blog-single-content_toc-list"><a href="#" class="blog-single-content_toc-link">TL;DR</a></div></div><div class="blog-single-content_cta"><h3 class="heading-style-h5 line-height-nsmall">Take control of your agents</h3><div class="blog-single-content-cta_inner"><p>See how Noma discovers, governs and protects every AI agent across your enterprise.</p></div><a data-w-id="0c405efd-0dee-7d1a-8c02-00a7849644d6" href="/request-demo" class="re-button w-inline-block"><div class="svg-align-center w-embed"><svg width="11" height="11" viewBox="0 0 11 11" fill="none" xmlns="http://www.w3.org/2000/svg">
+<circle cx="5.5" cy="5.5" r="5.5" fill="#FEFEFE"/>
+</svg>
+</div><div class="re-button-text">Get a Demo</div></a><img src="https://cdn.prod.website-files.com/6a26af028fd645aaf775e517/6a937d19357229175e58e252_pink-gnome.avif" loading="lazy" alt="Chrome gnome mascot tinted pink, peeking in from the side" class="blog-single-content-cta_img"/></div></div></div></div></div></section><section class="section is-blog-single-resources"><div class="padding-global"><div class="container-large"><div class="blog-single-resources_wrap"><h2 class="re-heading-style-h3 line-height-nsmall">Related resources</h2><div class="w-dyn-list"><div role="list" class="blog-lists_list-wrap w-dyn-items"><div role="listitem" class="w-dyn-item"><div class="rebrand-blog_card"><div class="rebrand-blog-card_img-wrap"><img src="https://cdn.prod.website-files.com/6a2fc1eb62d2fd1e9605374e/6ab46ce5dc8733183fae58f5_Forcedleak-optimized.webp" loading="lazy" alt="AI Agent risk exposed in Salesforce Agentforce" sizes="100vw" srcset="https://cdn.prod.website-files.com/6a2fc1eb62d2fd1e9605374e/6ab46ce5dc8733183fae58f5_Forcedleak-optimized-p-500.webp 500w, https://cdn.prod.website-files.com/6a2fc1eb62d2fd1e9605374e/6ab46ce5dc8733183fae58f5_Forcedleak-optimized-p-800.webp 800w, https://cdn.prod.website-files.com/6a2fc1eb62d2fd1e9605374e/6ab46ce5dc8733183fae58f5_Forcedleak-optimized-p-1080.webp 1080w, https://cdn.prod.website-files.com/6a2fc1eb62d2fd1e9605374e/6ab46ce5dc8733183fae58f5_Forcedleak-optimized-p-1600.webp 1600w, https://cdn.prod.website-files.com/6a2fc1eb62d2fd1e9605374e/6ab46ce5dc8733183fae58f5_Forcedleak-optimized.webp 1920w" class="rebrand-blog-card_img"/></div><div class="rebrand-blog-card_content is-blog"><div class="rebrand-blog-card_inner"><div class="rebrand-blog-card_tags w-dyn-list"><div role="list" class="rebrand-blog-card-tags_list w-dyn-items"><div role="listitem" class="w-dyn-item"><div fs-list-field="category" style="background-color:#e6ffb1" class="blog-list-hero-card_eyebrow is-bg-inherit">Noma Labs</div></div><div role="listitem" class="w-dyn-item"><div fs-list-field="category" style="background-color:#ffb1e5" class="blog-list-hero-card_eyebrow is-bg-inherit">Research</div></div><div role="listitem" class="w-dyn-item"><div fs-list-field="category" style="background-color:#e6ffb1" class="blog-list-hero-card_eyebrow is-bg-inherit">Vulnerability</div></div></div></div><p fs-list-field="name" class="text-size-large">AI Agent risk exposed in Salesforce Agentforce</p></div><a href="/noma-labs/forcedleak" class="re-button is-link w-inline-block"><div class="svg-align-center w-embed"><svg width="6" height="6" viewBox="0 0 6 6" fill="none" xmlns="http://www.w3.org/2000/svg">
+<circle cx="3" cy="3" r="2.5" stroke="#171B17"/>
+</svg>
+</div><div class="re-button-text">Read On</div></a></div></div></div><div role="listitem" class="w-dyn-item"><div class="rebrand-blog_card"><div class="rebrand-blog-card_img-wrap"><img src="https://cdn.prod.website-files.com/6a2fc1eb62d2fd1e9605374e/6ab46c6195e6cdd0d3868a4f_ContextCrush-optimized.webp" loading="lazy" alt="ContextCrush: The Context7 MCP Server Vulnerability Hiding in Plain Sight" sizes="100vw" srcset="https://cdn.prod.website-files.com/6a2fc1eb62d2fd1e9605374e/6ab46c6195e6cdd0d3868a4f_ContextCrush-optimized-p-500.webp 500w, https://cdn.prod.website-files.com/6a2fc1eb62d2fd1e9605374e/6ab46c6195e6cdd0d3868a4f_ContextCrush-optimized-p-800.webp 800w, https://cdn.prod.website-files.com/6a2fc1eb62d2fd1e9605374e/6ab46c6195e6cdd0d3868a4f_ContextCrush-optimized-p-1080.webp 1080w, https://cdn.prod.website-files.com/6a2fc1eb62d2fd1e9605374e/6ab46c6195e6cdd0d3868a4f_ContextCrush-optimized-p-1600.webp 1600w, https://cdn.prod.website-files.com/6a2fc1eb62d2fd1e9605374e/6ab46c6195e6cdd0d3868a4f_ContextCrush-optimized.webp 1920w" class="rebrand-blog-card_img"/></div><div class="rebrand-blog-card_content is-blog"><div class="rebrand-blog-card_inner"><div class="rebrand-blog-card_tags w-dyn-list"><div role="list" class="rebrand-blog-card-tags_list w-dyn-items"><div role="listitem" class="w-dyn-item"><div fs-list-field="category" style="background-color:#e6ffb1" class="blog-list-hero-card_eyebrow is-bg-inherit">Noma Labs</div></div></div></div><p fs-list-field="name" class="text-size-large">ContextCrush: The Context7 MCP Server Vulnerability Hiding in Plain Sight</p></div><a href="/noma-labs/contextcrush" class="re-button is-link w-inline-block"><div class="svg-align-center w-embed"><svg width="6" height="6" viewBox="0 0 6 6" fill="none" xmlns="http://www.w3.org/2000/svg">
+<circle cx="3" cy="3" r="2.5" stroke="#171B17"/>
+</svg>
+</div><div class="re-button-text">Read On</div></a></div></div></div><div role="listitem" class="w-dyn-item"><div class="rebrand-blog_card"><div class="rebrand-blog-card_img-wrap"><img src="https://cdn.prod.website-files.com/6a2fc1eb62d2fd1e9605374e/6ab46c9bacc7059a77adae78_DockerDash-optimized.webp" loading="lazy" alt="DockerDash: Two Attack Paths, One AI Supply Chain Crisis" sizes="100vw" srcset="https://cdn.prod.website-files.com/6a2fc1eb62d2fd1e9605374e/6ab46c9bacc7059a77adae78_DockerDash-optimized-p-500.webp 500w, https://cdn.prod.website-files.com/6a2fc1eb62d2fd1e9605374e/6ab46c9bacc7059a77adae78_DockerDash-optimized-p-800.webp 800w, https://cdn.prod.website-files.com/6a2fc1eb62d2fd1e9605374e/6ab46c9bacc7059a77adae78_DockerDash-optimized-p-1080.webp 1080w, https://cdn.prod.website-files.com/6a2fc1eb62d2fd1e9605374e/6ab46c9bacc7059a77adae78_DockerDash-optimized-p-1600.webp 1600w, https://cdn.prod.website-files.com/6a2fc1eb62d2fd1e9605374e/6ab46c9bacc7059a77adae78_DockerDash-optimized.webp 1920w" class="rebrand-blog-card_img"/></div><div class="rebrand-blog-card_content is-blog"><div class="rebrand-blog-card_inner"><div class="rebrand-blog-card_tags w-dyn-list"><div role="list" class="rebrand-blog-card-tags_list w-dyn-items"><div role="listitem" class="w-dyn-item"><div fs-list-field="category" style="background-color:#e6ffb1" class="blog-list-hero-card_eyebrow is-bg-inherit">Noma Labs</div></div><div role="listitem" class="w-dyn-item"><div fs-list-field="category" style="background-color:#ffb1e5" class="blog-list-hero-card_eyebrow is-bg-inherit">Research</div></div><div role="listitem" class="w-dyn-item"><div fs-list-field="category" style="background-color:#e6ffb1" class="blog-list-hero-card_eyebrow is-bg-inherit">Vulnerability</div></div></div></div><p fs-list-field="name" class="text-size-large">DockerDash: Two Attack Paths, One AI Supply Chain Crisis</p></div><a href="/noma-labs/dockerdash" class="re-button is-link w-inline-block"><div class="svg-align-center w-embed"><svg width="6" height="6" viewBox="0 0 6 6" fill="none" xmlns="http://www.w3.org/2000/svg">
+<circle cx="3" cy="3" r="2.5" stroke="#171B17"/>
+</svg>
+</div><div class="re-button-text">Read On</div></a></div></div></div></div></div></div></div></div></section><section data-wf--cta--variant="base" class="section is-rebrand-cta"><div class="padding-global"><div class="container-large"><div class="rebrand-cta_wrap"><div class="rebrand-cta_inner"><div class="rebrand-cta_eyebrow">Noma agent security &amp; governance platform</div><h2 class="rebrand-cta_title">TAKE CONTROL TODAY</h2></div><a data-w-id="0c405efd-0dee-7d1a-8c02-00a7849644d6" href="/request-demo" class="re-button w-inline-block"><div class="svg-align-center w-embed"><svg width="11" height="11" viewBox="0 0 11 11" fill="none" xmlns="http://www.w3.org/2000/svg">
+<circle cx="5.5" cy="5.5" r="5.5" fill="#FEFEFE"/>
+</svg>
+</div><div class="re-button-text">Get a Demo</div></a><img sizes="100vw" srcset="https://cdn.prod.website-files.com/6a26af028fd645aaf775e517/6a93530f34e084edae4391e8_cta-gnome-p-500.avif 500w, https://cdn.prod.website-files.com/6a26af028fd645aaf775e517/6a93530f34e084edae4391e8_cta-gnome.avif 796w" alt="Chrome gnome mascot running with arms crossed" src="https://cdn.prod.website-files.com/6a26af028fd645aaf775e517/6a93530f34e084edae4391e8_cta-gnome.avif" loading="lazy" class="rebrand-cta_img"/></div></div></div></section></main><footer class="rebrand_footer"><div class="container-footer"><div class="rebrand-footer_wrap"><div class="rebrand-footer_head"><div class="rebrand-footer-head_left"><p class="rebrand-footer-head_p">Noma Security is committed to the highest international privacy and security regulations. Securing your organization’s data and adhering to compliance requirements is top of mind.</p><div class="rebrand-footer-head_p is-legal">©2026 Noma Security<a href="/privacy-policy" class="rebrand-footer_link">Privacy Policy</a><a href="/terms-of-use" class="rebrand-footer_link">Terms of Use</a><a href="https://trust.noma.security/" class="rebrand-footer_link">Trust Center</a></div></div><div class="rebrand-footer_grid"><div class="rebrand-footer_col"><div class="rebrand-footer-col_title">Platform</div><div class="rebrand-footer-col_inner"><a href="/platform" class="rebrand-footer_link">Noma Platform</a><a href="/platform/saas-agents" class="rebrand-footer_link">Noma for SaaS Agents</a><a href="/platform/endpoint-agents" class="rebrand-footer_link">Noma for Endpoint AI Agents</a><a href="/platform/homegrown-agents" class="rebrand-footer_link">Noma for Cloud Agents</a></div></div><div class="rebrand-footer_col"><div class="rebrand-footer-col_title">Products</div><div class="rebrand-footer-col_inner"><a href="/products/ai-spm" class="rebrand-footer_link">AI-SPM</a><a href="/products/ai-dr" class="rebrand-footer_link">AI-DR</a><a href="/products/agent-access-control" class="rebrand-footer_link">Agent Access Control</a><a href="/products/ai-red-teaming" class="rebrand-footer_link">AI Red Teaming</a></div></div><div class="rebrand-footer_col"><div class="rebrand-footer-col_title">Solutions</div><div class="rebrand-footer-col_inner"><a href="/solutions/agent-behavior-runtime-control" class="rebrand-footer_link">Agent Runtime Security</a><a href="/solutions/mcp-security" class="rebrand-footer_link w-inline-block">MCP Security</a><a href="/solutions/agentic-identity" class="rebrand-footer_link">Agentic Identity</a><a href="/solutions/ai-asset-discovery" class="rebrand-footer_link">AI Asset Discovery</a><a href="/solutions/agent-control-plane" class="rebrand-footer_link w-inline-block">AI Agent Control Plane</a><a href="/solutions/ai-supply-chain-security" class="rebrand-footer_link w-inline-block">AI Supply Chain Security</a><a href="/solutions/ai-compliance" class="rebrand-footer_link w-inline-block">AI Compliance &amp; Regulation</a></div></div><div class="rebrand-footer_col"><div class="rebrand-footer-col_title"><div>Resources</div></div><div class="rebrand-footer-col_inner"><a href="/blog" class="rebrand-footer_link w-inline-block">Blog</a><a href="/noma-labs" class="rebrand-footer_link w-inline-block">Noma Labs</a><a href="/webinars" class="rebrand-footer_link w-inline-block">Webinars</a></div></div><div class="rebrand-footer_col"><div class="rebrand-footer-col_title">Company</div><div class="rebrand-footer-col_inner"><a href="/about" class="rebrand-footer_link">About</a><a href="/careers" class="rebrand-footer_link">Careers</a><a href="/partners" class="rebrand-footer_link">Partners</a><a href="/contact" class="rebrand-footer_link">Contact</a></div></div></div></div><div class="rebrand-footer_mid"><div class="rebrand-footer-col_title">follow us</div><a href="https://www.linkedin.com/company/noma-security" target="_blank" class="rebrand-footer_link">LinkedIn</a><a href="https://x.com/NomaSecurity" target="_blank" class="rebrand-footer_link">X</a><a href="https://www.youtube.com/@NomaSecurity" target="_blank" class="rebrand-footer_link">YouTube</a><a href="https://www.instagram.com/nomasecurity" target="_blank" class="rebrand-footer_link">Instagram</a></div><img loading="lazy" src="https://cdn.prod.website-files.com/6a26af028fd645aaf775e517/6a935542d333ba445a661ae3_noma-footer.svg" alt="Noma logo" class="full-width"/><div class="halloween-frank_component"><div class="halloween_code w-embed w-script"><!-- Halloween 2026: Frankenstein gnome in the footer O. Auto-hides from Nov 1. Remove the whole halloween-frank_component to roll back. -->
+<style>
+.halloween-frank_counter{-webkit-mask-image:radial-gradient(6.398% 27.67% at 35.12% 49.88%,#000 99.4%,transparent 100%),linear-gradient(#000,#000);mask-image:radial-gradient(6.398% 27.67% at 35.12% 49.88%,#000 99.4%,transparent 100%),linear-gradient(#000,#000);-webkit-mask-size:100% 100%,4.7% 40%;mask-size:100% 100%,4.7% 40%;-webkit-mask-position:0 0,34.42% 0;mask-position:0 0,34.42% 0;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat}
+.halloween-frank_img.is-lime{transition:opacity .3s ease}
+.halloween-frank_component.is-alive .halloween-frank_img.is-lime{opacity:1}
+.halloween-frank_component.is-armed .halloween-frank_gnome{transform:translateY(12.2%)}
+.halloween-frank_component.is-armed.is-up .halloween-frank_gnome{transform:none;transition:transform .6s cubic-bezier(.22,1,.36,1)}
+@media (prefers-reduced-motion:reduce){.halloween-frank_component.is-armed .halloween-frank_gnome{transform:none;transition:none}}
+</style>
+<script>
+(function(){var c=document.currentScript&&document.currentScript.closest('.halloween-frank_component');if(!c)return;
+if(new Date()>=new Date(2026,10,1)){c.remove();return}
+var f=c.closest('footer')||c.parentElement,t;
+if(matchMedia('(hover: hover)').matches){f.addEventListener('mouseenter',function(){clearTimeout(t);c.classList.add('is-alive')});f.addEventListener('mouseleave',function(){clearTimeout(t);t=setTimeout(function(){c.classList.remove('is-alive')},2000)})}
+else{setInterval(function(){c.classList.toggle('is-alive')},2000)}
+if(matchMedia('(prefers-reduced-motion: reduce)').matches||!('IntersectionObserver' in window))return;
+c.classList.add('is-armed');var io=new IntersectionObserver(function(es){if(es[0].isIntersecting){c.classList.add('is-up');io.disconnect()}},{threshold:.4});io.observe(c)})();
+</script>
+</div><div class="halloween-frank_counter"><div class="halloween-frank_gnome"><img src="https://cdn.prod.website-files.com/6a26af028fd645aaf775e517/6adf790da7f999afd2283078_halloween-frankenstein-grey.webp" loading="lazy" alt="" class="halloween-frank_img"/><img src="https://cdn.prod.website-files.com/6a26af028fd645aaf775e517/6adf790e35d46e5d0f7c5ca1_halloween-frankenstein-lime.webp" loading="lazy" alt="" class="halloween-frank_img is-lime"/></div></div></div></div></div></footer></div><script src="https://d3e54v103j8qbb.cloudfront.net/js/jquery-3.5.1.min.dc5e7f18c8.js?site=6a26af028fd645aaf775e517" type="text/javascript" integrity="sha256-9/aliU8dGd2tb6OSsuzixeV4y/faTqgFtohetphbbj0=" crossorigin="anonymous"></script><script src="https://cdn.prod.website-files.com/6a26af028fd645aaf775e517/js/staging-noma.schunk.36b8fb49256177c8.js" type="text/javascript" integrity="sha384-4abIlA5/v7XaW1HMXKBgnUuhnjBYJ/Z9C1OSg4OhmVw9O3QeHJ/qJqFBERCDPv7G" crossorigin="anonymous"></script><script src="https://cdn.prod.website-files.com/6a26af028fd645aaf775e517/js/staging-noma.schunk.1ede3308b1709499.js" type="text/javascript" integrity="sha384-5c2OeFOxHYdUH0Uk40YRGWYDFLgMDuUljxOAN4EPaQqUmpyhT1yJfVKljfc1NX+M" crossorigin="anonymous"></script><script src="https://cdn.prod.website-files.com/6a26af028fd645aaf775e517/js/staging-noma.72d70d50.0808e2e74760cf7b.js" type="text/javascript" integrity="sha384-vYW5/TknODJzF1LrhSoKnyUlnBxtwKOJf2rW7at+OgZm9X5YvL6njeYp6p5ZCn5A" crossorigin="anonymous"></script><script src="https://cdn.prod.website-files.com/gsap/3.15.0/gsap.min.js" type="text/javascript"></script><script src="https://cdn.prod.website-files.com/gsap/3.15.0/ScrollTrigger.min.js" type="text/javascript"></script><script type="text/javascript">gsap.registerPlugin(ScrollTrigger);</script><script>
+(function () {
+  'use strict';
+
+  var nav = document.querySelector('.re-topnav');
+  if (!nav) return;
+
+  var scrim = nav.querySelector('.re-topnav_scrim');
+
+  // Watch the TOGGLES, not the .w-dropdown wrappers: Webflow only ever puts
+  // .w--open on the toggle and the list. Observing the wrapper looks correct
+  // and never fires.
+  var toggles = [].slice.call(nav.querySelectorAll('.re-topnav_toggle'));
+  if (!toggles.length) return;
+
+  var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  var CONFIG = {
+    SCRIM_IN: 0.45,
+    SCRIM_OUT: 0.3,
+    PANEL: 0.5,
+    EASE: 'power3.out',
+
+    // Below this the nav collapses to the hamburger and the dropdowns render
+    // inline, so the underlay is switched off entirely — see the media query.
+    SCRIM_MIN_WIDTH: 992
+  };
+
+  function anyOpen() {
+    return !!nav.querySelector('.re-topnav_toggle.w--open');
+  }
+
+  function scrimApplies() {
+    return window.innerWidth >= CONFIG.SCRIM_MIN_WIDTH;
+  }
+
+  // Without GSAP, hand the underlay to the CSS fallback above and stop.
+  if (!window.gsap) {
+    if (scrim) {
+      scrim.classList.add('is-css-fallback');
+      toggles.forEach(function (tg) {
+        new MutationObserver(function () {
+          scrim.classList.toggle('is-visible', scrimApplies() && anyOpen());
+        }).observe(tg, { attributes: true, attributeFilter: ['class'] });
+      });
+    }
+    return;
+  }
+
+  // Webflow owns opening and closing — it toggles .w--open and the display
+  // value. We only watch for that and layer motion on top, so clicking,
+  // keyboard, outside-click and Escape all stay Webflow's behaviour.
+  function openPanel(tg) {
+    var dd = tg.closest('.w-dropdown') || tg.parentElement;
+    var inner = dd.querySelector('.re-topnav_panel-inner');
+    if (!inner) return;
+
+    var items = inner.querySelectorAll('.re-topnav_item');
+    var feature = inner.querySelector('.re-topnav_feature');
+
+    gsap.killTweensOf([inner, items, feature]);
+
+    if (reduced) {
+      gsap.set(inner, { clipPath: 'inset(0% 0% 0% 0%)' });
+      gsap.set([items, feature], { opacity: 1, y: 0 });
+      return;
+    }
+
+    // The panel wipes down from the bar rather than fading, so it reads as
+    // something unfolding out of the nav instead of appearing over the page.
+    gsap.fromTo(inner,
+      { clipPath: 'inset(0% 0% 100% 0%)' },
+      { clipPath: 'inset(0% 0% 0% 0%)', duration: CONFIG.PANEL, ease: CONFIG.EASE }
+    );
+
+    if (feature) {
+      gsap.fromTo(feature,
+        { opacity: 0, y: 12 },
+        { opacity: 1, y: 0, duration: 0.45, ease: CONFIG.EASE, delay: 0.06 }
+      );
+    }
+
+    if (items.length) {
+      gsap.fromTo(items,
+        { opacity: 0, y: 10 },
+        {
+          opacity: 1, y: 0,
+          duration: 0.4,
+          ease: CONFIG.EASE,
+          delay: 0.08,
+          stagger: { each: 0.03, from: 'start' }
+        }
+      );
+    }
+  }
+
+  function syncScrim() {
+    if (!scrim) return;
+    // CSS already hides it on mobile; bail out so GSAP isn't tweening the
+    // opacity of something that is display:none.
+    if (!scrimApplies()) { gsap.set(scrim, { opacity: 0 }); return; }
+    var show = anyOpen();
+    gsap.killTweensOf(scrim);
+    gsap.to(scrim, {
+      opacity: show ? 1 : 0,
+      duration: reduced ? 0 : (show ? CONFIG.SCRIM_IN : CONFIG.SCRIM_OUT),
+      ease: show ? 'power2.out' : 'power2.in'
+    });
+  }
+
+  toggles.forEach(function (tg) {
+    var wasOpen = tg.classList.contains('w--open');
+    new MutationObserver(function () {
+      var isOpen = tg.classList.contains('w--open');
+      if (isOpen === wasOpen) return;
+      wasOpen = isOpen;
+      if (isOpen) openPanel(tg);
+      // Read the scrim state on the next frame: when moving from one menu
+      // straight to another, Webflow closes the old one and opens the new one
+      // in the same tick, and checking immediately would flicker the underlay.
+      requestAnimationFrame(syncScrim);
+    }).observe(tg, { attributes: true, attributeFilter: ['class'] });
+  });
+
+  // A panel left open across a resize can end up measured against the old
+  // layout, so close everything and let it re-open cleanly.
+  var resizeTimer;
+  window.addEventListener('resize', function () {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(function () {
+      if (!anyOpen() && scrim) gsap.set(scrim, { opacity: 0 });
+    }, 150);
+  });
+})();
+</script>
+
+<script>
+(function () {
+  'use strict';
+
+  var section = document.querySelector('.is-re-partners');
+  if (!section) return;
+
+  var tiles = [].slice.call(section.querySelectorAll('.re-partners_tile'));
+  if (!tiles.length) return;
+  if (!window.gsap || !window.ScrollTrigger) return;
+
+  gsap.registerPlugin(ScrollTrigger);
+
+  var CONFIG = {
+    // Vertical tracks across the section.
+    COLUMNS: 5,
+
+    // Cylinder radius in px — how far a tile travels as it rises.
+    RADIUS: 280,
+    RADIUS_MOBILE: 150,
+
+    // How much of the section width the columns occupy.
+    SPREAD: 0.86,
+
+    // Offset between neighbouring columns, in degrees, so lanes don't rise in
+    // lockstep. This produces the staggered arrangement.
+    COLUMN_PHASE_DEG: 21,
+
+    // Camera distance, applied per tile. Lower = the near/far difference
+    // between the ends and the middle of the travel gets stronger.
+    PERSPECTIVE: 2600,
+
+    // How far around the cylinder stays visible, from dead centre. This is the
+    // dial for how many tiles are on screen: 60 gives ~4, 80 gives ~6.
+    // Do not exceed 90 — past that a tile's travel reverses and it descends.
+    VISIBLE_DEG: 80,
+
+    // Degrees over which a tile fades in and out at the ends of that arc.
+    FADE_DEG: 14,
+
+    // Top of the tiles' z-index range. Must stay below the copy's z-index (60).
+    Z_MAX: 50
+  };
+
+  // The section already ran its own GSAP reveal on these tiles (translateY +
+  // fade). Two systems writing the same transform is how this ends up
+  // juddering, so retire anything triggered inside this section first.
+  ScrollTrigger.getAll().forEach(function (st) {
+    if (st.trigger && (st.trigger === section || section.contains(st.trigger))) st.kill();
+  });
+  gsap.killTweensOf(tiles);
+  gsap.set(tiles, { clearProps: 'all' });
+
+  if (getComputedStyle(section).position === 'static') section.style.position = 'relative';
+
+  // Deal tiles into columns, then space them evenly around the cylinder within
+  // their own column so no two ever share a position.
+  var columns = [];
+  for (var c = 0; c < CONFIG.COLUMNS; c++) columns.push([]);
+  tiles.forEach(function (t, i) { columns[i % CONFIG.COLUMNS].push(t); });
+
+  var plan = [];
+  columns.forEach(function (list, col) {
+    list.forEach(function (el, k) {
+      plan.push({
+        el: el,
+        col: col,
+        base: (k / list.length) * 360 + col * CONFIG.COLUMN_PHASE_DEG
+      });
+    });
+  });
+
+  var turn = 0;
+
+  function layout() {
+    var W = section.getBoundingClientRect().width;
+    var R = window.innerWidth < 768 ? CONFIG.RADIUS_MOBILE : CONFIG.RADIUS;
+    var P = CONFIG.PERSPECTIVE;
+
+    for (var i = 0; i < plan.length; i++) {
+      var p = plan[i];
+
+      // Normalise to -180..180 so 0 is the middle of the travel — which on this
+      // concave cylinder is the point FARTHEST from the viewer.
+      var deg = (p.base + turn * 360) % 360;
+      if (deg > 180) deg -= 360;
+
+      var x = ((p.col + 0.5) / CONFIG.COLUMNS - 0.5) * W * CONFIG.SPREAD;
+
+      // Negative rotation carries the tile upward; negative translateZ puts it
+      // on the far surface. Flip either sign and the effect inverts.
+      p.el.style.transform =
+        'translate(-50%,-50%) translateX(' + x + 'px) perspective(' + P + 'px) ' +
+        'rotateX(' + (-deg) + 'deg) translateZ(-' + R + 'px)';
+
+      var a = Math.abs(deg);
+      p.el.style.opacity = a > CONFIG.VISIBLE_DEG
+        ? 0
+        : Math.min(1, (CONFIG.VISIBLE_DEG - a) / CONFIG.FADE_DEG);
+
+      // Nearest at the ends of the travel, farthest in the middle — the inverse
+      // of a convex cylinder, so the ordering is inverted too.
+      var near = (1 - Math.cos(deg * Math.PI / 180)) / 2;
+      p.el.style.zIndex = Math.round(near * CONFIG.Z_MAX);
+    }
+  }
+
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    layout();
+    return;
+  }
+
+  ScrollTrigger.create({
+    trigger: section,
+    start: 'top bottom',
+    end: 'bottom top',
+    scrub: 1,
+    onUpdate: function (self) { turn = self.progress; layout(); },
+    onRefresh: layout
+  });
+
+  layout();
+
+  var resizeTimer;
+  window.addEventListener('resize', function () {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(function () { layout(); ScrollTrigger.refresh(); }, 150);
+  });
+})();
+</script>
+
+<script>
+(function () {
+  var btn = document.querySelector('.re-topnav .w-nav-button');
+  if (!btn) return;
+  var html = document.documentElement, y = 0, open = false;
+  function sync() {
+    var isOpen = btn.classList.contains('w--open') && window.innerWidth < 992;
+    if (isOpen === open) return;
+    open = isOpen;
+    if (open) {
+      y = window.scrollY;
+      html.classList.add('re-nav-open');
+      document.body.style.top = (-y) + 'px';
+    } else {
+      html.classList.remove('re-nav-open');
+      document.body.style.top = '';
+      window.scrollTo(0, y);
+    }
+  }
+  new MutationObserver(sync).observe(btn, { attributes: true, attributeFilter: ['class'] });
+  window.addEventListener('resize', sync);
+  document.addEventListener('touchmove', function (e) {
+    if (open && !e.target.closest('.re-topnav_menu')) e.preventDefault();
+  }, { passive: false });
+})();
+</script><script>
+// Blog single — TOC generation and scroll spy
+
+document.addEventListener('DOMContentLoaded', function () {
+  var rte  = document.querySelector('.rebrand-blog_rte');
+  var list = document.querySelector('.blog-single-content_toc-list');
+  var toc  = document.querySelector('.blog-single-content_toc');
+  if (!rte || !list) return;
+
+  var OFFSET = 120; // px above a heading before it counts as active
+
+  var template = list.querySelector('.blog-single-content_toc-link');
+  var headings = Array.prototype.slice
+    .call(rte.querySelectorAll('h2, h3, h4'))
+    .filter(function (h) { return h.textContent.trim() !== ''; });
+
+  if (!template || !headings.length) {
+    if (toc) toc.style.display = 'none';
+    return;
+  }
+
+  var used = {};
+  var links = headings.map(function (h) {
+    var slug = h.textContent.trim().toLowerCase()
+      .replace(/[^\w\s-]/g, '')
+      .replace(/\s+/g, '-')
+      .replace(/-+/g, '-')
+      .replace(/^-|-$/g, '') || 'section';
+
+    used[slug] = (used[slug] || 0) + 1;
+    h.id = used[slug] > 1 ? slug + '-' + used[slug] : slug;
+    h.style.scrollMarginTop = OFFSET + 'px';
+
+    var link = template.cloneNode(false);
+    link.className = template.className.replace(/\bis-active\b/g, '').trim();
+    link.textContent = h.textContent.trim();
+    link.href = '#' + h.id;
+    if (h.tagName === 'H3') link.classList.add('is-h3');
+    if (h.tagName === 'H4') link.classList.add('is-h4');
+    return link;
+  });
+
+  list.textContent = '';
+  links.forEach(function (link) { list.appendChild(link); });
+
+  list.addEventListener('click', function (e) {
+    var link = e.target.closest('.blog-single-content_toc-link');
+    if (!link) return;
+    e.preventDefault();
+    var target = document.getElementById(link.getAttribute('href').slice(1));
+    if (!target) return;
+    window.scrollTo({
+      top: window.pageYOffset + target.getBoundingClientRect().top - OFFSET,
+      behavior: 'smooth'
+    });
+  });
+
+  var current = null;
+  function setActive() {
+    var active = headings[0];
+    for (var i = 0; i < headings.length; i++) {
+      if (headings[i].getBoundingClientRect().top > OFFSET + 1) break;
+      active = headings[i];
+    }
+    if (active === current) return;
+    current = active;
+    links.forEach(function (link) {
+      link.classList.toggle('is-active', link.getAttribute('href') === '#' + active.id);
+    });
+  }
+
+  var ticking = false;
+  window.addEventListener('scroll', function () {
+    if (ticking) return;
+    ticking = true;
+    requestAnimationFrame(function () { setActive(); ticking = false; });
+  }, { passive: true });
+  window.addEventListener('resize', setActive);
+
+  setActive();
+});
+</script>
+
+<script>
+  var links = {
+  x:        'https://x.com/intent/post?url=' + url + '&text=' + title,
+  linkedin: 'https://www.linkedin.com/sharing/share-offsite/?url=' + url,
+  reddit:   'https://www.reddit.com/submit?url=' + url + '&title=' + title
+};
+
+document.querySelectorAll('[data-share]').forEach(function (el) {
+  var href = links[el.getAttribute('data-share')];
+  if (!href) return;
+  el.setAttribute('href', href);
+  el.setAttribute('target', '_blank');
+  el.setAttribute('rel', 'noopener');
+});
+</script><script src="https://cdn.prod.website-files.com/6a26af028fd645aaf775e517%2F689e5ba67671442434f3ca35%2F6ace7402b7061bd0b81df0d9%2Fcapssectionmotion-1.1.0.js" type="text/javascript"></script><script src="https://cdn.prod.website-files.com/6a26af028fd645aaf775e517%2F689e5ba67671442434f3ca35%2F6acfd80fa8f3a5d71f7d0f00%2Ftrustbadgelabels-1.0.0.js" type="text/javascript"></script><script src="https://cdn.prod.website-files.com/6a26af028fd645aaf775e517%2F689e5ba67671442434f3ca35%2F6ad17214e34f91131108c6c0%2Faccesstabs-1.1.0.js" type="text/javascript"></script></body></html>

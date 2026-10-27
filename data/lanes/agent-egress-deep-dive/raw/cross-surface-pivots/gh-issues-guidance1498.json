@@ -1,0 +1,83 @@
+{
+  "total_count": 1,
+  "incomplete_results": false,
+  "items": [
+    {
+      "url": "https://api.github.com/repos/guidance-ai/guidance/issues/1498",
+      "repository_url": "https://api.github.com/repos/guidance-ai/guidance",
+      "labels_url": "https://api.github.com/repos/guidance-ai/guidance/issues/1498/labels{/name}",
+      "comments_url": "https://api.github.com/repos/guidance-ai/guidance/issues/1498/comments",
+      "events_url": "https://api.github.com/repos/guidance-ai/guidance/issues/1498/events",
+      "html_url": "https://github.com/guidance-ai/guidance/issues/1498",
+      "id": 5012195904,
+      "node_id": "I_kwDOIaS4d88AAAABKsAKQA",
+      "number": 1498,
+      "title": "validate_uri lets Azure (168.63.129.16) and Alibaba (100.100.100.200) metadata endpoints through",
+      "user": {
+        "login": "ErenAta16",
+        "id": 149434812,
+        "node_id": "U_kgDOCOgxvA",
+        "avatar_url": "https://avatars.githubusercontent.com/u/149434812?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/ErenAta16",
+        "html_url": "https://github.com/ErenAta16",
+        "followers_url": "https://api.github.com/users/ErenAta16/followers",
+        "following_url": "https://api.github.com/users/ErenAta16/following{/other_user}",
+        "gists_url": "https://api.github.com/users/ErenAta16/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/ErenAta16/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/ErenAta16/subscriptions",
+        "organizations_url": "https://api.github.com/users/ErenAta16/orgs",
+        "repos_url": "https://api.github.com/users/ErenAta16/repos",
+        "events_url": "https://api.github.com/users/ErenAta16/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/ErenAta16/received_events",
+        "type": "User",
+        "user_view_type": "public",
+        "site_admin": false
+      },
+      "labels": [],
+      "state": "open",
+      "locked": false,
+      "assignees": [],
+      "milestone": null,
+      "comments": 0,
+      "created_at": "2026-07-29T17:53:35Z",
+      "updated_at": "2026-07-29T17:53:35Z",
+      "closed_at": null,
+      "assignee": null,
+      "author_association": "NONE",
+      "issue_field_values": [],
+      "type": null,
+      "active_lock_reason": null,
+      "sub_issues_summary": {
+        "total": 0,
+        "completed": 0,
+        "percent_completed": 0
+      },
+      "issue_dependencies_summary": {
+        "blocked_by": 0,
+        "total_blocked_by": 0,
+        "blocking": 0,
+        "total_blocking": 0
+      },
+      "body": "`validate_uri` blocks cloud metadata endpoints as a side effect of the private-range check, so the two that sit on publicly-routable IPs go straight through.\n\n`bytes_from` reaches `urlopen` for anything `validate_uri` lets past, and `src` there is model- or user-supplied (`image(\"https://...\")`, `audio(...)`).\n\nRan every metadata endpoint I could name through `validate_uri` on `main` @ 21b1d90:\n\n| endpoint | `allow_private=False` (default) | `is_private` / `is_link_local` / `is_reserved` | |\n|---|---|---|---|\n| `169.254.169.254` | blocked | True / True / False | AWS, GCP, Azure, OCI, DigitalOcean IMDS |\n| `169.254.170.2` | blocked | True / True / False | AWS ECS task IAM role credentials |\n| `169.254.170.23` | blocked | True / True / False | AWS EKS Pod Identity Agent |\n| `169.254.42.42` | blocked | True / True / False | Scaleway |\n| `192.0.0.192` | blocked | True / False / False | Oracle Cloud (Classic) |\n| **`168.63.129.16`** | **ALLOWED** | False / False / False | Azure WireServer / platform channel |\n| **`100.100.100.200`** | **ALLOWED** | False / False / False | Alibaba Cloud |\n\n```python\nfrom guidance._uri_validation import validate_uri\nvalidate_uri(\"https://168.63.129.16/machine/\")   # returns, no exception\nvalidate_uri(\"https://100.100.100.200/latest/meta-data/\")  # returns, no exception\n```\n\n`168.63.129.16` is a real public address Microsoft routes to the host agent on every Azure VM; `100.100.100.200` is in `100.64.0.0/10`, which Python does not report as private. Neither is covered by `is_private`/`is_link_local`/`is_reserved`, so nothing in `_check_ip_address` sees them.\n\nSecond, `allow_private=True` skips `_validate_hostname_not_private` entirely, so on that path all seven rows above become reachable \u2014 including `169.254.169.254`. `allow_private` reads like \"let me hit my own LAN\", and reaching IMDS is a different thing from reaching a host on your subnet. An explicit metadata denylist checked before the `allow_private` branch would keep those separate.\n\nThe IP-literal handling is otherwise thorough \u2014 `::ffff:127.0.0.1`, `0:0:0:0:0:ffff:a9fe:a9fe`, `64:ff9b::169.254.169.254` and `2002:a9fe:a9fe::` are all blocked, and `getaddrinfo` covering every A record closes the multi-record case.\n\nRedirect revalidation is #1464, separate from this \u2014 the addresses above are rejected or accepted on the first hop, before any redirect is involved.\n\nEnvironment: `guidance` @ 21b1d90, Python 3.10.12.\n",
+      "reactions": {
+        "url": "https://api.github.com/repos/guidance-ai/guidance/issues/1498/reactions",
+        "total_count": 0,
+        "+1": 0,
+        "-1": 0,
+        "laugh": 0,
+        "hooray": 0,
+        "confused": 0,
+        "heart": 0,
+        "rocket": 0,
+        "eyes": 0
+      },
+      "timeline_url": "https://api.github.com/repos/guidance-ai/guidance/issues/1498/timeline",
+      "performed_via_github_app": null,
+      "state_reason": null,
+      "pinned_comment": null,
+      "score": 1.0
+    }
+  ],
+  "search_type": "lexical"
+}

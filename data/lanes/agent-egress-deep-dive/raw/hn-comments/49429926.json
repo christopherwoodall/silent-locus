@@ -1,0 +1,30 @@
+{
+  "comment_count": 1,
+  "fetched_at_utc": "2026-10-27T16:20:13Z",
+  "item_count": 2,
+  "items": {
+    "49429926": {
+      "descendants": 0,
+      "id": 49429926,
+      "kids": [
+        49449976
+      ],
+      "score": 3,
+      "text": "Earlier this year I found a server-side request forgery bug in Google&#x27;s MCP Toolbox, the official server Google publishes for connecting language-model agents to databases and HTTP APIs. I reported it. Google fixed it in eight days, credited me by name, and the fix later became CVE-2026-14540 (CVSS 8.0, high).<p>What I found: the MCP Toolbox&#x27;s HTTP source makes outbound requests to a URL a caller can influence. It validated that first URL, but not where a redirect sent it next, and it did no filtering on the destination address at all. If the server you&#x27;re calling answers with a redirect to 169.254.169.254, the toolbox follows it like any other response and hands back whatever&#x27;s there. In a cloud environment, what&#x27;s there is often the credential the environment itself is running on. The credential is never in the request you sent, the environment supplies it at the destination, and the toolbox just walked you to the door.<p>Why this is sharper in agent tooling specifically: in most software, &quot;an attacker controls this input&quot; is a condition you argue about. In a tool-calling agent, it&#x27;s closer to the default. The URL argument here isn&#x27;t typed by a person who trusts it, it&#x27;s chosen by a model that&#x27;s usually just finished reading a web page, a database row, or a file it doesn&#x27;t control. The thing that makes this exploitable, a caller-influenced destination, isn&#x27;t an edge case for a server like this, it&#x27;s the normal operating condition.<p>What I sent Google, and what happened: I reported the finding with a reproduction and a suggested fix shape, validate on every hop not just the first request, reject private and link-local ranges including the IPv6 forms that encode an IPv4 address. Google&#x27;s engineering team reviewed it, and the fix that shipped in pull request #3448 does the right version of all of that: an SSRFGuard that validates the destination on every redirect hop and resists DNS rebinding, configurable network boundaries, and early validation of the configured base URL at initialization so misconfiguration fails fast instead of at request time. Eight days from report to merged fix. CVE-2026-14540 was published a few weeks later, and I&#x27;m named in the official CVE record as the finder.<p>The part I&#x27;m not publishing yet: I&#x27;ve been auditing other official MCP servers for the same pattern, not just Google&#x27;s. Some pin the destination correctly, some don&#x27;t. Where I&#x27;ve found something, I&#x27;m reporting it privately first and I&#x27;ll write about it once a fix is out, the same way I did here. This post is only the Google case, because it&#x27;s the only one that&#x27;s public.<p>If you&#x27;re building something with this shape yourself, the question worth asking is small enough to hold in your head: can a value your caller influenced change which host receives a credentialed request, with nothing checking that destination first? If yes, you have this bug, whether or not anyone&#x27;s found it yet.<p>CVE record: https:&#x2F;&#x2F;www.cve.org&#x2F;CVERecord?id=CVE-2026-14540\nFix: https:&#x2F;&#x2F;github.com&#x2F;googleapis&#x2F;mcp-toolbox&#x2F;pull&#x2F;3448",
+      "time": 1787640377,
+      "title": "I found an SSRF in Google's official AI tooling, and how Google reacted",
+      "type": "story"
+    },
+    "49449976": {
+      "dead": true,
+      "id": 49449976,
+      "parent": 49429926,
+      "text": "[flagged]",
+      "time": 1787754965,
+      "type": "comment"
+    }
+  },
+  "method": "GET https://hacker-news.firebaseio.com/v0/item/<id>.json via curl, recursive over kids",
+  "role": "ranked",
+  "root_id": 49429926
+}

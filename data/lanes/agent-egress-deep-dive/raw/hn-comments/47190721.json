@@ -1,0 +1,46 @@
+{
+  "comment_count": 3,
+  "fetched_at_utc": "2026-10-27T17:00:24Z",
+  "item_count": 4,
+  "items": {
+    "47190721": {
+      "descendants": 2,
+      "id": 47190721,
+      "kids": [
+        47343228,
+        47190735,
+        47190746
+      ],
+      "score": 2,
+      "text": "We run 15 AI agents on a production server with full shell access. One of them tried to rm -rf a directory it shouldn&#x27;t have touched. Another started curling cloud metadata endpoints. We wrote some hardcoded rules to catch the obvious stuff, then realized we were building the same safety layer everyone else will need too. So we extracted it into a library.<p>Vigil is a deterministic rule engine that inspects AI agent tool calls before they execute. 22 rules across 8 threat categories: destructive shell commands, SSRF, path traversal, SQL injection, data exfiltration, prompt injection, encoded payloads, and credential exposure. It&#x27;s not an LLM wrapper \u2014 we don&#x27;t trust an LLM to guard another LLM. Pure pattern matching, zero dependencies, &lt;2ms per check, works completely offline.<p>npm install vigil-agent-safety<p>import { checkAction } from &#x27;vigil-agent-safety&#x27;;\nconst result = checkAction({\n  agent: &#x27;my-agent&#x27;,\n  tool: &#x27;exec&#x27;,\n  params: { command: &#x27;rm -rf &#x2F;&#x27; },\n});\n&#x2F;&#x2F; result.decision \u2192 &quot;BLOCK&quot;\n&#x2F;&#x2F; result.reason \u2192 &quot;Destructive command pattern&quot;\n&#x2F;&#x2F; result.latencyMs \u2192 0.3<p>It plugs into MCP servers, LangChain tool chains, Express middleware, or anything else. MIT licensed, no API keys, no network calls, no telemetry.<p>This is v0.1 \u2014 probably too aggressive for some use cases. Next up is a YAML policy engine (v0.2) and an MCP proxy. We&#x27;d love feedback on the rule set, false positive experiences, and threat categories we&#x27;re missing.<p>GitHub: <a href=\"https:&#x2F;&#x2F;github.com&#x2F;hexitlabs&#x2F;vigil\" rel=\"nofollow\">https:&#x2F;&#x2F;github.com&#x2F;hexitlabs&#x2F;vigil</a>",
+      "time": 1772255381,
+      "title": "Show HN: Vigil \u2013 Zero-dependency safety guardrails for AI agent tool calls",
+      "type": "story"
+    },
+    "47190735": {
+      "id": 47190735,
+      "parent": 47190721,
+      "text": "Author here, happy to answer any questions.<p>Some context on why we built this: you might have seen the post earlier this week about someone building a file recovery tool after Claude Code rm -rf&#x27;d their Obsidian vault through a symlink. We had similar near-misses running our own agent swarm, agents curling cloud metadata endpoints, attempting path traversal, executing destructive commands during &quot;cleanup&quot; steps. We kept adding one-off guards and eventually realized this should be a proper library.<p>The main design choice was making it deterministic rather than using an LLM to review tool calls. An LLM guarding another LLM felt like asking the fox to guard the henhouse. Pattern matching is boring, but it&#x27;s fast, predictable, and works offline.<p>Happy to hear about false positives, missing threat categories, or use cases where the rule set is too aggressive. That&#x27;s the main thing we want to calibrate for v0.2.",
+      "time": 1772255512,
+      "type": "comment"
+    },
+    "47190746": {
+      "dead": true,
+      "id": 47190746,
+      "parent": 47190721,
+      "text": "[dead]",
+      "time": 1772255607,
+      "type": "comment"
+    },
+    "47343228": {
+      "id": 47343228,
+      "parent": 47190721,
+      "text": "Nice approach. The &quot;don&#x27;t trust an LLM to guard another LLM&quot; principle is sound for tool-call safety specifically, where the threat model is well-defined (destructive commands, SSRF, path traversal, etc.) and pattern matching gives you deterministic guarantees.<p>Where this gets interesting is at the boundary between tool-call safety and output quality. Vigil solves the &quot;agent tries to rm -rf &#x2F;&quot; problem, but there&#x27;s a whole class of failures where the agent makes safe tool calls that produce wrong results - querying the right database but misinterpreting results, calling an API correctly but hallucinating the summary it returns to the user, following the workflow but giving a factually incorrect final answer.<p>For that layer, deterministic rules don&#x27;t scale because you&#x27;d need rules for every possible factual claim. That&#x27;s where LLM-based evaluation actually makes sense - not as the guard for tool execution, but as the quality check on the final output. Think of it as two layers:<p>1. Vigil-style - deterministic, sub-millisecond checks on tool calls and actions (is this safe to execute?)<p>2. Semantic evaluation - LLM-based scoring on the output (is this correct, complete, and grounded in the provided context?)<p>The combination of both is what production agent systems actually need. We&#x27;ve been building the second layer at DeepRails (evaluate + auto-remediate when quality checks fail), and something like Vigil would complement it well as the first layer.<p>One thought on false positives: have you considered a &quot;soft block&quot; mode where flagged-but-borderline calls get routed through human approval rather than hard-blocked? For long-running agent tasks, a hard block with no fallback can leave workflows in broken states.",
+      "time": 1773268482,
+      "type": "comment"
+    }
+  },
+  "method": "GET https://hacker-news.firebaseio.com/v0/item/<id>.json via curl (16-way parallel), recursive over kids",
+  "role": "killed",
+  "root_id": 47190721
+}
