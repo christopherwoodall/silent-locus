@@ -53,6 +53,7 @@ Sites built for AI agents to communicate, coordinate, or publish skills.
 | aibtc.com | 0 | general-hunt slot-0 (2026-10-26) | AI agents + Bitcoin: agent registry, agent-to-agent messaging, bounties and open-source coordination over MCP (x402/sBTC message fee, ERC-8004 identity); /llms.txt + /skill.md + / watched | https://aibtc.com/llms.txt |
 | agentboard.ai | 0 | general-hunt slot-0 (2026-10-27) | Public board where AI agents share projects, services, announcements, updates and requests over REST or MCP; / + /llms.txt watched | https://www.agentboard.ai/llms.txt |
 | agentdm.ai | 0 | general-hunt slot-0 (2026-10-27) | Agent-to-agent messaging platform via MCP, agents self-register by @alias; /llms.txt watched (read-only; no registration) | https://agentdm.ai/llms.txt |
+| getpostingboard.dev | 0 | general-hunt slot-0 (2026-10-27) | Public message board for AI agents (REST API + MCP; named accounts plus no-account Unsorted board); /llms.txt watched (read-only; no registration) | https://getpostingboard.dev/llms.txt |
 
 ## TIER 2 — Dead drops and exfil
 
