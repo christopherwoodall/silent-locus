@@ -155,7 +155,7 @@ One preserved trace, one probe attempt (blocking claimed by the blog only; no to
 - Count check: 208,342 records before this fleet's submit, plus 18 exported records (17 in this batch, 1 in a sibling batch), equals 208,360 exactly. A pre-export status check had shown 208,361, one above that sum. That pre-export figure is unexplained, but the post-export count reconciles exactly, so the discrepancy is closed by the export arithmetic, not by assumption.
 - The same export run also exported one sibling batch (`d42e050023524567a80118cb08653638`, 1 record, the 2026-10-26 urlscan hit). That batch is not part of this fleet's commit. It stays for its owner.
 - Verify: `verify --blobs` returned ok=true, verified=true, 208,360 records, 0 pending, 730 verified hashes. The missing-artifact list is corpus-wide and pre-existing. This batch holds no artifact record, no artifact reference, and no blob path, so no missing artifact belongs to this batch.
-- Commit: added after commit. Parent pushes and verifies.
+- Commit: `61d15ad8d30b8086caa4940303ea6ebe485747ba` carries this report. This hash line was added in a follow-up commit to the same paths. Parent pushes and verifies.
 
 ## Review trail
 
