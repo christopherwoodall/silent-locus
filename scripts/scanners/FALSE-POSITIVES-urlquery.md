@@ -130,3 +130,16 @@ distinct hit classes:
   literal null); the day-granular date filter can miss reports filed
   late in the day boundary. Re-run overlaps by a few hours for
   continuity if this becomes a scheduled watch.
+
+## 2026-10-24T0445Z (slot-2): raw `zz=` search dominated by country_code artifact
+- The API search query `zz= date:[2026-10-22 TO 2026-10-24]` returned 30
+  rows, but 0/30 carried the launcher grammar marker in submitted
+  URL / tags / title. All 30 matched because the report JSON carries
+  `ip.country_code: "zz"` (unknown country) and `q` searches the full
+  report body, not just URL/tags.
+- Rule: slot-2 fresh-grammar verdicts must apply the local indicator
+  regexes to (submitted URL + final URL + tags + title) ONLY, never the
+  raw API hit count. Same caveat applies to the `ntfy` query (30/30
+  page-content noise this run, 0 URL/tag/title markers) and webhook.site
+  results (dead-token error pages, not live dead-drops).
+- Evidence: silent-locus/data/lanes/general-hunt/raw/2/2026-10-24T044345Z/

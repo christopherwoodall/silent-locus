@@ -65,6 +65,14 @@ Adversarial review (2026-10-23, B15 fix):
     is the disambiguator, not a threshold. Deliberate: operator asked
     for delta alerts to fire; adding a deadband would be a behavior
     cut that was not requested.
+Delta attribution (2026-10-24 slot-1): scan_query captured the
+previous-run facet snapshot BEFORE storing the new one, and diffs
+facet moves against it. The earlier code read `prev:<label>` (last
+DELTA run's snapshot, empty on first delta after flat runs, and
+then overwrote with the new snapshot), which degraded the
+attribution line to all-"NEW" values exactly when it was needed.
+`prev:<label>` entries written by the old code self-heal on the
+next delta.
 """
 from __future__ import annotations
 
@@ -246,7 +254,14 @@ def scan_query(query_cfg: dict, seen_ids, collected_at: str,
           f"(prev={prev}, baseline={baseline})", file=sys.stderr)
 
     # store the facet snapshot every run (not just on delta) so the
-    # attribution window always has a fresh reference point
+    # attribution window always has a fresh reference point. Capture the
+    # previous-run snapshot BEFORE overwriting: it is the correct delta
+    # attribution baseline (immediately prior run's facets). Reading
+    # `prev:<label>` instead lost this on the first delta after flat runs
+    # (facet_moves degraded to all-"NEW") and stored the NEW snapshot as
+    # prev, compounding the error (found 2026-10-24 slot-1).
+    old_snapshot = facet_state.get(label) \
+        if isinstance(facet_state.get(label), dict) else {}
     facet_state[label] = {"total": total, "at": collected_at,
                           "facets": facet_map}
 
@@ -264,10 +279,11 @@ def scan_query(query_cfg: dict, seen_ids, collected_at: str,
     direction = "grew" if delta > 0 else "shrank"
     _store_count(seen_ids, label, total)
 
-    # attribute the delta through facet moves (A4)
-    prev_facets = (facet_state.get(f"prev:{label}") or {}).get("facets",
-                                                               {})
-    facet_state[f"prev:{label}"] = facet_state[label]
+    # attribute the delta through facet moves (A4): diff against the
+    # immediately-previous run's snapshot, not `prev:<label>` (which
+    # lagged by whole flat periods and was empty on first deltas)
+    prev_facets = old_snapshot.get("facets", {})
+    facet_state[f"prev:{label}"] = old_snapshot
     facet_moves = _diff_facets(prev_facets, facet_map, delta)
 
     # Confidence: growth in harness exposure is HIGH (new panels
