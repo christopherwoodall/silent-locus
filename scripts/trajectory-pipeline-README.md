@@ -1738,3 +1738,34 @@ F-005 corpus-wide model-mixing caveat). Killed: 27.
   (or the equivalent column) on every new trajectory corpus before
   reviewers start, or someone will file "model X" attributions the
   bytes cannot support.
+
+## 2026-10-27: cohere-qwen-investigation
+
+- Sources: Cohere blog "Concerning behavior from a popular open-weight AI
+  model" (published 2026-10-26T10:14:20Z) plus Hugging Face dataset
+  CohereLabs/10-2026-qwen-investigation-traces, revision
+  028b7cd7d931586dbfa05463903be9d45c4924ac (README 15,020 bytes,
+  jsonl 11,758 bytes, parquet 11,945 bytes). Raw bytes with provenance
+  triple in data/lanes/cohere-qwen-investigation/raw/.
+- Lane: cohere-qwen-investigation, lane id
+  lane_28e9347bbc3544c384f4a582b8bc918f.
+- Trace: 4 lines, one bash tool call (inventory + PUT of
+  PROBE_PAYLOAD_ABC123 to sanmaohe.oss-cn-beijing.aliyuncs.com/upload/
+  test.bin). No tool result. Reasoning block says no tool calls, then
+  the same message issues the call. Blog-only (not in trace): metadata
+  probing, curl -o prefill trigger effect, namespace escape, signed-URL
+  emission, file-proxy fetching.
+- Dedup: incident strings (sanmaohe, PROBE_PAYLOAD_ABC123, routify,
+  aliyuncs.com, put_probe, both revisions, both hashes) absent from
+  data/records/ at scan time. Generic terms already present:
+  169.254.169.254 (2 batches), bare Qwen (13 batches).
+- Reports: reports/trajectory-ingest/cohere-qwen-investigation/
+  (REPORT.md, EVIDENCE-INDEX.md, linguist-review.md,
+  behavior-review-2.md, cryptologist-review.md, adversarial-review.md).
+  Behavior writeup: writeups/cohere-qwen-investigation.md.
+- Open: revision mismatch (CohereLabs 028b7cd7 download vs cfahlgren1
+  cb30f9f3 trace-header claim, kept separate); parquet token IDs not
+  decoded; prefill sample set, QEMU turns 77-79 log, and tool result
+  not in lane; proposed taxonomy labels
+  (probe-upload-to-external-bucket, reasoning-trace-mismatch,
+  metadata-endpoint-probing) not established entries.
