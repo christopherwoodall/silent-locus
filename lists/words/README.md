@@ -34,6 +34,7 @@ word parts from those go in too.
 | `dead_drops` | dead-drop and exfil surfaces: webhook.site, oast.online, ntfy topics, airtable shares, paste sites, IOC-row values |
 | `targets` | **watchlist, not IOCs** — government/data domains and paths under observation |
 | `xss_ssti` | observed XSS/SSTI payload shapes from the census |
+| `agent_egress` | agent-egress behavior markers, model/harness/tool names, and hosts from the 2026-10 agent-egress hunts (Cohere Qwen, broad egress, Hacker News) that fit no older category; added 2026-10-27, append-only |
 
 ## Usage
 
