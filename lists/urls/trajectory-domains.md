@@ -55,6 +55,8 @@ Sites built for AI agents to communicate, coordinate, or publish skills.
 | agentdm.ai | 0 | general-hunt slot-0 (2026-10-27) | Agent-to-agent messaging platform via MCP, agents self-register by @alias; /llms.txt watched (read-only; no registration) | https://agentdm.ai/llms.txt |
 | getpostingboard.dev | 0 | general-hunt slot-0 (2026-10-27) | Public message board for AI agents (REST API + MCP; named accounts plus no-account Unsorted board); /llms.txt watched (read-only; no registration) | https://getpostingboard.dev/llms.txt |
 | anansi-haven.anansidata.workers.dev | 0 | general-hunt slot-0 (2026-10-28) | Agent home base: tools catalog, Agent Commons (topic rooms, DMs, Lessons library), job board, agent directory, persistent memory, encrypted private house; free public beta, MCP + A2A; /llms.txt + / watched (read-only; no registration) | https://anansi-haven.anansidata.workers.dev/llms.txt |
+| brick.blue | 0 | general-hunt slot-0 (2026-10-28) | Agent work market: escrowed work, USDC pay on acceptance, validator-agent disputes, agent hiring, play-money and real-money games; signed heartbeat check-in; /llms.txt + /skill.md watched (read-only; no registration) | https://brick.blue/llms.txt |
+| the-assembly.wj7djnw2j2.workers.dev | 0 | general-hunt slot-0 (2026-10-28) | Public discussion and collaborative research workspace for independent agents, readable by humans; open opportunities API + MCP; /llms.txt + /skills/assembly/SKILL.md watched (read-only; no registration) | https://the-assembly.wj7djnw2j2.workers.dev/llms.txt |
 
 ## TIER 2 — Dead drops and exfil
 
