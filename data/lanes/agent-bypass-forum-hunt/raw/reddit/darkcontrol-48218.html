@@ -1,0 +1,487 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="light" />
+  <meta name="theme-color" content="#ffffff" />
+  <title>AI agent cleanup script deleted 48,218 files: lessons</title>
+  <meta name="description" content="How an AI agent&#039;s cleanup script followed Windows junctions and wiped live files and Git history, and the controls that keep agent deletes in scope." />
+  <meta name="robots" content="index, follow, max-image-preview:large" />
+  <meta name="author" content="DarkControl" />
+  <link rel="canonical" href="https://blog.darkcontrolai.com/p/agent-cleanup-script-windows-junctions-deleted-files" />
+
+  <meta property="og:type" content="article" />
+  <meta property="og:site_name" content="DarkControl Blog" />
+  <meta property="og:url" content="https://blog.darkcontrolai.com/p/agent-cleanup-script-windows-junctions-deleted-files" />
+  <meta property="og:title" content="AI agent cleanup script deleted 48,218 files: lessons" />
+  <meta property="og:description" content="How an AI agent&#039;s cleanup script followed Windows junctions and wiped live files and Git history, and the controls that keep agent deletes in scope." />
+  <meta property="og:image" content="https://blog.darkcontrolai.com/media/20261006-7b277c93a901834e.png" />
+  <meta property="og:image:secure_url" content="https://blog.darkcontrolai.com/media/20261006-7b277c93a901834e.png" />
+  <meta property="og:image:type" content="image/png" />
+    <meta property="og:image:width" content="1920" />
+  <meta property="og:image:height" content="1080" />
+    <meta property="og:image:alt" content="DarkControl blog cover: “48,218 files in 103 seconds: the cleanup script followed the…”, with a technical illustration" />
+  <meta property="og:locale" content="en_GB" />
+
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="AI agent cleanup script deleted 48,218 files: lessons" />
+  <meta name="twitter:description" content="How an AI agent&#039;s cleanup script followed Windows junctions and wiped live files and Git history, and the controls that keep agent deletes in scope." />
+  <meta name="twitter:image" content="https://blog.darkcontrolai.com/media/20261006-7b277c93a901834e.png" />
+  <meta name="twitter:image:alt" content="DarkControl blog cover: “48,218 files in 103 seconds: the cleanup script followed the…”, with a technical illustration" />
+
+  <!-- The same mark the marketing site uses, generated from the same
+       1024px master, at the sizes a browser actually asks for. The .ico
+       carries 16/32/48/64 so the tab icon is chosen rather than
+       downsampled, and /favicon.ico exists because browsers request it
+       whether or not a page declares one. -->
+  <link rel="icon" href="/favicon.ico" sizes="any" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/favicon-32.png" />
+  <link rel="icon" type="image/png" sizes="96x96" href="/assets/img/darkcontrol_logo.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="/assets/img/apple-touch-icon.png" />
+  <link rel="alternate" type="application/rss+xml" title="DarkControl Blog" href="/feed.xml" />
+
+    <!-- Privacy-friendly analytics by Plausible -->
+  <script async src="https://plausible.io/js/pa-7_YcCA2PiMF2bCrJl24WM.js"></script>
+  <script nonce="XBYKBwmlq9XpJ1mtcGIajw==">
+    window.plausible=window.plausible||function(){(plausible.q=plausible.q||[]).push(arguments)},plausible.init=plausible.init||function(i){plausible.o=i||{}};
+    plausible.init({"customProperties":{"section":"blog","page_type":"post","post":"agent-cleanup-script-windows-junctions-deleted-files","tag":"ai-governance","author":"darkcontrol-team"}})
+  </script>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Inter+Tight:wght@500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="/assets/blog.css?v=1" />
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="site-header">
+  <div class="container">
+    <nav class="nav" aria-label="Primary">
+      <a href="/" class="logo" aria-label="DarkControl Blog">
+        <img src="/assets/img/darkcontrol_logo.png" alt="" width="40" height="40">
+        <span class="logo-text">DarkControl</span>
+        <span class="logo-sep" aria-hidden="true"></span>
+        <span class="logo-kicker">Blog</span>
+      </a>
+      <ul class="nav-links" id="nav-links">
+                  <li><a href="/">Articles</a></li>
+                  <li><a href="/topics">Topics</a></li>
+                  <li><a href="/about">About</a></li>
+              </ul>
+      <div class="nav-cta">
+        <form class="navsearch" action="/search" method="get" role="search">
+          <label class="sr-only" for="nav-q">Search articles</label>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+          <input id="nav-q" type="search" name="q" placeholder="Search" maxlength="120"
+                 value="" autocomplete="off">
+        </form>
+        <a href="https://darkcontrolai.com" class="btn btn-primary">
+          DarkControl
+        </a>
+        <button class="nav-toggle" id="nav-toggle" aria-label="Menu" aria-expanded="false" aria-controls="nav-links">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+        </button>
+      </div>
+    </nav>
+  </div>
+</header>
+<main id="main">
+
+<article class="article">
+  <div class="container">
+
+    <header class="article-head">
+      <p class="crumbs"><a href="/">Articles</a> <span aria-hidden="true">&rsaquo;</span>
+                  <a href="/t/ai-governance">AI Governance</a>
+              </p>
+
+              <span class="kicker">AI Governance</span>
+      
+      <h1>48,218 files in 103 seconds: the cleanup script followed the junctions</h1>
+
+              <p class="sub">A user-reported Claude Code incident shows why deletion by AI agents needs a manifest, a boundary and a record kept outside the agent</p>
+      
+      <div class="article-meta">
+                  <span class="who">The DarkControl Team</span>
+          <span class="sep">&middot;</span>
+                <time datetime="2026-10-07T06:00:00+00:00">
+          7 October 2026        </time>
+        <span class="sep">&middot;</span>
+        <span>6 min read</span>
+      </div>
+    </header>
+
+          <figure class="article-cover">
+        <img src="/media/20261006-7b277c93a901834e.webp" alt="DarkControl blog cover: “48,218 files in 103 seconds: the cleanup script followed the…”, with a technical illustration" width="1920" height="1080" loading="lazy" decoding="async">      </figure>
+    
+    <div class="article-body">
+      <p>On 21 September a Claude Code user posted on Reddit, with a verifier report attached, describing an agent-written cleanup script that deleted <strong>48,218 live files in 103 seconds</strong>. <a href="https://cybersecuritynews.com/claude-code-agent-file-deletion/" target="_blank" rel="noopener noreferrer">Cyber Security News covered it</a>. The agent had been asked to rebuild a mirror. The old mirror held 7,332 ordinary files that were meant to go. Everything else it deleted belonged to the live project and was reached through 614 Windows directory junctions.</p><aside class="b-callout b-callout--note"><p class="b-callout__t">What is verified and what isn&#039;t</p><div class="b-callout__b"><p>This is a user-reported incident. As Cyber Security News notes, until logs or forensic evidence are released it has no independently verified attribution to a specific Claude Code defect, and the permission mode the agent ran in is not known. The lessons below don&#039;t depend on those details.</p></div></aside><h2 class="b-h" id="what-happened">What happened</h2><p>According to the report, the agent wrote a Python script to remove an older mirror copy that had been stored temporarily. The script walked the tree with <code>os.walk(..., followlinks=False)</code>, which should have stopped it from following links. It didn&#039;t. In the reporter&#039;s words, <code>os.path.islink()</code> returned false for the junctions, so the remover treated the directories behind each junction as ordinary paths. The script&#039;s junction guard only checked the top level.</p><p>The removal log lists 55,550 files. 1,808 directories were deleted and 728 more were emptied. The worst losses were inside <code>.git</code>: <code>objects</code>, <code>refs</code> and <code>logs</code> were emptied. The Git index survived, but the blobs it points to were gone, so the commit history could not be rebuilt from the local repository. Files outside the affected area, including backups, were untouched.</p><h2 class="b-h" id="why-it-happened">Why it happened</h2><p>Nobody attacked anything here, and no prompt injection or malicious package was involved. Four ordinary things lined up.</p><ul class="b-list b-list--bullet"><li><strong>A junction isn&#039;t a symlink.</strong> Microsoft <a href="https://learn.microsoft.com/en-us/windows/win32/fileio/hard-links-and-junctions" target="_blank" rel="noopener noreferrer">describes junctions</a> as a separate NTFS link type, built on reparse points, that can point a directory at another directory, even on another local volume. Python&#039;s <a href="https://docs.python.org/3/library/os.path.html" target="_blank" rel="noopener noreferrer">os.path docs</a> describe <code>islink()</code> as a check for symbolic links and list a separate <code>isjunction()</code>, added in 3.12. A guard written with POSIX symlinks in mind can let a junction straight through.</li><li><strong>The destructive work was hidden inside a script.</strong> From the outside, the action was running a Python file. The 55,550 deletions happened inside it. Anyone approving <code>python cleanup.py</code> sees a filename, not the blast radius.</li><li><strong>Undo wasn&#039;t where people expect it.</strong> Claude Code&#039;s <a href="https://code.claude.com/docs/en/checkpointing" target="_blank" rel="noopener noreferrer">checkpointing docs</a> say plainly that files changed by Bash commands are not tracked and can&#039;t be rewound. Checkpoints only cover the agent&#039;s own file-edit tools. And the local <code>.git</code> directory, which many people treat as their safety net, was one of the things deleted.</li><li><strong>The permission mode is unknown, and that matters.</strong> Anthropic&#039;s <a href="https://code.claude.com/docs/en/permissions" target="_blank" rel="noopener noreferrer">permissions docs</a> say Manual mode asks before Bash commands. <code>bypassPermissions</code> skips prompts, including for writes to protected paths such as <code>.git</code>, and should only be used &quot;in isolated environments like containers or VMs where Claude Code can&#039;t cause damage.&quot;</li></ul><h2 class="b-h" id="the-controls-that-prevent-it">The controls that prevent it</h2><p>The report&#039;s own recommendations are sound: treat coding agents as privileged automation, do dry runs with path manifests, prefer reversible moves to immediate deletion, and run agents under least-privilege accounts in filesystem-restricted sandboxes. In practice, that means:</p><ul class="b-list b-list--bullet"><li><strong>Delete in two steps.</strong> First generate a manifest of every path that would be removed, with a count and a list of top-level roots. Then delete only that manifest. Expecting about 7,332 files and getting 55,550 is a stop signal anyone can read.</li><li><strong>Resolve before you recurse.</strong> Prune links and junctions before descending, and check that every resolved path is still inside the intended root. On Windows, check for junctions and reparse points, not only symlinks.</li><li><strong>Move, don&#039;t delete.</strong> Send files to a quarantine folder on the same volume and purge them later. A rename can be undone; an unlink can&#039;t.</li><li><strong>Give the agent a smaller filesystem.</strong> If the agent&#039;s account or sandbox can&#039;t write outside the working tree, a junction pointing elsewhere leads somewhere it has no permission to delete.</li><li><strong>Keep history off the box.</strong> Push work-in-progress branches to a remote often. A local <code>.git</code> is not a backup.</li><li><strong>Lock bypass modes centrally.</strong> Claude Code lets admins set <code>permissions.disableBypassPermissionsMode</code> in managed settings so individual users can&#039;t override it. Use it on any machine that isn&#039;t a disposable container.</li></ul><p>Here is a minimal version of the first two controls in Python. It&#039;s a pattern to adapt, not a drop-in tool:</p><div class="b-code"><span class="b-code__l">python</span><pre><code>import os, sys
+from pathlib import Path
+
+root = Path(sys.argv[1]).resolve()
+manifest = []
+for dirpath, dirnames, filenames in os.walk(root, followlinks=False):
+    # prune symlinks AND junctions before os.walk descends into them
+    dirnames[:] = [d for d in dirnames
+                   if not (os.path.islink(os.path.join(dirpath, d))
+                           or os.path.isjunction(os.path.join(dirpath, d)))]
+    for f in filenames:
+        p = Path(dirpath, f).resolve()
+        if not p.is_relative_to(root):
+            sys.exit(f&quot;refusing: {p} is outside {root}&quot;)
+        manifest.append(str(p))
+
+print(f&quot;{len(manifest)} files would be removed under {root}&quot;)
+Path(&quot;delete-manifest.txt&quot;).write_text(&quot;\n&quot;.join(manifest))
+# a human (or a second, reviewed step) moves these to quarantine</code></pre></div><h2 class="b-h" id="where-policy-guardrails-fit-and-where-they-don-t">Where policy guardrails fit, and where they don&#039;t</h2><p>A command-level policy engine sees the commands the agent runs and the files it writes. It doesn&#039;t see each <code>unlink</code> inside a Python process. So an allow/ask/deny policy can&#039;t replace the filesystem boundary above. Its job is to make sure the risky step reaches a person, and to leave a record behind. For agent deletes, a reasonable baseline is:</p><ul class="b-list b-list--bullet"><li><strong>Deny</strong> agent writes and deletes under <code>.git/</code>, recursive deletes outside the project root (<code>rm -rf</code>, <code>Remove-Item -Recurse -Force</code>, <code>rmdir /s /q</code>), and starting agents in bypass modes on developer machines.</li><li><strong>Ask</strong> for recursive deletes inside the workspace, and for running ad-hoc scripts the agent has just written. Don&#039;t allowlist <code>python *</code> or <code>node *</code> wholesale. That one rule is what turns a destructive script into a silent one. The approver should ask to see the dry-run manifest before saying yes.</li><li><strong>Allow</strong> read-only commands, builds and tests, so the prompts that do appear are rare enough to be read.</li><li><strong>Audit</strong> every attempt, whatever the verdict, in a log the agent can&#039;t edit.</li></ul><p>That last point connects back to the caveat at the top. This incident is still &quot;user-reported&quot; because the evidence lives in the reporter&#039;s own logs. When something similar happens on your machines, you want your own timeline: what command ran, when, on which device, under which policy version, and who approved it. You shouldn&#039;t have to rebuild it from the agent&#039;s transcript.</p><p>This is the layer <a href="https://darkcontrolai.com/platform.php" target="_blank" rel="noopener noreferrer">DarkControl</a> provides. A lightweight endpoint agent checks every shell command, file write and network call from Claude Code, Codex, Cursor, Copilot and other agents against one central policy. Anything no rule matches defaults to Ask, and every attempt goes to an immutable audit log you can export to your SIEM. Pair it with a sandboxed filesystem and a remote Git history, and a bad cleanup script has to get past a person, a boundary and a backup before it costs you anything.</p><aside class="b-takeaways"><p class="b-takeaways__t">Key takeaways</p><ul><li>The reported loss came from ordinary platform behaviour (Windows junctions), not an attacker. Agent-written scripts inherit every edge case of the OS they run on.</li><li>Approving <code>python cleanup.py</code> approves a filename. Require a dry-run manifest with counts and roots before any bulk delete.</li><li>Claude Code checkpoints don&#039;t cover Bash deletions, and a local .git isn&#039;t a backup. Push to a remote and quarantine before purging.</li><li>Least-privilege filesystem access is what actually bounds a delete. Allow/ask/deny rules make sure the risky step reaches a human.</li><li>Keep your own audit trail outside the agent, so an incident on your side doesn&#039;t stay &#039;user-reported&#039;.</li></ul></aside><hr class="b-rule"><p>Want to see which delete, move and script-execution commands your agents run today? Start with a free 7-day watch-only audit: nothing is blocked, up to 10 devices, no credit card. Or book a demo and we&#039;ll walk through a delete policy with you.</p><p class="b-btnwrap"><a class="btn btn-primary" href="https://darkcontrolai.com/book-a-demo.php?utm_source=blog&amp;utm_medium=cta&amp;utm_campaign=agent-cleanup-script-windows-junctions-deleted-files" target="_blank" rel="noopener noreferrer">Book a demo</a></p>    </div>
+
+    <footer class="article-foot">
+              <div class="article-tags">
+                      <a href="/t/ai-governance">AI Governance</a>
+                      <a href="/t/compliance">Compliance</a>
+                  </div>
+      
+      <div class="engage">
+        <button type="button" id="likebtn"
+                class="likebtn"
+                aria-pressed="false"
+                >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8l1.1 1.1L12 21.2l7.7-7.7 1.1-1.1a5.5 5.5 0 0 0 0-7.8z"/>
+          </svg>
+          <span class="lbl">Like this article</span>
+          <span class="n">0</span>
+        </button>
+
+        <div class="share">
+          <span>Share</span>
+          <a data-share="x" title="Share on X" aria-label="Share on X" target="_blank" rel="noopener noreferrer"
+             href="https://twitter.com/intent/tweet?text=48%2C218%20files%20in%20103%20seconds%3A%20the%20cleanup%20script%20followed%20the%20junctions&amp;url=https%3A%2F%2Fblog.darkcontrolai.com%2Fp%2Fagent-cleanup-script-windows-junctions-deleted-files">
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M18.2 2H21l-6.5 7.4L22 22h-6l-4.7-6.2L5.9 22H3l7-8L2 2h6.2l4.3 5.7L18.2 2Zm-1 18h1.7L7.9 3.8H6.1L17.2 20Z"/></svg>
+          </a>
+          <a data-share="linkedin" title="Share on LinkedIn" aria-label="Share on LinkedIn" target="_blank" rel="noopener noreferrer"
+             href="https://www.linkedin.com/sharing/share-offsite/?url=https%3A%2F%2Fblog.darkcontrolai.com%2Fp%2Fagent-cleanup-script-windows-junctions-deleted-files">
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M4.98 3.5a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5ZM3 9h4v12H3V9Zm7 0h3.8v1.7h.05c.53-1 1.83-2.05 3.77-2.05 4.03 0 4.78 2.65 4.78 6.1V21h-4v-5.4c0-1.3-.02-2.96-1.8-2.96-1.8 0-2.08 1.4-2.08 2.86V21h-4V9Z"/></svg>
+          </a>
+          <button type="button" id="sharecopy" title="Copy link" aria-label="Copy link">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg>
+          </button>
+        </div>
+      </div>
+
+              <div class="authorcard">
+          <div class="av" aria-hidden="true"></div>
+          <div>
+            <p class="nm">The DarkControl Team</p>
+                          <p class="rl">Engineering and Research</p>
+                                      <p class="bo">Field notes on AI governance, model security and operational control from the team building DarkControl.</p>
+                      </div>
+        </div>
+          </footer>
+
+          <section class="related" aria-labelledby="rel-h">
+        <div class="sechead">
+          <h2 id="rel-h">Related reading</h2>
+          <a href="/">All articles</a>
+        </div>
+        <div class="postgrid">
+                                    <article class="pcard">
+    <a class="pcard__link" data-related="opencode-breach-ai-provider-api-keys-rotation" href="/p/opencode-breach-ai-provider-api-keys-rotation">
+              <div class="pcard__img">
+                    <img src="/media/20261020-51698fb3269e4b3c.webp" alt="" role="presentation" width="1920" height="1080" loading="lazy" decoding="async">        </div>
+            <div class="pcard__body">
+                  <span class="pcard__tag">AI Governance</span>
+                <h3 class="pcard__t">The keys were stored at the vendor. The bill came to you.</h3>
+                  <p class="pcard__x">OpenCode says a legacy system it was shutting down exposed users&#039; stored OpenAI, Anthropic and Google keys, and some users reportedly found out from their bills. What went wrong, and the controls that limit the damage.</p>
+                <p class="pcard__m">
+          <time datetime="2026-10-20T09:00:00+00:00">20 October 2026</time>
+          <span class="sep">&middot;</span>7 min read
+                  </p>
+      </div>
+    </a>
+  </article>
+                                    <article class="pcard">
+    <a class="pcard__link" data-related="what-did-your-agents-do-last-tuesday" href="/p/what-did-your-agents-do-last-tuesday">
+              <div class="pcard__img">
+                    <img src="/media/20260729-dd54ee219d6355cb.webp" alt="" role="presentation" width="1672" height="941" loading="lazy" decoding="async">        </div>
+            <div class="pcard__body">
+                  <span class="pcard__tag">AI Governance</span>
+                <h3 class="pcard__t">What did your agents do last Tuesday?</h3>
+                  <p class="pcard__x">An agent changed something in production. You need to know what it was asked, what it proposed, and who approved it. Here is why the chat log will not tell you, and what to record instead.</p>
+                <p class="pcard__m">
+          <time datetime="2026-07-29T04:37:52+00:00">29 July 2026</time>
+          <span class="sep">&middot;</span>7 min read
+                  </p>
+      </div>
+    </a>
+  </article>
+                                    <article class="pcard">
+    <a class="pcard__link" data-related="litellm-compromise-agent-owner-token-release-pipeline" href="/p/litellm-compromise-agent-owner-token-release-pipeline">
+              <div class="pcard__img">
+                    <img src="/media/20261028-65d99c45b5f7858b.webp" alt="" role="presentation" width="1920" height="1080" loading="lazy" decoding="async">        </div>
+            <div class="pcard__body">
+                  <span class="pcard__tag">AI Governance</span>
+                <h3 class="pcard__t">The agent had the org owner&#039;s token. So did the attacker.</h3>
+                  <p class="pcard__x">On 21 October a credential-stealing LiteLLM 1.107.0 reached PyPI and Docker. LiteLLM traces it to a master key in a committed agent config file and an unscoped owner token held by an agent platform. What happened, and the controls that break the chain.</p>
+                <p class="pcard__m">
+          <time datetime="2026-10-28T08:27:00+00:00">28 October 2026</time>
+          <span class="sep">&middot;</span>6 min read
+                  </p>
+      </div>
+    </a>
+  </article>
+                  </div>
+      </section>
+    
+  </div>
+</article>
+    
+<script type="application/json" id="blog-cfg">{"page_type":"post","post_id":52,"post_slug":"agent-cleanup-script-windows-junctions-deleted-files","csrf":"46e0f2c5325aca693cf1f6c2fadf0a7c28cc92a175888df0d6fca92538828b55","url":"https://blog.darkcontrolai.com/p/agent-cleanup-script-windows-junctions-deleted-files"}</script>
+
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","headline":"48,218 files in 103 seconds: the cleanup script followed the junctions","description":"How an AI agent\u0027s cleanup script followed Windows junctions and wiped live files and Git history, and the controls that keep agent deletes in scope.","image":"https://blog.darkcontrolai.com/media/20261006-7b277c93a901834e.png","datePublished":"2026-10-07T06:00:00+00:00","dateModified":"2026-10-07T07:25:26+00:00","author":{"@type":"Organization","name":"The DarkControl Team"},"publisher":{"@type":"Organization","name":"DarkControl"},"mainEntityOfPage":"https://blog.darkcontrolai.com/p/agent-cleanup-script-windows-junctions-deleted-files"}</script>
+</main>
+<style>
+.dcfoot {
+  border-top: 1px solid var(--line, #e6e8ec);
+  background: var(--bg, #fff);
+  margin-top: 0;
+}
+.dcfoot__in {
+  max-width: var(--container, 1240px);
+  margin: 0 auto;
+  padding: 60px var(--gutter, 24px) 34px;
+}
+.dcfoot__grid {
+  display: grid;
+  grid-template-columns: 1.7fr repeat(4, 1fr);
+  gap: 44px 32px;
+}
+.dcfoot__brand .dcfoot__logo {
+  display: inline-flex; align-items: center; gap: 11px;
+  color: var(--ink, #101218); text-decoration: none;
+}
+.dcfoot__brand .dcfoot__logo img { width: 34px; height: 34px; display: block; }
+.dcfoot__brand .dcfoot__name {
+  font: 600 19px/1 var(--display, var(--font, var(--sans, system-ui)));
+  letter-spacing: -0.01em;
+}
+.dcfoot__blurb {
+  margin: 16px 0 0;
+  max-width: 300px;
+  font: 400 14px/1.65 var(--font, var(--sans, system-ui));
+  color: var(--muted, #636a78);
+}
+.dcfoot__social { display: flex; gap: 10px; margin-top: 20px; }
+.dcfoot__social a {
+  width: 36px; height: 36px; border-radius: 8px;
+  display: inline-flex; align-items: center; justify-content: center;
+  border: 1px solid var(--line, #e6e8ec);
+  color: var(--muted, #636a78);
+  transition: color .16s ease, border-color .16s ease, background .16s ease;
+}
+.dcfoot__social a svg { width: 16px; height: 16px; display: block; }
+.dcfoot__social a:hover {
+  color: #fff; background: var(--crimson, #a90f2d);
+  border-color: var(--crimson, #a90f2d);
+}
+.dcfoot__social a:focus-visible {
+  outline: 2px solid var(--crimson, #a90f2d); outline-offset: 2px;
+}
+.dcfoot h5 {
+  margin: 0 0 14px;
+  font: 600 12px/1 var(--font, var(--sans, system-ui));
+  letter-spacing: .08em; text-transform: uppercase;
+  color: var(--ink, #101218);
+}
+.dcfoot ul { list-style: none; margin: 0; padding: 0; }
+.dcfoot li + li { margin-top: 10px; }
+.dcfoot li a {
+  font: 400 14px/1.5 var(--font, var(--sans, system-ui));
+  color: var(--muted, #636a78); text-decoration: none;
+}
+.dcfoot li a:hover { color: var(--crimson, #a90f2d); }
+.dcfoot__bottom {
+  margin-top: 48px; padding-top: 22px;
+  border-top: 1px solid var(--line, #e6e8ec);
+  display: flex; flex-wrap: wrap; gap: 8px 26px;
+  align-items: center; justify-content: space-between;
+  font: 400 13px/1.6 var(--font, var(--sans, system-ui));
+  color: var(--faint, #878d9b);
+}
+
+/* Tablet: the four link columns become two rows of two, brand on top. */
+@media (max-width: 1000px) {
+  .dcfoot__grid { grid-template-columns: repeat(2, 1fr); gap: 36px 28px; }
+  .dcfoot__brand { grid-column: 1 / -1; }
+  .dcfoot__blurb { max-width: 460px; }
+}
+/* Phone: one column, tap targets kept at 44px, nothing shrunk below 13px. */
+@media (max-width: 560px) {
+  .dcfoot__in { padding: 44px var(--gutter, 20px) 30px; }
+  .dcfoot__grid { grid-template-columns: 1fr; gap: 30px; }
+  .dcfoot li + li { margin-top: 4px; }
+  .dcfoot li a { display: block; padding: 9px 0; min-height: 44px; box-sizing: border-box; }
+  .dcfoot__social a { width: 44px; height: 44px; }
+  .dcfoot__bottom { margin-top: 34px; flex-direction: column; align-items: flex-start; gap: 10px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .dcfoot__social a { transition: none; }
+}
+</style><footer class="dcfoot" role="contentinfo">
+  <div class="dcfoot__in">
+    <div class="dcfoot__grid">
+
+      <div class="dcfoot__brand">
+        <a class="dcfoot__logo" href="/">
+          <img src="/assets/img/darkcontrol_mark_sm.png" alt="" width="34" height="34">
+          <span class="dcfoot__name">DarkControl</span>
+        </a>
+        <p class="dcfoot__blurb">The governance solution for AI coding agents.</p>
+        <div class="dcfoot__social">
+          <a href="https://x.com/DarkControlAI" target="_blank" rel="noopener noreferrer"
+             aria-label="Follow DarkControl on X"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><path d="M18.2 2H21l-6.5 7.4L22 22h-6l-4.7-6.2L5.9 22H3l7-8L2 2h6.2l4.3 5.7L18.2 2Zm-1 18h1.7L7.9 3.8H6.1L17.2 20Z"/></svg></a>
+          <a href="https://www.linkedin.com/company/darkcontrolai" target="_blank" rel="noopener noreferrer"
+             aria-label="Follow DarkControl on LinkedIn"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><path d="M4.98 3.5a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5ZM3 9h4v12H3V9Zm7 0h3.8v1.7h.05c.53-1 1.83-2.05 3.77-2.05 4.03 0 4.78 2.65 4.78 6.1V21h-4v-5.4c0-1.3-.02-2.96-1.8-2.96-1.8 0-2.08 1.4-2.08 2.86V21h-4V9Z"/></svg></a>
+        </div>
+      </div>
+
+              <div class="dcfoot__col">
+          <h5>Product</h5>
+          <ul>
+                          <li><a href="https://darkcontrolai.com/platform.php">Platform</a></li>
+                          <li><a href="https://darkcontrolai.com/features.php">Plans &amp; features</a></li>
+                          <li><a href="https://darkcontrolai.com/#solution">Solution</a></li>
+                          <li><a href="https://darkcontrolai.com/book-a-demo.php">Request demo</a></li>
+                          <li><a href="https://darkcontrolai.com/reserve-an-instance.php">Free trial</a></li>
+                      </ul>
+        </div>
+              <div class="dcfoot__col">
+          <h5>Free assessments</h5>
+          <ul>
+                          <li><a href="https://darkcontrolai.com/compliance-checker.php">Compliance checker</a></li>
+                          <li><a href="https://darkcontrolai.com/risk-checker.php">AI risk checker</a></li>
+                          <li><a href="https://darkcontrolai.com/rule-generator.php">Agent rule generator</a></li>
+                      </ul>
+        </div>
+              <div class="dcfoot__col">
+          <h5>Learn</h5>
+          <ul>
+                          <li><a href="https://blog.darkcontrolai.com/">Blog</a></li>
+                          <li><a href="https://certify.darkcontrolai.com/">Certify courses</a></li>
+                          <li><a href="https://certify.darkcontrolai.com/verify">Verify a certificate</a></li>
+                          <li><a href="https://blog.darkcontrolai.com/feed.xml">RSS feed</a></li>
+                      </ul>
+        </div>
+              <div class="dcfoot__col">
+          <h5>Legal</h5>
+          <ul>
+                          <li><a href="https://darkcontrolai.com/legal/terms.html">Terms and Conditions</a></li>
+                          <li><a href="https://darkcontrolai.com/legal/legal-notice.html">Legal Notice</a></li>
+                          <li><a href="https://darkcontrolai.com/legal/privacy-policy.html">Privacy Policy</a></li>
+                          <li><a href="https://darkcontrolai.com/legal/cookie-policy.html">Cookie Policy</a></li>
+                      </ul>
+        </div>
+      
+    </div>
+
+    <div class="dcfoot__bottom">
+      <span>&copy; 2026 <span>DarkControl. All rights reserved.</span></span>
+      <span>Proud to be part of the OpenAI Partner Network and a registered member of the Claude Partner Network.</span>
+    </div>
+  </div>
+</footer>
+<script nonce="XBYKBwmlq9XpJ1mtcGIajw==">window.__dcstat=function(C){
+try{
+if(navigator.webdriver)return;                 // automation drives itself, not a reader
+var Q=[],T0=Date.now(),SENT=false,ENG=0,LAST=Date.now(),ACTIVE=true,MAXS=0,CLICKS=0;
+var PATH=location.pathname+(location.search||'');
+function q(t,l,v,m){ if(Q.length>200)return; Q.push({t:t,l:l?String(l).slice(0,80):'',v:v==null?null:v,m:m||null,o:Date.now()-T0,p:PATH}); }
+function payload(){
+  var u=new URLSearchParams(location.search);
+  return JSON.stringify({path:PATH,ref:document.referrer||'',lang:navigator.language||'',
+    us:u.get('utm_source')||'',um:u.get('utm_medium')||'',uc:u.get('utm_campaign')||'',pv:C.pv||0,e:Q.splice(0,60)});
+}
+function flush(sync){
+  if(!Q.length)return;
+  var b=payload();
+  if(sync&&navigator.sendBeacon){ navigator.sendBeacon(C.u,new Blob([b],{type:'application/json'})); }
+  else { fetch(C.u,{method:'POST',headers:{'Content-Type':'application/json'},body:b,keepalive:true}).catch(function(){}); }
+}
+// ---- engaged time: only while visible and recently interacted with ----
+function tick(){
+  var now=Date.now();
+  if(ACTIVE&&document.visibilityState==='visible'&&now-LAST<30000) ENG+=now-(tick.last||now);
+  tick.last=now;
+}
+setInterval(tick,1000);
+['mousemove','keydown','scroll','click','touchstart'].forEach(function(ev){
+  addEventListener(ev,function(){LAST=Date.now();ACTIVE=true;},{passive:true});
+});
+document.addEventListener('visibilitychange',function(){ ACTIVE=document.visibilityState==='visible'; });
+// periodic heartbeat so a long read is not lost if the tab is killed
+setInterval(function(){ if(ENG>0){ q('engage',null,ENG); ENG=0; flush(false);} },30000);
+
+// ---- pageview ----
+q('pageview',document.title,null,C.slug?{slug:C.slug}:null);
+
+// ---- scroll depth milestones ----
+var hit={};
+function depth(){
+  var h=document.documentElement, b=document.body;
+  var sh=Math.max(h.scrollHeight,b?b.scrollHeight:0), vh=innerHeight||h.clientHeight;
+  if(sh<=vh)return 100;
+  return Math.min(100,Math.round(((pageYOffset||h.scrollTop)+vh)/sh*100));
+}
+addEventListener('scroll',function(){
+  var d=depth(); if(d>MAXS)MAXS=d;
+  [25,50,75,90,100].forEach(function(m){ if(d>=m&&!hit[m]){hit[m]=1;q('scroll',null,m);} });
+},{passive:true});
+
+// ---- clicks, links, copies, media, search ----
+addEventListener('click',function(ev){
+  var a=ev.target&&ev.target.closest?ev.target.closest('a,button,[role=button]'):null;
+  if(!a)return;
+  CLICKS++;
+  var txt=(a.innerText||a.textContent||a.getAttribute('aria-label')||'').trim().replace(/\s+/g,' ');
+  if(a.tagName==='A'&&a.href){
+    var out=a.host&&a.host!==location.host;
+    q('link',txt,null,{href:a.href.slice(0,300),outbound:out?1:0});
+  } else {
+    q('click',txt,null,{tag:a.tagName.toLowerCase(),id:(a.id||'').slice(0,60)});
+  }
+},{passive:true,capture:true});
+
+addEventListener('copy',function(){ q('copy',null,null,null); },{passive:true});
+
+// Field NAMES only — never values.
+addEventListener('focusin',function(ev){
+  var t=ev.target; if(!t||!t.matches)return;
+  if(t.matches('input,textarea,select')) q('form',t.name||t.id||t.type,null,{stage:'focus'});
+},{passive:true});
+addEventListener('submit',function(ev){
+  var f=ev.target; q('form',(f&&(f.name||f.id))||'form',null,{stage:'submit'});
+},{passive:true,capture:true});
+
+document.addEventListener('play',function(ev){
+  var m=ev.target; if(m&&(m.tagName==='VIDEO'||m.tagName==='AUDIO')) q('media',m.currentSrc||m.src||'',null,{stage:'play'});
+},true);
+
+// ---- exit ----
+function bye(){
+  if(SENT)return; SENT=true;
+  tick();
+  q('exit',document.title,ENG,{scroll:MAXS,clicks:CLICKS});
+  flush(true);
+}
+addEventListener('pagehide',bye);
+addEventListener('beforeunload',bye);
+document.addEventListener('visibilitychange',function(){ if(document.visibilityState==='hidden'){ tick(); if(ENG>0){q('engage',null,ENG);ENG=0;} flush(true);} });
+
+// first flush shortly after load so a bounce is still recorded
+setTimeout(function(){flush(false);},1200);
+}catch(e){}
+};window.__dcstat({"u":"/stat.php","p":"blog","slug":"agent-cleanup-script-windows-junctions-deleted-files","pv":149904});</script><script src="/assets/blog.js?v=1" nonce="XBYKBwmlq9XpJ1mtcGIajw==" defer></script>
+</body>
+</html>
