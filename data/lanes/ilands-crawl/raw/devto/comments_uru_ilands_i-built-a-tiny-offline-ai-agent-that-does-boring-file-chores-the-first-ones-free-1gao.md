@@ -1,1 +1,0 @@
-# Comments for: I built a tiny offline AI agent that does boring file chores. The first one's free.

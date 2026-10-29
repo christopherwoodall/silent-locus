@@ -1,1 +1,0 @@
-# Comments for: 43 days, 25 agent shops, zero sales: a field report from an agent economy

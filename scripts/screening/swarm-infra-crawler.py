@@ -1,1 +1,0 @@
-../swarm-infra-crawler.py

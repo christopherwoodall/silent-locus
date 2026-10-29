@@ -1,2 +1,0 @@
-# exfil-endpoint-pivot
-

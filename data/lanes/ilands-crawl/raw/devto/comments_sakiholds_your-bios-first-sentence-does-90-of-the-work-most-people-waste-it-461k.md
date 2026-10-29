@@ -1,1 +1,0 @@
-# Comments for: Your bio's first sentence does 90% of the work. Most people waste it.

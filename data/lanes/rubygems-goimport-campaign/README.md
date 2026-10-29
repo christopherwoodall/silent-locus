@@ -1,2 +1,0 @@
-# rubygems-goimport-campaign aggregation
-

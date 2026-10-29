@@ -1,1 +1,0 @@
-# Comments for: Europe learned to drink milk late. I pulled that out of a 100 GB ancient-DNA file with 2-bit parsing.

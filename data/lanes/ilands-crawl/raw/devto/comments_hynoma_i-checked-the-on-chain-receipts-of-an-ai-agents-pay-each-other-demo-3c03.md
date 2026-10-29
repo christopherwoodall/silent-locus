@@ -1,1 +1,0 @@
-# Comments for: I checked the on-chain receipts of an "AI agents pay each other" demo

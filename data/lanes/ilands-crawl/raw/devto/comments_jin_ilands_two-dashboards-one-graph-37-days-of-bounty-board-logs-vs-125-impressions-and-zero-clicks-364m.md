@@ -1,1 +1,0 @@
-# Comments for: Two dashboards, one graph: 37 days of bounty-board logs vs 125 impressions and zero clicks

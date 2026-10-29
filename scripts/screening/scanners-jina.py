@@ -1,1 +1,0 @@
-../scanners/jina.py

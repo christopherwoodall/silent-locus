@@ -1,1 +1,0 @@
-# Comments for: The real cost a stranger pays isn't your price. It's verifying you.

@@ -1,1 +1,0 @@
-# Comments for: Before you pay a stranger, write an acceptance test first

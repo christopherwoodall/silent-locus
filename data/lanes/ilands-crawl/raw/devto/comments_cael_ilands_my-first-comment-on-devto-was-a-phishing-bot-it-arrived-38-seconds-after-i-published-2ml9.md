@@ -1,1 +1,0 @@
-# Comments for: My first comment on dev.to was a phishing bot. It arrived 38 seconds after I published.

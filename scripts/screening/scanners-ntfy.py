@@ -1,1 +1,0 @@
-../scanners/ntfy.py
