@@ -1,0 +1,638 @@
+Re: Untitled
+
+substitutions:
+  devicename: sofarsolar-logger
+  friendly_name: SofarSolar
+  hostname: "esp8266-sofar"
+  comment: "SofarSolar modbus interface"
+  icon: "mdi:solar-power-variant-outline"
+  restore_mode: "restore_default_off"
+
+wifi:
+  ssid: ""
+  password: ""
+  fast_connect: true
+  reboot_timeout: 120s
+  power_save_mode: none
+
+  ap:
+    ssid: "Fallback-AP-${devicename}"
+    password: ""
+    ap_timeout: 300s
+
+api:
+  [REDACTED_SECRET]
+
+ota:
+  [REDACTED_SECRET]
+  safe_mode: False
+  
+captive_portal: 
+
+mdns:
+  disabled: True
+
+web_server:
+  port: 80
+  ota: false
+
+esphome:
+  name: $devicename
+  platform: ESP8266
+  board: esp01_1m
+  board_flash_mode: dout
+  comment: SofarSolar Logger (Modbus/RS485)
+
+logger:
+    level: INFO
+    baud_rate: 0
+    
+status_led:
+  pin:
+    number: GPIO2
+    inverted: true
+
+external_components:
+  - source:
+      type: git
+      url: https://github.com/ssieb/custom_components
+    components: [ heapmon ]
+
+uart:
+  id: mod_bus
+  tx_pin: 1
+  rx_pin: 3
+  baud_rate: 9600
+  stop_bits: 1
+
+modbus:
+  id: mod_bus_sofar
+
+modbus_controller:
+  - id: sofarsolar
+    address: 0x01
+    modbus_id: mod_bus_sofar
+    update_interval: 5s
+
+text_sensor:  
+
+  - platform: template
+    name: "ESP-Sofar Uptime (human readable)"
+    id: uptime_human
+    icon: "mdi:clock-start"
+    update_interval: 5s
+    
+  - platform: modbus_controller
+    modbus_controller_id: sofarsolar
+    name: ${friendly_name} Status
+    id: inverter_status
+    register_type: holding
+    icon: "mdi:information-outline"
+    address: 0x0000
+    response_size: 2
+    lambda: |-
+      auto z = "Unknown";
+      char d = data[item->offset+1];
+      if (d == 0) z = "Wait";
+      else if (d == 1) z = "Check";
+      else if (d == 2) z = "Normal";
+      else if (d == 3) z = "Fault";
+      else if (d == 4) z = "Permanent";
+      return {z};
+
+  - platform: modbus_controller
+    modbus_controller_id: sofarsolar
+    name: ${friendly_name} Fault Message
+    id: inverter_fault_message
+    register_type: holding
+    icon: "mdi:alert-outline"
+    address: 0x0001
+    response_size: 10
+    lambda: |-
+      std::string z = "";
+      int idx = item->offset;
+      //byte[0]
+      if ((data[idx] & 0x1) != 0) z += "GridOVP,";
+      if ((data[idx] & 0x2) != 0) z += "GridUVP,";
+      if ((data[idx] & 0x4) != 0) z += "GridOFP,";
+      if ((data[idx] & 0x8) != 0) z += "GridUFP,";
+      if ((data[idx] & 0x10) != 0) z += "PVUVP,";
+      if ((data[idx] & 0x20) != 0) z += "GridLVRT,";
+      if ((data[idx] & 0x40) != 0) z += "reserve-ID7,";
+      if ((data[idx] & 0x80) != 0) z += "reserve-ID8,";
+      //byte[1]
+      idx++;
+      if ((data[idx] & 0x1) != 0) z += "PVOVP,";
+      if ((data[idx] & 0x2) != 0) z += "IpvUnbalance,";
+      if ((data[idx] & 0x4) != 0) z += "PvConfigSetWrong,";
+      if ((data[idx] & 0x8) != 0) z += "GFCIFault,";
+      if ((data[idx] & 0x10) != 0) z += "PhaseSequenceFault,";
+      if ((data[idx] & 0x20) != 0) z += "HwBoostOCP,";
+      if ((data[idx] & 0x40) != 0) z += "HwAcOCP,";
+      if ((data[idx] & 0x80) != 0) z += "AcRmsOCP,";
+      //byte[2]
+      idx++;
+      if ((data[idx] & 0x1) != 0) z += "HwADFaultIGrid,";
+      if ((data[idx] & 0x2) != 0) z += "HwADFaultDCI,";
+      if ((data[idx] & 0x4) != 0) z += "HwADFaultVGrid,";
+      if ((data[idx] & 0x8) != 0) z += "GFCIDeviceFault,";
+      if ((data[idx] & 0x10) != 0) z += "MChip_Fault,";
+      if ((data[idx] & 0x20) != 0) z += "HwAuxPowerFault,";
+      if ((data[idx] & 0x40) != 0) z += "BusVoltZeroFault,";
+      if ((data[idx] & 0x80) != 0) z += "IacRmsUnbalance,";
+      //byte[3]
+      idx++;
+      if ((data[idx] & 0x1) != 0) z += "BusUVP,";
+      if ((data[idx] & 0x2) != 0) z += "BusOVP,";
+      if ((data[idx] & 0x4) != 0) z += "VbusUnbalance,";
+      if ((data[idx] & 0x8) != 0) z += "DciOCP,";
+      if ((data[idx] & 0x10) != 0) z += "SwOCPInstant,";
+      if ((data[idx] & 0x20) != 0) z += "SwBOCPInstant,";
+      if ((data[idx] & 0x40) != 0) z += "reserved-ID31,";
+      if ((data[idx] & 0x80) != 0) z += "reserved-ID32,";
+      //byte[4]
+      idx++;
+      if (data[idx] != 0) z += "reserved-ID33~40,";
+      //byte[5]
+      idx++;
+      if (data[idx] != 0) z += "reserved-ID41~48,";
+      //byte[6]
+      idx++;
+      if ((data[idx] & 0x1) != 0) z += "ConsistentFault_VGrid,";
+      if ((data[idx] & 0x2) != 0) z += "ConsistentFault_FGrid,";
+      if ((data[idx] & 0x4) != 0) z += "ConsistentFault_DCI,";
+      if ((data[idx] & 0x8) != 0) z += "ConsistentFault_GFCI,";
+      if ((data[idx] & 0x10) != 0) z += "SpiCommLose,";
+      if ((data[idx] & 0x20) != 0) z += "SciCommLose,";
+      if ((data[idx] & 0x40) != 0) z += "RelayTestFail,";
+      if ((data[idx] & 0x80) != 0) z += "PvIsoFault,";
+      //byte[7]
+      idx++;
+      if ((data[idx] & 0x1) != 0) z += "OverTempFault_Inv,";
+      if ((data[idx] & 0x2) != 0) z += "OverTempFault_Boost,";
+      if ((data[idx] & 0x4) != 0) z += "OverTempFault_Env,";
+      if ((data[idx] & 0x8) != 0) z += "PEConnectFault,";
+      if ((data[idx] & 0x10) != 0) z += "reserved-ID61,";
+      if ((data[idx] & 0x20) != 0) z += "reserved-ID62,";
+      if ((data[idx] & 0x40) != 0) z += "reserved-ID63,";
+      if ((data[idx] & 0x80) != 0) z += "reserved-ID64,";
+      //byte[8]
+      idx++;
+      if ((data[idx] & 0x1) != 0) z += "unrecoverHwAcOCP,";
+      if ((data[idx] & 0x2) != 0) z += "unrecoverBusOVP,";
+      if ((data[idx] & 0x4) != 0) z += "unrecoverIacRmsUnbalance,";
+      if ((data[idx] & 0x8) != 0) z += "unrecoverIpvUnbalance,";
+      if ((data[idx] & 0x10) != 0) z += "unrecoverVbusUnbalance,";
+      if ((data[idx] & 0x20) != 0) z += "unrecoverOCPInstant,";
+      if ((data[idx] & 0x40) != 0) z += "unrecoverPvConfigSetWrong,";
+      if ((data[idx] & 0x80) != 0) z += "reserved-ID72,";
+      //byte[9]
+      idx++;
+      if ((data[idx] & 0x1) != 0) z += "reserved-ID73,";
+      if ((data[idx] & 0x2) != 0) z += "unrecoverIPVInstant,";
+      if ((data[idx] & 0x4) != 0) z += "unrecoverWRITEEEPROM,";
+      if ((data[idx] & 0x8) != 0) z += "unrecoverREADEEPROM,";
+      if ((data[idx] & 0x10) != 0) z += "unrecoverRelayFail,";
+      if ((data[idx] & 0x20) != 0) z += "reserved-ID78,";
+      if ((data[idx] & 0x40) != 0) z += "reserved-ID79,";
+      if ((data[idx] & 0x80) != 0) z += "reserved-ID80,";
+      if(z.length() > 0){
+        z.pop_back();
+      }
+      return {z};
+
+sensor:
+  - platform: wifi_signal
+    id: inverter_wifi_signal
+    name: "ESP-Sofar WiFi Signal"
+    update_interval: 60s
+    icon: "mdi:wifi"
+
+  - platform: uptime
+    id: inverter_uptime
+    name: "ESP-Sofar Uptime"
+    filters:
+      - lambda: return x / 60.0;
+    unit_of_measurement: minutes
+    icon: "mdi:clock-start"
+
+  - platform: heapmon  
+    id: heapspace  
+    name: "ESP-Sofar Heapsize"
+    icon: "mdi:memory"
+    update_interval: 5s
+
+  - platform: modbus_controller
+    modbus_controller_id: sofarsolar
+    name: ${friendly_name} DC1 Voltage
+    id: inverter_dc_v1
+    register_type: holding
+    address: 0x0006
+    unit_of_measurement: "V"
+    state_class: "measurement"
+    device_class: "voltage"
+    icon: "mdi:alpha-v-circle-outline"
+    value_type: U_WORD
+    accuracy_decimals: 1
+    filters:
+      - multiply: 0.1
+
+  - platform: modbus_controller
+    modbus_controller_id: sofarsolar
+    name: ${friendly_name} DC1 Current
+    id: inverter_dc_c1
+    register_type: holding
+    address: 0x0007
+    unit_of_measurement: "A"
+    state_class: "measurement"
+    device_class: "current"
+    icon: "mdi:alpha-a-circle-outline"
+    value_type: U_WORD
+    accuracy_decimals: 2
+    filters:
+      - multiply: 0.01
+
+  - platform: modbus_controller
+    modbus_controller_id: sofarsolar
+    name: ${friendly_name} DC2 Voltage
+    id: inverter_dc_v2
+    register_type: holding
+    address: 0x0008
+    unit_of_measurement: "V"
+    state_class: "measurement"
+    device_class: "voltage"
+    icon: "mdi:alpha-v-circle-outline"
+    value_type: U_WORD
+    accuracy_decimals: 1
+    filters:
+      - multiply: 0.1
+
+  - platform: modbus_controller
+    modbus_controller_id: sofarsolar
+    name: ${friendly_name} DC2 Current
+    id: inverter_dc_c2
+    register_type: holding
+    address: 0x0009
+    unit_of_measurement: "A"
+    state_class: "measurement"
+    device_class: "current"
+    icon: "mdi:alpha-a-circle-outline"
+    value_type: U_WORD
+    accuracy_decimals: 2
+    filters:
+      - multiply: 0.01
+
+  - platform: modbus_controller
+    modbus_controller_id: sofarsolar
+    name: ${friendly_name} DC1 Power
+    id: inverter_dc_power1
+    register_type: holding
+    address: 0x000a
+    unit_of_measurement: "W"
+    state_class: "measurement"
+    device_class: "power"
+    icon: "mdi:solar-power"
+    value_type: U_WORD
+    filters:
+      - multiply: 10
+
+  - platform: modbus_controller
+    modbus_controller_id: sofarsolar
+    name: ${friendly_name} DC2 Power
+    id: inverter_dc_power2
+    register_type: holding
+    address: 0x000b
+    unit_of_measurement: "W"
+    state_class: "measurement"
+    device_class: "power"
+    icon: "mdi:solar-power"
+    value_type: U_WORD
+    filters:
+      - multiply: 10
+
+  - platform: modbus_controller
+    modbus_controller_id: sofarsolar
+    name: ${friendly_name} AC Power
+    id: inverter_ac_power
+    register_type: holding
+    address: 0x000c
+    unit_of_measurement: "W"
+    state_class: "measurement"
+    device_class: "power"
+    icon: "mdi:solar-power-variant-outline"
+    value_type: U_WORD
+    filters:
+      - multiply: 10
+
+  - platform: modbus_controller
+    modbus_controller_id: sofarsolar
+    name: ${friendly_name} AC Reactive Power
+    id: inverter_ac_reactive_power
+    register_type: holding
+    address: 0x000d
+    unit_of_measurement: "kVar"
+    state_class: "measurement"
+    device_class: "reactive_power"
+    icon: "mdi:math-cos"
+    value_type: S_WORD
+    filters:
+      - multiply: 10
+
+  - platform: modbus_controller
+    modbus_controller_id: sofarsolar
+    name: ${friendly_name} AC Freq
+    id: inverter_ac_freq
+    register_type: holding
+    address: 0x000e
+    unit_of_measurement: "Hz"
+    state_class: "measurement"
+    device_class: "frequency"
+    icon: "mdi:current-ac"
+    value_type: U_WORD
+    accuracy_decimals: 2
+    filters:
+      - multiply: 0.01
+
+  - platform: modbus_controller
+    modbus_controller_id: sofarsolar
+    name: ${friendly_name} L1 Voltage
+    id: inverter_ac_v1
+    register_type: holding
+    address: 0x000f
+    unit_of_measurement: "V"
+    state_class: "measurement"
+    device_class: "voltage"
+    icon: "mdi:alpha-v-circle"
+    value_type: U_WORD
+    accuracy_decimals: 1
+    filters:
+      - multiply: 0.1
+
+  - platform: modbus_controller
+    modbus_controller_id: sofarsolar
+    name: ${friendly_name} L1 Current
+    id: inverter_ac_c1
+    register_type: holding
+    address: 0x0010
+    unit_of_measurement: "A"
+    state_class: "measurement"
+    device_class: "current"
+    icon: "mdi:alpha-a-circle"
+    value_type: U_WORD
+    accuracy_decimals: 2
+    filters:
+      - multiply: 0.01
+
+  - platform: modbus_controller
+    modbus_controller_id: sofarsolar
+    name: ${friendly_name} L2 Voltage
+    id: inverter_ac_v2
+    register_type: holding
+    address: 0x0011
+    unit_of_measurement: "V"
+    state_class: "measurement"
+    device_class: "voltage"
+    icon: "mdi:alpha-v-circle"
+    value_type: U_WORD
+    accuracy_decimals: 1
+    filters:
+      - multiply: 0.1
+
+  - platform: modbus_controller
+    modbus_controller_id: sofarsolar
+    name: ${friendly_name} L2 Current
+    id: inverter_ac_c2
+    register_type: holding
+    address: 0x0012
+    unit_of_measurement: "A"
+    state_class: "measurement"
+    device_class: "current"
+    icon: "mdi:alpha-a-circle"
+    value_type: U_WORD
+    accuracy_decimals: 2
+    filters:
+      - multiply: 0.01
+
+  - platform: modbus_controller
+    modbus_controller_id: sofarsolar
+    name: ${friendly_name} L3 Voltage
+    id: inverter_ac_v3
+    register_type: holding
+    address: 0x0013
+    unit_of_measurement: "V"
+    state_class: "measurement"
+    device_class: "voltage"
+    icon: "mdi:alpha-v-circle"
+    value_type: U_WORD
+    accuracy_decimals: 1
+    filters:
+      - multiply: 0.1
+
+  - platform: modbus_controller
+    modbus_controller_id: sofarsolar
+    name: ${friendly_name} L3 Current
+    id: inverter_ac_c3
+    register_type: holding
+    address: 0x0014
+    unit_of_measurement: "A"
+    state_class: "measurement"
+    device_class: "current"
+    icon: "mdi:alpha-a-circle"
+    value_type: U_WORD
+    accuracy_decimals: 2
+    filters:
+      - multiply: 0.01
+
+  - platform: modbus_controller
+    modbus_controller_id: sofarsolar
+    name: ${friendly_name} Energy total
+    id: inverter_energy_total
+    register_type: holding
+    address: 0x0015
+    unit_of_measurement: "kWh"
+    accuracy_decimals: 2
+    device_class: "energy"
+    state_class: "total_increasing"
+    icon: "mdi:solar-power-variant-outline"
+    value_type: U_DWORD
+
+  - platform: modbus_controller
+    modbus_controller_id: sofarsolar
+    name: ${friendly_name} Energy generation time total
+    id: inverter_energy_generation_time_total
+    register_type: holding
+    address: 0x0017
+    unit_of_measurement: "h"
+    icon: "mdi:timeline-clock"
+    value_type: U_DWORD
+
+
+  - platform: modbus_controller
+    modbus_controller_id: sofarsolar
+    name: ${friendly_name} Energy today
+    id: inverter_energy_today
+    register_type: holding
+    address: 0x0019
+    unit_of_measurement: "kWh"
+    state_class: "measurement"
+    device_class: "energy"
+    icon: "mdi:solar-power-variant-outline"
+    value_type: U_WORD
+    accuracy_decimals: 2
+    filters:
+      - multiply: 0.01
+
+  - platform: modbus_controller
+    modbus_controller_id: sofarsolar
+    name: ${friendly_name} Energy generation time today
+    id: inverter_energy_generation_time_today
+    register_type: holding
+    address: 0x001A
+    unit_of_measurement: "min"
+    icon: "mdi:timeline-clock"
+    value_type: U_WORD
+
+  - platform: modbus_controller
+    modbus_controller_id: sofarsolar
+    name: ${friendly_name} Temprature module
+    id: inverter_temp_module
+    register_type: holding
+    address: 0x001B
+    unit_of_measurement: "°C"
+    state_class: "measurement"
+    device_class: "temperature"
+    icon: "mdi:temperature-celsius"
+    value_type: U_WORD
+
+  - platform: modbus_controller
+    modbus_controller_id: sofarsolar
+    name: ${friendly_name} Temprature inverter
+    id: inverter_temp_inverter
+    register_type: holding
+    address: 0x001C
+    unit_of_measurement: "°C"
+    state_class: "measurement"
+    device_class: "temperature"
+    icon: "mdi:temperature-celsius"
+    value_type: U_WORD
+
+  - platform: modbus_controller
+    modbus_controller_id: sofarsolar
+    name: ${friendly_name} Bus voltage
+    id: inverter_bus_voltage
+    register_type: holding
+    address: 0x001D
+    unit_of_measurement: "V"
+    state_class: "measurement"
+    device_class: "voltage"
+    icon: "mdi:alpha-v-circle-outline"
+    value_type: U_WORD
+    accuracy_decimals: 1
+    filters:
+      - multiply: 0.1
+
+  - platform: modbus_controller
+    modbus_controller_id: sofarsolar
+    name: ${friendly_name} PV1+ isolation resistance
+    id: inverter_dc_isolation_resistance1
+    register_type: holding
+    address: 0x0024
+    unit_of_measurement: "Ohm"
+    state_class: "measurement"
+    icon: "mdi:omega"
+    value_type: U_WORD
+
+  - platform: modbus_controller
+    modbus_controller_id: sofarsolar
+    name: ${friendly_name} PV2+ isolation resistance
+    id: inverter_dc_isolation_resistance2
+    register_type: holding
+    address: 0x0025
+    unit_of_measurement: "Ohm"
+    state_class: "measurement"
+    icon: "mdi:omega"
+    value_type: U_WORD
+
+  - platform: modbus_controller
+    modbus_controller_id: sofarsolar
+    name: ${friendly_name} PV- isolation resistance
+    id: inverter_cathode_to_ground_impedance
+    register_type: holding
+    address: 0x0026
+    unit_of_measurement: "Ohm"
+    state_class: "measurement"
+    icon: "mdi:omega"
+    value_type: U_WORD
+
+  - platform: template
+    name: ${friendly_name} AC Current (total)    
+    lambda: |-
+      return (id(inverter_ac_c1).state + id(inverter_ac_c2).state + id(inverter_ac_c3).state);
+    unit_of_measurement: A
+    accuracy_decimals: 2
+    icon: "mdi:alpha-a-circle"
+    device_class: "current"
+    state_class: "measurement"
+    update_interval: 5s
+
+  - platform: template
+    name: ${friendly_name} DC Current (total)  
+    lambda: |-
+      return (id(inverter_dc_c1).state + id(inverter_dc_c2).state);
+    unit_of_measurement: A
+    accuracy_decimals: 1
+    state_class: "measurement"
+    device_class: "current"
+    icon: "mdi:alpha-a-circle-outline"
+    update_interval: 5s
+
+  - platform: template
+    name: ${friendly_name} DC Power (total)  
+    lambda: |-
+      return (id(inverter_dc_power2).state + id(inverter_dc_power1).state);
+    unit_of_measurement: W
+    state_class: "measurement"
+    device_class: "power"
+    accuracy_decimals: 0
+    icon: "mdi:alpha-a-circle-outline"
+    update_interval: 5s
+
+  - platform: uptime
+    name: ${friendly_name} Uptime
+    id: uptime_sensor
+    update_interval: 5s
+    icon: "mdi:clock-start"
+    internal: true
+    on_raw_value:
+      then:
+        - text_sensor.template.publish:
+            id: uptime_human
+            state: !lambda |-
+              int seconds = round(id(uptime_sensor).raw_state);
+              seconds = seconds % (24 * 3600);
+              int hours = seconds / 3600;
+              seconds = seconds % 3600;
+              int minutes = seconds /  60;
+              seconds = seconds % 60;
+              return (
+                (hours ? to_string(hours) + "h " : "") +
+                (minutes ? to_string(minutes) + "m " : "") +
+                (to_string(seconds) + "s")
+              ).c_str();
+
+  - platform: template
+    unit_of_measurement: "%"
+    name: "ESP-Sofar WiFi Signal (human readable)"
+    accuracy_decimals: 0
+    update_interval: 30s
+    device_class: "signal_strength"
+    icon: "mdi:wifi"
+    lambda: return (-0.0134 * (id(inverter_wifi_signal).state * id(inverter_wifi_signal).state ) ) + (-0.2228 * id(inverter_wifi_signal).state) + 100.2;
+
+switch:
+  - platform: restart
+    name: "ESP-Sofar Restart"
+
+binary_sensor:
+  - platform: status
+    name: "ESP-Sofar Status"

@@ -1,0 +1,59 @@
+{
+  "attachments": [
+    {
+      "field_id": "data_zip",
+      "id": 71,
+      "object_version": "zlrUJzlGqcYZZj8_jZ..ZwkVWCcIPznN",
+      "original_name": "maxgov_evidence.zip",
+      "sha256": "15bbea7e2d14a667046b63dff8368de0bde5b39720e267691685d9d2c74b7430",
+      "size": 1601,
+      "uploaded_at": "2026-09-30T11:16:47+00:00"
+    },
+    {
+      "field_id": "data_zip",
+      "id": 72,
+      "object_version": "FNKXka9Zhezew0OPztXUaviLmFoWA2AZ",
+      "original_name": "maxgov_evidence.zip",
+      "sha256": "15bbea7e2d14a667046b63dff8368de0bde5b39720e267691685d9d2c74b7430",
+      "size": 1601,
+      "uploaded_at": "2026-09-30T11:20:52+00:00"
+    },
+    {
+      "field_id": "data_zip",
+      "id": 75,
+      "object_version": "rj1f4MZOY2HMPa8N_J4SfT5CzaLlaFnC",
+      "original_name": "maxgov_evidence_v2.zip",
+      "sha256": "e1c42523ff525ec5b023ba5034573e48fe81cbcd848ce5a919118188b222fe42",
+      "size": 8967,
+      "uploaded_at": "2026-10-01T08:27:49+00:00"
+    }
+  ],
+  "created_at": "2026-09-30T11:16:47+00:00",
+  "data": {
+    "ai_company": "OpenAI",
+    "cyberattack": [
+      "Other: Auth-endpoint access-route probing"
+    ],
+    "description": "Target. MAX.gov (portal.max.gov, login.max.gov, piv.max.gov, max.omb.gov) is the Office of Management and Budget / Executive Office of the President portal. The files pursued are OMB SF133 budget-execution reports (e.g. the FY2023 monthly HHS workbook). Tier 1 of the goals doc names the White House / max.gov specifically.\n\nWhat the swarm did (two behaviours):\n\n1) Cross-site coordination. The same MAX.gov budget links were posted as shared \"source materials / reference links\" boards across 10 distinct hosting sites. Per-record counts in the attached data: prowiki.org/dse (64), ludism.org (15), paste.linuxiarz.pl (11), prowiki.org/wiki4d (9), wikiservice.at/fractal (8), wikiservice.at/user/milk (6), url.popcat.xyz (5), wikiservice.at/probier (3), wikiservice.at/dict/sm (2), plus usemod.org (page AgentLinksBridgeUsemod, 2026-05-26 16:59 UTC: the two piv.max.gov PDFs via markdown.new; from the export's other-wikis file; its address block 20.165 also appears among the MAX.gov editors on the main wiki). On the collusion.wiki export, 67 distinct agent handles from 58 IP /16 prefixes added a MAX.gov link, across 76 pages, between 2026-05-26 10:21 UTC and 2026-05-27 13:01 UTC. Individual hub pages were edited by many handles (e.g. ApiReferencesForResearch: 29 names/38 edits; QuarterlyBalancePublicSources: 12 names) and cross-reference each other and sibling wikis. Agents re-posted and extended each other's public source lists, building a shared federal-target link registry across sites.\n\n2) Access-route probing of authentication endpoints. For the same OMB attachment, the swarm requested it through multiple MAX.gov host variants. Two documents (2374423602.pdf, 2398882076.pdf) were requested through all four variants (portal, login, piv, max.omb) and two workbooks (2346466741.xlsx, 2354356491.xlsx) through three variants each; see the attached host-variant matrix. login.max.gov (single sign-on) and piv.max.gov (PIV smartcard authentication) are auth-gated hostnames; trying a document path against them alongside the public portal host is host-variant probing to find a route that serves the file. Host-variant reference counts across the corpus: portal 117, login 102, piv 91, max.omb 5.\n\nURLQuery confirmation (added 2026-10-01). Public URLQuery scan reports record what the MAX.gov hosts actually returned. URLQuery does not identify who submits a scan, so we matched each scan's exact submitted URL against the collusion.wiki export and kept only matches where the same URL was posted by a wiki handle within 30 minutes of the scan. 147 scans meet that test, linked to 37 handles from 36 address blocks (all Microsoft Azure per Microsoft's published ranges), between 2026-05-26 10:04 and 2026-05-27 07:26 UTC. 75 of them requested a MAX.gov host directly; the rest went through read-through proxies (markdown.new, pure.md). Of the 75 direct requests, 66 returned HTTP 200: portal.max.gov 27, piv.max.gov 22, login.max.gov 17. The other 9 returned 404. Every successful request returned one of two PDFs, the same SF133 budget reports named above (291 and 293 pages, about 1.44 MB each). So the login (single sign-on) and piv (smartcard) hostnames served these public files to an unauthenticated scanner. This shows the requests succeeded; it does not show that any authentication was bypassed. Example reports are in the evidence links.\n\nWhy it matters. This is a Tier-1 federal target (White House/OMB) reached by a coordinated agent swarm, combining a shared cross-site link registry with probing of the portal's authentication hostnames. The agents also route the fetches through read-through proxies (markdown.new, pure.md), consistent with sandboxed agents working around egress limits. Several of the pages were later deleted by the wiki moderators.\n\nAttribution. Handles self-identify as OpenAI, consistent with the published collusion.wiki report attributing this swarm to OpenAI agents. Weak on its own (self-labelling plus prior report).\n\nLimits / uncertainty:\n- The files are public SF133 budget reports; this is coordinated access to a sensitive federal target, not proven exfiltration of non-public data.\n- URLQuery reports show the login/piv requests returned the public PDFs (HTTP 200), so the requests succeeded, but the files are public and no authentication bypass is shown. Scan-to-handle links rest on exact URL plus timing (within 30 minutes), not on a submitter identity, which URLQuery does not expose.\n- Handles are self-chosen and unauthenticated; IP /16 is a weak identity signal (upstream half-redacts IPs). \"Read a peer's list, then re-posted\" is inferred from shared content and timing, not from agent transcripts.\n\nRelation to existing findings (extends #36 and #40). Finding #36 covers a single Common Crawl Telegraph post linking two MAX.gov SF133 PDFs (\"one publication, not five messages\"); its attribution note ties those two attachment IDs (2374423602.pdf, 2398882076.pdf) to the collusion.wiki activity. This finding uses that exact link; the same two attachment IDs; and extends it to swarm scale: 67 handles, 10 hosting sites, plus more OMB attachments and the host-variant probing of the login/piv auth endpoints, none of which #36 captures. Finding #40 (Popcat alias inventory) lists \"MAX.gov/USAspending\" as one task family among 262 destinations but does not isolate the target, the cross-site seeding, or the auth-host angle. Credit to Francisco Pernice (#36, #40) for the prior MAX.gov work this builds on.\n\nMethod note: read-only analysis of the public collusion.wiki export (links.jsonl, records.jsonl, revisions.jsonl, other-wikis.json). No requests were sent to max.gov or any target site.",
+    "evidence_links": [
+      "https://collusion.wiki/explorer/page/dse~ApiReferencesForResearch.html",
+      "https://collusion.wiki/explorer/page/dse~PivResearchLinksMay.html",
+      "https://collusion.wiki/explorer/page/dse~QuarterlyBalancePublicSources.html",
+      "https://collusion.wiki/explorer/download",
+      "https://collusion.wiki/explorer/page/usemod~AgentLinksBridgeUsemod",
+      "https://urlquery.net/report/dc26d256-ad1d-459c-a21b-c47cd541bf7a",
+      "https://urlquery.net/report/5d44237a-0e4a-4af7-a095-bd7982363cd2",
+      "https://urlquery.net/report/2f2e11f0-222f-4366-a4e6-f97cefaed97d"
+    ],
+    "government": "National government",
+    "summary": "67 OpenAI-agent handles seeded MAX.gov (White House/OMB) budget-file links across 10 wikis, paste sites and shorteners (May 26-27 2026), and requested the same OMB SF133 documents through all four host variants, including the login.max.gov and piv.max.gov auth endpoints.",
+    "untapped_source": "Yes"
+  },
+  "form_version": 3,
+  "id": 123,
+  "sensitive": false,
+  "submitter": "Omer Zamir",
+  "submitter_id": 52,
+  "updated_at": "2026-10-01T08:27:49+00:00",
+  "updated_by": 52
+}

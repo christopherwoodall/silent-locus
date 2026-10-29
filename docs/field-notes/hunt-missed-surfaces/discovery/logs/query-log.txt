@@ -1,0 +1,45 @@
+# Discovery scout query log — 2026-10-03, read-only, keyless, polite pacing (1.5-3s)
+# Format: angle | method | query | result
+
+## 1. archive.today (https://archive.ph/<query>)
+at1 | GET /search/?q=civilrightsdata.ed.gov -> 302 to /civilrightsdata.ed.gov | 5 snapshots, newest 29 Aug 2025, all pre-incident
+at2 | GET /search/?q=sec.gov/files/county.json -> 302 to /http://sec.gov/files/county.json | "No results"
+at3 | GET /search/?q=bac-lac.gc.ca -> 302 to /bac-lac.gc.ca | "No results"
+at4 | GET /http://civilrightsdata.ed.gov/* | HTTP 429 (rate limit)
+at5 | GET /http://www.sec.gov/files/county.json* | HTTP 429
+at6 | GET /bea.gov | HTTP 429
+at7 | GET /recherche-collection-search.bac-lac.canada.ca | HTTP 429
+at8 | GET /bea.gov (retry after 100s) | HTTP 429 + CAPTCHA "One more step" -> HARD STOP, no bypass attempted
+
+## 2. Wayback CDX wrapped (web.archive.org/cdx/search/cdx)
+wb1 | url=r.jina.ai/http*://civilrightsdata.ed.gov* | HTTP 200, 0 rows
+wb2 | url=r.jina.ai/http*://www.sec.gov/files/county.json* | HTTP 200, 0 rows
+wb3 | url=api.allorigins.win/*civilrightsdata* | HTTP 200, 0 rows
+wb4 | url=r.jina.ai/http*://civilrightsdata.ed.gov* (retry) | HTTP 200, 0 rows
+wb5 | url=r.jina.ai/https://www.sec.gov* | HTTP 200, 4 rows: 1x EDGAR filing 2025-08-04 (benign); 2x jina-wrapped county.json 2026-09-11 + 2026-09-24 (post-incident)
+
+## 3. Arquivo.pt CDX wrapped (arquivo.pt/wayback/cdx)
+ap0 | control url=example.com | HTTP 200, records returned (API works, JSONL)
+ap0 | control url=r.jina.ai | HTTP 200, records returned (API works)
+ap0 | control url=https://www.sec.gov/files/county.json | HTTP 200, empty (no SEC coverage, as known)
+ap1 | url=r.jina.ai/https://www.sec.gov/files/county.json* | HTTP 200, empty
+ap2 | url=r.jina.ai/http*://civilrightsdata.ed.gov* | HTTP 200, empty
+ap3 | url=api.allorigins.win/*sec.gov* | HTTP 200, empty
+
+## 4. Ghost Archive (ghostarchive.org/search?term=)
+ga1 | term=r.jina.ai | 200, "Page 1 out of 9" (wrapped URLs archived in general)
+ga2 | term=r.jina.ai/https://www.sec.gov | 200, "Page 0 out of 0 — No archives"
+ga3 | term=r.jina.ai/http://civilrightsdata | 200, "Page 0 out of 0 — No archives"
+ga4 | term=civilrightsdata.ed.gov/api/v1.0 | 302 -> /vidsearch (dead; deep paths unsupported)
+ga5 | term=recherche-collection-search.bac-lac.canada.ca/ajax | 302 -> /vidsearch (dead)
+ga6 | term=allorigins | 200, "Page 1 out of 8"
+ga7 | term=jina.ai/http | 200, "Page 1 out of 8"
+ga8 | term=zz=oai | 302 -> /vidsearch (dead; = breaks search)
+ga9 | term=county.json | 302 -> /vidsearch (dead)
+ga10 | pages 1-7 of ga6+ga7 (14 pages) scanned for sec.gov|civilrightsdata|bea.gov|bac-lac|canada.ca|county.json|zz=oai | ZERO hits
+
+## 5. Memento (timetravel.mementoweb.org/api/json)
+mm1 | GET /api/json/20260618/https://www.sec.gov/files/county.json (http) | HTTP 000, empty file
+mm2 | same (http, verbose retry) | HTTP 000
+mm3 | same over https | HTTP 000 (1.99s)
+mm4 | nslookup | resolves to 198.18.124.93 (DNS ok, TCP refused)

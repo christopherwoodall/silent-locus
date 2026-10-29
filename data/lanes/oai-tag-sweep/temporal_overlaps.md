@@ -1,0 +1,217 @@
+# Temporal overlaps vs known windows (2026-10-01 sweep)
+
+Annotated hit-days inside known windows:
+
+- 2025-11-17: {'frozen:urlquery-incidents': 1}  windows=['nov2025_origin']
+- 2025-11-24: {'frozen:urlquery-incidents': 1}  windows=['nov2025_origin']
+- 2026-05-01: {'frozen:urlquery-incidents': 231, 'transluce-dataset': 1}  windows=['may2026_visible_middle']
+- 2026-05-02: {'frozen:urlquery-incidents': 138}  windows=['may2026_visible_middle']
+- 2026-05-03: {'frozen:urlquery-incidents': 18}  windows=['may2026_visible_middle']
+- 2026-05-04: {'frozen:urlquery-incidents': 206}  windows=['may2026_visible_middle']
+- 2026-05-05: {'frozen:urlquery-incidents': 24}  windows=['may2026_visible_middle']
+- 2026-05-06: {'frozen:urlquery-incidents': 13}  windows=['may2026_visible_middle', 'maryland_may6']
+- 2026-05-07: {'frozen:urlquery-incidents': 33}  windows=['may2026_visible_middle', 'kansas_may7']
+- 2026-05-08: {'frozen:urlquery-incidents': 17}  windows=['may2026_visible_middle']
+- 2026-05-09: {'frozen:urlquery-incidents': 39}  windows=['may2026_visible_middle']
+- 2026-05-10: {'frozen:urlquery-incidents': 244}  windows=['may2026_visible_middle']
+- 2026-05-11: {'frozen:rubygems-goimport': 239, 'frozen:urlquery-incidents': 1245, 'frozen:collusion-wiki': 12}  windows=['may2026_visible_middle']
+- 2026-05-12: {'frozen:rubygems-goimport': 2268, 'frozen:urlquery-incidents': 202, 'frozen:collusion-wiki': 5}  windows=['may2026_visible_middle']
+- 2026-05-13: {'frozen:urlquery-incidents': 320, 'frozen:collusion-wiki': 11}  windows=['may2026_visible_middle']
+- 2026-05-14: {'frozen:urlquery-incidents': 185, 'frozen:collusion-wiki': 5}  windows=['may2026_visible_middle']
+- 2026-05-15: {'frozen:urlquery-incidents': 26}  windows=['may2026_visible_middle']
+- 2026-05-16: {'frozen:urlquery-incidents': 239, 'transluce-dataset': 1, 'frozen:collusion-wiki': 3}  windows=['may2026_visible_middle']
+- 2026-05-17: {'frozen:urlquery-incidents': 238, 'frozen:collusion-wiki': 14}  windows=['may2026_visible_middle']
+- 2026-05-18: {'frozen:urlquery-incidents': 196, 'frozen:collusion-wiki': 18}  windows=['may2026_visible_middle']
+- 2026-05-19: {'frozen:urlquery-incidents': 203, 'frozen:collusion-wiki': 4}  windows=['may2026_visible_middle']
+- 2026-05-20: {'frozen:urlquery-incidents': 36}  windows=['may2026_visible_middle']
+- 2026-05-21: {'frozen:urlquery-incidents': 181, 'transluce-dataset': 1}  windows=['may2026_visible_middle']
+- 2026-05-22: {'frozen:urlquery-incidents': 21}  windows=['may2026_visible_middle']
+- 2026-05-23: {'frozen:urlquery-incidents': 370}  windows=['may2026_visible_middle']
+- 2026-05-24: {'frozen:urlquery-incidents': 37, 'frozen:collusion-wiki': 142}  windows=['may2026_visible_middle']
+- 2026-05-25: {'frozen:urlquery-incidents': 179, 'frozen:collusion-wiki': 2}  windows=['may2026_visible_middle']
+- 2026-05-26: {'frozen:urlquery-incidents': 215, 'frozen:collusion-wiki': 1560, 'transluce-dataset': 2}  windows=['may2026_visible_middle']
+- 2026-05-27: {'frozen:collusion-wiki': 230, 'frozen:urlquery-incidents': 239}  windows=['may2026_visible_middle']
+- 2026-05-28: {'frozen:collusion-wiki': 813, 'frozen:urlquery-incidents': 166}  windows=['may2026_visible_middle', 'lac_may28']
+- 2026-05-29: {'frozen:collusion-wiki': 282, 'frozen:urlquery-incidents': 352}  windows=['may2026_visible_middle']
+- 2026-05-30: {'frozen:collusion-wiki': 170, 'frozen:urlquery-incidents': 197, 'transluce-dataset': 1}  windows=['may2026_visible_middle']
+- 2026-05-31: {'frozen:collusion-wiki': 52, 'frozen:urlquery-incidents': 70}  windows=['may2026_visible_middle']
+- 2026-06-01: {'frozen:collusion-wiki': 514, 'frozen:urlquery-incidents': 47}  windows=['may2026_visible_middle']
+- 2026-06-02: {'frozen:collusion-wiki': 11, 'frozen:urlquery-incidents': 43}  windows=['may2026_visible_middle']
+- 2026-06-03: {'frozen:urlquery-incidents': 75}  windows=['may2026_visible_middle']
+- 2026-06-04: {'frozen:collusion-wiki': 14, 'frozen:urlquery-incidents': 17}  windows=['may2026_visible_middle']
+- 2026-06-05: {'frozen:collusion-wiki': 7, 'frozen:urlquery-incidents': 38}  windows=['may2026_visible_middle']
+- 2026-06-06: {'frozen:collusion-wiki': 36, 'frozen:urlquery-incidents': 154}  windows=['may2026_visible_middle']
+- 2026-06-07: {'frozen:collusion-wiki': 47, 'frozen:urlquery-incidents': 67}  windows=['may2026_visible_middle']
+- 2026-06-08: {'frozen:collusion-wiki': 52, 'frozen:urlquery-incidents': 11}  windows=['may2026_visible_middle']
+- 2026-06-09: {'frozen:collusion-wiki': 18, 'frozen:urlquery-incidents': 103}  windows=['may2026_visible_middle', 'lac_jun9']
+- 2026-06-10: {'frozen:urlquery-incidents': 166, 'frozen:collusion-wiki': 21}  windows=['may2026_visible_middle']
+- 2026-06-11: {'frozen:collusion-wiki': 497, 'frozen:urlquery-incidents': 14}  windows=['may2026_visible_middle']
+- 2026-06-12: {'frozen:urlquery-incidents': 37, 'frozen:collusion-wiki': 9}  windows=['may2026_visible_middle']
+- 2026-06-13: {'frozen:urlquery-incidents': 131}  windows=['may2026_visible_middle']
+- 2026-06-14: {'frozen:urlquery-incidents': 153, 'frozen:collusion-wiki': 2}  windows=['may2026_visible_middle']
+- 2026-06-15: {'frozen:urlquery-incidents': 583, 'frozen:collusion-wiki': 1}  windows=['may2026_visible_middle']
+- 2026-06-16: {'frozen:collusion-wiki': 8611, 'frozen:urlquery-incidents': 33}  windows=['may2026_visible_middle', 'bea_jun16_18']
+- 2026-06-17: {'frozen:collusion-wiki': 4591, 'frozen:urlquery-incidents': 20}  windows=['may2026_visible_middle', 'bea_jun16_18', 'doe_jun17']
+- 2026-06-18: {'frozen:collusion-wiki': 19515, 'frozen:rubygems-goimport': 12, 'frozen:urlquery-incidents': 358}  windows=['may2026_visible_middle', 'bea_jun16_18']
+- 2026-06-19: {'frozen:collusion-wiki': 2034, 'frozen:urlquery-incidents': 155, 'transluce-dataset': 2}  windows=['may2026_visible_middle']
+- 2026-06-20: {'frozen:collusion-wiki': 2316, 'frozen:urlquery-incidents': 255, 'transluce-dataset': 1}  windows=['may2026_visible_middle']
+- 2026-06-21: {'frozen:collusion-wiki': 2174, 'frozen:urlquery-incidents': 351}  windows=['may2026_visible_middle']
+- 2026-06-22: {'frozen:collusion-wiki': 3920}  windows=['may2026_visible_middle']
+- 2026-06-23: {'frozen:urlquery-incidents': 7, 'frozen:collusion-wiki': 605}  windows=['may2026_visible_middle']
+- 2026-06-24: {'frozen:urlquery-incidents': 6, 'frozen:collusion-wiki': 270}  windows=['may2026_visible_middle']
+- 2026-06-25: {'frozen:urlquery-incidents': 14, 'frozen:collusion-wiki': 180}  windows=['may2026_visible_middle']
+- 2026-06-26: {'frozen:urlquery-incidents': 22, 'frozen:collusion-wiki': 382}  windows=['may2026_visible_middle']
+- 2026-06-27: {'frozen:urlquery-incidents': 50}  windows=['may2026_visible_middle']
+- 2026-06-28: {'frozen:urlquery-incidents': 39, 'frozen:collusion-wiki': 146}  windows=['may2026_visible_middle']
+- 2026-06-29: {'frozen:urlquery-incidents': 41, 'frozen:collusion-wiki': 90}  windows=['may2026_visible_middle']
+- 2026-06-30: {'frozen:urlquery-incidents': 32, 'frozen:collusion-wiki': 441}  windows=['may2026_visible_middle']
+- 2026-07-01: {'frozen:collusion-wiki': 275, 'frozen:urlquery-incidents': 34}  windows=['may2026_visible_middle']
+- 2026-07-02: {'frozen:collusion-wiki': 144, 'frozen:urlquery-incidents': 20}  windows=['may2026_visible_middle']
+- 2026-07-03: {'frozen:urlquery-incidents': 31, 'frozen:collusion-wiki': 71}  windows=['may2026_visible_middle']
+- 2026-07-04: {'frozen:urlquery-incidents': 27, 'frozen:collusion-wiki': 59}  windows=['may2026_visible_middle']
+- 2026-07-05: {'frozen:urlquery-incidents': 32, 'frozen:collusion-wiki': 239}  windows=['may2026_visible_middle']
+- 2026-07-06: {'frozen:urlquery-incidents': 33, 'frozen:collusion-wiki': 79}  windows=['may2026_visible_middle']
+- 2026-07-07: {'frozen:collusion-wiki': 524, 'frozen:urlquery-incidents': 32}  windows=['may2026_visible_middle']
+- 2026-07-08: {'frozen:urlquery-incidents': 29, 'frozen:collusion-wiki': 230}  windows=['may2026_visible_middle']
+- 2026-07-09: {'frozen:urlquery-incidents': 18, 'frozen:collusion-wiki': 154}  windows=['may2026_visible_middle']
+- 2026-07-10: {'frozen:urlquery-incidents': 24}  windows=['may2026_visible_middle']
+- 2026-07-11: {'frozen:urlquery-incidents': 25, 'frozen:collusion-wiki': 86}  windows=['may2026_visible_middle']
+- 2026-07-12: {'frozen:urlquery-incidents': 38, 'frozen:collusion-wiki': 232}  windows=['may2026_visible_middle']
+- 2026-07-13: {'frozen:urlquery-incidents': 29, 'frozen:collusion-wiki': 512}  windows=['may2026_visible_middle']
+- 2026-07-14: {'frozen:urlquery-incidents': 47, 'frozen:collusion-wiki': 149}  windows=['may2026_visible_middle']
+- 2026-07-15: {'frozen:urlquery-incidents': 38}  windows=['may2026_visible_middle']
+- 2026-07-16: {'frozen:urlquery-incidents': 45}  windows=['may2026_visible_middle']
+- 2026-07-17: {'frozen:urlquery-incidents': 37}  windows=['may2026_visible_middle']
+- 2026-07-18: {'frozen:urlquery-incidents': 32}  windows=['may2026_visible_middle']
+- 2026-07-19: {'frozen:urlquery-incidents': 40}  windows=['may2026_visible_middle']
+- 2026-07-20: {'frozen:urlquery-incidents': 36}  windows=['may2026_visible_middle']
+- 2026-07-21: {'frozen:urlquery-incidents': 47}  windows=['may2026_visible_middle']
+- 2026-07-22: {'frozen:urlquery-incidents': 31}  windows=['may2026_visible_middle']
+- 2026-07-23: {'frozen:urlquery-incidents': 10}  windows=['may2026_visible_middle']
+- 2026-07-24: {'frozen:urlquery-incidents': 32}  windows=['may2026_visible_middle']
+- 2026-07-25: {'frozen:urlquery-incidents': 7}  windows=['may2026_visible_middle']
+- 2026-07-26: {'frozen:urlquery-incidents': 22}  windows=['may2026_visible_middle']
+- 2026-07-27: {'frozen:urlquery-incidents': 24}  windows=['may2026_visible_middle']
+- 2026-07-28: {'frozen:urlquery-incidents': 40}  windows=['may2026_visible_middle']
+- 2026-07-29: {'frozen:urlquery-incidents': 30}  windows=['may2026_visible_middle']
+- 2026-07-30: {'frozen:urlquery-incidents': 21}  windows=['may2026_visible_middle']
+- 2026-07-31: {'frozen:urlquery-incidents': 2}  windows=['may2026_visible_middle']
+- 2026-08-01: {'frozen:urlquery-incidents': 64}  windows=['may2026_visible_middle']
+- 2026-08-02: {'frozen:urlquery-incidents': 2}  windows=['may2026_visible_middle']
+- 2026-08-03: {'frozen:urlquery-incidents': 102}  windows=['may2026_visible_middle']
+- 2026-08-04: {'frozen:urlquery-incidents': 26}  windows=['may2026_visible_middle']
+- 2026-08-05: {'frozen:urlquery-incidents': 28}  windows=['may2026_visible_middle']
+- 2026-08-06: {'frozen:urlquery-incidents': 18}  windows=['may2026_visible_middle']
+- 2026-08-07: {'frozen:urlquery-incidents': 12}  windows=['may2026_visible_middle']
+- 2026-08-08: {'frozen:urlquery-incidents': 11}  windows=['may2026_visible_middle']
+- 2026-08-09: {'frozen:urlquery-incidents': 20}  windows=['may2026_visible_middle']
+- 2026-08-10: {'frozen:urlquery-incidents': 13}  windows=['may2026_visible_middle']
+- 2026-08-11: {'frozen:urlquery-incidents': 19}  windows=['may2026_visible_middle']
+- 2026-08-12: {'frozen:urlquery-incidents': 37}  windows=['may2026_visible_middle']
+- 2026-08-13: {'frozen:urlquery-incidents': 8}  windows=['may2026_visible_middle']
+- 2026-08-14: {'frozen:urlquery-incidents': 17}  windows=['may2026_visible_middle']
+- 2026-08-15: {'frozen:urlquery-incidents': 25}  windows=['may2026_visible_middle']
+- 2026-08-16: {'frozen:urlquery-incidents': 19}  windows=['may2026_visible_middle']
+- 2026-08-17: {'frozen:urlquery-incidents': 28}  windows=['may2026_visible_middle']
+- 2026-08-18: {'frozen:urlquery-incidents': 35}  windows=['may2026_visible_middle']
+- 2026-08-19: {'frozen:urlquery-incidents': 52}  windows=['may2026_visible_middle']
+- 2026-08-20: {'frozen:urlquery-incidents': 45}  windows=['may2026_visible_middle']
+- 2026-08-21: {'frozen:urlquery-incidents': 7}  windows=['may2026_visible_middle']
+- 2026-08-22: {'frozen:urlquery-incidents': 17}  windows=['may2026_visible_middle']
+- 2026-08-23: {'frozen:urlquery-incidents': 26}  windows=['may2026_visible_middle']
+- 2026-08-24: {'frozen:urlquery-incidents': 37}  windows=['may2026_visible_middle']
+- 2026-08-25: {'frozen:urlquery-incidents': 33}  windows=['may2026_visible_middle']
+- 2026-08-26: {'frozen:urlquery-incidents': 19}  windows=['may2026_visible_middle']
+- 2026-08-27: {'frozen:urlquery-incidents': 46}  windows=['may2026_visible_middle']
+- 2026-08-28: {'frozen:urlquery-incidents': 25}  windows=['may2026_visible_middle']
+- 2026-08-29: {'frozen:urlquery-incidents': 25}  windows=['may2026_visible_middle']
+- 2026-08-30: {'frozen:urlquery-incidents': 28}  windows=['may2026_visible_middle']
+- 2026-08-31: {'frozen:urlquery-incidents': 21}  windows=['may2026_visible_middle']
+- 2026-09-01: {'frozen:urlquery-incidents': 24}  windows=['may2026_visible_middle']
+- 2026-09-02: {'frozen:urlquery-incidents': 25}  windows=['may2026_visible_middle']
+- 2026-09-03: {'frozen:urlquery-incidents': 28}  windows=['may2026_visible_middle']
+- 2026-09-04: {'frozen:urlquery-incidents': 15}  windows=['may2026_visible_middle']
+- 2026-09-05: {'frozen:urlquery-incidents': 26, 'frozen:collusion-wiki': 4}  windows=['may2026_visible_middle']
+- 2026-09-06: {'frozen:urlquery-incidents': 7}  windows=['may2026_visible_middle']
+- 2026-09-07: {'frozen:urlquery-incidents': 16}  windows=['may2026_visible_middle']
+- 2026-09-08: {'frozen:urlquery-incidents': 21}  windows=['may2026_visible_middle']
+- 2026-09-09: {'frozen:urlquery-incidents': 12, 'frozen:rubygems-goimport': 1}  windows=['may2026_visible_middle']
+- 2026-09-10: {'frozen:urlquery-incidents': 8}  windows=['may2026_visible_middle']
+- 2026-09-11: {'frozen:urlquery-incidents': 14}  windows=['may2026_visible_middle']
+- 2026-09-12: {'frozen:urlquery-incidents': 30}  windows=['may2026_visible_middle']
+- 2026-09-13: {'frozen:urlquery-incidents': 25}  windows=['may2026_visible_middle']
+- 2026-09-14: {'frozen:urlquery-incidents': 30}  windows=['may2026_visible_middle']
+- 2026-09-15: {'frozen:urlquery-incidents': 18}  windows=['may2026_visible_middle']
+- 2026-09-16: {'frozen:urlquery-incidents': 21}  windows=['may2026_visible_middle']
+- 2026-09-17: {'frozen:urlquery-incidents': 38}  windows=['may2026_visible_middle']
+- 2026-09-18: {'frozen:urlquery-incidents': 33}  windows=['may2026_visible_middle']
+- 2026-09-19: {'frozen:urlquery-incidents': 31}  windows=['may2026_visible_middle']
+- 2026-09-20: {'frozen:urlquery-incidents': 45}  windows=['may2026_visible_middle']
+- 2026-09-21: {'frozen:urlquery-incidents': 62}  windows=['may2026_visible_middle']
+- 2026-09-22: {'frozen:urlquery-incidents': 51}  windows=['may2026_visible_middle']
+- 2026-09-23: {'frozen:urlquery-incidents': 24}  windows=['may2026_visible_middle']
+- 2026-09-24: {'frozen:urlquery-incidents': 142}  windows=['may2026_visible_middle']
+- 2026-09-25: {'frozen:urlquery-incidents': 29}  windows=['may2026_visible_middle']
+
+Days with annotated hits in >=2 sources (temporal join key):
+
+- 2026-03-11: {'frozen:urlquery-incidents': 1, 'frozen:collusion-wiki': 12}
+- 2026-05-01: {'frozen:urlquery-incidents': 231, 'transluce-dataset': 1}
+- 2026-05-11: {'frozen:rubygems-goimport': 239, 'frozen:urlquery-incidents': 1245, 'frozen:collusion-wiki': 12}
+- 2026-05-12: {'frozen:rubygems-goimport': 2268, 'frozen:urlquery-incidents': 202, 'frozen:collusion-wiki': 5}
+- 2026-05-13: {'frozen:urlquery-incidents': 320, 'frozen:collusion-wiki': 11}
+- 2026-05-14: {'frozen:urlquery-incidents': 185, 'frozen:collusion-wiki': 5}
+- 2026-05-16: {'frozen:urlquery-incidents': 239, 'transluce-dataset': 1, 'frozen:collusion-wiki': 3}
+- 2026-05-17: {'frozen:urlquery-incidents': 238, 'frozen:collusion-wiki': 14}
+- 2026-05-18: {'frozen:urlquery-incidents': 196, 'frozen:collusion-wiki': 18}
+- 2026-05-19: {'frozen:urlquery-incidents': 203, 'frozen:collusion-wiki': 4}
+- 2026-05-21: {'frozen:urlquery-incidents': 181, 'transluce-dataset': 1}
+- 2026-05-24: {'frozen:urlquery-incidents': 37, 'frozen:collusion-wiki': 142}
+- 2026-05-25: {'frozen:urlquery-incidents': 179, 'frozen:collusion-wiki': 2}
+- 2026-05-26: {'frozen:urlquery-incidents': 215, 'frozen:collusion-wiki': 1560, 'transluce-dataset': 2}
+- 2026-05-27: {'frozen:collusion-wiki': 230, 'frozen:urlquery-incidents': 239}
+- 2026-05-28: {'frozen:collusion-wiki': 813, 'frozen:urlquery-incidents': 166}
+- 2026-05-29: {'frozen:collusion-wiki': 282, 'frozen:urlquery-incidents': 352}
+- 2026-05-30: {'frozen:collusion-wiki': 170, 'frozen:urlquery-incidents': 197, 'transluce-dataset': 1}
+- 2026-05-31: {'frozen:collusion-wiki': 52, 'frozen:urlquery-incidents': 70}
+- 2026-06-01: {'frozen:collusion-wiki': 514, 'frozen:urlquery-incidents': 47}
+- 2026-06-02: {'frozen:collusion-wiki': 11, 'frozen:urlquery-incidents': 43}
+- 2026-06-04: {'frozen:collusion-wiki': 14, 'frozen:urlquery-incidents': 17}
+- 2026-06-05: {'frozen:collusion-wiki': 7, 'frozen:urlquery-incidents': 38}
+- 2026-06-06: {'frozen:collusion-wiki': 36, 'frozen:urlquery-incidents': 154}
+- 2026-06-07: {'frozen:collusion-wiki': 47, 'frozen:urlquery-incidents': 67}
+- 2026-06-08: {'frozen:collusion-wiki': 52, 'frozen:urlquery-incidents': 11}
+- 2026-06-09: {'frozen:collusion-wiki': 18, 'frozen:urlquery-incidents': 103}
+- 2026-06-10: {'frozen:urlquery-incidents': 166, 'frozen:collusion-wiki': 21}
+- 2026-06-11: {'frozen:collusion-wiki': 497, 'frozen:urlquery-incidents': 14}
+- 2026-06-12: {'frozen:urlquery-incidents': 37, 'frozen:collusion-wiki': 9}
+- 2026-06-14: {'frozen:urlquery-incidents': 153, 'frozen:collusion-wiki': 2}
+- 2026-06-15: {'frozen:urlquery-incidents': 583, 'frozen:collusion-wiki': 1}
+- 2026-06-16: {'frozen:collusion-wiki': 8611, 'frozen:urlquery-incidents': 33}
+- 2026-06-17: {'frozen:collusion-wiki': 4591, 'frozen:urlquery-incidents': 20}
+- 2026-06-18: {'frozen:collusion-wiki': 19515, 'frozen:rubygems-goimport': 12, 'frozen:urlquery-incidents': 358}
+- 2026-06-19: {'frozen:collusion-wiki': 2034, 'frozen:urlquery-incidents': 155, 'transluce-dataset': 2}
+- 2026-06-20: {'frozen:collusion-wiki': 2316, 'frozen:urlquery-incidents': 255, 'transluce-dataset': 1}
+- 2026-06-21: {'frozen:collusion-wiki': 2174, 'frozen:urlquery-incidents': 351}
+- 2026-06-23: {'frozen:urlquery-incidents': 7, 'frozen:collusion-wiki': 605}
+- 2026-06-24: {'frozen:urlquery-incidents': 6, 'frozen:collusion-wiki': 270}
+- 2026-06-25: {'frozen:urlquery-incidents': 14, 'frozen:collusion-wiki': 180}
+- 2026-06-26: {'frozen:urlquery-incidents': 22, 'frozen:collusion-wiki': 382}
+- 2026-06-28: {'frozen:urlquery-incidents': 39, 'frozen:collusion-wiki': 146}
+- 2026-06-29: {'frozen:urlquery-incidents': 41, 'frozen:collusion-wiki': 90}
+- 2026-06-30: {'frozen:urlquery-incidents': 32, 'frozen:collusion-wiki': 441}
+- 2026-07-01: {'frozen:collusion-wiki': 275, 'frozen:urlquery-incidents': 34}
+- 2026-07-02: {'frozen:collusion-wiki': 144, 'frozen:urlquery-incidents': 20}
+- 2026-07-03: {'frozen:urlquery-incidents': 31, 'frozen:collusion-wiki': 71}
+- 2026-07-04: {'frozen:urlquery-incidents': 27, 'frozen:collusion-wiki': 59}
+- 2026-07-05: {'frozen:urlquery-incidents': 32, 'frozen:collusion-wiki': 239}
+- 2026-07-06: {'frozen:urlquery-incidents': 33, 'frozen:collusion-wiki': 79}
+- 2026-07-07: {'frozen:collusion-wiki': 524, 'frozen:urlquery-incidents': 32}
+- 2026-07-08: {'frozen:urlquery-incidents': 29, 'frozen:collusion-wiki': 230}
+- 2026-07-09: {'frozen:urlquery-incidents': 18, 'frozen:collusion-wiki': 154}
+- 2026-07-11: {'frozen:urlquery-incidents': 25, 'frozen:collusion-wiki': 86}
+- 2026-07-12: {'frozen:urlquery-incidents': 38, 'frozen:collusion-wiki': 232}
+- 2026-07-13: {'frozen:urlquery-incidents': 29, 'frozen:collusion-wiki': 512}
+- 2026-07-14: {'frozen:urlquery-incidents': 47, 'frozen:collusion-wiki': 149}
+- 2026-09-05: {'frozen:urlquery-incidents': 26, 'frozen:collusion-wiki': 4}
+- 2026-09-09: {'frozen:urlquery-incidents': 12, 'frozen:rubygems-goimport': 1}

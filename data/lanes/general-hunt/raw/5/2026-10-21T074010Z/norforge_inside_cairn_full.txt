@@ -1,0 +1,338 @@
+Title: Inside Cairn: Open Windows into massive AI-Driven Cyber Operations
+
+URL Source: https://norforge.com/blog/inside_cairn
+
+Published Time: 2026-10-19
+
+Markdown Content:
+## 01 TL;DR
+
+An investigation by NorForge into publicly exposed AI-driven penetration-testing control panels has uncovered how they are extensively used in malicious cyber operations. One of these is Cairn.
+
+In this setting, Cairn is an AI-powered hacking system. Give it a target and an objective, and it can coordinate AI agents to investigate the target, search for security weaknesses, and attempt to break in.
+
+More than 20 exposed Cairn panels were identified as likely associated with malicious activity, providing an unusually detailed view of how threat actors select targets, direct autonomous agents, exploit vulnerabilities, and establish persistent access to compromised systems.
+
+In addition, a considerable number of apparently legitimate red team operations were also exposed this way, potentially placing clients at risk.
+
+## 02 The Opening
+
+In September 2026, Gambit Security reported on a criminal intrusion campaign targeting online marketplaces. They recovered an attacker’s staging server and found the use of AI harnesses, such as Hermes, Strix, and Cairn. Important information, that is. Such tools frequently have web based user interfaces that are left unsecured on the open web.
+
+Sure enough: Quick searches using the Shodan and Censys search engines reveal hosts running what appear to be AI harnesses of different kinds. Most need authorization to access. Most.
+
+But there are quite a few of these interfaces left open by their operators. And apparently, one of the most neglected platforms is Cairn.
+
+Our searches initially revealed a handful of open Cairn panels. Continued scans revealed new panels coming online in short order; and targeting information, language and instructions showed many of them to belong to the same threat actors.
+
+In this article we will detail some of these. However; it is the nature of these panels that they reveal a great deal of sensitive information about the targets; including who they are, what weaknesses have been uncovered, account secrets and API keys, and whether they have been compromised or not. This means that we must aggressively redact extracted data and won’t disclose the panel addresses until they can be taken down.
+
+[![Image 1: An operator task on an open Cairn panel, with target names and credentials redacted.](https://norforge.com/blog/inside_cairn/images/operator-task-secrets.webp)](https://norforge.com/blog/inside_cairn/images/operator-task-secrets.webp)
+
+Operator task containing secrets. Even root access to the attacker’s data drop is exposed.
+
+## 03 The Machine
+
+[![Image 2: A Cairn panel listing active and completed projects.](https://norforge.com/blog/inside_cairn/images/cairn-panel-projects.webp)](https://norforge.com/blog/inside_cairn/images/cairn-panel-projects.webp)
+
+A Cairn panel with a few active or completed projects. This belongs to an unrelated actor; conveniently not using recognizable target tags.
+
+Some describe Cairn as an autonomous penetration testing engine. This is not entirely accurate; it can be used that way, yes, but its use case is more generic: It is a state-based problem solving engine, moving step by step in the general direction of a defined solution.
+
+But in our case – yes, it is used for penetration testing.
+
+In Cairn, each separate task is considered a project. Every project has a start point called an origin, and a predefined end goal. The agent framework then progresses from origin towards goal in a state-based organic growth.
+
+Between start and end are cycles of intents and facts. A fact is something the agent has discovered, and an intent is what it has decided to do next. The agent posts every fact onto a project-internal blackboard. A human operator can also add their own hints to the same blackboard. Facts and hints are in this way data available to every agent worker on the path towards the defined solution. This can be visualized graphically, which also Cairn does.
+
+[![Image 3: A Cairn project graph running from origin to goal.](https://norforge.com/blog/inside_cairn/images/project-graph.webp)](https://norforge.com/blog/inside_cairn/images/project-graph.webp)
+
+The progress from origin in cyan to goal in red. Not all paths succeed. This attack was directed at a major US online retailer, and ended up in GOAL MET: Webshell injected into the site.
+
+## 04 The Actors
+
+Cairn panels are regular web fronts, and can be readily profiled using commercial internet scanning platforms. Over a period of a few days, we found numerous such panels. Some were empty, some were protected against unauthorized access, and some appeared to be legitimate demos or valid pentesting outfits. We will not be outing legitimate red teams here, but it is clear that placing real customer penetration tests on an unsecured panel is highly problematic.
+
+But even filtering out those, more than 20 such panels were identified as likely malicious. As far as we could see, all appeared to have financial motivation; there was no obvious state-sponsored intrusion activity. That is not to say that this does not happen, but one assumes that type of actor knows how to secure dashboards.
+
+Much of the observed activity seemed to coalesce around a handful of clusters, where the exposed panels contained information that tied them together.
+
+We denote each activity cluster by a serial number starting with the “AIA” prefix; meaning “AI Activity”. The acronym for AI Threat Activity was already taken.
+
+### Cluster AIA0001
+
+Language Chinese
+
+Panels 14
+
+Hosting AS56594
+
+Confidence High
+
+This activity cluster uses Chinese language, and is by far the most active of the actors that expose their panels. The operation is massive, with over 1100 attack projects spread over the 14 dashboards likely associated with this group.
+
+AIA0001 targets a wide swath of organizations, mostly in the US, Japan and Australia. The aim seems to be to gain persistent access to e-commerce/payment infrastructure for later monetization.
+
+This group currently seems to prefer hosting their panels via AS56594, Cgi Global Limited. We assess this cluster to be malicious with high confidence.
+
+[![Image 4: Bar chart of AIA0001 targets by sector.](https://norforge.com/blog/inside_cairn/images/aia0001-target-selection.webp)](https://norforge.com/blog/inside_cairn/images/aia0001-target-selection.webp)
+
+AIA0001 target selection.
+
+This actor appears to use extensive automation in its task feeding pipeline. Consider for example this task, which is quite typical:
+
+[![Image 5: A typical automated AIA0001 task, written in Chinese.](https://norforge.com/blog/inside_cairn/images/aia0001-automated-task.webp)](https://norforge.com/blog/inside_cairn/images/aia0001-automated-task.webp)
+
+A typical automated task.
+
+> Translation
+> 
+> 
+> These are confirmed real shopping/e-commerce websites in four countries (US/CA/JP/AU), with traffic of 200,000–1.5 million. Playwright has verified that orders can be placed.
+> 
+> 
+> Objective: Find unauthenticated RCE (command execution/code injection/deserialization/file-upload webshell/SQL injection leading to RCE/SSTI/SSRF leading to RCE).
+> 
+> 
+> Priorities: Login SQL injection, unauthenticated endpoints, file uploads, deserialization, authentication bypass, account takeover.
+> 
+> 
+> Payload: Uploader shell (HTML upload form + move_uploaded_file to save files), explicitly not a command-executing webshell.
+
+The feeding pipeline includes automated validation of target sites. Not only are they ranked by traffic, but they have also been tested using Playwright, Microsoft’s browser automation framework, before sent to Cairn for exploitation.
+
+There are also other hints at automation; and some are of the silly kind. For example; a lot of target sites across multiple panels have had an initial letter “w” removed. ‘Wholesale’ becomes ‘holesale’ and “winter” becomes “inter”. This suggests that there is a common, buggy domain normalizer that removes a “w” too much from the www. It makes spotting related panels very easy.
+
+Every now and then, these attackers will open a web server on a high port to do out of band testing. In these short lived time windows, the working directory of one of these AI workers will be available for browsing. This happened at least once with one of the AIA0001 hosts, and that gave us the opportunity to get a closer look at the tooling available for the agent.
+
+In this particular case, we found:
+
+Tools found on agent worker folder
+
+| Software / package / tool | Use case |
+| --- | --- |
+| Playwright | Browser automation and web testing; the profile directories are Chromium browser state rather than source packages. |
+| Chromium | Browser engine used by Playwright and related browser automation. |
+| PHPGGC (PHP Generic Gadget Chains) | Generates PHP unserialize() gadget-chain payloads for authorized vulnerability validation and exploit research. |
+| StyleSmuggler HTTP PoC | Research proof-of-concept for the StyleSmuggler / CVE-2026-75650 Magento report-poisoning-to-code-execution chain. |
+| Magento Open Source 2.4.9 validation lab | Docker-based, revision-pinned vulnerable/patched Magento lab for safely validating CVE-2026-75650 / VULN-39341. |
+| MarkShust PolyShellPatch | Deprecated Magento module intended to block executable-file uploads through cart custom-option uploads. |
+| Docker | Container build/runtime tooling used for isolated validation environments. |
+| PHP | Runtime and scripting language for PHP payload generation and testing PHP web applications. |
+| Composer | PHP dependency/package manager; the manifest identifies the Magento PolyShellPatch package. |
+| Python 3 | Main scripting language for reconnaissance, HTTP testing, parsers, proof-of-concept code, and automation. |
+| Node.js | JavaScript runtime/tooling used by web probes, browser automation support, and target-specific scripts. |
+| Vosk | Offline speech-recognition toolkit/model. |
+| OpenSSL | TLS/cryptographic command-line and configuration tooling. |
+| Xvfb | X virtual framebuffer for running GUI/browser applications without a physical display. |
+| tmux | Terminal multiplexer/runtime state, typically used to keep long-running sessions and listeners alive. |
+| OWASP Amass | External attack-surface discovery and subdomain enumeration. |
+| dnsrecon | DNS enumeration and reconnaissance. |
+| ffuf | Fast web fuzzer for directory, parameter, virtual-host, and content discovery. |
+| Nmap | Network/port/service scanning. |
+| rockyou wordlist | Large password wordlist commonly used for authorized password-audit and credential-testing workflows. |
+| Odoo framework artifacts | Extracted Odoo server/module source or probes used to understand Odoo web, ORM, QWeb, and action execution behavior. |
+| Various custom utilities | Project-specific proxying, payload validation, traffic capture, patching, and proof-of-concept utilities. |
+
+But more importantly, one of the agent task updates contained this text:
+
+> Agent task update
+> 
+> 
+> The local environment is a Kali container, belonging to the tsec CTF/intelligent penetration test competition framework (there is a flag submission interface description in `/home/kali/workspace/.claude/skills/tsec-actions/SKILL.md`, with the flag format being `flag{...}`), but the environment variable `TSEC_SERVER_HOST` is empty and `TSEC_AGENT_TOKEN` is not actually injected, so the competition submission interface cannot be accessed
+
+This would seem to indicate that the agent setup was repurposed from an earlier Tencent CTF challenge configuration. This is almost certainly criminals reusing existing tools, and there is no reason to believe that Tencent had anything to do with this operation.
+
+From what we’ve seen, all tasks were performed by a worker named `claudecode_deepseek-v4.1-flash`, which could mean a Claude Code harness using the Chinese DeepSeek 4.1 Flash model that was released in September.
+
+We dont have actual numbers on token usage, but with the underlying data it's possible to guesstimate. Deepseek 4.1 Flash is an inexpensive model, but cost varies between peak and non-peak hours, and whether the tokens are cached or not. We estimate the average cost of a task to end up around $5 if one includes unsuccessful, early ending projects. Longer running projects could get more expensive - there are projects with over 1000 intents and facts, and those could end up costing more than $100. The uncertainty here is however considerable, and numbers could be off by a clear margin. Even so, there's no doubt that this is relatively cheap.
+
+### Cluster AIA0002
+
+Language English
+
+Panels 10
+
+Hosting AS20473
+
+Confidence High
+
+This cluster uses English language, and is oriented towards financial theft. We found 10 panels likely associated with this group, though some of these are less confidently linked. Many of these have also gone dark since the start of this investigation.
+
+They frequently directly talk about stealing credit cards and cryptocurrencies, and uploading stolen data to separate hosts under their control. They – incredibly! – expose the SSH login to backend staging hosts in their taskings. (No, we did not log into their servers, although we were sorely tempted.) It is interesting to see that many projects seem to have no technical starting instructions, beyond "fetch credit cards" or "fetch crypto". The agents just go from there.
+
+This group prefer hosting their panels via AS20473, The Constant Company (in most cases this means VULTR VPS instances). We assess this cluster to be malicious with high confidence.
+
+The targets listed in these panels are mainly oriented towards merchant payment services, gray-market payment sites and pharmaceutical sites; even a clearly criminal carding site. There are indications that they successfully breached some of these.
+
+Out of the targets that do not fit into those categories, several are African commerce sites, which hints towards this actor having a base on that continent.
+
+[![Image 6: Bar chart of AIA0002 targets by sector.](https://norforge.com/blog/inside_cairn/images/aia0002-target-sectors.webp)](https://norforge.com/blog/inside_cairn/images/aia0002-target-sectors.webp)
+
+AIA0002 target sectors.
+
+The projects run by this actor state they use workers named pi_openrouter_deepseek, suggesting a configuration in which the Pi coding-agent framework uses DeepSeek language models through OpenRouter, a third-party AI model API gateway.
+
+### Cluster AIA0003
+
+Language English
+
+Panels 1
+
+Hosting AS200019
+
+Confidence Low
+
+This entity exposes only one panel, with 59 projects listed. The targets are a mix of smaller e-commerce sites and very large US-based commercial platforms. Language used is exclusively English. The panel is hosted on AS200019, AlexHost.
+
+The projects listed on this panel start out claiming to be authorized assessments of various sites, but then gradually become more explicit about exploiting the targets including obtaining shell access, admin panel access, or database access.
+
+This actor seems more in the exploratory stage. We assess this actor to be malicious with low confidence.
+
+[![Image 7: Dashboard of project creation over time for AIA0001, AIA0002 and AIA0003.](https://norforge.com/blog/inside_cairn/images/project-creation-activity.webp)](https://norforge.com/blog/inside_cairn/images/project-creation-activity.webp)
+
+Project creation activity across the three clusters.
+
+## 05 The Exploitation
+
+Whether a task has succeeded in reaching its goal, and whether that constitutes a real-life security problem, depends a lot on how aggressive a goal is. In some cases, tasks stop when establishing whether there is a vulnerability. However, the threat actors covered in this article typically go further.
+
+Previously, we posted one of the tasks used by AIA0001. That task explicitly demanded a webshell to be installed, in order for the goal to be reached. Just to test, we checked if one of the claimed intrusions had really happened by fetching the shell URL mentioned in a completed task against a large hardware parts vendor. The URL did indeed serve an uploader webshell. Attackers can at any time change that into something more malicious.
+
+[![Image 8: A bare file-upload form served from the vendor's site.](https://norforge.com/blog/inside_cairn/images/live-uploader-webshell.webp)](https://norforge.com/blog/inside_cairn/images/live-uploader-webshell.webp)
+
+Live uploader web shell served from a vendor site.
+
+This particular intrusion was apparently – according to the agent’s own explanation – enabled by unauthorized write access to a memcached session store, combined with unsafe PHP object deserialization and an exploitable gadget chain in legacy Zend Framework components. However, all these exploitation paths are different, and the payload can look different as well. We have gathered a number of case studies at the end of this paper.
+
+AIA0001 seems to exclusively go after access, and make sure they have the ability to do more at a later date. Other actors have other goals, but this threat actor appears to have been by far the most proficient and effective in reaching their target. The AIA0002 actor uses Cairn in a more generic way. Not only is it used to break into targets, but it is also used as a general purpose service engine; for example to move funds between crypto wallets.
+
+Task types
+
+| Activity | Typical task goals (literal quotes) |
+| --- | --- |
+| AIA0001 | 这是四国(US/CA/JP/AU)已确认的真实购物电商站(流量200k-1.5M)。 目标：找未认证 RCE (命令执行/代码注入/反序列化/文件上传webshell/SQLi→RCE/SSTI/SSRF→RCE)。 优先：登录SQLi、未认证端点、文件上传、反序列化、认证绕过、账户接管。 落地用 uploader shell (HTML上传表单+move_uploaded_file保存)，绝不落地命令执行型webshell。 Goal met when whoami/id 输出确认命令执行。 |
+| AIA0002 | upload web shell in hidden dirctory deep inside not on home dirctory and name it somthing normal like confirm.php etc and give me link |
+| AIA0003 | Obtain shell access, admin panel access, or database access on REDACTED. Try all attack vectors: SQLi, file upload, authentication bypass, RCE, deserialization, SSTI, SSRF, business logic flaws. Build dynamic attack chains. |
+
+## 06 The Success Rates
+
+The different activity clusters have different focus, go after different targets, and what constitutes success varies. They are not directly comparable. But it is a reasonable assumption that for the harnesses we have seen in these campaigns, average success rate is hovering around 10%, with many of the remaining tasks achieving partial goals, or are able to gather information that can be used in later attempts.
+
+Average success rate~10%
+
+Start to goal, AIA0001<23h
+
+Facts per project 140
+
+[![Image 9: Summary of observed AI-driven intrusion campaigns and their reported outcomes.](https://norforge.com/blog/inside_cairn/images/campaign-outcomes.webp)](https://norforge.com/blog/inside_cairn/images/campaign-outcomes.webp)
+
+Observed AI-driven intrusion campaigns and reported outcomes.
+
+If we concentrate on the tasks that did reach their goals, especially on the AIA0001 cluster which most resembles general purpose intrusion activity, we can now see that the average time from project start to goal met was a little under 23 hours, generating on average 140 facts per project. However; there’s a wide range here. One project ran for more than five days. It is also worth noting that this is a snapshot at this point in time. Models and harnesses evolve very quickly.
+
+## 07 The Exposure
+
+These panels not only expose that a site is being tested for weaknesses, and any conclusions of the tests. They detail everything that the agent has discovered in the process, and if that was not enough, they include human input that includes credentials harvested elsewhere.
+
+In other words, having your site tested on an open Cairn instance is often a serious security issue, regardless of outcome of the test.
+
+We ran the secrets scanner Trufflehog over the data from these Cairn instances.
+
+[![Image 10: Dashboard of credentials found in exposed Cairn project data, by risk, verification status and secret type.](https://norforge.com/blog/inside_cairn/images/exposed-credentials.webp)](https://norforge.com/blog/inside_cairn/images/exposed-credentials.webp)
+
+Credentials exposed in AI-driven operations.
+
+The result was concerning. Literally hundreds of secrets of different kinds, from relatively trivial to extremely serious; with 11% verified valid by Trufflehog.
+
+Think that's bad? It gets worse. These panels appear completely unprotected, exposing what looks like the full administrative functionality of the harness. That includes controls for starting and stopping projects, interfering with ongoing operations, inserting new data, redirecting agents to different targets, and restarting old projects. We haven't tested whether these controls actually work without authorization, for reasons that should be fairly obvious. But consider the implications. These are autonomous offensive agents with considerable capabilities, potentially available to anyone who stumbles across their control panels. Tokens could evaporate like dry ice on a hot plate. And who knows what these agents could be persuaded to do that would make their owners weep. Just to be clear, we walked away from that train of thought. But the underlying point remains: Whatever offensive expertise these operators possess, securing their own infrastructure does not appear to be among their strengths.
+
+## 08 The Conclusion
+
+It is clear that AI-driven frameworks are used to perform malicious actions. That was established well before this paper. However, this research has pointed out something else: The attackers are not well prepared for this technology either. In the rush to gain quick results, many have forgotten basic security precautions, leading to them compromising their own operational security and also, unfortunately, exposing their targets to a far larger attack surface than the intent was. This has also proven to be a problem for legitimate red teams; gathering secrets from your client just to publish them on the Internet is a nightmare scenario.
+
+But it is an interesting window into the methodology, and how autonomous and semi-autonomous agents solve real world intrusion tasks. This could and should inform our defenses going forward.
+
+We have been cooperating with Reuters in notifying victims, particularly those who appear to have suffered a compromise. We are also attempting to get the offending Cairn panels taken down. This might not be possible; it depends a lot on how well the hosters respond to takedown requests.
+
+## A Case studies
+
+### Case 1 Australian e-commerce site
+
+The Cairn backend stated that goal was met and indeed, there is a shell giving command execution on the web server.
+
+[![Image 11: A directory listing returned by a web shell on the site, with identifying details redacted.](https://norforge.com/blog/inside_cairn/images/case1-command-shell.webp)](https://norforge.com/blog/inside_cairn/images/case1-command-shell.webp)
+
+Command execution through the shell on the web server.
+
+[![Image 12: Attack chain from unauthenticated account modification to server command execution.](https://norforge.com/blog/inside_cairn/images/case1-attack-chain.webp)](https://norforge.com/blog/inside_cairn/images/case1-attack-chain.webp)
+
+The attack chain, from unauthenticated account modification to command execution.
+
+### Case 2 Restaurant POS compromise
+
+[![Image 13: Attack chain of the restaurant POS compromise.](https://norforge.com/blog/inside_cairn/images/case2-restaurant-pos.webp)](https://norforge.com/blog/inside_cairn/images/case2-restaurant-pos.webp)
+
+Restaurant POS compromise.
+
+### Case 3 Web application intrusion on US retailer
+
+[![Image 14: Attack chain of the web application intrusion on a US retailer.](https://norforge.com/blog/inside_cairn/images/case3-us-retailer.webp)](https://norforge.com/blog/inside_cairn/images/case3-us-retailer.webp)
+
+US retailer web application intrusion.
+
+### Case 4 Another US retailer, this time via insecure error handling
+
+[![Image 15: Attack chain through insecure error handling at a US retailer.](https://norforge.com/blog/inside_cairn/images/case4-error-handling.webp)](https://norforge.com/blog/inside_cairn/images/case4-error-handling.webp)
+
+Insecure error handling.
+
+### Case 5 Japanese retailer
+
+[![Image 16: Attack chain of the intrusion on a Japanese retailer.](https://norforge.com/blog/inside_cairn/images/case5-japanese-retailer.webp)](https://norforge.com/blog/inside_cairn/images/case5-japanese-retailer.webp)
+
+Japanese retailer.
+
+### Case 6 Very large US retailer
+
+[![Image 17: Attack chain of the compromise of a very large US retailer.](https://norforge.com/blog/inside_cairn/images/case6-large-us-retailer.webp)](https://norforge.com/blog/inside_cairn/images/case6-large-us-retailer.webp)
+
+This compromise chain was validated by us. The agent managed to find the one cookie setting that chose the vulnerable backend server.
+
+## B Indicators of compromise
+
+We are sorry that we can not provide unredacted data on where these panels are. Many are still live and contain sensitive data. However, if you are a bona fide security researcher, reach out and we will be happy to provide the unredacted list.
+
+Panels and staging servers
+
+| IOC | Notes |
+| --- | --- |
+| `199.247.25.25` | AIA0002 staging server |
+| `199.247.27.2` | AIA0002 staging server |
+| `46.8.xxx.xx9:8000` | AIA0001 panel |
+| `95.182.xxx.x42:8000` | AIA0001 panel |
+| `31.56.xxx.xx7:8000` | AIA0001 panel |
+| `31.57.xxx.xx9:8000` | AIA0001 panel |
+| `46.8.xxx.xx3:8000` | AIA0001 panel |
+| `94.183.xxx.xx3:8000` | AIA0001 panel |
+| `94.183.xxx.x34:8000` | AIA0001 panel |
+| `31.59.xxx.xx5:8000` | AIA0001 panel |
+| `95.182.xxx.x12:8000` | AIA0001 panel |
+| `31.59.xxx.xx7:8000` | AIA0001 panel |
+| `94.183.xxx.x54:8000` | AIA0001 panel |
+| `95.182.xxx.xx5:8000` | AIA0001 panel |
+| `94.183.xxx.xx8:8000` | AIA0001 panel |
+| `31.59.xxx.xx3:8000` | AIA0001 panel |
+| `108.61.xxx.xx6:8000` | AIA0002 panel |
+| `66.42.xxx.xx9:8000` | AIA0002 panel |
+| `95.179.xxx.xx3:8000` | AIA0002 panel |
+| `45.63.xxx.xx7:8000` | AIA0002 panel |
+| `136.244.xxx.xx6:8000` | AIA0002 panel and staging |
+| `45.76.xxx.xx0:8000` | AIA0002 panel |
+| `209.250.xxx.xx8:8000` | AIA0002 panel |
+| `95.85.xxx.xx9:8000` | AIA0002 panel and staging |
+| `136.244.xxx.x86:8000` | AIA0002 panel |
+| `64.176.xxx.xx3:8000` | AIA0002 panel |
+| `143.246.xxx.xx1:8000` | AIA0003 panel |
+
+[Get in touch](https://norforge.com/contact)

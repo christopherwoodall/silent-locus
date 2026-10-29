@@ -1,0 +1,53 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:factum:core:artifact:1",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "sha256": {
+      "$ref": "urn:factum:core:common:1#/$defs/sha256"
+    },
+    "size": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "reference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["uri"],
+      "properties": {
+        "uri": {
+          "type": "string",
+          "minLength": 1
+        },
+        "revision": {
+          "type": "string"
+        },
+        "platform": {
+          "type": "string"
+        },
+        "path": {
+          "type": "string"
+        },
+        "reported_sha256": {
+          "$ref": "urn:factum:core:common:1#/$defs/sha256"
+        }
+      }
+    }
+  },
+  "oneOf": [
+    {
+      "required": ["sha256", "size"],
+      "not": {"required": ["reference"]}
+    },
+    {
+      "required": ["reference"],
+      "not": {
+        "anyOf": [
+          {"required": ["sha256"]},
+          {"required": ["size"]}
+        ]
+      }
+    }
+  ]
+}

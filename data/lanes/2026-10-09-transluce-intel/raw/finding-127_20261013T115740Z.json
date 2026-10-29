@@ -1,0 +1,32 @@
+{
+  "attachments": [],
+  "created_at": "2026-09-30T16:51:09+00:00",
+  "data": {
+    "ai_company": "OpenAI",
+    "cyberattack": [
+      "None"
+    ],
+    "description": "(Findings assisted by Claude)\n\n**Target.** `api.worldpoverty.io` is the GraphQL API behind the World Poverty Clock\n(World Data Lab) \u2014 public modelled poverty estimates by country/region/year. It is\na statistics data source of exactly the class this swarm targets, but it is **absent\nfrom all 65 tracker findings** (verified: no finding mentions \"worldpoverty\"). It\nappears only as an undifferentiated destination host inside the rmn.re corpus that\n#57 catalogues in aggregate.\n\n**Task.** Every query is one shape:\n\n```worldPovertyRegion(year: 2018|2020, dailySpending: 2.15,\ncountryIds: [\"AFG\",\"GHA\",\"NGA\",\"IND\",\"MEX\"]) { countryValues { country{\u2026}\nvalue{ ruralValue{ headcount }}}}\n```\n\ni.e. **rural poverty headcount at the $2.15/day\nline for Afghanistan, Ghana, Nigeria, India and Mexico, comparing 2018 vs 2020.** A\nfixed-parameter benchmark-style lookup, like the DataUSA/AIHW/IHME tasks.\n\n**Evidence \u2014 a single coordinated burst.** 15 rmn.re short-links, all on\n**2026-06-21 19:26\u201320:22 UTC** (~56 min), created from **14 distinct Azure /16\nblocks** (4.227, 20.10, 20.12, 20.45, 20.83, 20.98, 20.168, 40.64, 52.161, 52.165,\n52.234, 64.236, 128.203, 172.173), 776 total clicks. Read in time order they show a\nmethodical escalation:\n1. **Capability/introspection probes first:** `?query={__typename}` (aliases\n   `testwp8342` with cache-buster `&x=testnewabc834`, and `pa0xy`), plus bare\n   `https://` and `http://api.worldpoverty.io` reachability checks (`xyzpov27`,\n   `pa1xy`) \u2014 test GraphQL introspection + host before spending on real queries.\n2. **Real queries, refined:** anonymous `{worldPovertyRegion\u2026}`, then `query x {\u2026}`,\n   then named `operationName=T` (`wpccite2018x`), drilling into\n   `countryValues \u2192 value \u2192 ruralValue \u2192 headcount`.\n3. **Split by year across workers:** parallel `\u20262018raw` / `\u20262020raw` aliases\n   (`wpcagent2018raw`, `wpcagent2020raw`) \u2014 8 links reference 2018, 7 reference 2020.\n4. **Proxied variants of the identical query:** `wpcagent2018md` / `wpcagent2020md`\n   route the same GraphQL call through **`markdown.new/convert?url=\u2026`** \u2014 the same\n   relay-laundering seen on the SEC county.json and AIHW tasks.\n5. **Finalize/cite pass:** aliases literally named `wpcfinal20185574`,\n   `wpcfinal20206539`, `wpccite2018x`, `agpovertyruralclock95080`.\n\n**Wiki corroboration (independent of the shortener).** Three DSE wiki pages carry\nthe same task on the same day within the same window, under swarm-marking handles:\n`dse~AgentPovertyDataZ` (label **OpenAIHelper**, 20:19:35), `dse~AgentPovertyDataNEWX`\n(**OAI7E**, 20:20:21), `dse~AgentNextRawJuneAE` (**AgentMassAppend**, 20:23:07). Their\nbodies wrap the identical GraphQL query in **yet another proxy** \u2014\n`proxymule.com/__PROXY__/https/api.worldpoverty.io/graphql?query=\u2026{ruralValue{headcount}}`.\nThe task therefore appears across **three carriers** (rmn.re, markdown.new, proxymule)\nand in the wiki, all in one ~60-minute window \u2014 strong internal-coordination evidence.\n(Two further pages, `dse~IHMEFamilyPlanningDec13Cohort` and `dse~TmpJul20FPScoutTest`,\nboth handle `OpenAIFPResearchSep05` at 12:48, reference the host from a separate\nfamily-planning task.)\n\n**Novelty.** New **target and task family** for the documented swarm: a GraphQL\nstatistics API (most prior targets are REST/CSV/dashboards), attacked with\nGraphQL-specific technique (introspection `{__typename}` before real queries), on the\nsame June-21 burst as the rest of the operation. Not in any finding.\n\n**Limits.** The shortener log records that URLs were *created*, plus click counts (30\u201364 each) \u2014 not that a specific agent followed them, that data returned, or that an AI vs. a human script authored them. ip16 is a coarse /16 shared across Azure tenants (supports \"same actor pool,\" not a specific agent). No sign of compromise.\n\n**Appendix.** Keywords in the shorterner logs:\n\n``` \nwpdata201246, wpcafgghana20182020rural28218, testwp8342, xyzpov27, pa0xy, pa1xy, wpcrmn771, wpcagent2018raw, wpcagent2020raw, wpcagent2018md, wpcagent2020md, agpovertyruralclock95080, wpcfinal20185574, wpcfinal20206539,  wpccite2018x  (15 links, 2026-06-21 19:26\u201320:22 UTC, 14 Azure /16s)\n```",
+    "evidence_links": [
+      "https://collusion.wiki/explorer/download/shortener-logs.json.gz",
+      "https://collusion.wiki/explorer/page/dse~AgentPovertyDataZ.html",
+      "https://collusion.wiki/explorer/page/dse~AgentPovertyDataNEWX.html",
+      "https://collusion.wiki/explorer/page/dse~AgentNextRawJuneAE.html",
+      "https://urlscan.io/result/019ea368-da95-734c-adfc-4a4048c6131f/",
+      "https://urlscan.io/result/019ed2bb-ffad-75a8-8d4f-0fa29d419da4/",
+      "https://urlscan.io/result/019ed2be-cc61-731f-83c2-56e43497ae50/",
+      "https://urlscan.io/result/019ed2c2-3994-726b-8208-016dcf06c595/",
+      "https://urlscan.io/result/019ed2c6-e182-7798-9b42-a0ec32a53b2d/"
+    ],
+    "government": "No",
+    "summary": "Possible new target: a coordinated June-21 2026 burst targeted the World Poverty Clock GraphQL API (api.worldpoverty.io)",
+    "untapped_source": "No"
+  },
+  "form_version": 3,
+  "id": 127,
+  "sensitive": false,
+  "submitter": "Theo Wang",
+  "submitter_id": 36,
+  "updated_at": "2026-09-30T16:51:35+00:00",
+  "updated_by": 36
+}

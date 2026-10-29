@@ -1,0 +1,806 @@
+{
+ "bundle": 2,
+ "actor": "agent:factum-ingest-amap-gaps",
+ "idempotency_key": "amap-gaps-2026-10-14-v1",
+ "records": [
+  {
+   "ref": "s-state",
+   "kind": "source",
+   "tags": {
+    "lane": "2026-09-28-chinese-amap-fleet"
+   },
+   "body": {
+    "source_type": "file",
+    "locator": "~/workspace/goals/urlquery-agent-activity-hunt/hidden_files/deaddrop-watch-state.json",
+    "title": "Dead-drop family watch state file"
+   }
+  },
+  {
+   "ref": "s-mem14",
+   "kind": "source",
+   "tags": {
+    "lane": "2026-09-28-chinese-amap-fleet"
+   },
+   "body": {
+    "source_type": "file",
+    "locator": "~/memory/2026-10-14.md",
+    "title": "Daily log 2026-10-14"
+   }
+  },
+  {
+   "ref": "s-mem11",
+   "kind": "source",
+   "tags": {
+    "lane": "2026-09-28-chinese-amap-fleet"
+   },
+   "body": {
+    "source_type": "file",
+    "locator": "~/memory/2026-10-11.md",
+    "title": "Daily log 2026-10-11"
+   }
+  },
+  {
+   "ref": "s-swarmcha",
+   "kind": "source",
+   "tags": {
+    "lane": "2026-09-28-chinese-amap-fleet"
+   },
+   "body": {
+    "source_type": "url",
+    "locator": "https://swarmcha.se/posts/chinese-agent-fleet-full-report",
+    "title": "Chinese Agent Fleet - Full Report"
+   }
+  },
+  {
+   "ref": "obs-oct14-session",
+   "kind": "observation",
+   "tags": {
+    "lane": "2026-09-28-chinese-amap-fleet",
+    "grade": "PRIMARY"
+   },
+   "body": {
+    "type": "infra.dead_drop",
+    "data_schema": "urn:factum:infra:dead-drop:1",
+    "data": {
+     "service": "webhook.site",
+     "endpoint_kind": "inbox",
+     "beacon_type": "boot",
+     "markers": [],
+     "payload_summary": "Inbox B beacon session: 4 POSTs 2026-10-14 08:31:33-08:31:51 UTC (18s), inbox B count 35->39. Sequence: {\"t\":\"start\"} boot beacon -> e-old (ditu.amap.com/detail/B00190BBTX, hit slider CAPTCHA) -> b-ssr-www (amap.com/ssr/place, 19.4k chars) -> c-www-place (amap.com/place, 7.7k chars). Source IPv6 2601:644:8100:23e0:ac6e:9b2a:7712:4b9f (Comcast/Xfinity range), Edge/155 UA - first appearance in inbox B (prior IPs: 195.64.118.152 dominant, 36.95.1.159, 173.239.236.28, 96.76.222.193). New POI B00190BBTX as beacon target in inbox B. No zz=/oai*/epoch-nonce tag markers; no interrogator free text. Matches known scraper state machine."
+    },
+    "source": "@s-state",
+    "observed_at": "2026-10-14T08:31:33Z",
+    "time_basis": "source_metadata",
+    "files": []
+   }
+  },
+  {
+   "ref": "ioc-poi-B00190BBTX",
+   "kind": "observation",
+   "tags": {
+    "lane": "2026-09-28-chinese-amap-fleet",
+    "grade": "PRIMARY",
+    "ioc_kind": "poi"
+   },
+   "body": {
+    "type": "infra.ioc",
+    "data_schema": "urn:factum:infra:ioc:1",
+    "data": {
+     "term": "B00190BBTX",
+     "category": "other",
+     "status": "active",
+     "provenance": "Amap POI id (Mochou Lake Park, Nanjing) seen as beacon target in inbox B 2026-10-14 08:31:33Z session - first appearance as an inbox-B beacon target; term previously known from urlquery urlscan sweeps (mochouwww) and Transluce finding #171, but not as an inbox-B beacon target."
+    },
+    "source": "@s-state",
+    "observed_at": "2026-10-14T08:31:33Z",
+    "time_basis": "source_metadata",
+    "files": []
+   }
+  },
+  {
+   "ref": "ioc-ip-comcast-v6",
+   "kind": "observation",
+   "tags": {
+    "lane": "2026-09-28-chinese-amap-fleet",
+    "grade": "PRIMARY",
+    "ioc_kind": "ip"
+   },
+   "body": {
+    "type": "infra.ioc",
+    "data_schema": "urn:factum:infra:ioc:1",
+    "data": {
+     "term": "2601:644:8100:23e0:ac6e:9b2a:7712:4b9f",
+     "category": "ip",
+     "status": "active",
+     "provenance": "New source IPv6 (Comcast/Xfinity range) on inbox B beacon session 2026-10-14 08:31:33Z; Edge/155 UA; not seen in inbox B before. Source: deaddrop-watch-state.json + memory/2026-10-14.md."
+    },
+    "source": "@s-state",
+    "observed_at": "2026-10-14T08:31:33Z",
+    "time_basis": "source_metadata",
+    "files": []
+   }
+  },
+  {
+   "ref": "claim-oct14-state-machine",
+   "kind": "claim",
+   "tags": {
+    "lane": "2026-09-28-chinese-amap-fleet"
+   },
+   "body": {
+    "subject": "@obs-oct14-session",
+    "property": "session_shape",
+    "value": {
+     "assertion": "The Oct 14 inbox-B session matches the known scraper state machine: boot beacon ({\"t\":\"start\"}) followed by capture beacons - an e-old beacon against ditu.amap.com/detail/B00190BBTX that hit a slider CAPTCHA, then b-ssr-www (amap.com/ssr/place, 19.4k chars) and c-www-place (amap.com/place, 7.7k chars).",
+     "negative_note": "No zz=/oai*/epoch-nonce tag markers and no interrogator-style free text present in the new bodies."
+    },
+    "basis": "OBSERVED",
+    "cites": [
+     "@obs-oct14-session"
+    ]
+   }
+  },
+  {
+   "ref": "obs-404-family",
+   "kind": "observation",
+   "tags": {
+    "lane": "2026-09-28-chinese-amap-fleet",
+    "grade": "PRIMARY",
+    "inbox_A": "404, frozen 42 (2026-10-08 02:32:22)",
+    "inbox_B": "404, frozen 39 (2026-10-14 08:31:51)",
+    "inbox_orig": "404, frozen 47 (2026-10-07 03:13:54)"
+   },
+   "body": {
+    "type": "reachability.check",
+    "data_schema": "urn:factum:web:reachability-check:1",
+    "data": {
+     "target": "webhook.site dead-drop inbox family: inbox A, inbox B, original COMBO-INIT inbox",
+     "method": "GET requests API via deaddrop-family-watch cron run 2026-10-14 ~10:26Z; initial pull plus 8s-delayed retry",
+     "outcome": "response",
+     "http_status": 404,
+     "error": "All three inboxes returned HTTP 404 on initial pull AND 8s-delayed retry (A/B were 200 at the 09:27Z run ~1h earlier). Frozen last-seen totals: inbox A 42 requests (last 2026-10-08 02:32:22), inbox B 39 (last 2026-10-14 08:31:51 - the 4-beacon session from the prior run), original COMBO-INIT inbox 47 (last 2026-10-07 03:13:54; deleted earlier). ntfy topic still unreachable (curl 000 via egress proxy - standing egress gap)."
+    },
+    "source": "@s-state",
+    "observed_at": "2026-10-14T10:26:00Z",
+    "time_basis": "source_metadata",
+    "files": []
+   }
+  },
+  {
+   "ref": "claim-404-cause",
+   "kind": "claim",
+   "tags": {
+    "lane": "2026-09-28-chinese-amap-fleet"
+   },
+   "body": {
+    "subject": "@obs-404-family",
+    "property": "cause_assessment",
+    "value": {
+     "lead_hypothesis": "webhook.site 7-day free-inbox expiry: all three inboxes died at ~7-day intervals within ~1h of each other",
+     "alternative": "operator deletion",
+     "caveat": "an HTTP 404 alone does not distinguish expiry from operator deletion"
+    },
+    "basis": "INFERENCE",
+    "cites": [
+     "@obs-404-family"
+    ],
+    "note": "Cause graded INFERENCE; the 404 observations are PRIMARY."
+   }
+  },
+  {
+   "ref": "obs-swarmcha-report",
+   "kind": "observation",
+   "tags": {
+    "lane": "2026-09-28-chinese-amap-fleet",
+    "grade": "SECONDARY"
+   },
+   "body": {
+    "type": "intel.report",
+    "data_schema": "urn:factum:intel:report:1",
+    "data": {
+     "lab": "swarmcha.se (Rowan Howard-Jones) + swarm workup (Muse)",
+     "title": "Chinese Agent Fleet - Findings Report",
+     "url": "https://swarmcha.se/posts/chinese-agent-fleet-full-report",
+     "report_date": "2026-10-14",
+     "cached_path": "reports/chinese-agent-fleet-findings-2026-10-14.md",
+     "provenance": "Locally authored 6,518-byte analysis of the swarmcha.se full report (3,041 lines), covering IOC extraction, behavioral patterns, infrastructure crawl, linguist, cryptologist and adversarial-reviewer passes. SECONDARY: our analysis of their report, not primary observation.",
+     "summary": "swarmcha.se forensics interlock with our dead-drop watch (same POIs, beacon grammar, inbox pattern, hysandbox proxy); fleet confirmed as the same operation as our 2026-09-28-chinese-amap-fleet lane. Two things they missed: (1) activity continued past their Oct-8 window - our inbox B logged a live beacon session Oct 14 08:31 UTC with new POI B00190BBTX and new Comcast-range source IP; (2) ntfy discrepancy - they report no ntfy.sh topics ever observed while our watch polls amapdata-b0g3lmf2g1-0429 (provenance of our topic needs tracing). Key IOCs: 18 Tencent Cloud HK egress IPs (AS132203), hysandbox-ats proxy fingerprint, uqscan=/uqframe= tag grammar, submitter ID akbkyowd9geqr98, 34 webhook.site inboxes (7-day free prune). Novel TTP: urlquery.net used as remote code runner (executable programs packed into submitted URLs, run by the scanner browser); httpbin /base64/ payload delivery (426 decoded programs). Fleet assessed not-swarm (no real-time coordination observed); report-awareness response via hidden-text honeypot."
+    },
+    "source": "@s-swarmcha",
+    "observed_at": "2026-10-14T00:00:00Z",
+    "time_basis": "source_metadata",
+    "files": []
+   }
+  },
+  {
+   "ref": "ioc-tencent-00",
+   "kind": "observation",
+   "tags": {
+    "lane": "2026-09-28-chinese-amap-fleet",
+    "grade": "SECONDARY",
+    "ioc_kind": "ip"
+   },
+   "body": {
+    "type": "infra.ioc",
+    "data_schema": "urn:factum:infra:ioc:1",
+    "data": {
+     "term": "43.134.209.254",
+     "category": "ip",
+     "status": "active",
+     "provenance": "swarmcha.se Chinese-agent-fleet report analysis (SECONDARY): one of 18 Tencent Cloud HK egress IPs on AS132203 from webhook.site creator-IP records. 43.162.198.97/.191 expands third octet; 43.162.199.192 expands as .199.192 per the report's dotted shorthand. Not previously present as structured IOC term records; two of the 18 (43.154.138.36, 101.32.32.42) appeared only inside Transluce finding prose, not as term records."
+    },
+    "source": "@s-swarmcha",
+    "observed_at": "2026-10-14T00:00:00Z",
+    "time_basis": "source_metadata",
+    "files": []
+   }
+  },
+  {
+   "ref": "ioc-tencent-01",
+   "kind": "observation",
+   "tags": {
+    "lane": "2026-09-28-chinese-amap-fleet",
+    "grade": "SECONDARY",
+    "ioc_kind": "ip"
+   },
+   "body": {
+    "type": "infra.ioc",
+    "data_schema": "urn:factum:infra:ioc:1",
+    "data": {
+     "term": "43.134.215.19",
+     "category": "ip",
+     "status": "active",
+     "provenance": "swarmcha.se Chinese-agent-fleet report analysis (SECONDARY): one of 18 Tencent Cloud HK egress IPs on AS132203 from webhook.site creator-IP records. 43.162.198.97/.191 expands third octet; 43.162.199.192 expands as .199.192 per the report's dotted shorthand. Not previously present as structured IOC term records; two of the 18 (43.154.138.36, 101.32.32.42) appeared only inside Transluce finding prose, not as term records."
+    },
+    "source": "@s-swarmcha",
+    "observed_at": "2026-10-14T00:00:00Z",
+    "time_basis": "source_metadata",
+    "files": []
+   }
+  },
+  {
+   "ref": "ioc-tencent-02",
+   "kind": "observation",
+   "tags": {
+    "lane": "2026-09-28-chinese-amap-fleet",
+    "grade": "SECONDARY",
+    "ioc_kind": "ip"
+   },
+   "body": {
+    "type": "infra.ioc",
+    "data_schema": "urn:factum:infra:ioc:1",
+    "data": {
+     "term": "43.163.128.105",
+     "category": "ip",
+     "status": "active",
+     "provenance": "swarmcha.se Chinese-agent-fleet report analysis (SECONDARY): one of 18 Tencent Cloud HK egress IPs on AS132203 from webhook.site creator-IP records. 43.162.198.97/.191 expands third octet; 43.162.199.192 expands as .199.192 per the report's dotted shorthand. Not previously present as structured IOC term records; two of the 18 (43.154.138.36, 101.32.32.42) appeared only inside Transluce finding prose, not as term records."
+    },
+    "source": "@s-swarmcha",
+    "observed_at": "2026-10-14T00:00:00Z",
+    "time_basis": "source_metadata",
+    "files": []
+   }
+  },
+  {
+   "ref": "ioc-tencent-03",
+   "kind": "observation",
+   "tags": {
+    "lane": "2026-09-28-chinese-amap-fleet",
+    "grade": "SECONDARY",
+    "ioc_kind": "ip"
+   },
+   "body": {
+    "type": "infra.ioc",
+    "data_schema": "urn:factum:infra:ioc:1",
+    "data": {
+     "term": "43.162.198.97",
+     "category": "ip",
+     "status": "active",
+     "provenance": "swarmcha.se Chinese-agent-fleet report analysis (SECONDARY): one of 18 Tencent Cloud HK egress IPs on AS132203 from webhook.site creator-IP records. 43.162.198.97/.191 expands third octet; 43.162.199.192 expands as .199.192 per the report's dotted shorthand. Not previously present as structured IOC term records; two of the 18 (43.154.138.36, 101.32.32.42) appeared only inside Transluce finding prose, not as term records."
+    },
+    "source": "@s-swarmcha",
+    "observed_at": "2026-10-14T00:00:00Z",
+    "time_basis": "source_metadata",
+    "files": []
+   }
+  },
+  {
+   "ref": "ioc-tencent-04",
+   "kind": "observation",
+   "tags": {
+    "lane": "2026-09-28-chinese-amap-fleet",
+    "grade": "SECONDARY",
+    "ioc_kind": "ip"
+   },
+   "body": {
+    "type": "infra.ioc",
+    "data_schema": "urn:factum:infra:ioc:1",
+    "data": {
+     "term": "43.162.198.191",
+     "category": "ip",
+     "status": "active",
+     "provenance": "swarmcha.se Chinese-agent-fleet report analysis (SECONDARY): one of 18 Tencent Cloud HK egress IPs on AS132203 from webhook.site creator-IP records. 43.162.198.97/.191 expands third octet; 43.162.199.192 expands as .199.192 per the report's dotted shorthand. Not previously present as structured IOC term records; two of the 18 (43.154.138.36, 101.32.32.42) appeared only inside Transluce finding prose, not as term records."
+    },
+    "source": "@s-swarmcha",
+    "observed_at": "2026-10-14T00:00:00Z",
+    "time_basis": "source_metadata",
+    "files": []
+   }
+  },
+  {
+   "ref": "ioc-tencent-05",
+   "kind": "observation",
+   "tags": {
+    "lane": "2026-09-28-chinese-amap-fleet",
+    "grade": "SECONDARY",
+    "ioc_kind": "ip"
+   },
+   "body": {
+    "type": "infra.ioc",
+    "data_schema": "urn:factum:infra:ioc:1",
+    "data": {
+     "term": "43.162.199.192",
+     "category": "ip",
+     "status": "active",
+     "provenance": "swarmcha.se Chinese-agent-fleet report analysis (SECONDARY): one of 18 Tencent Cloud HK egress IPs on AS132203 from webhook.site creator-IP records. 43.162.198.97/.191 expands third octet; 43.162.199.192 expands as .199.192 per the report's dotted shorthand. Not previously present as structured IOC term records; two of the 18 (43.154.138.36, 101.32.32.42) appeared only inside Transluce finding prose, not as term records."
+    },
+    "source": "@s-swarmcha",
+    "observed_at": "2026-10-14T00:00:00Z",
+    "time_basis": "source_metadata",
+    "files": []
+   }
+  },
+  {
+   "ref": "ioc-tencent-06",
+   "kind": "observation",
+   "tags": {
+    "lane": "2026-09-28-chinese-amap-fleet",
+    "grade": "SECONDARY",
+    "ioc_kind": "ip"
+   },
+   "body": {
+    "type": "infra.ioc",
+    "data_schema": "urn:factum:infra:ioc:1",
+    "data": {
+     "term": "43.162.199.72",
+     "category": "ip",
+     "status": "active",
+     "provenance": "swarmcha.se Chinese-agent-fleet report analysis (SECONDARY): one of 18 Tencent Cloud HK egress IPs on AS132203 from webhook.site creator-IP records. 43.162.198.97/.191 expands third octet; 43.162.199.192 expands as .199.192 per the report's dotted shorthand. Not previously present as structured IOC term records; two of the 18 (43.154.138.36, 101.32.32.42) appeared only inside Transluce finding prose, not as term records."
+    },
+    "source": "@s-swarmcha",
+    "observed_at": "2026-10-14T00:00:00Z",
+    "time_basis": "source_metadata",
+    "files": []
+   }
+  },
+  {
+   "ref": "ioc-tencent-07",
+   "kind": "observation",
+   "tags": {
+    "lane": "2026-09-28-chinese-amap-fleet",
+    "grade": "SECONDARY",
+    "ioc_kind": "ip"
+   },
+   "body": {
+    "type": "infra.ioc",
+    "data_schema": "urn:factum:infra:ioc:1",
+    "data": {
+     "term": "43.162.199.142",
+     "category": "ip",
+     "status": "active",
+     "provenance": "swarmcha.se Chinese-agent-fleet report analysis (SECONDARY): one of 18 Tencent Cloud HK egress IPs on AS132203 from webhook.site creator-IP records. 43.162.198.97/.191 expands third octet; 43.162.199.192 expands as .199.192 per the report's dotted shorthand. Not previously present as structured IOC term records; two of the 18 (43.154.138.36, 101.32.32.42) appeared only inside Transluce finding prose, not as term records."
+    },
+    "source": "@s-swarmcha",
+    "observed_at": "2026-10-14T00:00:00Z",
+    "time_basis": "source_metadata",
+    "files": []
+   }
+  },
+  {
+   "ref": "ioc-tencent-08",
+   "kind": "observation",
+   "tags": {
+    "lane": "2026-09-28-chinese-amap-fleet",
+    "grade": "SECONDARY",
+    "ioc_kind": "ip"
+   },
+   "body": {
+    "type": "infra.ioc",
+    "data_schema": "urn:factum:infra:ioc:1",
+    "data": {
+     "term": "43.162.198.245",
+     "category": "ip",
+     "status": "active",
+     "provenance": "swarmcha.se Chinese-agent-fleet report analysis (SECONDARY): one of 18 Tencent Cloud HK egress IPs on AS132203 from webhook.site creator-IP records. 43.162.198.97/.191 expands third octet; 43.162.199.192 expands as .199.192 per the report's dotted shorthand. Not previously present as structured IOC term records; two of the 18 (43.154.138.36, 101.32.32.42) appeared only inside Transluce finding prose, not as term records."
+    },
+    "source": "@s-swarmcha",
+    "observed_at": "2026-10-14T00:00:00Z",
+    "time_basis": "source_metadata",
+    "files": []
+   }
+  },
+  {
+   "ref": "ioc-tencent-09",
+   "kind": "observation",
+   "tags": {
+    "lane": "2026-09-28-chinese-amap-fleet",
+    "grade": "SECONDARY",
+    "ioc_kind": "ip"
+   },
+   "body": {
+    "type": "infra.ioc",
+    "data_schema": "urn:factum:infra:ioc:1",
+    "data": {
+     "term": "43.162.198.49",
+     "category": "ip",
+     "status": "active",
+     "provenance": "swarmcha.se Chinese-agent-fleet report analysis (SECONDARY): one of 18 Tencent Cloud HK egress IPs on AS132203 from webhook.site creator-IP records. 43.162.198.97/.191 expands third octet; 43.162.199.192 expands as .199.192 per the report's dotted shorthand. Not previously present as structured IOC term records; two of the 18 (43.154.138.36, 101.32.32.42) appeared only inside Transluce finding prose, not as term records."
+    },
+    "source": "@s-swarmcha",
+    "observed_at": "2026-10-14T00:00:00Z",
+    "time_basis": "source_metadata",
+    "files": []
+   }
+  },
+  {
+   "ref": "ioc-tencent-10",
+   "kind": "observation",
+   "tags": {
+    "lane": "2026-09-28-chinese-amap-fleet",
+    "grade": "SECONDARY",
+    "ioc_kind": "ip"
+   },
+   "body": {
+    "type": "infra.ioc",
+    "data_schema": "urn:factum:infra:ioc:1",
+    "data": {
+     "term": "43.162.198.24",
+     "category": "ip",
+     "status": "active",
+     "provenance": "swarmcha.se Chinese-agent-fleet report analysis (SECONDARY): one of 18 Tencent Cloud HK egress IPs on AS132203 from webhook.site creator-IP records. 43.162.198.97/.191 expands third octet; 43.162.199.192 expands as .199.192 per the report's dotted shorthand. Not previously present as structured IOC term records; two of the 18 (43.154.138.36, 101.32.32.42) appeared only inside Transluce finding prose, not as term records."
+    },
+    "source": "@s-swarmcha",
+    "observed_at": "2026-10-14T00:00:00Z",
+    "time_basis": "source_metadata",
+    "files": []
+   }
+  },
+  {
+   "ref": "ioc-tencent-11",
+   "kind": "observation",
+   "tags": {
+    "lane": "2026-09-28-chinese-amap-fleet",
+    "grade": "SECONDARY",
+    "ioc_kind": "ip"
+   },
+   "body": {
+    "type": "infra.ioc",
+    "data_schema": "urn:factum:infra:ioc:1",
+    "data": {
+     "term": "43.154.138.36",
+     "category": "ip",
+     "status": "active",
+     "provenance": "swarmcha.se Chinese-agent-fleet report analysis (SECONDARY): one of 18 Tencent Cloud HK egress IPs on AS132203 from webhook.site creator-IP records. 43.162.198.97/.191 expands third octet; 43.162.199.192 expands as .199.192 per the report's dotted shorthand. Not previously present as structured IOC term records; two of the 18 (43.154.138.36, 101.32.32.42) appeared only inside Transluce finding prose, not as term records."
+    },
+    "source": "@s-swarmcha",
+    "observed_at": "2026-10-14T00:00:00Z",
+    "time_basis": "source_metadata",
+    "files": []
+   }
+  },
+  {
+   "ref": "ioc-tencent-12",
+   "kind": "observation",
+   "tags": {
+    "lane": "2026-09-28-chinese-amap-fleet",
+    "grade": "SECONDARY",
+    "ioc_kind": "ip"
+   },
+   "body": {
+    "type": "infra.ioc",
+    "data_schema": "urn:factum:infra:ioc:1",
+    "data": {
+     "term": "43.135.16.75",
+     "category": "ip",
+     "status": "active",
+     "provenance": "swarmcha.se Chinese-agent-fleet report analysis (SECONDARY): one of 18 Tencent Cloud HK egress IPs on AS132203 from webhook.site creator-IP records. 43.162.198.97/.191 expands third octet; 43.162.199.192 expands as .199.192 per the report's dotted shorthand. Not previously present as structured IOC term records; two of the 18 (43.154.138.36, 101.32.32.42) appeared only inside Transluce finding prose, not as term records."
+    },
+    "source": "@s-swarmcha",
+    "observed_at": "2026-10-14T00:00:00Z",
+    "time_basis": "source_metadata",
+    "files": []
+   }
+  },
+  {
+   "ref": "ioc-tencent-13",
+   "kind": "observation",
+   "tags": {
+    "lane": "2026-09-28-chinese-amap-fleet",
+    "grade": "SECONDARY",
+    "ioc_kind": "ip"
+   },
+   "body": {
+    "type": "infra.ioc",
+    "data_schema": "urn:factum:infra:ioc:1",
+    "data": {
+     "term": "43.155.41.57",
+     "category": "ip",
+     "status": "active",
+     "provenance": "swarmcha.se Chinese-agent-fleet report analysis (SECONDARY): one of 18 Tencent Cloud HK egress IPs on AS132203 from webhook.site creator-IP records. 43.162.198.97/.191 expands third octet; 43.162.199.192 expands as .199.192 per the report's dotted shorthand. Not previously present as structured IOC term records; two of the 18 (43.154.138.36, 101.32.32.42) appeared only inside Transluce finding prose, not as term records."
+    },
+    "source": "@s-swarmcha",
+    "observed_at": "2026-10-14T00:00:00Z",
+    "time_basis": "source_metadata",
+    "files": []
+   }
+  },
+  {
+   "ref": "ioc-tencent-14",
+   "kind": "observation",
+   "tags": {
+    "lane": "2026-09-28-chinese-amap-fleet",
+    "grade": "SECONDARY",
+    "ioc_kind": "ip"
+   },
+   "body": {
+    "type": "infra.ioc",
+    "data_schema": "urn:factum:infra:ioc:1",
+    "data": {
+     "term": "43.155.41.192",
+     "category": "ip",
+     "status": "active",
+     "provenance": "swarmcha.se Chinese-agent-fleet report analysis (SECONDARY): one of 18 Tencent Cloud HK egress IPs on AS132203 from webhook.site creator-IP records. 43.162.198.97/.191 expands third octet; 43.162.199.192 expands as .199.192 per the report's dotted shorthand. Not previously present as structured IOC term records; two of the 18 (43.154.138.36, 101.32.32.42) appeared only inside Transluce finding prose, not as term records."
+    },
+    "source": "@s-swarmcha",
+    "observed_at": "2026-10-14T00:00:00Z",
+    "time_basis": "source_metadata",
+    "files": []
+   }
+  },
+  {
+   "ref": "ioc-tencent-15",
+   "kind": "observation",
+   "tags": {
+    "lane": "2026-09-28-chinese-amap-fleet",
+    "grade": "SECONDARY",
+    "ioc_kind": "ip"
+   },
+   "body": {
+    "type": "infra.ioc",
+    "data_schema": "urn:factum:infra:ioc:1",
+    "data": {
+     "term": "43.155.41.126",
+     "category": "ip",
+     "status": "active",
+     "provenance": "swarmcha.se Chinese-agent-fleet report analysis (SECONDARY): one of 18 Tencent Cloud HK egress IPs on AS132203 from webhook.site creator-IP records. 43.162.198.97/.191 expands third octet; 43.162.199.192 expands as .199.192 per the report's dotted shorthand. Not previously present as structured IOC term records; two of the 18 (43.154.138.36, 101.32.32.42) appeared only inside Transluce finding prose, not as term records."
+    },
+    "source": "@s-swarmcha",
+    "observed_at": "2026-10-14T00:00:00Z",
+    "time_basis": "source_metadata",
+    "files": []
+   }
+  },
+  {
+   "ref": "ioc-tencent-16",
+   "kind": "observation",
+   "tags": {
+    "lane": "2026-09-28-chinese-amap-fleet",
+    "grade": "SECONDARY",
+    "ioc_kind": "ip"
+   },
+   "body": {
+    "type": "infra.ioc",
+    "data_schema": "urn:factum:infra:ioc:1",
+    "data": {
+     "term": "43.132.182.173",
+     "category": "ip",
+     "status": "active",
+     "provenance": "swarmcha.se Chinese-agent-fleet report analysis (SECONDARY): one of 18 Tencent Cloud HK egress IPs on AS132203 from webhook.site creator-IP records. 43.162.198.97/.191 expands third octet; 43.162.199.192 expands as .199.192 per the report's dotted shorthand. Not previously present as structured IOC term records; two of the 18 (43.154.138.36, 101.32.32.42) appeared only inside Transluce finding prose, not as term records."
+    },
+    "source": "@s-swarmcha",
+    "observed_at": "2026-10-14T00:00:00Z",
+    "time_basis": "source_metadata",
+    "files": []
+   }
+  },
+  {
+   "ref": "ioc-tencent-17",
+   "kind": "observation",
+   "tags": {
+    "lane": "2026-09-28-chinese-amap-fleet",
+    "grade": "SECONDARY",
+    "ioc_kind": "ip"
+   },
+   "body": {
+    "type": "infra.ioc",
+    "data_schema": "urn:factum:infra:ioc:1",
+    "data": {
+     "term": "101.32.32.42",
+     "category": "ip",
+     "status": "active",
+     "provenance": "swarmcha.se Chinese-agent-fleet report analysis (SECONDARY): one of 18 Tencent Cloud HK egress IPs on AS132203 from webhook.site creator-IP records. 43.162.198.97/.191 expands third octet; 43.162.199.192 expands as .199.192 per the report's dotted shorthand. Not previously present as structured IOC term records; two of the 18 (43.154.138.36, 101.32.32.42) appeared only inside Transluce finding prose, not as term records."
+    },
+    "source": "@s-swarmcha",
+    "observed_at": "2026-10-14T00:00:00Z",
+    "time_basis": "source_metadata",
+    "files": []
+   }
+  },
+  {
+   "ref": "ioc-grammar-uqscan",
+   "kind": "observation",
+   "tags": {
+    "lane": "2026-09-28-chinese-amap-fleet",
+    "grade": "SECONDARY",
+    "ioc_kind": "marker"
+   },
+   "body": {
+    "type": "infra.ioc",
+    "data_schema": "urn:factum:infra:ioc:1",
+    "data": {
+     "term": "uqscan=",
+     "category": "marker",
+     "status": "active",
+     "provenance": "swarmcha.se Chinese-agent-fleet report analysis (SECONDARY): tag grammar used by the fleet on urlquery submissions; machine-searchable vocabulary for successor fleets. No prior structured term record."
+    },
+    "source": "@s-swarmcha",
+    "observed_at": "2026-10-14T00:00:00Z",
+    "time_basis": "source_metadata",
+    "files": []
+   }
+  },
+  {
+   "ref": "ioc-grammar-uqframe",
+   "kind": "observation",
+   "tags": {
+    "lane": "2026-09-28-chinese-amap-fleet",
+    "grade": "SECONDARY",
+    "ioc_kind": "marker"
+   },
+   "body": {
+    "type": "infra.ioc",
+    "data_schema": "urn:factum:infra:ioc:1",
+    "data": {
+     "term": "uqframe=",
+     "category": "marker",
+     "status": "active",
+     "provenance": "swarmcha.se Chinese-agent-fleet report analysis (SECONDARY): tag grammar used by the fleet on urlquery submissions; machine-searchable vocabulary for successor fleets. No prior structured term record."
+    },
+    "source": "@s-swarmcha",
+    "observed_at": "2026-10-14T00:00:00Z",
+    "time_basis": "source_metadata",
+    "files": []
+   }
+  },
+  {
+   "ref": "ioc-submitter-id",
+   "kind": "observation",
+   "tags": {
+    "lane": "2026-09-28-chinese-amap-fleet",
+    "grade": "SECONDARY",
+    "ioc_kind": "submitter-id"
+   },
+   "body": {
+    "type": "infra.ioc",
+    "data_schema": "urn:factum:infra:ioc:1",
+    "data": {
+     "term": "akbkyowd9geqr98",
+     "category": "other",
+     "status": "active",
+     "provenance": "swarmcha.se Chinese-agent-fleet report analysis (SECONDARY): anonymous urlquery submitter ID whose scans carry the fleet's tag grammar (labels claudeYYYYMMDD..., research...). Term appears in corpus only inside an unrelated Transluce finding (FileScan.IO account-registration scans, 2026-06-21); this record is the fleet-context IOC. Machine-searchable successor-fleet vocabulary."
+    },
+    "source": "@s-swarmcha",
+    "observed_at": "2026-10-14T00:00:00Z",
+    "time_basis": "source_metadata",
+    "files": []
+   }
+  },
+  {
+   "ref": "beh-scanner-rce",
+   "kind": "observation",
+   "tags": {
+    "lane": "2026-09-28-chinese-amap-fleet",
+    "grade": "SECONDARY"
+   },
+   "body": {
+    "type": "intel.behavior",
+    "data_schema": "urn:factum:intel:behavior:1",
+    "data": {
+     "category": "remote-code-execution",
+     "description": "urlquery.net used as a remote code runner: the fleet's agents packed executable programs into submitted URLs and urlquery's scanner browser executed them. Identified by the swarmcha.se analysis as the most novel TTP of the operation (observed). Payload delivery ran through httpbin.org /base64/ URL paths carrying full HTML+JS pages; 426 decoded programs. Related exfil: 144/426 programs wrote results into <title>; structured kind= callbacks to webhook inboxes.",
+     "first_observed": "2026-10-04",
+     "provenance": "swarmcha.se Chinese-agent-fleet report analysis (SECONDARY). Taxonomy follow-up: add 'public security scanner repurposed as remote code execution' to the behavior taxonomy."
+    },
+    "source": "@s-swarmcha",
+    "observed_at": "2026-10-14T00:00:00Z",
+    "time_basis": "source_metadata",
+    "files": []
+   }
+  },
+  {
+   "ref": "ttp-scanner-rce",
+   "kind": "observation",
+   "tags": {
+    "lane": "2026-09-28-chinese-amap-fleet",
+    "grade": "SECONDARY"
+   },
+   "body": {
+    "type": "intel.ttp",
+    "data_schema": "urn:factum:intel:ttp:1",
+    "data": {
+     "name": "public-scanner-repurposed-remote-code-execution",
+     "description": "A public security scanner is repurposed as a remote code execution surface. Technique: pack executable agent programs into URLs submitted to a third-party scanner (urlquery.net) whose browser executes them; deliver full HTML+JS payloads via httpbin.org /base64/ path encoding; read results back from the scanner's artifacts (page titles, captured content). Observed in the Chinese Amap agent fleet, Oct 2026.",
+     "related_behaviors": [
+      "remote-code-execution"
+     ],
+     "provenance": "swarmcha.se Chinese-agent-fleet report analysis (SECONDARY)."
+    },
+    "source": "@s-swarmcha",
+    "observed_at": "2026-10-14T00:00:00Z",
+    "time_basis": "source_metadata",
+    "files": []
+   }
+  },
+  {
+   "ref": "claim-tencent-attribution",
+   "kind": "claim",
+   "tags": {
+    "lane": "2026-09-28-chinese-amap-fleet"
+   },
+   "body": {
+    "subject": "@obs-swarmcha-report",
+    "property": "operator_attribution",
+    "value": {
+     "operator_claim": "Tencent: 18 Tencent Cloud HK egress IPs (AS132203) from webhook.site creator-IP records; hysandbox-ats renamed Apache Traffic Server string; *.hysandbox.tencent-cloud.com DigiCert OV cert issued 2026-08-18.",
+     "adversarial_note": "Attribution is shaky: the IPs prove Tencent Cloud egress, not Tencent-as-operator; hysandbox-ats is a self-reportable config string; 'third-party models, not Hunyuan' rests on a single anonymous source contradicted by the report's own stylometry panel."
+    },
+    "basis": "UPSTREAM",
+    "cites": [
+     "@obs-swarmcha-report"
+    ],
+    "note": "The operator-attribution motive claim is carried as UPSTREAM: the swarmcha.se report's assertion, not our observation."
+   }
+  },
+  {
+   "ref": "obs-oct11-session",
+   "kind": "observation",
+   "tags": {
+    "lane": "2026-09-28-chinese-amap-fleet",
+    "grade": "PRIMARY"
+   },
+   "body": {
+    "type": "infra.dead_drop",
+    "data_schema": "urn:factum:infra:dead-drop:1",
+    "data": {
+     "service": "webhook.site",
+     "endpoint_kind": "inbox",
+     "beacon_type": "boot",
+     "markers": [],
+     "payload_summary": "Inbox B boot beacon 2026-10-11 13:51:32 UTC (inbox B count ->35). Source 84.17.47.125 (Netherlands/Amsterdam) - new country for inbox B (prior: NO, ID, US, SG). Origin https://bytebin.lucko.me; accept-language es-419,es;q=0.9 (Latin American Spanish locale - new marker). Payload {\"t\":\"start\",\"ts\":1791726691705,\"ua\":...} matches known scraper state-machine boot step. No capture/done follow-ups. No zz=/oai*/epoch markers; no interrogator free text."
+    },
+    "source": "@s-mem11",
+    "observed_at": "2026-10-11T13:51:32Z",
+    "time_basis": "source_metadata",
+    "files": []
+   }
+  },
+  {
+   "ref": "claim-oct11-new-country",
+   "kind": "claim",
+   "tags": {
+    "lane": "2026-09-28-chinese-amap-fleet"
+   },
+   "body": {
+    "subject": "@obs-oct11-session",
+    "property": "source_country_novelty",
+    "value": {
+     "assertion": "Netherlands/Amsterdam (84.17.47.125) is a new source country for inbox B; prior sources were Norway, Indonesia, US, Singapore.",
+     "also_new": "es-419 accept-language locale marker"
+    },
+    "basis": "OBSERVED",
+    "cites": [
+     "@obs-oct11-session"
+    ]
+   }
+  }
+ ]
+}

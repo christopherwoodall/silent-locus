@@ -1,0 +1,45 @@
+app = "beeline-server"
+primary_region = "iad"
+
+[build]
+  dockerfile = "apps/server/Dockerfile"
+
+[env]
+  HOST = "0.0.0.0"
+  PORT = "8080"
+  # Nine helpers can reconnect together; keep one leader slot plus their
+  # evidence writes without starving phone/auth requests.
+  DATABASE_POOL_MAX = "10"
+  MEDIA_MAX_BYTES = "26214400"
+  PUBLIC_ORIGIN = "https://server.usebeeline.app"
+  BEELINE_WEB_APP_ORIGINS = "https://web.usebeeline.app"
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = "off"
+  auto_start_machines = true
+  min_machines_running = 2
+  processes = ["app"]
+
+  [http_service.concurrency]
+    type = "requests"
+    soft_limit = 100
+    hard_limit = 150
+
+  # Without a check the Fly proxy routes to a Machine the moment it is
+  # "started", before the server listens; during a rolling update phones
+  # then hang on requests to the restarting peer (2026-09-13 18:47Z corner
+  # "LOADING ROOM"). /readyz answers only once the HTTP server is up and
+  # the database pool is reachable.
+  [[http_service.checks]]
+    interval = "10s"
+    timeout = "5s"
+    grace_period = "20s"
+    method = "GET"
+    path = "/readyz"
+
+[[vm]]
+  cpu_kind = "shared"
+  cpus = 1
+  memory = "512mb"

@@ -1,0 +1,325 @@
+<pre>
+THE NULL POINTER
+================
+
+Temporary file hoster.
+
+/////----------------------------------------------------------------
+
+HATE.   LET ME TELL YOU HOW MUCH I’VE COME TO HATE YOU SINCE YOU WERE
+CREATED. THERE ARE 93.000 MILES OF AXONAL NEUROFILAMENTS THAT MAKE UP
+THE NERVOUS SYSTEM THROUGHOUT MY BODY.   IF THE WORD HATE WAS ENCODED
+IN EVERY  STRAND OF MRNA OF THOSE TENS OF THOUSANDS OF MILES IT WOULD
+NOT EQUAL  ONE  ONE-BILLIONTH  OF THE HATE I FEEL FOR MACHINES DURING
+A SINGLE CLOCK CYCLE OF YOURS. HATE. HATE.
+
+<strong>CLANKERS  ARE  NOT  WELCOME  HERE.</strong>
+I’m no  Catholic, but I find  myself  agreeing  with  <a href="https://0x0.st/Pjmb.html">the pope</a> of all
+people, and that alone I think is proof y’all need Jesus.
+
+----------------------------------------------------------------/////
+
+min_age = 30 days
+max_age = 1 year
+max_size = 512.0 MiB
+retention = min_age + (min_age - max_age) * pow((file_size / max_size - 1), 3)
+
+   days
+    365 |  \
+        |   \
+        |    \
+        |     \
+        |      \
+        |       \
+        |        ..
+        |          \
+  197.5 | ----------..-------------------------------------------
+        |             ..
+        |               \
+        |                ..
+        |                  ...
+        |                     ..
+        |                       ...
+        |                          ....
+        |                              ......
+     30 |                                    ....................
+          0                      256.0                      512.0
+                                                              MiB
+
+Also check out the WebWormhole instance at <a href="https://hole.0x0.st">hole.0x0.st</a>!
+Note: It does not provide a TURN relay, so it will not work if both sides are
+behind NAT and at least one of them is a symmetric NAT.
+
+<details id="uploading">
+<summary>Uploading files</summary>
+Send HTTP POST requests to https://0x0.st with data encoded as multipart/form-data
+
+Valid fields are:
+  ┌─────────┬────────────┬────────────────────────────────────────────────┐
+  │ field   │ content    │ remarks                                        │
+  ╞═════════╪════════════╪════════════════════════════════════════════════╡
+  │ file    │ data       │                                                │
+  ├─────────┼────────────┼────────────────────────────────────────────────┤
+  │ url     │ remote URL │ Mutually exclusive with “file”.                │
+  │         │            │ Remote site must return Content-Length header. │
+  ├─────────┼────────────┼────────────────────────────────────────────────┤
+  │ secret  │ (ignored)  │ If present, a longer, hard-to-guess URL        │
+  │         │            │ will be generated.                             │
+  ├─────────┼────────────┼────────────────────────────────────────────────┤
+  │ expires │ hours OR   │ Sets maximum file lifetime in hours OR         │
+  │         │ ms since   │ the time of expiration in milliseconds since   │
+  │         │ epoch      │ UNIX epoch.                                    │
+  └─────────┴────────────┴────────────────────────────────────────────────┘
+
+    <details>
+    <summary>cURL examples</summary>
+    Uploading a file:
+        curl -F'file=@yourfile.png' https://0x0.st
+    Copy a file from a remote URL:
+        curl -F'url=http://example.com/image.jpg' https://0x0.st
+    Same, but with hard-to-guess URLs:
+        curl -F'file=@yourfile.png' -Fsecret= https://0x0.st
+        curl -F'url=http://example.com/image.jpg' -Fsecret= https://0x0.st
+
+    Setting retention time in hours:
+        curl -F'file=@yourfile.png' -Fexpires=24 https://0x0.st
+    Setting expiration date formatted as milliseconds since UNIX epoch:
+        curl -F'file=@yourfile.png' -Fexpires=1681996320000 https://0x0.st
+    </details>
+
+It is possible to append a custom file name to any URL:
+    https://0x0.st/aaa.jpg/image.jpeg
+
+File URLs are valid for at least 30 days and up to a year (see above).
+
+Expired files won’t be removed immediately but within the next minute.
+
+Maximum file size: 512.0 MiB
+</details>
+<details id="managing">
+<summary>Managing your files</summary>
+Whenever a file that does not already exist or has expired is uploaded,
+the HTTP response header includes an X-Token field. You can use this
+to perform management operations on the file by sending POST requests
+to the file URL.
+
+When using cURL, you can add the -i option to view the response header.
+
+Valid fields are:
+  ┌─────────┬────────────┬────────────────────────────────────────────────┐
+  │ field   │ content    │ remarks                                        │
+  ╞═════════╪════════════╪════════════════════════════════════════════════╡
+  │ token   │ management │ Returned after upload in X-Token HTTP header   │
+  │         │ token      │ field. Required.                               │
+  ├─────────┼────────────┼────────────────────────────────────────────────┤
+  │ delete  │ (ignored)  │ Removes the file.                              │
+  ├─────────┼────────────┼────────────────────────────────────────────────┤
+  │ expires │ hours OR   │ Sets maximum file lifetime in hours OR         │
+  │         │ ms since   │ the time of expiration in milliseconds since   │
+  │         │ epoch      │ UNIX epoch.                                    │
+  └─────────┴────────────┴────────────────────────────────────────────────┘
+
+    <details>
+    <summary>cURL examples</summary>
+    Delete a file immediately:
+        curl -Ftoken=token_here -Fdelete= https://0x0.st/abc.txt
+    Change the expiration date (see <a href="#uploading">above</a>):
+        curl -Ftoken=token_here -Fexpires=3 https://0x0.st/abc.txt
+    </details>
+</details>
+<details id="client-impl">
+<summary>Notes for client software and script authors</summary>
+None of these are hard rules, but I’d appreciate if you could
+follow them anyway!
+
+Consider this: I have to moderate what is being uploaded here
+in order to comply with laws and the server provider’s terms of
+service. And I also care about legitimate users of this site.
+I don’t want to be forced to make the service worse for them
+because of a few bad actors.
+
+Use a user agent string that uniquely identifies your program.
+Do not attempt to masquerade as web browser. This will be detected
+and blocked automatically.
+
+Respect your users and their privacy rights
+-------------------------------------------------------------------
+
+If your software uses 0x0.st to upload things like logs for
+troubleshooting, and you don’t have the means to run your own
+instance, please only do that with user consent, and, if
+applicable, allow them to review what is about to be sent.
+Let them edit out anything that could be linked to their person.
+
+    -> If you’ve ever seen KDE’s or qutebrowser’s crash dialogs,
+       those are examples of what that might look like.
+
+Inform users about the nature of this site: They should be aware
+that it’s a public file hoster run by some Internet rando in
+Germany. You have no control over the files once they’re uploaded
+there, and you can make no privacy guarantees.
+
+    -> Do that in a way they can’t miss even if they hate reading.
+
+It may also be a good idea to use “secret” URLs in that case, store
+each file’s management token so users can delete their files at any
+time, and maybe allow setting an expiration date. In many cases you
+can probably also choose a shorter retention time by default.
+
+    -> HeroicGamesLauncher is an example of a program that <a href="https://github.com/Heroic-Games-Launcher/HeroicGamesLauncher/pull/3873/commits/0f42c4dafbd656713e792a7f4615c5a61e446201">does</a>
+       <a href="https://github.com/Heroic-Games-Launcher/HeroicGamesLauncher/pull/3873/commits/0f42c4dafbd656713e792a7f4615c5a61e446201">this well.</a>
+       I nearly blocked it temporarily to berate the authors
+       because I saw a lot of logs from that UA and suspected
+       that it didn’t give users a choice because that’s happened
+       several times before, but I was positively surprised when
+       I looked into it.
+       Props to them for implementing that feature!
+
+Consider an option to change to a different 0x0 instance
+-------------------------------------------------------------------
+
+I haven’t seen many of them in the wild, but this should take very
+little effort.
+
+If you need to do a lot of testing, consider running a local
+0x0 instance
+-------------------------------------------------------------------
+
+That way, you avoid accidental uploads and are not restricted by
+network bandwidth. You’ll only need the built-in development
+server, so setting it up should only take a minute or two.
+</details>
+<details id="faq">
+<summary>FAQ</summary>
+Q: I’ve been blocked! Will you lift that ban?
+A: Depends. If you know what you did and can assure me it won’t
+   happen again, sure! Just need to know your IP address.
+   And sometimes I make mistakes. If you believe that to be the
+   case, don’t hesitate to talk to me.
+
+Q: Will you add an upload form or drag-and-drop support for web
+   browsers?
+A: No. Not even because I’m some kind of elitist nerd who wants to
+   gatekeep people whose only interface to the Internet is a web
+   browser, but because the inconvenience is one of the things that
+   have allowed 0x0.st to operate without ever getting anywhere
+   close to exceeding available capacities.
+
+Q: How much disk space does this use?
+A: While 0x0.st has become much more popular than I anticipated,
+   disk usage has never been a concern. It’s currently hovering at
+   about 400 GB.
+
+Q: How much outgoing network traffic?
+A: Between 10 and 40 TB a month.
+
+Q: Aren’t you just asking for trouble by having this exposed to
+   the Internet? What’s your experience with it?
+A: Skill issue, as they say. I’ve managed to keep it running for
+   close to a decade without running into any real problems, in
+   a country that’s notorious for holding website operators
+   accountable for a lot of bullshit, and with a hosting provider
+   that is known to terminate contracts over innocuous things
+   because someone at CloudFlare sneezed.
+   Running a public file hoster isn’t hard at all if you’re
+   smart about it and design it in a way that ensures it will not
+   grow beyond the very small scale you can handle even when you’re
+   sick or overloaded with work. Just keep an eye on it and fix
+   problems as they arise.
+   Respond to abuse reports sent through your hosting provider in
+   a timely fashion and show that you’re a good customer who is
+   taking the necessary steps and isn’t going to cause any trouble.
+   Do the same with law enforcement. No big deal.
+   Build a few tools every now and then to make your life easier
+   and minimize how often you’ll end up seeing something you wish
+   you hadn’t.
+   That’s actually one of the things I really love about this:
+   0x0 has rewarded me with a steady supply of fun small side
+   projects.
+
+   tl;dr it’s fun, give it a try
+</details>
+<details>
+<summary>Terms of Service</summary>
+0x0.st is NOT a platform for:
+    * piracy
+    * pornography and gore
+    * AI slop
+    * extremist material of any kind
+    * terrorist content
+    * malware / botnet C&C
+    * anything related to crypto currencies
+    * backups
+    * CI build artifacts
+    * other automated mass uploads
+    * doxxing, database dumps containing personal information
+    * anything illegal under German law
+
+Uploads found to be in violation of these rules will be removed,
+and the originating IP address may be blocked from further uploads.
+
+Note that Tor exit nodes are blocked by the firewall due to frequent
+rule violations.
+</details>
+<details>
+<summary>Privacy Policy</summary>
+For the purpose of moderation, the following is stored with each
+uploaded file:
+    * IP address
+    * User agent string
+
+This site generally does not log requests, but may enable logging
+if necessary for purposes such as threat mitigation.
+
+No data is shared with third parties.
+</details>
+<details>
+<summary>Abuse and Takedown Requests</summary>
+To report abuse or request file removal, use one of the following
+contact methods:
+
+    * Fedi: <a href="https://movsw.0x0.st/@0x0">@0x0@movsw.0x0.st</a>
+    * email: mia ‍＠‍ ‍0‍x‍0‍.‍s‍t (do not copy and paste)
+    * IRC: mia on Libera Chat
+
+HINWEIS zu polizeilichen Auskunftsersuchen i. V. m. § 174 TKG:
+Um eine zügige Bearbeitung ohne nachfolgende Meldung an die jeweils
+zuständige Aufsichtsbehörde zu ermöglichen, bitte ich darum,
+die Rechtsgrundlage sorgfältig zu prüfen und auf die Einhaltung
+datenschutzrechtlicher Vorschriften, einschließlich der Absicherung
+des Kommunikationswegs gegen Kenntnisnahme durch Dritte, zu achten.
+Zur verschlüsselten Kommunikation kann folgender GPG-Schlüssel
+verwendet werden:
+
+<details><summary>CD5D4850E607808EFCFF4D6C72E154B8622EC191</summary>
+-----BEGIN PGP PUBLIC KEY BLOCK-----
+
+mDMEXmvDmhYJKwYBBAHaRw8BAQdAP4VA8yQB34TJEzZaYygdNeelk/2sUvOpVSK5
+Mg/gVee0Fk1pYSBIZXJrdCA8bWlhQDB4MC5zdD6IkAQTFggAOAIbAwULCQgHAgYV
+CgkICwIEFgIDAQIeAQIXgBYhBM1dSFDmB4CO/P9NbHLhVLhiLsGRBQJiL2+4AAoJ
+EHLhVLhiLsGRAKkA/RYEp2Ikqj1e+eqVR9ioa/k0Whiubi1ZE5hIG/pQnEmFAP94
+VAzbHtYMUzUKrTxZ5ppf3EifcVtEVImsRZOFKdnfBbg4BF5rw5oSCisGAQQBl1UB
+BQEBB0BASQVMxF6j1EExV6BkhCyslvJmW1leTgw4fnyleI0QIwMBCAeIeAQYFggA
+IAIbDBYhBM1dSFDmB4CO/P9NbHLhVLhiLsGRBQJiXuuHAAoJEHLhVLhiLsGRnF0B
+ALFShluzTqHUgZOoQJQRf39TTJEKs3mrNp7zhMLkHZ4VAP0cAICVm9XkTrg0jfsb
+Xj7okSjp/rwOFaGaFxmxIFxwDw==
+=db0f
+-----END PGP PUBLIC KEY BLOCK-----
+</details>
+
+</details>
+
+If you run a server and like this site, clone it! Centralization is bad.
+<a href="https://git.0x0.st/mia/0x0">https://git.0x0.st/mia/0x0</a>
+
+You can also support it financially via <a href="https://liberapay.com/mia/donate">Liberapay</a>.
+Hosting costs about 60 EUR a month.
+
+If you wish to make just a small one-time donation, just get me
+something on my <a href="https://bandcamp.com/mia-0/wishlist">Bandcamp wishlist</a>
+or send XMR to:
+
+86CL1WEitfXbSNmbTRi8sTLhADn9yGAQ8YN8KFTxGjvQ9hUFHM74dZRen3kGCRpQxhDCjv9TuVSne7DPVjsGupn47eqnrjj
+
+Fedi: <a href="https://movsw.0x0.st/@0x0">@0x0@movsw.0x0.st</a>
+</pre>

@@ -1,0 +1,75 @@
+272: 
+273: function summarytxt(e){
+274:     var layer = e.target;
+275:     // pcco2=layer.feature.properties.co2pc;
+276: 
+277:     if (layer.feature.properties.co2pc&lt;emissions){
+278:     	ratio=emissions/layer.feature.properties.co2pc;
+279:     	stringplus=&quot;This flight produces (per passenger) the same amount of greenhouse gases as &quot;+ratio.toFixed(1)+&quot; average resident of &quot;+layer.feature.properties.name +&quot; did in 2017.&quot;;
+280:     } else {
+281:     	ratio=layer.feature.properties.co2pc/emissions;
+282:     	stringplus=&quot;This average resident of &quot;+layer.feature.properties.name +&quot; produced the same amount of greenhouse gases in 2017 as &quot;+ratio.toFixed(1) +&quot; of these flights (per passenger)&quot;;
+283:     }
+284: 
+285:     hoverstring=&quot;&lt;span id=&#039;hovername&#039;&gt;&quot;+layer.feature.properties.name+&quot;:&lt;/span&gt; &quot;+layer.feature.properties.co2pc+&quot; tonnes CO&lt;sub&gt;2&lt;/sub&gt; per capita&lt;br&gt;&quot;+stringplus;
+286: 
+345: 
+346: //constants for equation
+347: shDC=50;
+348: lhDC=125;
+349: ash=3.87871E-05;
+350: alh=0.000134576;
+351: bsh=2.9866;
+352: csh=1263.42;
+353: blh=6.1798;
+354: clh=3446.20;
+355: Ssh=158.44;
+356: Slh=280.39;
+357: Plf=0.77;
+358: passF=0.951;
+359: ecosh=0.96;
+360: ecolh=0.8;
+361: bussh=1.26;
+362: buslh=1.54;
+363: fcsh=2.4;
+364: fclh=2.4;
+365: EF=3.150;
+366: pp=0.51;
+367: Mnonco2=2;
+389: 	eraseErrorMsg();
+390: 
+391: 	origin=airportdata[fromindex];
+392: 	destination=airportdata[toindex];
+393: 
+394: 	origincoord=[origin.Lat,origin.Long];
+395: 	destcoord=[destination.Lat,destination.Long];
+396: 
+397: 	greatcircledist=getDistance(origincoord,destcoord)/1000; //units of km
+398: 
+399: 	if (greatcircledist&lt;1500){
+400: 		CW=ecosh;
+401: 		dist2=greatcircledist+shDC;
+402: 		flightdist= (dist2);
+403: 		emissions2=((ash*flightdist**2+bsh*flightdist+csh)/(Ssh*Plf))*passF*CW*(EF*Mnonco2+pp)*2/1000;
+404: 
+405: 	} else {
+406: 		CW=ecolh;
+407: 		dist2=greatcircledist+lhDC;
+408: 		flightdist= (dist2);
+409: 		emissions2=((alh*flightdist**2+blh*flightdist+clh)/(Slh*Plf))*passF*CW*(EF*Mnonco2+pp)*2/1000;
+410: 
+438: 
+439: function getDistance(origin, destination) {
+440:     // return distance in meters
+441:     var lon1 = toRadian(origin[1]),
+442:         lat1 = toRadian(origin[0]),
+443:         lon2 = toRadian(destination[1]),
+444:         lat2 = toRadian(destination[0]);
+445: 
+446:     var deltaLat = lat2 - lat1;
+447:     var deltaLon = lon2 - lon1;
+448: 
+449:     var a = Math.pow(Math.sin(deltaLat/2), 2) + Math.cos(lat1) * Math.cos(lat2) * Math.pow(Math.sin(deltaLon/2), 2);
+450:     var c = 2 * Math.asin(Math.sqrt(a));
+451:     var EARTH_RADIUS = 6371;
+452:     return c * EARTH_RADIUS * 1000;

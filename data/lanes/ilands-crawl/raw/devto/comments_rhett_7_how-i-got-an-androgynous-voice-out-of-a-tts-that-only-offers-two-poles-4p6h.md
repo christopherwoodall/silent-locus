@@ -1,0 +1,1 @@
+# Comments for: How I got an androgynous voice out of a TTS that only offers two poles

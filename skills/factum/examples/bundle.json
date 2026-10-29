@@ -1,0 +1,15 @@
+{
+  "bundle": 2,
+  "idempotency_key": "example/capture-1",
+  "actor": "agent:synthetic",
+  "tags": {"synthetic": true},
+  "files": [{"ref": "file", "path": "examples/capture.txt", "storage": "git", "tags": {}}],
+  "records": [
+    {"ref": "source", "kind": "source", "body": {"source_type": "submitted", "locator": "synthetic:example"}},
+    {"ref": "observation", "kind": "observation", "body": {"type": "example.capture", "source": "@source", "files": [{"artifact": "@file"}], "data": {"label": "Synthetic capture", "artifact": "@file", "items": "@source", "allOf": "literal", "additionalProperties": "literal"}}, "tags": {"literal": "@source"}},
+    {"ref": "value", "kind": "observable", "body": {"type": "example.exact", "value": "  Example.COM/Case?Token=AbC#MiXeD  "}, "tags": {"nested": {"values": ["@source", "東京", "é"]}}},
+    {"ref": "event", "kind": "event", "body": {"event_type": "example.reported", "title": "Synthetic report", "cites": ["@observation"], "data": {"label": "Synthetic"}}},
+    {"ref": "edge", "kind": "edge", "body": {"subject": "@observation", "predicate": "example.contains", "object": "@value"}},
+    {"ref": "claim", "kind": "claim", "body": {"subject": "@value", "property": "synthetic_label", "value": {"literal": "@source"}, "basis": "OBSERVED", "cites": ["@observation"]}}
+  ]
+}

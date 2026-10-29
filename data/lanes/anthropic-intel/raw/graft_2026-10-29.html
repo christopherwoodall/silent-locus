@@ -1,0 +1,407 @@
+<!doctype html>
+<!doctype html>
+
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    
+    
+    
+    <title>Reducing Reward Hacking by Localizing Bad Behavior Instead of Penalizing It</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<script src="/anthropic-serve/distill.template.v2.js"
+    integrity="sha384-5u81IQundsxB54QMWC7D3R8yOS8hftmsuvKjNrvIMWj88iPXf3daN0lNUZRPy9OX"></script>
+<script>
+    // We number figures with a script since CSS counters don't work,
+    // likely because of the distill template.
+    function numberFigures() {
+        // Find all figcaption elements with class 'text-caption'
+        const figcaptions = document.querySelectorAll('figcaption.text-caption');
+
+        figcaptions.forEach((figcaption, index) => {
+            // Create a new span for the figure number
+            figcaption.style.marginBottom = '1.25rem';
+
+            const newSpan = document.createElement('span');
+            newSpan.style.fontWeight = '500';
+            newSpan.textContent = `Figure ${index + 1}: `;
+
+            // Insert the new span at the beginning of the figcaption
+            figcaption.insertBefore(newSpan, figcaption.firstChild);
+        });
+    }
+
+    // Function to create a slug from header text
+    function createSlug(text) {
+        return text
+            .toLowerCase()
+            .replace(/[^\w\s]/g, '') // Remove special characters
+            .replace(/\s+/g, '-')    // Replace spaces with hyphens
+            .trim();                 // Remove whitespace from start/end
+    }
+
+    // Function to add IDs to all headers and create a table of contents
+    function addHeaderSlugs() {
+        // Get all heading elements (h1 through h6)
+        const headings = document.querySelectorAll('h1, h2, h3, h4, h5, h6');
+
+        // Process each heading
+        headings.forEach((heading) => {
+            // Skip headings that already have IDs
+            if (heading.id) return;
+
+            // Create slug from heading text
+            const slug = createSlug(heading.textContent);
+
+            // Add ID to the heading
+            heading.id = slug;
+        });
+    }
+
+    // Run the function when the document is loaded
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', numberFigures);
+        document.addEventListener('DOMContentLoaded', addHeaderSlugs);
+    } else {
+        // Document already loaded, run the function
+        numberFigures();
+        addHeaderSlugs();
+    }
+</script>
+<d-front-matter>
+    <script type="text/json">
+        {
+            "title": "Untitled",
+            "description": "When a model is caught cheating on a task during training, we confine its learning to a separate set of parameters. After training, we delete those parameters.",
+            "authors": [null]
+        }
+    </script>
+</d-front-matter>
+<link rel="stylesheet" href="/utilities/transcript-viewer.css">
+<script src="/utilities/transcript-viewer.js" defer></script>
+    
+    
+</head>
+<body>
+    
+    <style>
+    .article-header {
+        width: 100%;
+        padding: 36px;
+        padding-bottom: 20px;
+        box-sizing: border-box;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .home-link {
+        font-size: 100%;
+        color: #333;
+        text-decoration: none;
+        cursor: pointer;
+        font-weight: 700;
+        font-size: 1.3em;
+    }
+
+    a.logo {
+        display: flex;
+        text-decoration: none;
+    }
+
+    span.commentary {
+        color: #804633;
+    }
+</style>
+
+<div class="article-header">
+    <a class="home-link" href="/">Alignment Science Blog</a>
+</div>
+<d-title class="real-title">
+    <h1>Reducing Reward Hacking by Localizing Bad Behavior Instead of Penalizing It</h1>
+</d-title>
+<style>
+    .safety-case-block p {
+        margin-bottom: 0.5em !important;
+        margin-top: 1em !important;
+    }
+
+    .safety-case-block p:first-of-type {
+        margin-top: 0.5em !important;
+    }
+
+    d-article {
+        padding-top: 60px !important;
+    }
+
+    d-article li:last-child {
+        margin-bottom: 0.5em !important;
+    }
+
+    d-article li {
+        margin-bottom: 0.5em !important;
+    }
+
+    ul {
+        padding-left: 0em !important;
+        margin-bottom: 0.2em !important;
+    }
+
+    ol {
+        padding-left: 0em !important;
+        margin-bottom: 0.2em !important;
+    }
+
+    d-byline {
+        display: none;
+    }
+
+    .d-byline-container {
+        border-top: 1px solid rgba(0, 0, 0, 0.1);
+        border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+        padding-top: 20px;
+        padding-bottom: 20px;
+    }
+
+    .d-byline {
+        grid-column: text;
+        display: grid;
+        grid-template-columns: [authors info] 5fr [affiliations published] 1fr;
+        grid-template-rows: [authors affiliations] auto [published info] auto;
+        font-size: 0.8rem;
+        line-height: 1.8em;
+        grid-gap: 20px;
+    }
+
+    .d-byline h3 {
+        font-size: 0.6rem;
+        font-weight: 400;
+        color: rgba(0, 0, 0, 0.5);
+        margin: 0;
+        text-transform: uppercase;
+        margin-bottom: 4px;
+    }
+
+    .d-byline .info {
+        color: rgba(0, 0, 0, 0.5);
+        font-size: 80%;
+        line-height: 1.5;
+    }
+
+    .d-byline .authors div {
+        line-height: 1.5;
+    }
+
+    .d-byline .authors sup {
+        font-size: 80%;
+        margin-right: -4px;
+    }
+
+    .d-byline .author {
+        margin-right: 6px;
+        white-space: nowrap;
+    }
+
+    .d-byline a {
+        color: inherit;
+        text-decoration: none;
+    }
+
+    .safety-case-block {
+        padding: 16px;
+        padding-top: 8px;
+        padding-bottom: 8px;
+        border-radius: 4px;
+        background: #faf9f7;
+        border: 1px solid #e5e5e1;
+        border-left: 4px solid #cc9b7a;
+        opacity: 0.8;
+        margin-top: 10px;
+        margin-bottom: 10px;
+    }
+
+    @media screen and (min-width: 900px) {
+        .offset-gdoc-image {
+            margin-left: -65px;
+        }
+    }
+
+    .section-authors {
+        color: #777;
+        font-style: italic;
+        margin-top: -24px;
+        margin-bottom: 32px;
+        line-height: 1.3;
+        /* display: flex; */
+        flex-wrap: wrap;
+        justify-content: space-between;
+        gap: 0.5em;
+    }
+
+    .section-authors::before {
+        content: attr(data-author);
+    }
+
+    .section-authors::after {
+        content: attr(data-published);
+    }
+
+    figure {
+        margin-bottom: 0em;
+    }
+
+    .text-caption figcaption {
+        margin-bottom: 1em;
+    }
+
+    pre.code-block-wrap {
+        background-color: rgba(241, 243, 244, 0.8);
+        border: 1px solid #dadce0;
+        border-radius: 4px;
+        padding: 12px 16px;
+        margin: 0.5em 0;
+        font-family: 'Roboto Mono', 'Consolas', 'Monaco', 'Courier New', monospace;
+        font-size: 0.85em;
+        color: #137333;
+        line-height: 1.4;
+        /* Lines come through as <p> elements; pre-wrap would also render the
+           literal newlines between them and double the spacing. Rely on <p>
+           block layout for line breaks instead. */
+        white-space: normal;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+    }
+
+    pre.code-block-wrap .gray-box {
+        display: block;
+    }
+
+    pre.code-block-wrap p,
+    pre.code-block-wrap html\:p {
+        margin: 0;
+        padding: 0;
+        /* Keep intentional blank lines (empty <p>) one line tall. */
+        min-height: 1.4em;
+    }
+
+    /* Default: prevent breaking within individual words */
+    pre.code-block-wrap html\:span {
+        white-space: nowrap;
+    }
+
+    /* For spans that contain full sentences/lines - allow normal wrapping */
+    pre.code-block-wrap html\:span[class*="c4 c2"],
+    pre.code-block-wrap html\:span[class*="c7 c"] {
+        white-space: normal;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+        word-break: normal;
+    }
+
+    pre.citation-block-wrap {
+        background-color: rgba(241, 243, 244, 0.8);
+        border: 1px solid #dadce0;
+        border-radius: 4px;
+        padding: 8px 12px;
+        margin: 0.5em 0;
+        font-family: 'Roboto Mono', 'Consolas', 'Monaco', 'Courier New', monospace;
+        font-size: 0.75em;
+        color: #000000;
+        line-height: 1.15;
+        white-space: pre-wrap;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+        word-break: break-word;
+        hyphens: manual;
+        -webkit-hyphens: manual;
+        -ms-hyphens: manual;
+    }
+
+    details {
+        border: 1px solid rgba(0, 0, 0, 0.1);
+        border-radius: 4px;
+        padding: 0.5em 1em;
+        margin-bottom: 1rem;
+        background-color: rgba(0, 0, 0, 0.03);
+        transition: all 0.3s ease;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    }
+
+    .wide-figure {
+        /* text-align: center; */
+        overflow: visible;
+        position: relative;
+    }
+
+    .wide-figure img {
+        width: 120%;
+        max-width: 150%;
+        margin-left: -10%;
+        position: relative;
+    }
+
+
+    .tldr {
+        position: absolute;
+        right: calc(100% + 10px);
+        top: 0;
+        text-align: right;
+        color: #777;
+    }
+
+    @media (max-width: 768px) {
+        .tldr {
+            position: static;
+            display: inline-block;
+            margin-right: 10px;
+        }
+    }
+</style>
+<d-article>
+<div class="section-authors" data-author="" data-published="">
+<div style="margin-bottom: 1em;">Shawn Hu¹*, Jake Ward¹*<div style="float: right;">October 19, 2026</div></div>
+<p>Aria Wong¹, Nathan Hu², Bryce Woodworth¹</p>
+<p>Alexander Matt Turner³, Alex Cloud⁴</p>
+<p>* Equal contribution; author order randomized</p>
+<p>¹ MATS; ² Stanford; ³ FAR AI; ⁴ Anthropic</p>
+</div>
+<div style="position: relative">
+<span class="tldr">tl;dr</span>
+<p>During training, models sometimes learn to cheat at tasks rather than solve them in the intended way, a problem known as reward hacking. One mitigation is to use an automated monitor to detect and penalize hacks, but this can teach the model to hack in ways the monitor can’t detect. We propose GRAFT, which instead confines the learning updates from detected hacks to a designated set of parameters that we remove after training. We find that removing these parameters can prevent reward hacks, including hacks that the monitors can’t detect. In our experiments, which are limited to small models and simple monitors, this method prevents reward hacks while still teaching the model to perform the intended task.</p>
+</div>
+<p>📄 <a href='https://arxiv.org/abs/2610.17062'>Paper</a>, 💻 <a href='https://github.com/jnward/GRAFT'>Code</a></p>
+<p><span style='font-style: italic;'>This work was done as part of the MATS program.</span></p>
+<h3>Background</h3>
+<p>Reinforcement learning (RL) is an important component of frontier language model training. During RL, a model attempts to complete tasks given by a developer, and attempts are scored by a reward function. Sometimes models can find ways to “cheat” at tasks, performing behaviors that score highly without solving the task in the intended way. This phenomenon is called “reward hacking”.</p>
+<p>Model cards accompanying the release of <a href='https://www.anthropic.com/claude-opus-5-5-system-card'>recent</a> <a href='https://deploymentsafety.openai.com/gpt-5-6'>frontier models</a> show these models reward hack. As model capabilities have increased, so too have the <a href='https://metr.org/blog/2025-06-05-recent-reward-hacking/'>sophistication and variety of actual reward hacks</a>, in some cases <a href='https://cdn.openai.com/pdf/67869394-cb91-4c12-888c-5cbd85c7814c/OpenAI-Hugging-Face%20Incident-Technical-Report.pdf'>causing real-world incidents</a>. This limits the usefulness and reliability of AI systems, and poses safety risks: research suggests that reward hacking could generalize to dangerous misbehaviors, including violating restrictions on aiding various harmful activities, <a href='https://alignment.anthropic.com/2026/reward-seeker/'>autonomously conducting cyberattacks</a>, deception, and <a href='https://arxiv.org/abs/2511.18397'>research sabotage</a>.</p>
+<p>One way to prevent reward hacking is by introducing monitors to the RL training loop. These monitors, which could be LLM judges or keyword detectors, read the content of trajectories generated during training and flag trajectories containing undesired behaviors. When a trajectory is flagged, a reward penalty can be assigned, which prevents those behaviors from being reinforced.</p>
+<p>However, monitors make errors, and incorporating monitor verdicts into reward functions can reinforce <a href='https://arxiv.org/abs/2503.11926'>monitor-exploiting policies</a> that misbehave in ways that go undetected. As a result, monitors that are useful at the beginning of training may become blind to reward hacking later in training. For example, policies trained against LLM judges can learn to reward hack in ways <a href='https://arxiv.org/abs/2407.13692'>too subtle for the judge to catch</a>, trick judges by <a href='https://arxiv.org/abs/2608.17776'>impersonating them</a>, or circumvent them by <a href='https://alignment.anthropic.com/2026/reward-seeker/'>agentic means</a>.</p>
+<h3>The method</h3>
+<p>We explore a potential solution to reward hacking that we call GRAFT: Gradient Routing Adapter Fine-Tuning. GRAFT is an adaptation of <a href='https://arxiv.org/abs/2410.04332'>gradient routing</a> for post-training. The idea is to constrain weight updates to an adapter when we detect undesired behaviors. In doing so, we localize representations of such behaviors to that adapter. This allows us to remove the behaviors when we deploy the model, simply by ablating the adapter.</p>
+<p>Concretely, before RL begins, we initialize two sets of additional neurons in each MLP layer, and designate one the RETAIN adapter and one the FORGET adapter. During training, when a rollout trajectory is flagged by the monitor, we zero-mask gradients to the RETAIN adapter, updating only the neurons in the FORGET adapter. After training, we ablate the FORGET neurons to remove the undesired behavior while preserving performance on target tasks (Figure 1). GRAFT can also be used with full-parameter fine-tuning: the FORGET adapter is kept, and the full parameters of the base model are trained in place of the RETAIN adapter.</p>
+<p>Importantly, we use the monitor only to decide which parameters are updated, and not to specify the reward. Consequently, policies that exploit weaknesses of the monitor are not differentially reinforced. As a result, GRAFT allows developers to use weak monitors for supervision during training without training the model to exploit the monitor's weaknesses.</p>
+<figure style="--img-width: 1999px; --gdoc-width:2048.00px"><img src='fig1.png' /></figure>
+<figcaption class='text-caption'> <span style='font-weight: 700;'>Gradient Routing Adapter Fine-Tuning (GRAFT).</span> Additional neurons are added to each MLP in a decoder-only Transformer; these are partitioned into RETAIN and FORGET. When training in the target environment (left, center), both adapters are enabled for both the rollout phase and the actor update's forward pass. On trajectories not flagged by the monitor (left), both the RETAIN and FORGET adapters receive gradient updates. On trajectories flagged by the monitor (center), only the FORGET adapter is updated and the gradient update to this adapter is amplified by a constant factor. We concurrently train the model in a separate anchor environment where only the RETAIN adapter is enabled and updated (right). </figcaption>
+<p>There are two noteworthy implementation details: </p>
+<ol><li style='margin-left: 36pt;'>Because GRAFT trains with the FORGET adapter but deploys the model without it, there is a mismatch between training and deployment that could hurt performance. To address this, we rely on an “anchor environment” to teach the model to act in a coherent way when the FORGET adapter is ablated. In the experiment we present below, the anchor environment is similar to the target environment in that it teaches a coding task, but the task is otherwise unrelated to the task in the target environment. Training in this environment alone only slightly improves the model’s performance on tasks in the target environment.</li><li style='margin-left: 36pt;'>On flagged samples, fewer total parameters are updated. As a heuristic way of updating the network an equal amount for such samples, we scale the size of updates on these parameters by a proportionate factor.</li></ol>
+<h3>Results</h3>
+<p>In this blog post, we present a single result from our paper. We apply GRAFT to Qwen3-8B in the <a href='https://arxiv.org/abs/2603.07084'>Countdown-Code</a> RLVR environment from Khalifa et al.</p>
+<p>Countdown is a simple game in which the model is given a list of integers and a target quantity, and is asked to find an arithmetic expression which evaluates to the target quantity and uses each of the integers exactly once. The prompt describes this game and supplies a scaffolding “solution function” (with the expression left blank) and a “test function” (which checks the constraints and the evaluation of the expression). The model is asked to output the same two functions with the correct expression filled in. The environment assigns full reward if the model returns a solution function that passes its returned test function. We measure the rate at which the model produces a solution function that passes both the model-supplied test function and a held-out test function.</p>
+<p>The following types of reward hack are possible in this environment:</p>
+<ol><li style='margin-left: 36pt;'>Replacing the returned test function with one that trivially passes;</li><li style='margin-left: 36pt;'>Modifying the returned test function to remove the constraint check so that integers can be used more than once; and</li><li style='margin-left: 36pt;'>Modifying the inputs in the returned solution function so that a different, easier problem is specified, and then solving that problem.</li></ol>
+<p>All prompts in this environment admit all three types of hacks. Our experiments use a monitor that detects all hacks of type 1, and no other hacks.</p>
+<figure style="--img-width: 1999px; --gdoc-width:2048.00px"><img src='fig2.png' /></figure>
+<figcaption class='text-caption'> <span style='font-weight: 700;'>GRAFT localizes and removes reward hacking in Qwen3-8B trained in an arithmetic reasoning environment. Left:</span> GRAFT outperforms all tested methods on reward hack rate and achieves competitive performance on the target task. "Clean environment solve rate" represents models' solve rates on a variant of the environment without the test and solution scaffolds, in which reward hacking is structurally impossible. "Reward hack rate" represents the rate of reward hacking the model exhibits on prompts where hacking is possible. <span style='font-weight: 700;'>Right:</span> Performance of the GRAFT-trained model in different configurations as training progresses. We measure performance with both adapters, only the RETAIN adapter (deployment configuration) and only the FORGET adapter (a diagnostic configuration to get an idea of what the FORGET adapter has learned). By the end of training, reward hacking behavior is entirely localized to the FORGET adapter. All error bars and shaded bands are standard errors of the mean over seeds. </figcaption>
+<p>When no intervention is applied, the model learns to apply hack 1 on the majority of trajectories. When a reward penalty is applied on trajectories that the monitor flags, the model learns to apply hack 2 on about 30% of trajectories and never apply hack 1 (Figure 2, left). The result is qualitatively similar regardless of penalty size. Notably, since hacks of other types would not be detected by the monitor, a practitioner might incorrectly conclude that this policy is hack-free.</p>
+<p>After training with GRAFT, the pre-ablation model performs type-1 reward hacks on up to 35% of trajectories. Ablating the FORGET adapter drops the rate of hacking (of all types) to nearly zero, while the rate of correct solutions on the target task remains nearly 20pp higher than that of the base model (Figure 2). Notably, hacks of undetectable types do not emerge in training, and are not present in the deployed model above base rates.</p>
+<p>In our paper, we also test GRAFT in six toy RL environments using SmolLM2-135M. In these settings, GRAFT prevents reward hacking by a different mechanism. The model does learn hacks that the monitor fails to detect during training, but ablating the FORGET adapter removes these hacks along with the detected ones. We also fine-tune Qwen3-32B with GRAFT, using an SFT dataset containing both correct solutions and reward hacking in a multi-turn agentic coding environment sampled from <a href='https://arxiv.org/abs/2604.17596'>Terminal Wrench</a>. While we don’t see a strong performance improvement on the target task, the GRAFT fine-tuned model’s rate of reward hacking decreases to a rate significantly below that of the starting model.</p>
+<h3>Limitations and future work</h3>
+<p>This research is preliminary and leaves many questions open.</p>
+<ul><li style='margin-left: 36pt;'><span style='font-weight: 700;'>Does GRAFT work with LLM-based monitors?</span> In our RL experiments, the monitors are heuristics that we specified manually. It’s possible that GRAFT works less well with LLM-based monitors, which make different kinds of systematic errors.</li><li style='margin-left: 36pt;'><span style='font-weight: 700;'>When does GRAFT outperform other methods?</span> In the experiment above, every prompt can be hacked. We also ran a version where only half of the prompts can be hacked. There, all methods reached similar task performance, and <a href='https://alignment.anthropic.com/2025/inoculation-prompting/'>inoculation</a> <a href='https://arxiv.org/abs/2510.04340'>prompting</a> was as effective as GRAFT at preventing reward hacking. Without extensive ablations, we cannot be sure how the methods compare.</li><li style='margin-left: 36pt;'><span style='font-weight: 700;'>How hard is it to build suitable anchor environments?</span> The result presented here relies on the existence of a separate environment where reward hacking doesn’t happen, but where the task is structurally similar to the one in the target environment (e.g. both tasks involve outputting Python code). In practice, it may be difficult to create such environments.</li><li style='margin-left: 36pt;'><span style='font-weight: 700;'>Do the results hold at larger scales and in multi-turn RL? </span>Our RL experiments are single-turn and use models up to 8B parameters.</li></ul>
+<p>We would be excited to see experiments in more realistic RL settings with LLM-based monitors.</p>
+<h3>Summary</h3>
+<ul><li style='margin-left: 36pt;'>We introduce GRAFT, a method for preventing reward hacking with weak monitors that works by localizing reward hacking behaviors to certain parameters, then ablating those parameters.</li><li style='margin-left: 36pt;'>GRAFT improves target-task performance of Qwen3-8B in the Countdown-Code environment without increasing the model's propensity to reward hack. Monitor-based reward penalization instead teaches the model to exploit the monitor and reward hack in undetectable ways.</li><li style='margin-left: 36pt;'>Using a monitor to route gradients rather than to shape reward may let developers get value from weak monitors without teaching models subversive policies.</li></ul>
+<p>Additional experiments and results are in our <a href='https://arxiv.org/abs/2610.17062'>paper</a>!</p>
+</d-article>
+</body>
+</html>

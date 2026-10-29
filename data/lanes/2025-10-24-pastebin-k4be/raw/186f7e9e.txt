@@ -1,0 +1,92 @@
+272: 
+273: function summarytxt(e){
+274:     var layer = e.target;
+275:     // pcco2=layer.feature.properties.co2pc;
+276: 
+277:     if (layer.feature.properties.co2pc&lt;emissions){
+278:     	ratio=emissions/layer.feature.properties.co2pc;
+279:     	stringplus=&quot;This flight produces (per passenger) the same amount of greenhouse gases as &quot;+ratio.toFixed(1)+&quot; average resident of &quot;+layer.feature.properties.name +&quot; did in 2017.&quot;;
+280:     } else {
+281:     	ratio=layer.feature.properties.co2pc/emissions;
+282:     	stringplus=&quot;This average resident of &quot;+layer.feature.properties.name +&quot; produced the same amount of greenhouse gases in 2017 as &quot;+ratio.toFixed(1) +&quot; of these flights (per passenger)&quot;;
+283:     }
+284: 
+285:     hoverstring=&quot;&lt;span id=&#039;hovername&#039;&gt;&quot;+layer.feature.properties.name+&quot;:&lt;/span&gt; &quot;+layer.feature.properties.co2pc+&quot; tonnes CO&lt;sub&gt;2&lt;/sub&gt; per capita&lt;br&gt;&quot;+stringplus;
+286: 
+345: 
+346: //constants for equation
+347: shDC=50;
+348: lhDC=125;
+349: ash=3.87871E-05;
+350: alh=0.000134576;
+351: bsh=2.9866;
+352: csh=1263.42;
+353: blh=6.1798;
+354: clh=3446.20;
+355: Ssh=158.44;
+356: Slh=280.39;
+357: Plf=0.77;
+358: passF=0.951;
+359: ecosh=0.96;
+360: ecolh=0.8;
+361: bussh=1.26;
+362: buslh=1.54;
+363: fcsh=2.4;
+364: fclh=2.4;
+365: EF=3.150;
+366: pp=0.51;
+367: Mnonco2=2;
+389: 	eraseErrorMsg();
+390: 
+391: 	origin=airportdata[fromindex];
+392: 	destination=airportdata[toindex];
+393: 
+394: 	origincoord=[origin.Lat,origin.Long];
+395: 	destcoord=[destination.Lat,destination.Long];
+396: 
+397: 	greatcircledist=getDistance(origincoord,destcoord)/1000; //units of km
+398: 
+399: 	if (greatcircledist&lt;1500){
+400: 		CW=ecosh;
+401: 		dist2=greatcircledist+shDC;
+402: 		flightdist= (dist2);
+403: 		emissions2=((ash*flightdist**2+bsh*flightdist+csh)/(Ssh*Plf))*passF*CW*(EF*Mnonco2+pp)*2/1000;
+404: 
+405: 	} else {
+406: 		CW=ecolh;
+407: 		dist2=greatcircledist+lhDC;
+408: 		flightdist= (dist2);
+409: 		emissions2=((alh*flightdist**2+blh*flightdist+clh)/(Slh*Plf))*passF*CW*(EF*Mnonco2+pp)*2/1000;
+410: 
+421: 
+422: 	// emissions = flightdist*175*2.7/1000000;  //unit is tonnes
+423: 	// emissions3=greatcircledist*0.62*co2fact/1000*2;  //miles * co2factor * roundtrip
+424: 
+425: 	emissions=emissions2;
+426: 	// console.log(emissions,emissions3);
+427: 	// console.log(emissions2/(flightdist*1.609)*1000);
+428: 	
+429: 	threshold=emissions;
+430: 
+431: 	drawSubset();
+432: 	drawGreatCircle();
+433: 	globaltxt();
+434: 
+435: 	emissionsstring=&quot;The round-trip flight from &lt;span id=&#039;stringorig&#039;&gt;&quot;+origin.City+&quot;&lt;/span&gt; to &lt;span id=&#039;stringdest&#039;&gt;&quot;+destination.City +&quot;&lt;/span&gt; is &lt;span id=&#039;stringdist&#039;&gt;&quot;+parseInt(flightdist*2/1.609).toLocaleString()+&quot; miles&lt;/span&gt; and produces &lt;span id=&#039;stringemiss&#039;&gt;&quot;+ emissions.toFixed(1)+&quot; tonnes&lt;/span&gt; of CO&lt;sub&gt;2&lt;/sub&gt; equivalent emissions &lt;b&gt;&lt;i&gt;for each passenger&lt;/i&gt;&lt;/b&gt;. In 2017, &lt;span id=&#039;stringnum&#039;&gt;&quot;+numCountries+&quot; countries&lt;/span&gt; in the world have lower annual per capita emissions than this flight, accounting for &lt;span id=&#039;stringpct&#039;&gt;&quot;+pctpop+&quot;&lt;/span&gt; of the world&#039;s population.&quot;
+436: 	$(&quot;#emissions&quot;).html(emissionsstring);
+437: }
+438: 
+439: function getDistance(origin, destination) {
+440:     // return distance in meters
+441:     var lon1 = toRadian(origin[1]),
+442:         lat1 = toRadian(origin[0]),
+443:         lon2 = toRadian(destination[1]),
+444:         lat2 = toRadian(destination[0]);
+445: 
+446:     var deltaLat = lat2 - lat1;
+447:     var deltaLon = lon2 - lon1;
+448: 
+449:     var a = Math.pow(Math.sin(deltaLat/2), 2) + Math.cos(lat1) * Math.cos(lat2) * Math.pow(Math.sin(deltaLon/2), 2);
+450:     var c = 2 * Math.asin(Math.sqrt(a));
+451:     var EARTH_RADIUS = 6371;
+452:     return c * EARTH_RADIUS * 1000;

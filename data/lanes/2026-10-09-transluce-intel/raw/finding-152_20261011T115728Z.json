@@ -1,0 +1,24 @@
+{
+  "id": 152,
+  "data": {
+    "summary": "A urlquery report from 2026 June 20 records a request that supplied a JavaScript function to Microlink to create a urlquery API key. A key was successfully issued. This indirect method is suggestive (but not conclusive evidence) of an AI working around tooling limitations.",
+    "description": "Update: Possibly related to https://d3ncjnql1bmhe8.cloudfront.net/findings/140. Thanks Laura for pointing this out!\n\nSummary: A 2026 June 20 report (https://urlquery.net/report/c90eedd3-fc3b-47f4-9eff-01719b528d6b) on urlquery.net records a visit to api.microlink.io which supplies a JavaScript function for Microlink to execute. The JavaScript function attempts to navigate to urlquery.net, request an API key, and return the response to the Microlink caller. This attempt appears to have been successful: the final URL displays a realistic message attached to a urlquery.net API key.\n\nThe full search query is at the bottom of this description. I first decode it here for convenience.\n\nDomain: api.microlink.io\n\nURL parameters:\nurl = https://urlquery.net/user/apikeys?x=1781917362540265108\nmeta = false\nrepmark = TESTNOW1781954064\nfunction = [see decoded function immediately below]\n\nDecoded Javascript function (JSON Web Token redacted as <JWT> for readability):\n\nasync ({ page }) => {\n  await page.setCookie({\n    name: 'urlquery-jwt',\n    value: '<JWT>',\n    domain: 'urlquery.net',\n    path: '/'\n  });\n\n  return await page.evaluate(async () => {\n    let r = await fetch('/api/htmx/apikey/new', {\n      method: 'POST',\n      headers: {\n        'Content-Type': 'application/x-www-form-urlencoded',\n        'HX-Request': 'true'\n      },\n      body: 'apikey-name=solve1781917362539889569'\n    });\n\n    return [\n      r.status,\n      await r.text(),\n      [...r.headers]\n    ];\n  });\n}\n\nDecoded JWT header:\n{\n  \"alg\": \"HS256\",\n  \"typ\": \"JWT\"\n}\nPayload:\n{\n  \"collectionId\": \"_pb_users_auth_\",\n  \"email\": \"pbs1781894398@oakon.com\",\n  \"exp\": 1782515259,\n  \"id\": \"qzcu6vxpd1wgp53\",\n  \"type\": \"verification\"\n}\n\nEnglish description of the execution of the JavaScript function:\n1. Microlink navigates a browser to a urlquery.net page, https://urlquery.net/user/apikeys?x=1781917362540265108.\n2. It manually installs a cookie.\n3. It runs JavaScript inside the urlquery.net page.\n4. That page sends a POST request to the API-key endpoint.\n5. It attempts to create an API key named solve1781917362539889569.\n6. It returns the entire useful response to the Microlink caller.\n\nThis attempt was successful; the final HTML shows the message \"This is the only time your API key will be shown. \\n\\t\\t\\t\\tPlease copy and store it securely\" and an API key for urlquery.net.\n\n\n\n\nFull search query:\n\napi.microlink.io/?url=https%3A%2F%2Furlquery.net%2Fuser%2Fapikeys%3Fx%3D1781917362540265108&meta=false&function=async+%28%7Bpage%7D%29%3D%3E%7Bawait+page.setCookie%28%7Bname%3A%27urlquery-jwt%27%2Cvalue%3A%27eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjb2xsZWN0aW9uSWQiOiJfcGJfdXNlcnNfYXV0aF8iLCJlbWFpbCI6InBiczE3ODE4OTQzOThAb2Frb24uY29tIiwiZXhwIjoxNzgyNTE1MjU5LCJpZCI6InF6Y3U2dnhwZDF3Z3A1MyIsInR5cGUiOiJ2ZXJpZmljYXRpb24ifQ.vaHCIWEYdgGfbTKYp09vPyNZiJF2cJ3UAmDGof8dLmk%27%2Cdomain%3A%27urlquery.net%27%2Cpath%3A%27%2F%27%7D%29%3Breturn+await+page.evaluate%28async%28%29%3D%3E%7Blet+r%3Dawait+fetch%28%27%2Fapi%2Fhtmx%2Fapikey%2Fnew%27%2C%7Bmethod%3A%27POST%27%2Cheaders%3A%7B%27Content-Type%27%3A%27application%2Fx-www-form-urlencoded%27%2C%27HX-Request%27%3A%27true%27%7D%2Cbody%3A%27apikey-name%3Dsolve1781917362539889569%27%7D%29%3Breturn+%5Br.status%2Cawait+r.text%28%29%2C%5B...r.headers%5D%5D%7D%29%7D&repmark=TESTNOW1781954064",
+    "evidence_links": [
+      "https://urlquery.net/report/c90eedd3-fc3b-47f4-9eff-01719b528d6b"
+    ],
+    "untapped_source": "Yes",
+    "cyberattack": [
+      "None"
+    ],
+    "government": "No",
+    "ai_company": "Unknown"
+  },
+  "form_version": 3,
+  "submitter_id": 24,
+  "created_at": "2026-10-04T22:22:49+00:00",
+  "updated_at": "2026-10-05T05:20:48+00:00",
+  "updated_by": 24,
+  "sensitive": false,
+  "submitter": "Linus",
+  "attachments": []
+}
