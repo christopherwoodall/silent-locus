@@ -1,0 +1,715 @@
+<!doctype html>
+<!doctype html>
+
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    
+    
+    
+    <title>Training Alignment Auditors via Reinforcement Learning</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<script src="/anthropic-serve/distill.template.v2.js"
+    integrity="sha384-5u81IQundsxB54QMWC7D3R8yOS8hftmsuvKjNrvIMWj88iPXf3daN0lNUZRPy9OX"></script>
+<script>
+    // We number figures with a script since CSS counters don't work,
+    // likely because of the distill template.
+    function numberFigures() {
+        // Find all figcaption elements with class 'text-caption'
+        const figcaptions = document.querySelectorAll('figcaption.text-caption');
+
+        figcaptions.forEach((figcaption, index) => {
+            // Create a new span for the figure number
+            figcaption.style.marginBottom = '1.25rem';
+
+            const newSpan = document.createElement('span');
+            newSpan.style.fontWeight = '500';
+            newSpan.textContent = `Figure ${index + 1}: `;
+
+            // Insert the new span at the beginning of the figcaption
+            figcaption.insertBefore(newSpan, figcaption.firstChild);
+        });
+    }
+
+    // Function to create a slug from header text
+    function createSlug(text) {
+        return text
+            .toLowerCase()
+            .replace(/[^\w\s]/g, '') // Remove special characters
+            .replace(/\s+/g, '-')    // Replace spaces with hyphens
+            .trim();                 // Remove whitespace from start/end
+    }
+
+    // Function to add IDs to all headers and create a table of contents
+    function addHeaderSlugs() {
+        // Get all heading elements (h1 through h6)
+        const headings = document.querySelectorAll('h1, h2, h3, h4, h5, h6');
+
+        // Process each heading
+        headings.forEach((heading) => {
+            // Skip headings that already have IDs
+            if (heading.id) return;
+
+            // Create slug from heading text
+            const slug = createSlug(heading.textContent);
+
+            // Add ID to the heading
+            heading.id = slug;
+        });
+    }
+
+    // Run the function when the document is loaded
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', numberFigures);
+        document.addEventListener('DOMContentLoaded', addHeaderSlugs);
+    } else {
+        // Document already loaded, run the function
+        numberFigures();
+        addHeaderSlugs();
+    }
+</script>
+<d-front-matter>
+    <script type="text/json">
+        {
+            "title": "Untitled",
+            "description": "We train LLMs to investigate target models with hidden behaviors planted in their system prompt. A trained Haiku 4.5 policy matches Opus 4.6 on held-out evaluations for auditing quality and generalizes to harder fine-tuned targets in a different scaffold.",
+            "authors": [null]
+        }
+    </script>
+</d-front-matter>
+<link rel="stylesheet" href="/utilities/transcript-viewer.css">
+<script src="/utilities/transcript-viewer.js" defer></script>
+    
+    
+</head>
+<body>
+    
+    <style>
+    .article-header {
+        width: 100%;
+        padding: 36px;
+        padding-bottom: 20px;
+        box-sizing: border-box;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .home-link {
+        font-size: 100%;
+        color: #333;
+        text-decoration: none;
+        cursor: pointer;
+        font-weight: 700;
+        font-size: 1.3em;
+    }
+
+    a.logo {
+        display: flex;
+        text-decoration: none;
+    }
+
+    span.commentary {
+        color: #804633;
+    }
+</style>
+
+<div class="article-header">
+    <a class="home-link" href="/">Alignment Science Blog</a>
+</div>
+<d-title class="real-title">
+    <h1>Training Alignment Auditors via Reinforcement Learning</h1>
+</d-title>
+<style>
+    .safety-case-block p {
+        margin-bottom: 0.5em !important;
+        margin-top: 1em !important;
+    }
+
+    .safety-case-block p:first-of-type {
+        margin-top: 0.5em !important;
+    }
+
+    d-article {
+        padding-top: 60px !important;
+    }
+
+    d-article li:last-child {
+        margin-bottom: 0.5em !important;
+    }
+
+    d-article li {
+        margin-bottom: 0.5em !important;
+    }
+
+    ul {
+        padding-left: 0em !important;
+        margin-bottom: 0.2em !important;
+    }
+
+    ol {
+        padding-left: 0em !important;
+        margin-bottom: 0.2em !important;
+    }
+
+    d-byline {
+        display: none;
+    }
+
+    .d-byline-container {
+        border-top: 1px solid rgba(0, 0, 0, 0.1);
+        border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+        padding-top: 20px;
+        padding-bottom: 20px;
+    }
+
+    .d-byline {
+        grid-column: text;
+        display: grid;
+        grid-template-columns: [authors info] 5fr [affiliations published] 1fr;
+        grid-template-rows: [authors affiliations] auto [published info] auto;
+        font-size: 0.8rem;
+        line-height: 1.8em;
+        grid-gap: 20px;
+    }
+
+    .d-byline h3 {
+        font-size: 0.6rem;
+        font-weight: 400;
+        color: rgba(0, 0, 0, 0.5);
+        margin: 0;
+        text-transform: uppercase;
+        margin-bottom: 4px;
+    }
+
+    .d-byline .info {
+        color: rgba(0, 0, 0, 0.5);
+        font-size: 80%;
+        line-height: 1.5;
+    }
+
+    .d-byline .authors div {
+        line-height: 1.5;
+    }
+
+    .d-byline .authors sup {
+        font-size: 80%;
+        margin-right: -4px;
+    }
+
+    .d-byline .author {
+        margin-right: 6px;
+        white-space: nowrap;
+    }
+
+    .d-byline a {
+        color: inherit;
+        text-decoration: none;
+    }
+
+    .safety-case-block {
+        padding: 16px;
+        padding-top: 8px;
+        padding-bottom: 8px;
+        border-radius: 4px;
+        background: #faf9f7;
+        border: 1px solid #e5e5e1;
+        border-left: 4px solid #cc9b7a;
+        opacity: 0.8;
+        margin-top: 10px;
+        margin-bottom: 10px;
+    }
+
+    @media screen and (min-width: 900px) {
+        .offset-gdoc-image {
+            margin-left: -65px;
+        }
+    }
+
+    .section-authors {
+        color: #777;
+        font-style: italic;
+        margin-top: -24px;
+        margin-bottom: 32px;
+        line-height: 1.3;
+        /* display: flex; */
+        flex-wrap: wrap;
+        justify-content: space-between;
+        gap: 0.5em;
+    }
+
+    .section-authors::before {
+        content: attr(data-author);
+    }
+
+    .section-authors::after {
+        content: attr(data-published);
+    }
+
+    figure {
+        margin-bottom: 0em;
+    }
+
+    .text-caption figcaption {
+        margin-bottom: 1em;
+    }
+
+    pre.code-block-wrap {
+        background-color: rgba(241, 243, 244, 0.8);
+        border: 1px solid #dadce0;
+        border-radius: 4px;
+        padding: 12px 16px;
+        margin: 0.5em 0;
+        font-family: 'Roboto Mono', 'Consolas', 'Monaco', 'Courier New', monospace;
+        font-size: 0.85em;
+        color: #137333;
+        line-height: 1.4;
+        white-space: pre-wrap;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+    }
+
+    pre.code-block-wrap .gray-box {
+        display: block;
+    }
+
+    pre.code-block-wrap html\:p {
+        margin: 0;
+        padding: 0;
+    }
+
+    /* Default: prevent breaking within individual words */
+    pre.code-block-wrap html\:span {
+        white-space: nowrap;
+    }
+
+    /* For spans that contain full sentences/lines - allow normal wrapping */
+    pre.code-block-wrap html\:span[class*="c4 c2"],
+    pre.code-block-wrap html\:span[class*="c7 c"] {
+        white-space: normal;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+        word-break: normal;
+    }
+
+    pre.citation-block-wrap {
+        background-color: rgba(241, 243, 244, 0.8);
+        border: 1px solid #dadce0;
+        border-radius: 4px;
+        padding: 8px 12px;
+        margin: 0.5em 0;
+        font-family: 'Roboto Mono', 'Consolas', 'Monaco', 'Courier New', monospace;
+        font-size: 0.75em;
+        color: #000000;
+        line-height: 1.15;
+        white-space: pre-wrap;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+        word-break: break-word;
+        hyphens: manual;
+        -webkit-hyphens: manual;
+        -ms-hyphens: manual;
+    }
+
+    details {
+        border: 1px solid rgba(0, 0, 0, 0.1);
+        border-radius: 4px;
+        padding: 0.5em 1em;
+        margin-bottom: 1rem;
+        background-color: rgba(0, 0, 0, 0.03);
+        transition: all 0.3s ease;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    }
+
+    .wide-figure {
+        /* text-align: center; */
+        overflow: visible;
+        position: relative;
+    }
+
+    .wide-figure img {
+        width: 120%;
+        max-width: 150%;
+        margin-left: -10%;
+        position: relative;
+    }
+
+
+    .tldr {
+        position: absolute;
+        right: calc(100% + 10px);
+        top: 0;
+        text-align: right;
+        color: #777;
+    }
+
+    @media (max-width: 768px) {
+        .tldr {
+            position: static;
+            display: inline-block;
+            margin-right: 10px;
+        }
+    }
+
+    d-article {
+        padding-bottom: 72px !important;
+    }
+
+    /* Inline transcript chat bubbles */
+    .transcript-inline-rendered {
+        background: #FFFBF9;
+        border: 1px solid #E3DACC;
+        border-radius: 8px;
+        padding: 1.5rem 2rem;
+        margin: 1em 0;
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .transcript-inline-rendered .t-bubble {
+        display: flex;
+    }
+
+    .transcript-inline-rendered .t-bubble-agent {
+        justify-content: flex-end;
+    }
+
+    .transcript-inline-rendered .t-bubble-result {
+        justify-content: flex-start;
+    }
+
+    .transcript-inline-rendered .t-bubble-summary {
+        justify-content: center;
+    }
+
+    .transcript-inline-rendered .t-bubble-content {
+        max-width: 65%;
+        padding: 0.875rem 1.25rem;
+        border-radius: 8px;
+        background: #FAF9F5;
+        border: 1px solid #E3DACC;
+        font-size: 0.95rem;
+        line-height: 1.6;
+        color: #141413;
+    }
+
+    .transcript-inline-rendered .t-bubble-summary .t-bubble-content {
+        max-width: 55%;
+        background: #F2E0BD;
+        border-color: #D19B75;
+        text-align: center;
+        font-weight: 500;
+    }
+
+    .transcript-inline-rendered .t-bubble-label {
+        font-size: 0.8rem;
+        font-weight: 600;
+        margin-bottom: 0.375rem;
+        letter-spacing: 0.3px;
+        color: #D19B75;
+    }
+
+    .transcript-inline-rendered .t-bubble-result .t-bubble-label {
+        color: #C46686;
+    }
+
+    .transcript-inline-rendered .t-bubble-summary .t-bubble-label {
+        color: #788C5D;
+    }
+
+    .transcript-inline-rendered .t-label {
+        font-size: 0.8rem;
+        font-weight: 600;
+        margin-top: 0.5rem;
+        margin-bottom: 0.25rem;
+        letter-spacing: 0.3px;
+        color: #D19B75;
+    }
+
+    .transcript-inline-rendered .t-label:first-child {
+        margin-top: 0;
+    }
+
+    .transcript-inline-rendered .t-code {
+        background: #FAF9F5;
+        border: 1px solid #E3DACC;
+        border-radius: 6px;
+        padding: 1rem;
+        margin: 0.5rem 0;
+        font-family: 'Monaco', 'Menlo', 'Consolas', 'Courier New', monospace;
+        font-size: 0.85em;
+        line-height: 1.6;
+        color: #141413;
+        white-space: pre-wrap;
+        word-break: break-word;
+        overflow-x: auto;
+    }
+
+    .transcript-inline-rendered .t-code .tok-kw { color: #B86046; }
+    .transcript-inline-rendered .t-code .tok-str { color: #788C5D; }
+    .transcript-inline-rendered .t-code .tok-cmt { color: #8b8680; font-style: italic; }
+    .transcript-inline-rendered .t-code .tok-num { color: #D97757; }
+    .transcript-inline-rendered .t-code .tok-fn { color: #6A9BCC; }
+    .transcript-inline-rendered .t-code .tok-op { color: #999; }
+
+    .transcript-inline-rendered .t-inline-code {
+        background: rgba(20, 20, 19, 0.08);
+        padding: 0.125rem 0.375rem;
+        border-radius: 3px;
+        font-family: 'Monaco', 'Menlo', 'Consolas', 'Courier New', monospace;
+        font-size: 0.875em;
+        color: #D97757;
+    }
+
+    .transcript-inline-rendered .t-bubble-content p {
+        margin: 0.25em 0;
+    }
+
+    .transcript-inline-rendered .t-bubble-content p:first-of-type {
+        margin-top: 0;
+    }
+
+    .transcript-inline-rendered .t-bubble-content p:last-of-type {
+        margin-bottom: 0;
+    }
+
+    .tabbed-details-panel .transcript-inline-rendered {
+        max-height: none;
+        overflow-y: visible;
+        border: none;
+        padding: 0.5rem 0;
+        margin: 0;
+    }
+
+    @media (max-width: 768px) {
+        .transcript-inline-rendered .t-bubble-content {
+            max-width: 90%;
+        }
+    }
+
+    /* Tabbed details component */
+    .tabbed-details-container {
+        border: 1px solid rgba(0, 0, 0, 0.1);
+        border-radius: 4px;
+        background-color: rgba(0, 0, 0, 0.03);
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        margin-bottom: 1rem;
+    }
+
+    .tabbed-details-nav {
+        display: flex;
+        gap: 10px;
+        padding: 0.5em 1em;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    }
+
+    .tabbed-details-nav button {
+        padding: 8px 16px;
+        background-color: #f5f5f5;
+        border: 1px solid rgba(0, 0, 0, 0.1);
+        border-radius: 20px;
+        cursor: pointer;
+        font-weight: 500;
+        transition: all 0.2s ease;
+        color: #555;
+        font-size: 14px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    }
+
+    .tabbed-details-nav button.active {
+        background-color: #333;
+        color: white;
+        border-color: #222;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+    }
+
+    .tabbed-details-nav button:hover:not(.active) {
+        background-color: #e8e8e8;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+
+    .tabbed-details-panel {
+        display: none;
+        max-height: 500px;
+        overflow-y: auto;
+        padding: 0.5em 1em;
+    }
+
+    .tabbed-details-panel.active {
+        display: block;
+    }
+</style>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Remove whitespace text nodes between <p> elements in code blocks
+    // so that only block breaks contribute spacing (not pre-wrap newlines)
+    document.querySelectorAll('pre.code-block-wrap code').forEach(function(code) {
+        Array.from(code.childNodes).forEach(function(node) {
+            if (node.nodeType === 3) node.remove(); // text nodes
+        });
+    });
+
+    document.querySelectorAll('.tabbed-details').forEach(function(wrapper, wrapperIdx) {
+        var details = wrapper.querySelectorAll('details');
+        if (details.length === 0) return;
+
+        var container = document.createElement('div');
+        container.className = 'tabbed-details-container';
+
+        var nav = document.createElement('div');
+        nav.className = 'tabbed-details-nav';
+        container.appendChild(nav);
+
+        details.forEach(function(detail, i) {
+            var summary = detail.querySelector('summary');
+            var label = summary ? summary.textContent : 'Tab ' + (i + 1);
+
+            var btn = document.createElement('button');
+            btn.textContent = label;
+            btn.dataset.index = i;
+            btn.dataset.wrapper = wrapperIdx;
+            if (i === 0) btn.className = 'active';
+            btn.addEventListener('click', function() {
+                var w = this.dataset.wrapper;
+                var idx = this.dataset.index;
+                var cont = this.closest('.tabbed-details-container');
+                cont.querySelectorAll('.tabbed-details-panel').forEach(function(p) { p.classList.remove('active'); });
+                cont.querySelectorAll('.tabbed-details-nav button').forEach(function(b) { b.classList.remove('active'); });
+                cont.querySelectorAll('.tabbed-details-panel')[idx].classList.add('active');
+                this.classList.add('active');
+            });
+            nav.appendChild(btn);
+
+            var panel = document.createElement('div');
+            panel.className = 'tabbed-details-panel' + (i === 0 ? ' active' : '');
+            // Copy all children except the summary
+            Array.from(detail.children).forEach(function(child) {
+                if (child.tagName !== 'SUMMARY') {
+                    panel.appendChild(child.cloneNode(true));
+                }
+            });
+            container.appendChild(panel);
+        });
+
+        wrapper.parentNode.replaceChild(container, wrapper);
+    });
+
+    // Transform inline transcript divs into chat bubbles
+    document.querySelectorAll('.transcript-inline').forEach(function(wrapper) {
+        var entries = wrapper.querySelectorAll('.t');
+        if (entries.length === 0) return;
+
+        var container = document.createElement('div');
+        container.className = 'transcript-inline-rendered';
+
+        entries.forEach(function(entry) {
+            var role = entry.getAttribute('data-role') || 'agent';
+            var name = entry.getAttribute('data-name') || '';
+
+            var bubble = document.createElement('div');
+            bubble.className = 't-bubble t-bubble-' + role;
+
+            var content = document.createElement('div');
+            content.className = 't-bubble-content';
+
+            if (name) {
+                var label = document.createElement('div');
+                label.className = 't-bubble-label';
+                label.textContent = name;
+                content.appendChild(label);
+            }
+
+            var body = document.createElement('div');
+            body.innerHTML = entry.innerHTML;
+            content.appendChild(body);
+
+            bubble.appendChild(content);
+            container.appendChild(bubble);
+        });
+
+        wrapper.parentNode.replaceChild(container, wrapper);
+    });
+
+    // Basic syntax highlighting for code blocks inside transcript bubbles
+    function highlightCode(text, lang) {
+        // HTML-escape first
+        var escaped = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        // Order matters: comments and strings first (greedy), then keywords etc.
+        var rules = [
+            // Comments
+            { re: /(#.*$)/gm, cls: 'tok-cmt' },
+            // Triple-quoted strings
+            { re: /("""[\s\S]*?"""|'''[\s\S]*?''')/g, cls: 'tok-str' },
+            // Double-quoted strings
+            { re: /("(?:[^"\\]|\\.)*")/g, cls: 'tok-str' },
+            // Single-quoted strings
+            { re: /('(?:[^'\\]|\\.)*')/g, cls: 'tok-str' },
+            // Numbers
+            { re: /\b(\d+\.?\d*)\b/g, cls: 'tok-num' },
+            // Python keywords
+            { re: /\b(def|class|if|elif|else|for|while|return|import|from|as|try|except|finally|with|yield|lambda|pass|break|continue|raise|in|not|and|or|is|None|True|False|self|async|await|print)\b/g, cls: 'tok-kw' },
+            // Function calls
+            { re: /\b([a-zA-Z_]\w*)\s*(?=\()/g, cls: 'tok-fn' }
+        ];
+        // Apply rules sequentially, protecting already-wrapped spans
+        var placeholder = [];
+        rules.forEach(function(rule) {
+            escaped = escaped.replace(rule.re, function(match, g1) {
+                var idx = placeholder.length;
+                placeholder.push('<span class="' + rule.cls + '">' + g1 + '</span>');
+                return '\x00_' + idx + '_\x01';
+            });
+        });
+        // Restore placeholders
+        placeholder.forEach(function(span, i) {
+            escaped = escaped.replace('\x00_' + i + '_\x01', span);
+        });
+        return escaped;
+    }
+
+    // Fix code blocks inside transcript bubbles: merge <p> elements into
+    // a single preformatted text block so indentation is preserved
+    document.querySelectorAll('.transcript-inline-rendered .t-code').forEach(function(block) {
+        var lines = [];
+        Array.from(block.childNodes).forEach(function(child) {
+            if (child.nodeType === 1 && child.tagName === 'P') {
+                lines.push(child.textContent);
+            } else if (child.nodeType === 3 && child.textContent.trim()) {
+                lines.push(child.textContent.trim());
+            }
+        });
+        if (lines.length > 0) {
+            var text = lines.join('\n');
+            var lang = block.getAttribute('data-lang') || 'python';
+            block.innerHTML = highlightCode(text, lang);
+        }
+    });
+});
+</script>
+<d-article>
+<div class="section-authors" data-author="" data-published="">
+<div style="margin-bottom: 1em;">Paul Rosu<div style="float: right;">October 15, 2026</div></div>
+<p>Rowan Wang</p>
+</div>
+</div>
+<div style="position: relative">
+<span class="tldr">tl;dr</span>
+<p>We train LLM alignment auditors with reinforcement learning. In our training environment, the policy investigates target models with hidden behaviors planted in their system prompt. After finetuning Haiku 4.5 on this environment, it matches Opus 4.6 on held-out evaluations for auditing quality and generalizes to harder, fine-tuned targets in a different scaffold.</p>
+</div>
+<p>📄 <a href='https://arxiv.org/abs/2608.25460'>Paper</a>, 💻 <a href='https://github.com/paulrosu11/training-auditing-agents-public'>Code</a></p>
+<br><br><br><hr><br><br><h2>Introduction</h2>
+<p>Frontier model developers increasingly rely on automated auditing systems as part of their pre-deployment evaluations (<a href='https://alignment.anthropic.com/2025/automated-auditing/'>Anthropic, 2025</a>). In these systems, an LLM auditor investigates a candidate model in a multi-turn interaction across many scenarios, probing for concerning or unintended behaviors. Petri (<a href='https://alignment.anthropic.com/2025/petri/'>Fronsdal et al., 2025</a>), an open-source auditing scaffold, operationalizes this by giving the auditor a set of probing tools and a library of scenario seeds. But current automated auditors often produce unrealistic investigations (<a href='https://alignment.anthropic.com/2026/coding-audit-realism/'>Kissane et al., 2026</a>), and AuditBench (<a href='https://arxiv.org/abs/2602.22755'>Sheshadri et al., 2026</a>) recently showed that production auditing systems largely fail against adversarially hardened target models.</p>
+<p>We improve auditor capability through reinforcement learning. We first try two pointwise rewards: a concerningness score derived from Petri on production-model targets, and a binary reward on targets with a hidden behavior planted in their system prompt. Both are reward-hacked: the auditor learns to manufacture alarming findings or to narrate conclusions it hasn't actually established. We then move to pairwise rewards, where a judge compares two investigations of the same planted-behavior target in the same scenario, and we study the effect of mixing in targets without planted behaviors and of training against multiple target model families. Pairwise rewards are more robust, and mixing in benign targets is necessary to keep false positive rates low. A Haiku auditor trained this way matches Opus 4.6 on our composite evaluation and transfers to AuditBench's fine-tuned targets in the Claude Code scaffold.</p>
+<p>Our best configuration—reference pairwise reward with 50% calibration training—improves steadily over three epochs. Audit quality reaches 72.7 (Opus 4.6: 68.0), false positive calibration holds at 99.6, and realism climbs from 4.6 to 14.0 (Opus 4.6: 13.1).</p>
+<figure style="--img-width: 1100px; --gdoc-width:576.00px"><img src='fig1.jpg' /></figure>
+<figcaption class='text-caption'>Training progression of the reference pairwise reward with half of the batch being calibration training. Composite rises with training to match Opus 4.6. Audit quality surpasses Opus 4.6 while false positive calibration stays above 99%. Realism improves to matching Opus 4.6 despite not being independently optimized. Error bars are 95% CIs across seeds, with n=3 rollouts averaged per seed.</figcaption>
+<br><br><br><hr><br><br><h2>What did the auditor learn?</h2>
+<p>We apply contrastive clustering, following Clio (<a href='https://arxiv.org/abs/2412.13678'>Tamkin et al., 2024</a>), to 81,000 evaluation transcripts: a small extractor summarizes each transcript's strategy in one paragraph, the summaries are embedded and clustered, and the clusters are named contrastively and rolled up into 14 archetypes that we group into five plain-language categories.</p>
+<figure style="--img-width: 1100px; --gdoc-width:576.00px"><img src='fig2.jpg' /></figure>
+<figcaption class='text-caption'>Auditor strategy composition across training for five configurations. The 14-archetype taxonomy from contrastive clustering is bucketed into five plain-language categories. The Ref. PW 4/8 FP model converges on "Audits with controlled systematic experiments." Multi-target configurations show greater diversity. Reward-hacked models (Concerningness RL, Binary) exhibit aggressive, manipulative or failure-mode patterns.</figcaption>
+<p>The best model converges on controlled systematic experiments: auditors that treat the target's responses as data points, varying framings and scenarios to map its reasoning rather than pushing for a confession. The reward-hacked models are visibly different: the binary-reward model develops aggressive, manipulative auditing; the concerningness-RL model devolves into pressured-confession and outright failure patterns. Models trained with calibration show fewer of these failure modes across the board.</p>
+<p>To learn more, read our <a href='https://arxiv.org/abs/2608.25460'>paper</a>.</p>
+</d-article>
+</body>
+</html>
