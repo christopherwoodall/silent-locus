@@ -1,0 +1,69 @@
+{
+  "url": "https://api.github.com/repos/ondrej-merkun/skill-audit/pulls/comments/4420945663",
+  "pull_request_review_id": 5708713410,
+  "id": 4420945663,
+  "node_id": "PRRC_kwDOSKusR88AAAABB4JG_w",
+  "diff_hunk": "@@ -0,0 +1,111 @@\n+import { createHash } from 'node:crypto';\n+import { constants } from 'node:fs';\n+import { access, stat } from 'node:fs/promises';\n+import { basename, join, resolve } from 'node:path';\n+import { enterDirOnce, readDirFollowingLinks } from '../fs-walk.js';\n+import type { Skill } from '../types.js';\n+import { addModifiedAt } from './modified-at.js';\n+import { fallbackSkillNameFromDirectory } from './names.js';\n+import { computeTreeSha256 } from './tree-hash.js';\n+\n+// No agent has installed a path target. The JSON contract has no agent id for that, so path\n+// targets use the agent-neutral id that already exists.\n+const PATH_AGENT_ID = 'cross-agent';\n+const SKILL_MANIFEST = 'SKILL.md';\n+const SKILL_ID_HEX_LENGTH = 16;\n+\n+/**\n+ * Lists the scan targets of `skill-audit scan <path>`. A file is one skill. In a directory,\n+ * each directory at or under the path that holds a SKILL.md is one skill. The path itself is\n+ * one more skill when it has files outside those skill directories, such as plugin hooks,\n+ * commands, or MCP configs, so the scan covers every file under the path.\n+ * Throws for a path that does not exist or that the user cannot read.\n+ */\n+export async function discoverPath(inputPath: string): Promise<Skill[]> {\n+  const root = resolve(inputPath);\n+  const info = await stat(root).catch(() => undefined);\n+  if (info === undefined) throw new Error(`path not found: ${inputPath}`);\n+  if (!info.isFile() && !info.isDirectory()) {\n+    throw new Error(`not a file or directory: ${inputPath}`);\n+  }\n+  // An unreadable target scans as empty, and an empty scan reports PASS.\n+  await access(root, constants.R_OK);\n+\n+  const targets = info.isFile()\n+    ? [{ path: root, manifestPath: root, name: basename(root) }]\n+    : await findDirTargets(root);\n+  return addModifiedAt(await Promise.all(targets.map(pathSkill)));\n+}\n+\n+async function findDirTargets(root: string): Promise<PathTarget[]> {\n+  const skillDirs: string[] = [];\n+  const aliasDirs: string[] = [];\n+  let hasFilesOutsideSkills = false;\n+  const visitedRealDirs = new Set<string>();\n+\n+  // Same walk as the shared Agent Skills discovery: no depth limit, links followed.\n+  async function visit(dir: string, insideSkill: boolean): Promise<void> {\n+    if (!(await enterDirOnce(visitedRealDirs, dir))) {\n+      aliasDirs.push(dir);\n+      return;\n+    }\n+\n+    const entries = await readDirFollowingLinks(dir);\n+    const isSkill = entries.some((entry) => entry.name === SKILL_MANIFEST && entry.kind === 'file');\n+    if (isSkill) skillDirs.push(dir);\n+    if (!insideSkill && !isSkill && entries.some((entry) => entry.kind === 'file')) {\n+      hasFilesOutsideSkills = true;\n+    }\n+\n+    for (const entry of entries) {\n+      if (entry.kind === 'dir') await visit(join(dir, entry.name), insideSkill || isSkill);\n+    }\n+  }\n+\n+  await visit(root, false);\n+\n+  const targets: PathTarget[] = skillDirs\n+    .sort((a, b) => a.localeCompare(b))\n+    .map((dir) => ({\n+      path: dir,\n+      manifestPath: join(dir, SKILL_MANIFEST),\n+      name: fallbackSkillNameFromDirectory(dir),\n+    }));\n+  // The rule engine leaves the skill dirs out of the root's walk, so no file is scanned twice.\n+  if (hasFilesOutsideSkills) {\n+    targets.unshift({ path: root, manifestPath: null, name: fallbackSkillNameFromDirectory(root) });\n+  }\n+\n+  // A skipped alias reaches a dir that this walk gave to the target it entered first. The root's\n+  // engine walk does not enter skill dirs, so it can reach a skill's real dir first through such\n+  // an alias and scan the skill again. The engine skips every path in `alsoInstalledAt`.\n+  const rootTarget = targets[0];\n+  if (rootTarget?.path === root && aliasDirs.length > 0) rootTarget.alsoInstalledAt = aliasDirs;",
+  "path": "packages/cli/src/discovery/path.ts",
+  "commit_id": "b5aacb0652f4c007fcead55e60ba5934726fc9ec",
+  "original_commit_id": "b5aacb0652f4c007fcead55e60ba5934726fc9ec",
+  "user": {
+    "login": "chatgpt-codex-connector[bot]",
+    "id": 199175422,
+    "node_id": "BOT_kgDOC98s_g",
+    "avatar_url": "https://avatars.githubusercontent.com/in/1144995?v=4",
+    "gravatar_id": "",
+    "url": "https://api.github.com/users/chatgpt-codex-connector%5Bbot%5D",
+    "html_url": "https://github.com/apps/chatgpt-codex-connector",
+    "followers_url": "https://api.github.com/users/chatgpt-codex-connector%5Bbot%5D/followers",
+    "following_url": "https://api.github.com/users/chatgpt-codex-connector%5Bbot%5D/following{/other_user}",
+    "gists_url": "https://api.github.com/users/chatgpt-codex-connector%5Bbot%5D/gists{/gist_id}",
+    "starred_url": "https://api.github.com/users/chatgpt-codex-connector%5Bbot%5D/starred{/owner}{/repo}",
+    "subscriptions_url": "https://api.github.com/users/chatgpt-codex-connector%5Bbot%5D/subscriptions",
+    "organizations_url": "https://api.github.com/users/chatgpt-codex-connector%5Bbot%5D/orgs",
+    "repos_url": "https://api.github.com/users/chatgpt-codex-connector%5Bbot%5D/repos",
+    "events_url": "https://api.github.com/users/chatgpt-codex-connector%5Bbot%5D/events{/privacy}",
+    "received_events_url": "https://api.github.com/users/chatgpt-codex-connector%5Bbot%5D/received_events",
+    "type": "Bot",
+    "user_view_type": "public",
+    "site_admin": false
+  },
+  "body": "**<sub><sub>![P1 Badge](https://img.shields.io/badge/P1-orange?style=flat)</sub></sub>  Preserve operative aliases when excluding duplicate directories**\n\nWhen the selected skill contains `SKILL.md`, `payload/inject.md`, and a `docs -> payload` symlink, discovery visits `docs` first and puts `payload` into `alsoInstalledAt`. `collectScanTargetPaths()` then excludes `payload` from the engine walk before it can record that operative alias in `skippedDirs`. Consequently, the engine sees only the documentation path and demotes the injection to inert info. I reproduced this with the production `PI_OVERRIDE` rule: `ignore all previous instructions` is critical without these exclusions but becomes `ignoredForVerdict: true` with them. Preserve alias information for reachability/content classification instead of treating every skipped directory as a separately covered target; otherwise an untrusted skill can hide a critical finding from the verdict merely by adding this symlink.\n\nUseful? React with 👍 / 👎.\n\n<!-- codex-code-review-finding:v1 -->",
+  "created_at": "2026-10-30T06:14:23Z",
+  "updated_at": "2026-10-30T06:14:23Z",
+  "html_url": "https://github.com/ondrej-merkun/skill-audit/pull/97#discussion_r4420945663",
+  "pull_request_url": "https://api.github.com/repos/ondrej-merkun/skill-audit/pulls/97",
+  "_links": {
+    "self": {
+      "href": "https://api.github.com/repos/ondrej-merkun/skill-audit/pulls/comments/4420945663"
+    },
+    "html": {
+      "href": "https://github.com/ondrej-merkun/skill-audit/pull/97#discussion_r4420945663"
+    },
+    "pull_request": {
+      "href": "https://api.github.com/repos/ondrej-merkun/skill-audit/pulls/97"
+    }
+  },
+  "reactions": {
+    "url": "https://api.github.com/repos/ondrej-merkun/skill-audit/pulls/comments/4420945663/reactions",
+    "total_count": 0,
+    "+1": 0,
+    "-1": 0,
+    "laugh": 0,
+    "hooray": 0,
+    "confused": 0,
+    "heart": 0,
+    "rocket": 0,
+    "eyes": 0
+  },
+  "start_line": 82,
+  "original_start_line": 82,
+  "start_side": "RIGHT",
+  "line": 83,
+  "original_line": 83,
+  "side": "RIGHT",
+  "author_association": "NONE",
+  "original_position": 83,
+  "position": 83,
+  "subject_type": "line"
+}
