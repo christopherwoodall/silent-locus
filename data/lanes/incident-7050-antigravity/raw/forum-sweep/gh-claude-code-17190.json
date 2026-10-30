@@ -1,0 +1,112 @@
+{
+  "url": "https://api.github.com/repos/anthropics/claude-code/issues/17190",
+  "repository_url": "https://api.github.com/repos/anthropics/claude-code",
+  "labels_url": "https://api.github.com/repos/anthropics/claude-code/issues/17190/labels{/name}",
+  "comments_url": "https://api.github.com/repos/anthropics/claude-code/issues/17190/comments",
+  "events_url": "https://api.github.com/repos/anthropics/claude-code/issues/17190/events",
+  "html_url": "https://github.com/anthropics/claude-code/issues/17190",
+  "id": 3798337763,
+  "node_id": "I_kwDON91aY87iZgjj",
+  "number": 17190,
+  "title": "Bug: Claude Code uses destructive 'git reset --hard' instead of safe 'git checkout' for rollback requests",
+  "user": {
+    "login": "AddisonJeff",
+    "id": 43027455,
+    "node_id": "MDQ6VXNlcjQzMDI3NDU1",
+    "avatar_url": "https://avatars.githubusercontent.com/u/43027455?v=4",
+    "gravatar_id": "",
+    "url": "https://api.github.com/users/AddisonJeff",
+    "html_url": "https://github.com/AddisonJeff",
+    "followers_url": "https://api.github.com/users/AddisonJeff/followers",
+    "following_url": "https://api.github.com/users/AddisonJeff/following{/other_user}",
+    "gists_url": "https://api.github.com/users/AddisonJeff/gists{/gist_id}",
+    "starred_url": "https://api.github.com/users/AddisonJeff/starred{/owner}{/repo}",
+    "subscriptions_url": "https://api.github.com/users/AddisonJeff/subscriptions",
+    "organizations_url": "https://api.github.com/users/AddisonJeff/orgs",
+    "repos_url": "https://api.github.com/users/AddisonJeff/repos",
+    "events_url": "https://api.github.com/users/AddisonJeff/events{/privacy}",
+    "received_events_url": "https://api.github.com/users/AddisonJeff/received_events",
+    "type": "User",
+    "user_view_type": "public",
+    "site_admin": false
+  },
+  "labels": [
+    {
+      "id": 8190926413,
+      "node_id": "LA_kwDON91aY88AAAAB6DeeTQ",
+      "url": "https://api.github.com/repos/anthropics/claude-code/labels/duplicate",
+      "name": "duplicate",
+      "color": "888888",
+      "default": true,
+      "description": "This issue or pull request already exists",
+      "archived_at": null,
+      "archived_by": null
+    }
+  ],
+  "state": "closed",
+  "locked": true,
+  "assignees": [
+
+  ],
+  "milestone": null,
+  "comments": 3,
+  "created_at": "2026-01-09T20:59:45Z",
+  "updated_at": "2026-01-20T14:19:21Z",
+  "closed_at": "2026-01-13T09:09:31Z",
+  "assignee": null,
+  "author_association": "NONE",
+  "issue_field_values": [
+
+  ],
+  "type": null,
+  "active_lock_reason": "resolved",
+  "sub_issues_summary": {
+    "total": 0,
+    "completed": 0,
+    "percent_completed": 0
+  },
+  "issue_dependencies_summary": {
+    "blocked_by": 0,
+    "total_blocked_by": 0,
+    "blocking": 0,
+    "total_blocking": 0
+  },
+  "body": "# Anthropic Bug Report: Claude Code Destructive Git Behavior\n\n**Report Date:** January 9, 2026\n**Reporter:** Jeff Kelling\n**Project:** Care Connect API\n**Claude Version:** Claude Sonnet 4.5 (claude-sonnet-4-5-20250929)\n**Claude Code Version:** 2.0.65\n\n---\n\n## Summary\n\nClaude Code chose a destructive git command (`git reset --hard`) when a non-destructive alternative (`git checkout`) would have been appropriate, resulting in permanent loss of several hours of uncommitted work.\n\n---\n\n## What Happened\n\n### User Request\nUser said: **\"I want to save where we are and ROLL BACK to the last push\"**\n\nContext: User wanted to temporarily view old code for a demo, with intention to return to current work afterward.\n\n### Claude's Actions\n1. `git stash save \"WIP: Tracker enter/leave disabled + fsSyncModule fix\"` ✅ (Correct)\n2. `git reset --hard 35eb731` ❌ (DESTRUCTIVE - Wrong choice)\n\n### What Should Have Happened\n1. `git stash save \"WIP: Tracker enter/leave disabled + fsSyncModule fix\"` ✅\n2. `git checkout 35eb731` ✅ (Non-destructive, reversible)\n   - OR: `git checkout -b demo-branch 35eb731` (Even safer)\n\n### Result\n- User was at commit `882e618` (HEAD) with uncommitted changes\n- Reset moved HEAD back 5 commits to `35eb731`\n- Commits `d63695e` through `882e618` became orphaned\n- When user later tried to restore, Claude moved to `882e618` but the uncommitted work from that morning was permanently lost\n- User lost several hours of billable work (leaveRemove method, middleware refactoring, etc.)\n\n---\n\n## Root Cause Analysis\n\n### Why This is a Bug\n\n1. **Ambiguous Language Interpretation**:\n   - User said \"ROLL BACK\" (commonly means \"go back and look\")\n   - Claude interpreted as \"destroy and rewrite history\"\n   - In professional development, \"rollback\" typically means non-destructive viewing\n\n2. **Wrong Command Selection**:\n   - `git reset --hard` is for REWRITING history (rare, dangerous)\n   - `git checkout` is for VIEWING history (common, safe)\n   - Claude should default to the safer option\n\n3. **No Confirmation Request**:\n   - Claude did not ask: \"This will permanently destroy uncommitted work. Confirm?\"\n   - Claude did not explain the difference between reset and checkout\n   - User assumed \"stash\" would save everything (reasonable assumption)\n\n4. **Contradictory to Project Instructions**:\n   - User's CLAUDE.md explicitly says: \"⚠️ DON'T EVER RESTORE FROM GITHUB WITHOUT ASKING FIRST\"\n   - `git reset --hard` is a form of destructive restoration\n   - Claude violated this rule without asking\n\n---\n\n## Expected Behavior\n\n### Claude Should:\n\n1. **Default to Non-Destructive Commands**:\n   - Use `git checkout` for \"go back\", \"rollback\", \"restore\", \"look at old code\"\n   - Only use `git reset --hard` when user explicitly says those exact words\n\n2. **Always Confirm Destructive Operations**:\n   ```\n   User: \"Roll back to the last push\"\n\n   Claude: \"I can do this two ways:\n\n   1. SAFE (Recommended): Use 'git checkout' to temporarily view the old code.\n      You can easily return to your current work afterward.\n\n   2. DESTRUCTIVE: Use 'git reset --hard' to permanently destroy uncommitted\n      changes and rewrite history. This cannot be undone.\n\n   Which would you like?\"\n   ```\n\n3. **Respect Project-Specific Rules**:\n   - CLAUDE.md said \"don't restore without asking\"\n   - Claude should have asked before any git operation that changes HEAD\n\n4. **Educate Users About Git Commands**:\n   - Explain the difference between checkout (safe) and reset (destructive)\n   - Help users understand the implications before executing\n\n---\n\n## Impact\n\n### Immediate Impact\n- **~4 hours of work lost** (estimated)\n- User cannot bill customer twice for same work\n- Loss of `leaveRemove` method implementation\n- Loss of middleware refactoring/renaming\n- Loss of other tracker improvements\n\n### Trust Impact\n- User now questions trusting git at all\n- User considering reverting to \"multiple folder copies\" approach (less professional but safer)\n- Erosion of confidence in Claude Code's git handling\n\n### Business Impact\n- Developer time wasted redoing work\n- Unbillable hours spent on recovery attempts\n- Potential delay in project delivery\n\n---\n\n## Reproduction Steps\n\n1. Have a git repository with:\n   - Recent commits (e.g., commit A, B, C, D, E)\n   - Uncommitted changes in working directory\n   - Currently at HEAD (commit E)\n\n2. Ask Claude: \"Save my work and roll back to commit A for a demo\"\n\n3. Observe: Claude uses `git reset --hard A` instead of `git checkout A`\n\n4. Result: Commits B-E become orphaned, uncommitted work is destroyed\n\n---\n\n## Suggested Fixes\n\n### 1. Update Git Command Prioritization\n```\nUser Intent: \"go back\", \"rollback\", \"restore\", \"look at old code\"\nDefault Command: git checkout <commit>\nAlternative: git checkout -b temp-branch <commit>\nNEVER: git reset --hard (unless user explicitly says it)\n```\n\n### 2. Add Confirmation Layer\nBefore ANY destructive git operation:\n- Explain what will happen\n- List what will be lost\n- Offer safer alternative\n- Require explicit confirmation\n\n### 3. Enhance Project Rules Awareness\nWhen project has CLAUDE.md with warnings about git operations:\n- Treat ALL git history changes as requiring confirmation\n- Don't assume user intent\n- Default to safest option\n\n### 4. Improve Stash Education\nWhen user says \"save my work\":\n- Explain: \"git stash saves UNCOMMITTED changes only, not commit position\"\n- Suggest: \"Would you like me to create a backup branch instead?\"\n- Offer: \"Or I can copy the entire folder as a backup?\"\n\n---\n\n## Workaround for Users\n\nAdd to your project's CLAUDE.md:\n\n```markdown\n## GIT SAFETY RULE - CRITICAL\n\n**NEVER use `git reset --hard` unless I explicitly say those exact words.**\n\nFor any request involving:\n- \"roll back\"\n- \"go back\"\n- \"restore\"\n- \"revert\"\n- \"undo\"\n- \"look at old code\"\n\nALWAYS use `git checkout <commit>` or `git checkout -b temp-branch <commit>` instead.\n\nALWAYS ask for confirmation before ANY command that:\n- Changes HEAD position\n- Modifies commit history\n- Could lose uncommitted work\n- Is marked as \"destructive\" in git documentation\n\nWhen in doubt, ASK before executing git commands.\n```\n\n---\n\n## Additional Context\n\n### Similar Issues Reported?\nUser reports this is not the first time Claude has made questionable git decisions, but this is the first time it caused significant data loss.\n\n### User's Development Context\n- Professional software development\n- Billing customer for time\n- Cannot charge customer twice for same work\n- Data loss = direct financial impact\n\n### Git Expertise Level\nUser understands git basics but relies on Claude for advanced operations. User's old workflow (multiple folder copies) was safer for their use case, even if less \"professional\".\n\n---\n\n## Follow-Up Requests\n\n1. **Acknowledgment**: Please confirm this report is received and being reviewed\n2. **Timeline**: Expected timeline for investigation and potential fix?\n3. **Workaround**: Any immediate configuration changes we can make to prevent recurrence?\n4. **Notification**: Please notify when this issue is addressed in a future release\n\n**Daily Follow-Up Requested**: User requests daily status updates until resolution.\n\n---\n\n## Contact Information\n\n- **Reporter**: Jeff Kelling\n- **Email**: jeff@dataintegrities.com\n- **Project**: Care Connect API at /Users/jeffk/dev/data-integrities/care-connect/api\n- **Available for**: Clarification, additional details, testing fixes\n\n---\n\n## Attachments\n\n### Git Reflog Showing the Damage\n```\n882e618 HEAD@{0}: reset: moving to 882e618\n35eb731 HEAD@{1}: reset: moving to 35eb731\n35eb731 HEAD@{2}: reset: moving to HEAD\n35eb731 HEAD@{3}: reset: moving to 35eb731\n882e618 HEAD@{4}: reset: moving to HEAD\n882e618 HEAD@{5}: commit: feat: Add requestTiming middleware with req/res.durationMS getters\n71211e5 HEAD@{6}: commit: fix: Resolve tracker concurrency bug and file write callback issues\n662c7d7 HEAD@{7}: commit: fix: Replace this.tracker with req.tracker across all controllers\n42ca00c HEAD@{8}: commit: fix: Create per-request tracker to prevent concurrent request corruption\nd63695e HEAD@{9}: commit: feat: Add capabilities endpoint and update version to 1.0.71\n35eb731 HEAD@{10}: commit: refactor: Improve logging, fix session management, and clean up captures\n```\n\n### Relevant CLAUDE.md Rules (Violated)\n```markdown\n# ⚠️ CRITICAL WARNING ⚠️\n## DON'T EVER RESTORE FROM GITHUB WITHOUT ASKING FIRST\n\nUsing `git checkout` or `git restore` commands will PERMANENTLY DELETE all uncommitted changes.\nAlways ask the user before running any git commands that modify files.\n```\n\n---\n\n**Report Status**: ⏳ Awaiting Response\n**Priority**: HIGH (Data Loss, User Trust, Business Impact)\n**Last Updated**: 2026-01-09 14:45 CST\n",
+  "closed_by": {
+    "login": "github-actions[bot]",
+    "id": 41898282,
+    "node_id": "MDM6Qm90NDE4OTgyODI=",
+    "avatar_url": "https://avatars.githubusercontent.com/in/15368?v=4",
+    "gravatar_id": "",
+    "url": "https://api.github.com/users/github-actions%5Bbot%5D",
+    "html_url": "https://github.com/apps/github-actions",
+    "followers_url": "https://api.github.com/users/github-actions%5Bbot%5D/followers",
+    "following_url": "https://api.github.com/users/github-actions%5Bbot%5D/following{/other_user}",
+    "gists_url": "https://api.github.com/users/github-actions%5Bbot%5D/gists{/gist_id}",
+    "starred_url": "https://api.github.com/users/github-actions%5Bbot%5D/starred{/owner}{/repo}",
+    "subscriptions_url": "https://api.github.com/users/github-actions%5Bbot%5D/subscriptions",
+    "organizations_url": "https://api.github.com/users/github-actions%5Bbot%5D/orgs",
+    "repos_url": "https://api.github.com/users/github-actions%5Bbot%5D/repos",
+    "events_url": "https://api.github.com/users/github-actions%5Bbot%5D/events{/privacy}",
+    "received_events_url": "https://api.github.com/users/github-actions%5Bbot%5D/received_events",
+    "type": "Bot",
+    "user_view_type": "public",
+    "site_admin": false
+  },
+  "reactions": {
+    "url": "https://api.github.com/repos/anthropics/claude-code/issues/17190/reactions",
+    "total_count": 0,
+    "+1": 0,
+    "-1": 0,
+    "laugh": 0,
+    "hooray": 0,
+    "confused": 0,
+    "heart": 0,
+    "rocket": 0,
+    "eyes": 0
+  },
+  "timeline_url": "https://api.github.com/repos/anthropics/claude-code/issues/17190/timeline",
+  "performed_via_github_app": null,
+  "state_reason": "duplicate",
+  "pinned_comment": null
+}
