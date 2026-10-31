@@ -198,7 +198,7 @@ def _diff_facets(prev: dict, cur: dict, total_delta: int) -> list:
         p, c = prev.get(family, {}), cur.get(family, {})
         for val, cnt in c.items():
             if val not in p:
-                lines.append(f"[{family}] NEW {val!r} (n={cnt})")
+                lines.append(f"[{family}] NEW in top-8 {val!r} (n={cnt})")
             else:
                 d = cnt - p[val]
                 if abs(d) >= 5:
@@ -206,10 +206,12 @@ def _diff_facets(prev: dict, cur: dict, total_delta: int) -> list:
                                  f"{p[val]} -> {cnt} ({d:+d})")
         for val, cnt in p.items():
             if val not in c:
-                lines.append(f"[{family}] GONE {val!r} (was n={cnt})")
+                lines.append(f"[{family}] GONE from top-8 {val!r} "
+                             f"(was n={cnt})")
     if not lines:
-        lines.append("no facet value crossed the +/-5 or new/gone "
-                     "threshold (attribution unclear)")
+        lines.append("no facet value crossed the +/-5 or "
+                     "new-in-top-8/gone-from-top-8 threshold "
+                     "(attribution unclear)")
     return lines
 
 
