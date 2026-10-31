@@ -1,0 +1,33 @@
+PROVENANCE — urlquery-wayback meta lane, sniffer-meta-20261031
+Retrieved: 2026-10-31 (America/Chicago), subagent meta-fleet lane.
+Follow-up to sniffer-sweep-20261031 urlquery-wayback lane; no commit,
+no push, no Factum writes (coordinator commits).
+
+Method (urlquery): authenticated api.urlquery.net search via
+  ~/workspace/skills/urlquery/bin/uq.py (Secure Vault surrogate credential).
+  Full da.gd pull: query "url.domain:da.gd date:[2025-11-01 TO 2026-10-31]",
+  limit 100, single page, 98 rows, 98 unique report IDs. Script:
+  pull_dagd_full.py. Query strings, token values, and IPs were NOT
+  persisted: uq-dagd-domain-FULL.json holds a sanitized projection only
+  (report_id, date, domain, fqdn, path with query dropped, final path,
+  title truncated to 200 chars, tags, boolean flags). Raw API stdout
+  was not saved. One flagged-row report was re-fetched transiently to
+  identify which field carried the zz= flag; only the field identity
+  (final redirect URL query string, value withheld) is recorded.
+Method (HN Algolia): public https://hn.algolia.com/api/v1/search GET,
+  bounded quoted "T/Z" queries with agent/harness/model terms, 20 hits
+  per page. No literal T/Z found in returned title/text.
+Method (urlquery T/Z): bounded quoted "T/Z" queries with agent/harness
+  terms, same date window; counts and top domains only saved in
+  tz-bounded-probe.json.
+Method (Wayback): http://web.archive.org/cdx/search/cdx (port 80 only),
+  matchType=domain, from=20251101, limit 50, collapse=urlkey, via curl,
+  ONE attempt per query. Domain query: HTTP 200, 50 rows, sanitized the
+  same way (path with query dropped + flags) into
+  cdx-dagd-domain-RETRY.json. zz-filter query: HTTP 504, recorded as a
+  failure in cdx-dagd-zz-filter-RETRY.json, no further retry.
+Grades: all hits SECONDARY by default. No hit is graded OBSERVED
+  behavior. No echo-page endpoints were fetched and no payloads were
+  decoded in this lane.
+No human handles recorded. No Shodan, no POST, no logins. Package repos
+  and Docker Hub out. No Transluce submissions.
