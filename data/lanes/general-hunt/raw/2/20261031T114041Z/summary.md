@@ -1,0 +1,43 @@
+# General-hunt slot 2 (urlquery fresh) — 2026-10-31T11:40-11:43Z
+
+## Phase 1 — what's new since 2026-10-31T10:41:55Z watermark
+- 1 new commit in window: 89cb5c16e (prior slot-1 run's own commit, already
+  logged in runs.log). No scanner-state mtimes after the watermark, no new
+  factum batches.
+
+## Phase 2 — urlquery fresh, window date:[2026-10-30 TO 2026-10-31]
+- Lane-1 scan: 34 reports screened, 0 hits.
+- Direct grammars (limit 30, ~4s spacing, all exit 0, all .err files empty):
+  - uqtag= 0, uqframe= 0, uqscan= 0
+  - url.domain:jcburrows.workers.dev 0
+  - ntfy.sh 0
+  - webhook.site total_hits 4, 4 shown: 2 rows carry over from the 05:41Z
+    run (writingmate.ai d3dcef04, 2026-10-31T03:39:34Z; protrackergps.com
+    60d8ba0a, 2026-10-30T10:17:31Z) and 2 are new in this window
+    (agentwarden.praesi-technologies.com 2d43f79d, 2026-10-31T10:06:10Z;
+    tianjj.shop vod-play page 2d9b1b7f, 2026-10-31T08:10:24Z). All 4
+    triaged as page-content noise again: zero "webhook" strings in any
+    row JSON, tags empty, no webhook.site submission. Not a LEAD.
+    The agentwarden URL is a name-only match (string-only, no grammar
+    marker, no agent evidence) and is not scored as a hit.
+  - zz= total_hits 5503 (up from 5085 on the prior run — report volume,
+    not marker volume), 30 rows shown: 0 carry a true zz= marker in the
+    submitted URL, title, or tags. 16/30 rows carry ip.country_code
+    "zz" — same noise class as prior runs. Newest rows are ordinary
+    spam / volume / appwrite pages, not hunt grammar.
+- ntfy topic NOT polled directly (slot-2 scope is urlquery API rows).
+- Result: 0 hits, no LEAD.
+
+## Phase 3 — suggestor
+- 0 pending TIER-A for slot 2, 0 implemented, no new TIER-A/B items.
+- TIER-B queue unchanged (B27/B26/B8/B4).
+
+## Phase 4 — fixor
+- py_compile all scanners OK. swarm-infra-config.json valid.
+- All 35 state JSONs (recursive) parse OK. error-log.jsonl 47/47 lines
+  parse OK. 4 goal baselines parse OK. No fixes. Pre-existing .broken
+  files untouched.
+
+## Evidence
+- silent-locus/data/lanes/general-hunt/raw/2/20261031T114041Z/
+- .PROVENANCE.txt, SHA256SUMS verified.
