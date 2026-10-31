@@ -1,0 +1,15 @@
+COMMITTER-ACCOUNT LANE — sniffer-sweep-20261031
+Retrieved: 2026-10-31 ~15:20-15:21 UTC (10:20-10:21 CDT) by subagent, read-only GET only.
+Method: `gh search commits` (authenticated as christopherwoodall, existing gh CLI auth; no fresh login, no POST) for co-author footprints; one unauthenticated GET to https://api.github.com/rate_limit for quota status.
+Sources (GitHub Search API, commit search):
+  - gh-commits-claude.json — query: "Co-Authored-By: Claude", --limit 30. CAPTURE PARTIAL/CORRUPT: file truncated mid-record (8192 bytes, JSON parse fails at char 6685); retained as-is, counts from it are NOT reliable.
+  - gh-commits-copilot.json — query: "Co-Authored-By: Copilot", --limit 30. Complete: 30 records.
+  - gh-commits-claudecode-footer.json, gh-commits-devin.json, gh-commits-codex.json — EMPTY (0 bytes): queries "Generated with Claude Code", "Co-Authored-By: Devin", "Co-Authored-By: Codex" all returned HTTP 403 secondary rate limit; no data.
+  - gh-prs-claudecode.json, gh-prs-agent-harness.json — EMPTY (0 bytes): failed on invalid flag (--type is not a gh search issues flag; correct filter is type:pr in the query). Not retried: secondary rate limit already hit.
+  - err-*.txt — stderr captures documenting the above failures.
+Rate-limit event: after the first 2 successful commit searches, GitHub returned HTTP 403 "You have exceeded a secondary rate limit" on 3 consecutive search calls. Per hard-stop rule, ALL further GitHub search/API calls for this lane stopped immediately; no retry, no alternate endpoint, no lower rate.
+Unauthenticated bucket at end of run: core 60/60 remaining, search 10/10 remaining (untouched by this lane; the limit hit was on the authenticated search path).
+Cross-check: scripts/scanners/state/prcomment/seen.json holds only 65 comment IDs (prcomment:<id>), no account names — no account-level cross-check possible against the prcomment ledger.
+Grading: default SECONDARY. No OBSERVED self-declared agent/bot committer account in the usable capture.
+Human-handle rule: author logins in these captures are human-type accounts using AI co-authors; per task constraint they are NOT named in the lane report — only aggregate counts are reported.
+No commit, no Factum write, no Transluce submission. Staged only in this raw/ directory.

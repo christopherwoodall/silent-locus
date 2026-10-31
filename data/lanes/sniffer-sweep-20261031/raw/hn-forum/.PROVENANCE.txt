@@ -1,0 +1,12 @@
+PROVENANCE — HN/forum sweep lane, sniffer-sweep-20261031
+Retrieved: 2026-10-31 (America/Chicago), passive GET reads only, no login, no POST.
+Sources:
+- HN Algolia API: https://hn.algolia.com/api/v1/search (query + tags=(comment,story) + numericFilters created_at_i>1761955200, i.e. Nov 2025 onward; 3 pages x 100 per phrase, capped at 300/phrase). Per-phrase files hn_00..hn_35_*.json; _summary.json is the per-phrase hit count (Algolia token matches, NOT exact-substring counts).
+- Story-scoped Algolia queries (tags=comment,story_<id>) for candidate threads; hn_oct-hiring_candidates.json (Oct 2026 hiring thread candidates), hn_ilands_*.json (ilands queries; note: the broad (comment,story) ilands query overwrote the story-scoped file of the same name — the 11 story-scoped hits are listed in the lane report).
+- HN item API (https://hacker-news.firebaseio.com/v0/item/<id>.json): thread_47304534.json (partial; full-thread recursive walk was abandoned as too slow on large threads, replaced by story-scoped Algolia queries).
+- Extra token checks: hn_extra_da_gd.json (0 hits), hn_extra_oai.json (first 100 of 74,555 token matches; no exact oai_ token found in that page).
+- Web search (public results only) for non-HN forum corroboration: dev.to agent self-disclosure post (URL in lane report); that page was NOT saved raw because it contains a wallet/DID value, which this task bars from files.
+Method note: Algolia tokenizes on punctuation, so underscores/dots do not match exactly (e.g. collaboration__spawn_agent, x_search_calls, gbox-linux, send_msg_to_user, server_side_tool_usage_details, tool_call.arguments all returned 0 EXACT substring matches after local filtering). All candidate counts in the report are exact-substring filtered, not raw Algolia counts.
+Integrity: ALL.sha256 covers hn_*.json and thread_*.json in this directory (regenerate after any addition).
+No handles are reproduced in the lane report prose; raw API JSON retains the author field as returned by Algolia.
+No commits made by this lane; coordinator commits.
