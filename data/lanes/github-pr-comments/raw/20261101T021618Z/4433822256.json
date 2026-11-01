@@ -1,0 +1,69 @@
+{
+  "url": "https://api.github.com/repos/nitsuah/ats-fill/pulls/comments/4433822256",
+  "pull_request_review_id": 5725603784,
+  "id": 4433822256,
+  "node_id": "PRRC_kwDOR5WMoc8AAAABCEbCMA",
+  "diff_hunk": "@@ -576,8 +576,19 @@ function ldText(value) {\n function stripLdHtml(value) {\n   return String(value || '')\n     .replace(/<[^>]*>/g, ' ')\n-    .replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>')\n-    .replace(/&nbsp;/g, ' ').replace(/&#\\d+;/g, ' ')\n+    .replace(/&(?:amp|lt|gt|nbsp|#\\d+|#x[0-9a-fA-F]+|quot|apos);/g, (m) => {",
+  "path": "content/content.js",
+  "commit_id": "b5c1c2112c97522065826bf0d6d4c667d8b3c8c8",
+  "original_commit_id": "b5c1c2112c97522065826bf0d6d4c667d8b3c8c8",
+  "user": {
+    "login": "github-advanced-security[bot]",
+    "id": 62310815,
+    "node_id": "MDM6Qm90NjIzMTA4MTU=",
+    "avatar_url": "https://avatars.githubusercontent.com/in/57789?v=4",
+    "gravatar_id": "",
+    "url": "https://api.github.com/users/github-advanced-security%5Bbot%5D",
+    "html_url": "https://github.com/apps/github-advanced-security",
+    "followers_url": "https://api.github.com/users/github-advanced-security%5Bbot%5D/followers",
+    "following_url": "https://api.github.com/users/github-advanced-security%5Bbot%5D/following{/other_user}",
+    "gists_url": "https://api.github.com/users/github-advanced-security%5Bbot%5D/gists{/gist_id}",
+    "starred_url": "https://api.github.com/users/github-advanced-security%5Bbot%5D/starred{/owner}{/repo}",
+    "subscriptions_url": "https://api.github.com/users/github-advanced-security%5Bbot%5D/subscriptions",
+    "organizations_url": "https://api.github.com/users/github-advanced-security%5Bbot%5D/orgs",
+    "repos_url": "https://api.github.com/users/github-advanced-security%5Bbot%5D/repos",
+    "events_url": "https://api.github.com/users/github-advanced-security%5Bbot%5D/events{/privacy}",
+    "received_events_url": "https://api.github.com/users/github-advanced-security%5Bbot%5D/received_events",
+    "type": "Bot",
+    "user_view_type": "public",
+    "site_admin": false
+  },
+  "body": "Prompt injection risk: content/content.js decodes and normalizes untrusted JSON-LD JobPosting.description text (stripLdHtml) which can include attacker-controlled instructions; that description is later interpolated into Gemini prompts (e.g., background/modules/handlers/interview.js buildInterviewQuestionsPrompt uses job.description, and lib/gemini.js generateAnswers uses jd). There is no robust control to force the model to treat the JD as data-only (e.g., strict instruction + clear delimiting / quoting), so a crafted job page can steer outputs and potentially cause resume/profile details (included elsewhere in prompts) to be echoed or misused.\n\n---\n\nGeneral fix: when untrusted page text is later sent to an LLM, transform it into a clearly delimited **data payload** and add local hardening to reduce instruction-like content from being interpreted as control text. Since we are constrained to <code>content/content.js</code>, the best fix here is to sanitize/neutralize common instruction markers before this text is passed downstream.</p>\n<p>Best single-file fix (without changing core functionality): update <code>stripLdHtml</code> to:</p>\n<ul>\n<li>correctly decode named entities (<code>&amp;</code>, <code>&lt;</code>, <code>&gt;</code>, <code>\"</code>, <code>'</code>, <code>&amp;nbsp;</code>);</li>\n<li>remove control characters;</li>\n<li>neutralize prompt-injection framing tokens (triple backticks, XML-like instruction tags, role markers such as <code>system:</code>, <code>assistant:</code>, <code>user:</code>, and imperative “ignore previous instructions” patterns);</li>\n<li>keep output as readable plain text and preserve truncation behavior already done by caller.</li>\n</ul>\n<p>This should be done in <code>content/content.js</code> in the <code>stripLdHtml</code> function region (lines 576–594 shown).",
+  "created_at": "2026-11-01T00:24:59Z",
+  "updated_at": "2026-11-01T00:24:59Z",
+  "html_url": "https://github.com/nitsuah/ats-fill/pull/204#discussion_r4433822256",
+  "pull_request_url": "https://api.github.com/repos/nitsuah/ats-fill/pulls/204",
+  "_links": {
+    "self": {
+      "href": "https://api.github.com/repos/nitsuah/ats-fill/pulls/comments/4433822256"
+    },
+    "html": {
+      "href": "https://github.com/nitsuah/ats-fill/pull/204#discussion_r4433822256"
+    },
+    "pull_request": {
+      "href": "https://api.github.com/repos/nitsuah/ats-fill/pulls/204"
+    }
+  },
+  "reactions": {
+    "url": "https://api.github.com/repos/nitsuah/ats-fill/pulls/comments/4433822256/reactions",
+    "total_count": 0,
+    "+1": 0,
+    "-1": 0,
+    "laugh": 0,
+    "hooray": 0,
+    "confused": 0,
+    "heart": 0,
+    "rocket": 0,
+    "eyes": 0
+  },
+  "start_line": null,
+  "original_start_line": null,
+  "start_side": null,
+  "line": 579,
+  "original_line": 579,
+  "side": "RIGHT",
+  "author_association": "NONE",
+  "original_position": 6,
+  "position": 1,
+  "subject_type": "line"
+}
