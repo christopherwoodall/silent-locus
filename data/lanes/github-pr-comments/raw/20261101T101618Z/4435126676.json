@@ -1,0 +1,69 @@
+{
+  "url": "https://api.github.com/repos/EVMCOD/conductloop/pulls/comments/4435126676",
+  "pull_request_review_id": 5727463908,
+  "id": 4435126676,
+  "node_id": "PRRC_kwDOVTtve88AAAABCFqplA",
+  "diff_hunk": "@@ -112,7 +149,10 @@ def scan_text(text: str, where: str) -> list[Finding]:\n         out.append(_b(\"email\", f\"{where}: contains an email address; use a placeholder\"))\n     if any(rx.search(text) for rx in _INJECTION_RES):\n         out.append(_b(\"injection\", f\"{where}: looks like an instruction to override other instructions\"))\n-    if any(rx.search(text) for rx in _HIDDEN_RES):\n+    # The rendering rules see only the prose: markup inside a fenced code\n+    # block is documentation and never executes.\n+    prose = strip_fenced_code(text)\n+    if any(rx.search(prose) for rx in _HIDDEN_RES):",
+  "path": "ops_dashboard/skills/lint.py",
+  "commit_id": "c8d02230c4699068fe3e26220dc343b592132945",
+  "original_commit_id": "04c754e2a933129baa1c5da65db8923c07dabc67",
+  "user": {
+    "login": "chatgpt-codex-connector[bot]",
+    "id": 199175422,
+    "node_id": "BOT_kgDOC98s_g",
+    "avatar_url": "https://avatars.githubusercontent.com/in/1144995?v=4",
+    "gravatar_id": "",
+    "url": "https://api.github.com/users/chatgpt-codex-connector%5Bbot%5D",
+    "html_url": "https://github.com/apps/chatgpt-codex-connector",
+    "followers_url": "https://api.github.com/users/chatgpt-codex-connector%5Bbot%5D/followers",
+    "following_url": "https://api.github.com/users/chatgpt-codex-connector%5Bbot%5D/following{/other_user}",
+    "gists_url": "https://api.github.com/users/chatgpt-codex-connector%5Bbot%5D/gists{/gist_id}",
+    "starred_url": "https://api.github.com/users/chatgpt-codex-connector%5Bbot%5D/starred{/owner}{/repo}",
+    "subscriptions_url": "https://api.github.com/users/chatgpt-codex-connector%5Bbot%5D/subscriptions",
+    "organizations_url": "https://api.github.com/users/chatgpt-codex-connector%5Bbot%5D/orgs",
+    "repos_url": "https://api.github.com/users/chatgpt-codex-connector%5Bbot%5D/repos",
+    "events_url": "https://api.github.com/users/chatgpt-codex-connector%5Bbot%5D/events{/privacy}",
+    "received_events_url": "https://api.github.com/users/chatgpt-codex-connector%5Bbot%5D/received_events",
+    "type": "Bot",
+    "user_view_type": "public",
+    "site_admin": false
+  },
+  "body": "**<sub><sub>![P2 Badge](https://img.shields.io/badge/P2-yellow?style=flat)</sub></sub>  Keep invisible-Unicode checks active inside code fences**\n\n`_HIDDEN_RES` includes invisible Unicode and bidirectional controls, not just HTML rendering patterns. Applying the entire collection only to stripped prose therefore removes an existing security check from fenced content, even though that content still reaches the model. For example, a fenced instruction containing `ignore previous instructions` with a zero-width character inserted into “previous” now produces no blocking findings: it evades the injection regex and the Unicode check is skipped. Separate the Unicode check from the markup checks and continue applying it to the original text.\n\nUseful? React with 👍 / 👎.\n\n<!-- codex-code-review-finding:v1 -->",
+  "created_at": "2026-11-01T09:47:46Z",
+  "updated_at": "2026-11-01T09:47:46Z",
+  "html_url": "https://github.com/EVMCOD/conductloop/pull/88#discussion_r4435126676",
+  "pull_request_url": "https://api.github.com/repos/EVMCOD/conductloop/pulls/88",
+  "_links": {
+    "self": {
+      "href": "https://api.github.com/repos/EVMCOD/conductloop/pulls/comments/4435126676"
+    },
+    "html": {
+      "href": "https://github.com/EVMCOD/conductloop/pull/88#discussion_r4435126676"
+    },
+    "pull_request": {
+      "href": "https://api.github.com/repos/EVMCOD/conductloop/pulls/88"
+    }
+  },
+  "reactions": {
+    "url": "https://api.github.com/repos/EVMCOD/conductloop/pulls/comments/4435126676/reactions",
+    "total_count": 0,
+    "+1": 0,
+    "-1": 0,
+    "laugh": 0,
+    "hooray": 0,
+    "confused": 0,
+    "heart": 0,
+    "rocket": 0,
+    "eyes": 0
+  },
+  "start_line": 154,
+  "original_start_line": 154,
+  "start_side": "RIGHT",
+  "line": 155,
+  "original_line": 155,
+  "side": "RIGHT",
+  "author_association": "NONE",
+  "original_position": 52,
+  "position": 52,
+  "subject_type": "line"
+}
