@@ -1,7 +1,7 @@
 # Scraping jina.ai for agent activity — methodology
 
 Date: 2026-10-21. Status: phase 1 wired into the pipeline (this doc),
-phase 2 experimental.
+phase 2 validated as a one-shot analyst tool (not a monitor).
 
 ## What jina.ai is in this hunt
 
@@ -48,13 +48,53 @@ populations sharing one piece of infra — the "same provider, different
 agents" problem. Jina is commodity infrastructure, not an operation
 signature.
 
-## Phase 2 — experimental (not wired; research spike only)
+## Phase 2 — validated cache-timing probe (tool, not a monitor)
 
-Cache-timing probes. If r.jina.ai caches proxied pages, fetch latency on
-a given `r.jina.ai/<url>` can reveal whether someone else fetched it
-recently — live activity detection without server logs. Unproven.
-Validate cache behavior on our own URLs first; do not claim signal
-before that control passes.
+Result 2026-10-21: r.jina.ai caches proxied pages. The hypothesis holds.
+
+Validation run (15 passive GETs, tiny static origin, full evidence at
+`data/lanes/general-hunt/raw/cache-probe/2026-10-21T214823Z/`):
+
+- Cold fetches (n=6): mean 2.40 s.
+- Warm re-fetches (n=9): mean 1.53 s.
+- Clean split: slowest warm (1.85 s) was still faster than fastest cold
+  (2.17 s).
+- Warm responses carry an extra `Published Time:` line (47 bytes) that
+  cold fetches lack.
+- No cache headers to lean on. Cloudflare reports DYNAMIC on all
+  fetches. Detection is timing + the Published Time line, not headers.
+- Warm state persisted at least 14 minutes.
+- Unauthenticated rate ceiling: 20 req/min.
+
+Tool: `scripts/scanners/jina_cache_probe.py`. One-shot analyst use only.
+
+The tool takes one inner target URL and runs N samples (default 3, 15 s
+apart). Verdict rules:
+
+- First fetch fast (< 2.0 s) WITH the Published Time marker: WARM. A
+  third party proxied the URL recently (within the cache window,
+  observed at least 14 minutes). This is the signal.
+- First fetch slow (>= 2.0 s) without the marker, later fetches warm:
+  COLD at first touch. Nobody proxied it before us; we warmed it.
+- Else: INCONCLUSIVE.
+
+Hard rules for use (his call, 2026-10-21):
+
+- Never schedule this. A monitor would poison its own signal: every poll
+  warms the URL, so a scheduled check cannot tell "an agent fetched
+  this" from "we fetched this while checking".
+- One shot per URL, only when there is a reason to test that URL.
+- The tool keeps a ledger (`probed_urls.jsonl`) and refuses re-probes
+  within 6 hours.
+- Repeat samples per URL, not single fetches, to beat network noise.
+
+Honest limits:
+
+- Validated on self-warm only. The mechanism is the same for a third
+  party's fetch, but we have not yet caught someone else's warm URL in
+  the wild.
+- Warm means "proxied within the cache window". Cold means "not within
+  the window", nothing more.
 
 Related: hunt open self-hosted reader deployments (Shodan http.html
 reader markers; `r.jina-ai.workers.dev` pattern). Some may expose logs

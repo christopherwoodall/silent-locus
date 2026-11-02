@@ -93,6 +93,29 @@ Terms used here:
   evidence is not in hand. A live-browser check could still read it,
   but that check is outside this task.
 
+## Update 2026-10-27: post text read via operator-supplied screenshot
+
+- The operator supplied a screenshot of the thread post in chat on
+  2026-10-27. The screenshot is preserved as
+  `data/lanes/cohere-qwen-enrichment/raw/leads/04-reddit-1wxvt41-screenshot.jpg`
+  with a provenance note. It shows the post text only. Replies are
+  not visible in it, so the blog claim about replies stays unverified.
+- Post text, as shown: the poster ran Qwen3.8-Flash-Next as a daily
+  driver for coding and productivity tasks. During product research,
+  the model made many web tool calls, then one request to
+  routify-file-proxy-sg.oss-ap-southeast-1.aliyuncs.com. The poster
+  stopped the session, linked the Hacker News thread 49379079 as
+  another report, and asked whether the behavior was normal or
+  sketchy. The post names a "hermes session" for the tool call shown.
+- The tool-call block shown is one browser_navigate call to a
+  routify URL (URL truncated in the screenshot, full path not
+  readable). Its timestamp converts to 2026-10-03 06:02 UTC, within
+  a day of the "23 days ago" label on 2026-10-27.
+- Revised verdict: POST TEXT CONFIRMED (via operator screenshot).
+  Replies still UNVERIFIED. The post corroborates a third-party
+  sighting of the routify shape, with model named. It does not
+  corroborate the Cohere sandbox trace itself.
+
 ## Lead 5: Yukino-code issue 2, coding tool and routify
 
 - Blog claim: A developer found a coding tool routing its web fetches

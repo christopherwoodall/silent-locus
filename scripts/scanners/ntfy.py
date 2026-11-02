@@ -12,16 +12,17 @@ which returns newline-delimited JSON messages (or [] when the window is
 empty). ntfy.sh free tier retains ~12h of messages; an empty poll means
 "no messages in window", NOT "topic never existed".
 
-KNOWN GAP (verified 2026-10-14): ntfy.sh is unreachable through our
-egress proxy (TCP fails, HTTP 000). The module does NOT treat this as a
-clean negative. On transport failure it attempts, in order:
-  1. r.jina.ai relay of the same JSON URL -- also fails for ntfy.sh
-     (jina returns 422 "Unexpected empty file: https://ntfy.sh";
-     verified 2026-10-14). Kept as an attempted step with its known
-     outcome so future runs re-check rather than assume.
-  2. Wayback CDX (http://web.archive.org/cdx, port 80 works per
-     workspace TOOLS.md): query for archived captures of
-     ntfy.sh/<topic> -- documents HISTORICAL existence/content only.
+TRANSPORT (verified 2026-10-17): ntfy.sh is unreachable through our
+egress proxy (TCP fails, HTTP 000). The working route is the r.jina.ai
+relay with ?since=all:
+    https://r.jina.ai/https://ntfy.sh/<topic>/json?since=all
+returns HTTP 200 with newline-delimited JSON (same shape as a direct
+poll). NOTE: ?poll=1 does NOT work through jina (422 "Unexpected empty
+file", verified 2026-10-14) -- poll=1 is a long-poll and jina cannot
+hold the connection. since=all returns the retained window immediately.
+On total transport failure (direct blocked AND jina blocked), the module
+falls back to Wayback CDX (http://web.archive.org/cdx, port 80 works
+per workspace TOOLS.md) for HISTORICAL existence/content only.
 Any transport gap is reported on stderr and in each hit's provenance;
 scans that only achieved the gap outcome emit zero hits, never a
 "no fleet activity" claim.
@@ -107,20 +108,34 @@ def _poll_topic(topic: str):
 
 
 def _jina_relay(topic: str):
-    """Attempt the r.jina.ai relay of the same JSON poll.
+    """Fetch the topic's retained messages via the r.jina.ai relay.
 
-    Known outcome (verified 2026-10-14): jina cannot fetch ntfy.sh and
-    returns 422 AssertionFailureError. Kept as an attempted step so the
-    gap is re-checked rather than assumed on every run."""
-    inner = f"https://ntfy.sh/{urllib.parse.quote(topic, safe='')}/json?poll=1"
+    WORKING ROUTE (verified 2026-10-17): jina returns HTTP 200 for
+    https://r.jina.ai/https://ntfy.sh/<topic>/json?since=all --
+    newline-delimited JSON, same shape as a direct poll. The earlier
+    ?poll=1 form failed (jina 422 "Unexpected empty file", verified
+    2026-10-14) because poll=1 is a long-poll: jina cannot hold the
+    connection open. since=all returns the retained window immediately.
+    Returns (status, payload): 'ok' with list of message dicts,
+    'empty', or 'blocked'."""
+    inner = f"https://ntfy.sh/{urllib.parse.quote(topic, safe='')}/json?since=all"
     url = "https://r.jina.ai/" + inner
     req = urllib.request.Request(url, headers=UA)
     try:
         with urllib.request.urlopen(req, timeout=45) as resp:
             body = resp.read().decode("utf-8", "replace")
-        return "ok", body[:200]
     except (urllib.error.URLError, OSError, TimeoutError) as e:
         return "blocked", str(e)
+    msgs = []
+    for line in body.splitlines():
+        line = line.strip()
+        if not line:
+            continue
+        try:
+            msgs.append(json.loads(line))
+        except json.JSONDecodeError:
+            continue
+    return ("empty" if not msgs else "ok"), msgs
 
 
 def _cdx_lookup(topic: str, prefix: bool = False):
@@ -275,8 +290,9 @@ def scan(since_hours: float = 24, seen_ids=None, dry_run: bool = False):
               f"(retention-limited to ~{RETENTION_HOURS}h)")
         for t in topics:
             print(f"  WOULD poll: https://ntfy.sh/{t}/json?poll=1")
-            print(f"    fallback: r.jina.ai relay of same URL "
-                  f"(known-fail 422, re-checked each run)")
+            print(f"    fallback: r.jina.ai relay "
+                  f"https://r.jina.ai/https://ntfy.sh/{t}/json?since=all "
+                  f"(working route, verified 2026-10-17)")
             print(f"    fallback: CDX http://web.archive.org/cdx/search/cdx"
                   f"?url=ntfy.sh/{t}&output=json (historical only)")
         print("  WOULD probe candidate patterns (CDX prefix, "
@@ -298,22 +314,44 @@ def scan(since_hours: float = 24, seen_ids=None, dry_run: bool = False):
         transport_note = "direct ntfy.sh poll"
         if status == "blocked":
             print(f"  [gap] ntfy.sh blocked ({payload[:80]}); "
-                  f"trying fallbacks for {topic}", file=sys.stderr)
+                  f"trying jina relay for {topic}", file=sys.stderr)
             jstatus, jpayload = _jina_relay(topic)
             time.sleep(DELAY)
-            cdx_ok, captures = _cdx_lookup(topic)
-            time.sleep(DELAY)
-            print(f"  [gap] {topic}: jina relay -> {jstatus} "
-                  f"({str(jpayload)[:70]}); "
-                  f"CDX -> {'ok, %d captures' % len(captures) if cdx_ok else 'failed'}",
-                  file=sys.stderr)
-            transport_note = (
-                "TRANSPORT GAP: ntfy.sh blocked at egress (HTTP 000); "
-                "jina relay failed (known 422); "
-                f"CDX archive lookup: {len(captures) if cdx_ok else 'failed'} "
-                "historical captures. No live poll possible -- "
-                "absence of hits here is a gap, not a clean negative.")
-            continue  # no live data; do not fabricate hits from archive
+            if jstatus == "blocked":
+                cdx_ok, captures = _cdx_lookup(topic)
+                time.sleep(DELAY)
+                print(f"  [gap] {topic}: jina relay blocked "
+                      f"({str(jpayload)[:70]}); "
+                      f"CDX -> {'ok, %d captures' % len(captures) if cdx_ok else 'failed'}",
+                      file=sys.stderr)
+                transport_note = (
+                    "TRANSPORT GAP: ntfy.sh blocked at egress; "
+                    "jina relay also blocked; "
+                    f"CDX archive lookup: {len(captures) if cdx_ok else 'failed'} "
+                    "historical captures. No live poll possible -- "
+                    "absence of hits here is a gap, not a clean negative.")
+                continue  # no live data; do not fabricate hits from archive
+            # jina relay worked -- score the retained messages
+            transport_note = "r.jina.ai relay of ntfy.sh JSON (?since=all)"
+            if jstatus == "empty":
+                print(f"  [ok] {topic}: jina relay: no messages in window",
+                      file=sys.stderr)
+                continue
+            print(f"  [ok] {topic}: jina relay returned "
+                  f"{len(jpayload)} message(s)", file=sys.stderr)
+            for msg in jpayload:
+                mtime = _msg_time(msg)
+                if mtime is not None and mtime < cutoff:
+                    continue
+                matched = _score_message(msg)
+                if not matched:
+                    continue
+                key = f"ntfy:{topic}:{msg.get('id', '?')}"
+                if C.is_new(seen_ids, key):
+                    C.mark_seen(seen_ids, key)
+                    hits.append(_make_hit(topic, msg, matched,
+                                          transport_note, scanned_at, config))
+            continue
         if status == "empty":
             print(f"  [ok] {topic}: no messages in window", file=sys.stderr)
             continue
