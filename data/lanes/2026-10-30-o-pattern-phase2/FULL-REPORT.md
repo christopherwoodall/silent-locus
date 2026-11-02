@@ -994,13 +994,33 @@ judgment from §6 stands: the Oct 26 urlscan-crawl corpus-count drift
 freeze; this push introduces no unexplained move (before/after counts
 reconcile exactly to this job's 44 new records).
 
-Push: commit [TO FILL] on main, pushed [TO FILL UTC]. Remote HEAD
-verification: [TO FILL — remote HEAD match yes/no, blob SHA match
-yes/no, via the API]. Commit set (explicit pathspecs only): the lane
-directory, this job's 5 exported batch directories, and the
-FULL-REPORT.md copy in the lane. No other paths.
+Push: commit c6c95cd0d6ff2573cd8ce571515b06621ad0cbe5 on main,
+pushed 2026-10-30T06:12:20Z (API commit time). Remote HEAD
+verification: yes — git ls-remote and the API ref both return
+c6c95cd0..., commit tree 4270f4adb710cbfcfadaa0060563f0ffd8b527b6
+verified, TXT blob present via API (200, 189,356 bytes). Push method:
+git-database API via the silent-locus connector (git-protocol push
+auth fails from this checkout; see the WEBP gap below). This
+section's push fields were filled in a follow-up commit (see git log
+for the lane FULL-REPORT.md). Commit set (explicit pathspecs only):
+the lane directory, this job's 5 exported batch directories, and the
+FULL-REPORT.md copy in the lane (49 of 50 files; the WEBP blob path
+is the documented exception below). No other paths.
 
 Items left out of the push, with reasons:
+
+- WEBP blob bytes on the remote (62,243,550 bytes,
+  data/blobs/sha256/66/66a713ce8d11889a3c79cfd4664b1902a3f3665eb224aa7d69ba450659f14f8d):
+  present locally and in local commit 419e0858, but NOT on the remote
+  after this push. The GitHub API rejects the blob on both the blobs
+  endpoint and the contents endpoint (422, too large), and
+  git-protocol push auth fails from this checkout (PAT invalid for
+  writes). The WEBP artifact record, source, and observation ARE on
+  the remote; only the blob bytes are missing. Remedy: a
+  git-protocol push from an authorized checkout adding that one new
+  path — no conflicts (the path is new on the remote). Local commit
+  419e0858 holds the complete 50-file set; remote commit c6c95cd0...
+  holds 49 of 50.
 
 - The four phase-1 raw infra files (`raw/infra/*.html`): they contain
   credential-like token values (see §8, C3). Excluded by the token
